@@ -9,7 +9,7 @@ float3 cameraDir;
 float zNear = 1;
 float zFar = 300;
 
-int steps = 8;
+#define STEPS 40
 
 Texture2D normalMap;
 //depth
@@ -86,30 +86,35 @@ float3 rayTrace(float3 reflectionVector, float startDepth, float2 vert_UV)
 {
 
     float3 color = float3(0, 0, 0);
-    float stepSize = 0.5f;
+    float stepSize = 0.0005f;
 
-    float size = length(reflectionVector.xyz);
+    float size = length(reflectionVector.xy);
 
-    reflectionVector = normalize(reflectionVector);
+    reflectionVector = normalize(reflectionVector / size);
     reflectionVector = reflectionVector * stepSize;
 
     float2 sampledPosition = vert_UV;
 
     float currentDepth = startDepth;
 
-    while (sampledPosition.x <= 1.0 && sampledPosition.x >= 0.0 && 
-        sampledPosition.y <= 1.0 && sampledPosition.y >= 0.0)
+    [unroll]
+    for (int i = 0; i < STEPS; i++)
     {
+        if
+        (sampledPosition.x > 1.0 || sampledPosition.x < 0.0 ||
+        sampledPosition.y > 1.0 || sampledPosition.y < 0.0)
+            break;
         sampledPosition = sampledPosition + reflectionVector.xy;
 
-        currentDepth = currentDepth + reflectionVector.z * startDepth;
+        currentDepth = currentDepth - reflectionVector.z;
 
-        float sampledDepth = linearDepth(depthMap.Sample(depthSampler, sampledPosition).r);
+        float sampledDepth = linearDepth(1-depthMap.Sample(depthSampler, sampledPosition).r);
 
         if (currentDepth > sampledDepth)
         {
+            
             float delta = (currentDepth - sampledDepth);
-            if(delta < 0.003f)
+            if (delta >  0.003f)
             {
                 color = colorMap.Sample(colorSampler, sampledPosition).rgb;
                 break;
@@ -117,7 +122,6 @@ float3 rayTrace(float3 reflectionVector, float startDepth, float2 vert_UV)
             }
 
         }
-
     }
     return color;
 
@@ -126,48 +130,67 @@ float3 rayTrace(float3 reflectionVector, float startDepth, float2 vert_UV)
 
 float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 {
+    float3 diffuseColor = colorMap.Sample(colorSampler, input.TexCoord).rgb;
     /*float3 diffuseColor = colorMap.Sample(colorSampler, input.TexCoord).rgb;
     float depth = depthMap.Sample(depthSampler, input.TexCoord).r;
     float3 normal = normalMap.Sample(normalSampler, input.TexCoord).rgb;
 
+      */
+    //float3 origin = mul(float4(input.Position), InvertViewProjection).xyz;
+    
+    ////float3 ray = normalize(reflect(input.viewRay, normal));
 
-    float3 origin = mul(float4(input.Position), InvertViewProjection).xyz;
-    //Raymarch
-    float3 ray = normalize(reflect(input.viewRay, normal));
+    //float cameraToWorld = origin- cameraPosition;
 
-    float cameraToWorld = origin- cameraPosition;
+    ////float scaleNormal = max(3.0f, cameraToWorld * 1.5f);
 
-    float scaleNormal = max(3.0f, cameraToWorld * 1.5f);
+    //float3 cameraToWorldNorm = normalize(cameraToWorld);
 
-    float3 cameraToWorldNorm = normalize(cameraToWorld);
+    //float3 refl = normalize(reflect(cameraToWorldNorm, normal));
 
-    float3 refl = normalize(reflect(cameraToWorldNorm, normal));
+    //if(dot(refl, cameraToWorldNorm) < 0.5f )
+    //{
+    //    return float4(input.viewRay.xy, depth, 1);
+    //}
 
-    if(dot(refl, cameraToWorldNorm) < 0.5f )
-    {
-        return float4(input.viewRay.xy, depth, 1);
-    }
+    ////CameraDirectioN!
+    //float3 cameraDirection = normalize(cameraPosition - input.Position.xyz);
 
-    //CameraDirectioN!
-    float3 cameraDirection = normalize(cameraPosition - input.Position.xyz);
-
-    return float4(diffuseColor,1+depth);  */
+    //return float4(diffuseColor,1+depth);  */
 
     //Clip to the near plane
 
     float3 reflectedColor = float3(0, 0, 0);
 
-    float3 normal = normalMap.Sample(normalSampler, input.TexCoord).rgb;
+    input.Position.xy /= input.Position.w;
 
-    float currDepth = linearDepth(depthMap.Sample(depthSampler, input.TexCoord).r);
+    float3 normal = (normalMap.Sample(normalSampler, input.TexCoord).rgb *2)-1;
 
-    float3 eyePosition = normalize(float3(0, 0, zNear));
+    float currDepth = 1 - depthMap.Sample(depthSampler, input.TexCoord).r; // linearDepth(1-depthMap.Sample(depthSampler, input.TexCoord).r);
 
-    float4 reflectionVector =  mul(reflect(-eyePosition, normal), ViewProjection);
+    //float4 position;
+    //position.xy =  input.Position.xy;
+    //position.z = currDepth;
+    //position.w = 1.0f;
+    ////transform to world space
+    //position = mul(position, InvertViewProjection);
+    //position /= position.w;
 
-    reflectedColor = rayTrace(reflectionVector.xyz, currDepth, input.TexCoord);
+    float3 cameraToWorldNorm = normalize(cameraDir);
 
-    return reflectedColor;
+    //float3 eyePosition = normalize(float3(0, 0, zNear));
+
+    //float3 reflectionVector = mul(float4(reflect(-eyePosition, normal), 0), ViewProjection).xyz;
+
+    float3 reflectionVector = mul(float4(reflect(cameraToWorldNorm, normal), 0), ViewProjection).xyz;
+    
+    reflectedColor = rayTrace(reflectionVector.xyz, linearDepth(currDepth), input.TexCoord);
+
+    //float Ndot = saturate(dot(cameraToWorldNorm, normal));
+
+    float luma = 0.3 * diffuseColor.r + 0.6 * diffuseColor.g + 0.1 * diffuseColor.b;
+
+    return float4(luma, luma, luma, 0) + float4(reflectedColor, 1);
 }
 
 

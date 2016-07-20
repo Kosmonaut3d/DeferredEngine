@@ -319,12 +319,12 @@ namespace EngineTest.Renderer
         private void DrawReflection()
         {
             _graphicsDevice.SetRenderTarget(null);
-            //_raymarchingEffect.Parameters["cameraPosition"].SetValue(_camera.Position);
+
             _raymarchingEffect.Parameters["InvertViewProjection"].SetValue(Matrix.Invert(_view * _projection));
             _raymarchingEffect.Parameters["ViewProjection"].SetValue(_view * _projection);
             _raymarchingEffect.Parameters["Projection"].SetValue(_projection);
-            //_raymarchingEffect.Parameters["cameraPosition"].SetValue(_camera.Position);
-            //_raymarchingEffect.Parameters["cameraDirection"].SetValue(_camera.Lookat-_camera.Position);
+            _raymarchingEffect.Parameters["cameraPosition"].SetValue(_camera.Position);
+            _raymarchingEffect.Parameters["cameraDir"].SetValue(_camera.Lookat-_camera.Position);
             _raymarchingEffect.CurrentTechnique.Passes[0].Apply();
             quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
         }
@@ -336,7 +336,7 @@ namespace EngineTest.Renderer
             _deferredLight.Parameters["normalMap"].SetValue(_renderTargetNormal);
             _deferredLight.Parameters["depthMap"].SetValue(_renderTargetDepth);
 
-            //_raymarchingEffect.Parameters["colorMap"].SetValue(_renderTargetFinal);
+            _raymarchingEffect.Parameters["colorMap"].SetValue(_renderTargetFinal);
             _raymarchingEffect.Parameters["normalMap"].SetValue(_renderTargetNormal);
             //_raymarchingEffect.Parameters["depthMap"].SetValue(_renderTargetDepth);
 
