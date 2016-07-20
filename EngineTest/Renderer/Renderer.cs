@@ -32,6 +32,8 @@ namespace EngineTest.Renderer
 
         private QuadRenderer quadRenderer;
 
+        private float currentRoughness = 0.3f;
+
         private bool PBR = true;
 
         private RenderModes _renderMode;
@@ -73,6 +75,9 @@ namespace EngineTest.Renderer
         private Effect _deferredCompose;
 
         private Random random = new Random(1231);
+        private Effect _raymarchingEffect;
+        private RenderTarget2D _renderTargetFinal;
+        private RenderTargetBinding[] _renderTargetFinalBinding = new RenderTargetBinding[1];
 
         private enum RenderModes { Default, Albedo, Normal, Depth, Deferred, Diffuse, Specular};
 
@@ -92,6 +97,8 @@ namespace EngineTest.Renderer
 
             _lightingEffect = content.Load<Effect>("LightingEffect");
             clearBufferEffect = content.Load<Effect>("ClearGBuffer");
+
+            _raymarchingEffect = content.Load<Effect>("RayMarchReflection");
 
             LightBlendState = new BlendState
             {
@@ -114,10 +121,11 @@ namespace EngineTest.Renderer
 
             _renderMode = RenderModes.Deferred;
 
+            pointLights.Add(new PointLight(new Vector3(-10, 0, -50), 200, Color.White, 2));
+
             pointLights.Add(new PointLight(new Vector3(40,10,-10),40,Color.White,4));
             pointLights.Add(new PointLight(new Vector3(20, 0, -10), 40, Color.BlueViolet, 4));
             pointLights.Add(new PointLight(new Vector3(-20, -5, -5), 40, Color.Yellow, 4));
-            pointLights.Add(new PointLight(new Vector3(-10, 0, -50), 200, Color.White, 2));
             InitializePointLights();
             
         }
@@ -145,6 +153,12 @@ namespace EngineTest.Renderer
 
                 _camera.Forward -= y*mouseAmount*_camera.Up;
                 _camera.Forward.Normalize();
+            }
+
+            for (var i = 1; i < pointLights.Count; i++)
+            {
+                PointLight point = pointLights[i];
+                point.Position.Z = (float) (Math.Sin(gameTime.TotalGameTime.TotalSeconds*0.8f + i)*5 - 10);
             }
 
             
@@ -273,6 +287,8 @@ namespace EngineTest.Renderer
                     DrawMapToScreenToTarget(_renderTargetDiffuse, null);
                 if(_renderMode == RenderModes.Specular)
                     DrawMapToScreenToTarget(_renderTargetSpecular, null);
+
+                DrawReflection();
             }
             
             //else //GI!
@@ -300,12 +316,30 @@ namespace EngineTest.Renderer
             
         }
 
+        private void DrawReflection()
+        {
+            _graphicsDevice.SetRenderTarget(null);
+            //_raymarchingEffect.Parameters["cameraPosition"].SetValue(_camera.Position);
+            _raymarchingEffect.Parameters["InvertViewProjection"].SetValue(Matrix.Invert(_view * _projection));
+            _raymarchingEffect.Parameters["ViewProjection"].SetValue(_view * _projection);
+            _raymarchingEffect.Parameters["Projection"].SetValue(_projection);
+            //_raymarchingEffect.Parameters["cameraPosition"].SetValue(_camera.Position);
+            //_raymarchingEffect.Parameters["cameraDirection"].SetValue(_camera.Lookat-_camera.Position);
+            _raymarchingEffect.CurrentTechnique.Passes[0].Apply();
+            quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+        }
+
         private void InitializePointLights()
         {
 
             _deferredLight.Parameters["colorMap"].SetValue(_renderTargetAlbedo);
             _deferredLight.Parameters["normalMap"].SetValue(_renderTargetNormal);
             _deferredLight.Parameters["depthMap"].SetValue(_renderTargetDepth);
+
+            //_raymarchingEffect.Parameters["colorMap"].SetValue(_renderTargetFinal);
+            _raymarchingEffect.Parameters["normalMap"].SetValue(_renderTargetNormal);
+            //_raymarchingEffect.Parameters["depthMap"].SetValue(_renderTargetDepth);
+
 
             _deferredCompose.Parameters["colorMap"].SetValue(_renderTargetAlbedo);
             _deferredCompose.Parameters["diffuseLightMap"].SetValue(_renderTargetDiffuse);
@@ -332,8 +366,8 @@ namespace EngineTest.Renderer
                 DrawPointLight(light);
             }
 
-            _graphicsDevice.SetRenderTarget(null);
-            //combine!
+            _graphicsDevice.SetRenderTargets(_renderTargetFinalBinding);
+                //combine!
             _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
 
             _deferredCompose.CurrentTechnique.Passes[0].Apply();
@@ -558,7 +592,7 @@ namespace EngineTest.Renderer
                        _lightingEffectWorldViewProj.SetValue(world * _view * _projection);
 
                        _lightingEffect.Parameters["F0"].SetValue(0.1f);
-                       _lightingEffect.Parameters["Roughness"].SetValue(0.3f);
+                       _lightingEffect.Parameters["Roughness"].SetValue(effect.Roughness);
 
                        if (drake)
                        {
@@ -651,7 +685,12 @@ namespace EngineTest.Renderer
                _graphicsDevice.PresentationParameters.BackBufferHeight, false, SurfaceFormat.Vector4, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
 
             _renderTargetLightBinding[0] = new RenderTargetBinding(_renderTargetDiffuse);
-            _renderTargetLightBinding[1] = new RenderTargetBinding(_renderTargetSpecular); 
+            _renderTargetLightBinding[1] = new RenderTargetBinding(_renderTargetSpecular);
+
+            _renderTargetFinal = new RenderTarget2D(_graphicsDevice, _graphicsDevice.PresentationParameters.BackBufferWidth,
+               _graphicsDevice.PresentationParameters.BackBufferHeight, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+
+            _renderTargetFinalBinding[0] = new RenderTargetBinding(_renderTargetFinal);
          }
 
         private void ClearGBuffer()

@@ -117,6 +117,11 @@ namespace EngineTest.Recources
 
                             string compare = name[2].Replace("_0", "");
 
+                            if (compare.Contains("vase"))
+                            {
+                                matEffect.Roughness = 0.1f;
+                            }
+
                             if (compare.Contains("_diff"))
                             {
                                 compare = compare.Replace("_diff", "");
