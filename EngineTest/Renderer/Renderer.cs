@@ -32,18 +32,15 @@ namespace EngineTest.Renderer
 
         private QuadRenderer quadRenderer;
 
+        private bool PBR = true;
+
         private RenderModes _renderMode;
         private int _renderModeCycle = 1;
 
         private Vector3 _lightPosition;
         
         //Light
-
-        private float lightRadius = 180;
-
-        float lightIntensity = 2;
-
-        private bool lightStopped = false;
+        private List<PointLight> pointLights = new List<PointLight>();
 
 
         //Matrices
@@ -69,8 +66,15 @@ namespace EngineTest.Renderer
         private RenderTarget2D _renderTargetLightDepth;
         private Effect _deferredLightGI;
         private Effect _deferredCombine;
+        private RenderTarget2D _renderTargetDiffuse;
+        private RenderTarget2D _renderTargetSpecular;
+        private RenderTargetBinding[] _renderTargetLightBinding = new RenderTargetBinding[2];
+        public BlendState LightBlendState;
+        private Effect _deferredCompose;
 
-        private enum RenderModes { Default, Albedo, Normal, Depth, Deferred, LightReflection, LightDepth, Combined};
+        private Random random = new Random(1231);
+
+        private enum RenderModes { Default, Albedo, Normal, Depth, Deferred, Diffuse, Specular};
 
         public Renderer(GraphicsDevice graphicsDevice, ContentManager content)
         {
@@ -81,10 +85,22 @@ namespace EngineTest.Renderer
             _art.Load(content);
 
             _deferredLight = content.Load<Effect>("DeferredPointLight");
-            _deferredLightGI = content.Load<Effect>("DeferredPointLightGI");
-            _deferredCombine = content.Load<Effect>("DeferredRecombine");
+            _deferredCompose = content.Load<Effect>("DeferredCompose");
+
+            //_deferredLightGI = content.Load<Effect>("DeferredPointLightGI");
+            //_deferredCombine = content.Load<Effect>("DeferredRecombine");
+
             _lightingEffect = content.Load<Effect>("LightingEffect");
             clearBufferEffect = content.Load<Effect>("ClearGBuffer");
+
+            LightBlendState = new BlendState
+            {
+                AlphaSourceBlend = Blend.One,
+                ColorSourceBlend = Blend.One,
+                ColorDestinationBlend = Blend.One,
+                AlphaDestinationBlend = Blend.One
+            };
+            
             
 
             quadRenderer = new QuadRenderer();
@@ -97,14 +113,19 @@ namespace EngineTest.Renderer
             SetUpRenderTargets();
 
             _renderMode = RenderModes.Deferred;
+
+            pointLights.Add(new PointLight(new Vector3(40,10,-10),40,Color.White,4));
+            pointLights.Add(new PointLight(new Vector3(20, 0, -10), 40, Color.BlueViolet, 4));
+            pointLights.Add(new PointLight(new Vector3(-20, -5, -5), 40, Color.Yellow, 4));
+            pointLights.Add(new PointLight(new Vector3(-10, 0, -50), 200, Color.White, 2));
+            InitializePointLights();
             
         }
 
+
         public void Update(GameTime gameTime, GameWindow window)
         {
-            if(!lightStopped)
-            _lightPosition = new Vector3((float) (Math.Sin(gameTime.TotalGameTime.TotalSeconds*0.5f)*40),10,-5);
-
+            
             mouseState = Mouse.GetState();
             keyboardState = Keyboard.GetState();
 
@@ -137,6 +158,13 @@ namespace EngineTest.Renderer
                 _camera.Position += direction*amount;
             }
 
+            if (keyboardState.IsKeyDown(Keys.L))
+            {
+                pointLights.Add(new PointLight(new Vector3((float) (random.NextDouble()*250-125), (float) (random.NextDouble()*50-25), (float) (-random.NextDouble()*10)-3), 20, new Color(random.Next(255),random.Next(255),random.Next(255)), 2));
+
+                window.Title = pointLights.Count + "";
+            }
+
             if (keyboardState.IsKeyDown(Keys.S))
             {
                 _camera.Position -= direction * amount;
@@ -152,10 +180,18 @@ namespace EngineTest.Renderer
                 _camera.Position -= normal * amountNormal;
             }
 
+            if (keyboardState.IsKeyDown(Keys.F5) && keyboardLastState.IsKeyUp(Keys.F5))
+            {
+                PBR = !PBR;
+                _deferredLight.CurrentTechnique = PBR ? _deferredLight.Techniques["PBR"] : _deferredLight.Techniques["Classic"];
+
+                window.Title = "PBR = "+PBR.ToString();
+            }
+
             if (keyboardState.IsKeyDown(Keys.F1) && keyboardLastState.IsKeyUp(Keys.F1))
             {
                 _renderModeCycle++;
-                if (_renderModeCycle > 7) _renderModeCycle = 0;
+                if (_renderModeCycle > 6) _renderModeCycle = 0;
 
                 switch (_renderModeCycle)
                 {
@@ -167,14 +203,11 @@ namespace EngineTest.Renderer
                         break;
                     case 3: _renderMode = RenderModes.Depth;
                         break;
-                    case 4: _renderMode = RenderModes.LightReflection;
+                    case 4: _renderMode = RenderModes.Diffuse;
                         break;
-                    case 5: _renderMode = RenderModes.LightDepth;
+                    case 5: _renderMode = RenderModes.Specular;
                         break;
                     case 6: _renderMode = RenderModes.Deferred;
-                        break;
-                    case 7:
-                        _renderMode = RenderModes.Combined;
                         break;
 
 
@@ -183,16 +216,16 @@ namespace EngineTest.Renderer
                 window.Title = _renderMode.ToString();
             }
 
-            if (keyboardState.IsKeyDown(Keys.Space) && keyboardLastState.IsKeyUp(Keys.Space))
-            {
-                lightStopped = !lightStopped;
-            }
+            //if (keyboardState.IsKeyDown(Keys.Space) && keyboardLastState.IsKeyUp(Keys.Space))
+            //{
+            //    lightStopped = !lightStopped;
+            //}
 
-            if (keyboardState.IsKeyDown(Keys.F2) && keyboardLastState.IsKeyUp(Keys.F2))
-            {
-                _renderMode = _renderMode == RenderModes.Deferred ? RenderModes.Combined : RenderModes.Deferred;
-                window.Title = _renderMode.ToString();
-            }
+            //if (keyboardState.IsKeyDown(Keys.F2) && keyboardLastState.IsKeyUp(Keys.F2))
+            //{
+            //    _renderMode = _renderMode == RenderModes.Deferred ? RenderModes.Combined : RenderModes.Deferred;
+            //    window.Title = _renderMode.ToString();
+            //}
 
             mouseLastState = mouseState;
             keyboardLastState = keyboardState;
@@ -215,6 +248,8 @@ namespace EngineTest.Renderer
 
             _graphicsDevice.Clear(Color.AliceBlue);
 
+            _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+
             DrawModels();
 
 
@@ -225,122 +260,188 @@ namespace EngineTest.Renderer
                 DrawMapToScreenToTarget(_renderTargetNormal, null);
             else if (_renderMode == RenderModes.Depth)
                 DrawMapToScreenToTarget(_renderTargetDepth, null);
-            else if (_renderMode == RenderModes.Deferred)
+            else //if (_renderMode == RenderModes.Deferred)
             {
 
-                _graphicsDevice.SetRenderTarget(null);
-                DrawPointLight();
-            }
-            else //GI!
-            {
+                //_graphicsDevice.SetRenderTarget(null);
+                //DrawPointLight();
                 
-                _graphicsDevice.SetRenderTargets(_renderTargetBinding2);
-                DrawPointLightGI();
+                _graphicsDevice.SetRenderTargets(_renderTargetLightBinding);
+                DrawPointLights();
 
-                if (_renderMode == RenderModes.LightReflection)
-                {
-                    DrawMapToScreenToTarget(_renderTargetLightReflection, null);
-                }
-                else if (_renderMode == RenderModes.LightDepth)
-                {
-                    DrawMapToScreenToTarget(_renderTargetLightDepth, null);
-                }
-                else if (_renderMode == RenderModes.Combined)
-                {
-                    _graphicsDevice.SetRenderTarget(null);
-                    CombineRender();
-                }
-
+                if(_renderMode == RenderModes.Diffuse)
+                    DrawMapToScreenToTarget(_renderTargetDiffuse, null);
+                if(_renderMode == RenderModes.Specular)
+                    DrawMapToScreenToTarget(_renderTargetSpecular, null);
             }
+            
+            //else //GI!
+            //{
+                
+            //    _graphicsDevice.SetRenderTargets(_renderTargetBinding2);
+            //    DrawPointLightGI();
+
+            //    if (_renderMode == RenderModes.LightReflection)
+            //    {
+            //        DrawMapToScreenToTarget(_renderTargetLightReflection, null);
+            //    }
+            //    else if (_renderMode == RenderModes.LightDepth)
+            //    {
+            //        DrawMapToScreenToTarget(_renderTargetLightDepth, null);
+            //    }
+            //    else if (_renderMode == RenderModes.Combined)
+            //    {
+            //        _graphicsDevice.SetRenderTarget(null);
+            //        CombineRender();
+            //    }
+
+            //}
 
             
         }
 
-        private void CombineRender()
+        private void InitializePointLights()
         {
-            _deferredCombine.Parameters["colorMap"].SetValue(_renderTargetAccumulation);
-            _deferredCombine.Parameters["lightReflectionMap"].SetValue(_renderTargetLightReflection);
-            _deferredCombine.Parameters["lightDepthMap"].SetValue(_renderTargetLightDepth);
-            _deferredCombine.Parameters["depthMap"].SetValue(_renderTargetDepth);
 
-            Vector3 lightPosition = _lightPosition;
-
-            Matrix sphereWorldMatrix = Matrix.CreateScale(lightRadius) * Matrix.CreateTranslation(lightPosition);
-            _deferredCombine.Parameters["World"].SetValue(sphereWorldMatrix);
-            _deferredCombine.Parameters["View"].SetValue(_view);
-            _deferredCombine.Parameters["Projection"].SetValue(_projection);
-            //light position
-            _deferredCombine.Parameters["lightPosition"].SetValue(lightPosition);
-            //set the color, radius and Intensity
-            _deferredCombine.Parameters["lightColor"].SetValue(Vector3.One);
-            _deferredCombine.Parameters["lightRadius"].SetValue(lightRadius);
-            _deferredCombine.Parameters["lightIntensity"].SetValue(lightIntensity);
-            //parameters for specular computations
-            _deferredCombine.Parameters["InvertViewProjection"].SetValue(Matrix.Invert(_view * _projection));
-
-            _deferredCombine.CurrentTechnique.Passes[0].Apply();
-            quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
-        }
-
-        private void DrawPointLight()
-        {
-            //Could be done once at the beginning
             _deferredLight.Parameters["colorMap"].SetValue(_renderTargetAlbedo);
             _deferredLight.Parameters["normalMap"].SetValue(_renderTargetNormal);
             _deferredLight.Parameters["depthMap"].SetValue(_renderTargetDepth);
 
-            Vector3 lightPosition = _lightPosition;
+            _deferredCompose.Parameters["colorMap"].SetValue(_renderTargetAlbedo);
+            _deferredCompose.Parameters["diffuseLightMap"].SetValue(_renderTargetDiffuse);
+            _deferredCompose.Parameters["specularLightMap"].SetValue(_renderTargetSpecular);
+        }
 
-            Matrix sphereWorldMatrix = Matrix.CreateScale(lightRadius) * Matrix.CreateTranslation(lightPosition);
-            _deferredLight.Parameters["World"].SetValue(sphereWorldMatrix);
+        private void DrawPointLights()
+        {
+            _graphicsDevice.Clear(Color.TransparentBlack);
+
+            _graphicsDevice.BlendState = LightBlendState;
+
             _deferredLight.Parameters["View"].SetValue(_view);
             _deferredLight.Parameters["Projection"].SetValue(_projection);
-            //light position
-            _deferredLight.Parameters["lightPosition"].SetValue(lightPosition);
-            //set the color, radius and Intensity
-            _deferredLight.Parameters["lightColor"].SetValue(Vector3.One);
-            _deferredLight.Parameters["lightRadius"].SetValue(lightRadius);
-            _deferredLight.Parameters["lightIntensity"].SetValue(lightIntensity);
-            //parameters for specular computations
+
             _deferredLight.Parameters["cameraPosition"].SetValue(_camera.Position);
             _deferredLight.Parameters["cameraDirection"].SetValue(_camera.Forward);
             _deferredLight.Parameters["InvertViewProjection"].SetValue(Matrix.Invert(_view * _projection));
 
-            _deferredLight.CurrentTechnique.Passes[0].Apply();
+            _graphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
+
+            foreach (PointLight light in pointLights)
+            {
+                DrawPointLight(light);
+            }
+
+            _graphicsDevice.SetRenderTarget(null);
+            //combine!
+            _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+
+            _deferredCompose.CurrentTechnique.Passes[0].Apply();
             quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
 
+            //DrawMapToScreenToTarget(_renderTargetSpecular, null);
         }
 
-        private void DrawPointLightGI()
+        //private void CombineRender()
+        //{
+        //    _deferredCombine.Parameters["colorMap"].SetValue(_renderTargetAccumulation);
+        //    _deferredCombine.Parameters["lightReflectionMap"].SetValue(_renderTargetLightReflection);
+        //    _deferredCombine.Parameters["lightDepthMap"].SetValue(_renderTargetLightDepth);
+        //    _deferredCombine.Parameters["depthMap"].SetValue(_renderTargetDepth);
+
+        //    Vector3 lightPosition = _lightPosition;
+
+        //    Matrix sphereWorldMatrix = Matrix.CreateScale(lightRadius) * Matrix.CreateTranslation(lightPosition);
+        //    _deferredCombine.Parameters["World"].SetValue(sphereWorldMatrix);
+        //    _deferredCombine.Parameters["View"].SetValue(_view);
+        //    _deferredCombine.Parameters["Projection"].SetValue(_projection);
+        //    //light position
+        //    _deferredCombine.Parameters["lightPosition"].SetValue(lightPosition);
+        //    //set the color, radius and Intensity
+        //    _deferredCombine.Parameters["lightColor"].SetValue(Vector3.One);
+        //    _deferredCombine.Parameters["lightRadius"].SetValue(lightRadius);
+        //    _deferredCombine.Parameters["lightIntensity"].SetValue(lightIntensity);
+        //    //parameters for specular computations
+        //    _deferredCombine.Parameters["InvertViewProjection"].SetValue(Matrix.Invert(_view * _projection));
+
+        //    _deferredCombine.CurrentTechnique.Passes[0].Apply();
+        //    quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+        //}
+
+        private void DrawPointLight(PointLight light)
         {
-            //Could be done once at the beginning
-            _deferredLightGI.Parameters["colorMap"].SetValue(_renderTargetAlbedo);
-            _deferredLightGI.Parameters["normalMap"].SetValue(_renderTargetNormal);
-            _deferredLightGI.Parameters["depthMap"].SetValue(_renderTargetDepth);
 
-
-            Vector3 lightPosition = _lightPosition;
-
-
-            Matrix sphereWorldMatrix = Matrix.CreateScale(lightRadius) * Matrix.CreateTranslation(lightPosition);
-            _deferredLightGI.Parameters["World"].SetValue(sphereWorldMatrix);
-            _deferredLightGI.Parameters["View"].SetValue(_view);
-            _deferredLightGI.Parameters["Projection"].SetValue(_projection);
+            Matrix sphereWorldMatrix = Matrix.CreateScale(light.Radius) * Matrix.CreateTranslation(light.Position);
+            _deferredLight.Parameters["World"].SetValue(sphereWorldMatrix);
+            
             //light position
-            _deferredLightGI.Parameters["lightPosition"].SetValue(lightPosition);
+            _deferredLight.Parameters["lightPosition"].SetValue(light.Position);
             //set the color, radius and Intensity
-            _deferredLightGI.Parameters["lightColor"].SetValue(Vector3.One);
-            _deferredLightGI.Parameters["lightRadius"].SetValue(lightRadius);
-            _deferredLightGI.Parameters["lightIntensity"].SetValue(lightIntensity);
+            _deferredLight.Parameters["lightColor"].SetValue(light.Color.ToVector3());
+            _deferredLight.Parameters["lightRadius"].SetValue(light.Radius);
+            _deferredLight.Parameters["lightIntensity"].SetValue(light.Intensity);
             //parameters for specular computations
-            _deferredLightGI.Parameters["cameraPosition"].SetValue(_camera.Position);
-            _deferredLightGI.Parameters["cameraDirection"].SetValue(_camera.Forward);
-            _deferredLightGI.Parameters["InvertViewProjection"].SetValue(Matrix.Invert(_view * _projection));
 
-            _deferredLightGI.CurrentTechnique.Passes[0].Apply();
-            quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+            _deferredLight.CurrentTechnique.Passes[0].Apply();
+            //quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+
+            float cameraToCenter = Vector3.Distance(_camera.Position, light.Position);
+
+            if (cameraToCenter < light.Radius)
+               _graphicsDevice.RasterizerState = RasterizerState.CullClockwise;
+            else
+                _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+
+            foreach (ModelMesh mesh in _art.Sphere.Meshes)
+            {
+                foreach (ModelMeshPart meshpart in mesh.MeshParts)
+                {
+                    _deferredLight.CurrentTechnique.Passes[0].Apply();
+
+                    _graphicsDevice.SetVertexBuffer(meshpart.VertexBuffer);
+                    _graphicsDevice.Indices = (meshpart.IndexBuffer);
+                    int primitiveCount = meshpart.PrimitiveCount;
+                    int vertexOffset = meshpart.VertexOffset;
+                    int vCount = meshpart.NumVertices;
+                    int startIndex = meshpart.StartIndex;
+
+                    _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset, startIndex, primitiveCount);
+                }
+            }
+
 
         }
+
+        //private void DrawPointLightGI()
+        //{
+        //    //Could be done once at the beginning
+        //    _deferredLightGI.Parameters["colorMap"].SetValue(_renderTargetAlbedo);
+        //    _deferredLightGI.Parameters["normalMap"].SetValue(_renderTargetNormal);
+        //    _deferredLightGI.Parameters["depthMap"].SetValue(_renderTargetDepth);
+
+
+        //    Vector3 lightPosition = _lightPosition;
+
+
+        //    Matrix sphereWorldMatrix = Matrix.CreateScale(lightRadius) * Matrix.CreateTranslation(lightPosition);
+        //    _deferredLightGI.Parameters["World"].SetValue(sphereWorldMatrix);
+        //    _deferredLightGI.Parameters["View"].SetValue(_view);
+        //    _deferredLightGI.Parameters["Projection"].SetValue(_projection);
+        //    //light position
+        //    _deferredLightGI.Parameters["lightPosition"].SetValue(lightPosition);
+        //    //set the color, radius and Intensity
+        //    _deferredLightGI.Parameters["lightColor"].SetValue(Vector3.One);
+        //    _deferredLightGI.Parameters["lightRadius"].SetValue(lightRadius);
+        //    _deferredLightGI.Parameters["lightIntensity"].SetValue(lightIntensity);
+        //    //parameters for specular computations
+        //    _deferredLightGI.Parameters["cameraPosition"].SetValue(_camera.Position);
+        //    _deferredLightGI.Parameters["cameraDirection"].SetValue(_camera.Forward);
+        //    _deferredLightGI.Parameters["InvertViewProjection"].SetValue(Matrix.Invert(_view * _projection));
+
+        //    _deferredLightGI.CurrentTechnique.Passes[0].Apply();
+        //    quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+
+        //}
 
         private void DrawModels()
         {
@@ -510,7 +611,6 @@ namespace EngineTest.Renderer
 
             _lightEffectView.SetValue(_view);
             _lightingEffectProjection.SetValue(_projection);
-
         }
 
         private void SetUpRenderTargets()
@@ -530,19 +630,28 @@ namespace EngineTest.Renderer
             _renderTargetBinding[1] = new RenderTargetBinding(_renderTargetNormal);
             _renderTargetBinding[2] = new RenderTargetBinding(_renderTargetDepth);
 
-            _renderTargetAccumulation = new RenderTarget2D(_graphicsDevice, _graphicsDevice.PresentationParameters.BackBufferWidth,
-                _graphicsDevice.PresentationParameters.BackBufferHeight, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+            //_renderTargetAccumulation = new RenderTarget2D(_graphicsDevice, _graphicsDevice.PresentationParameters.BackBufferWidth,
+            //    _graphicsDevice.PresentationParameters.BackBufferHeight, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
 
-            _renderTargetLightReflection = new RenderTarget2D(_graphicsDevice, _graphicsDevice.PresentationParameters.BackBufferWidth,
-                _graphicsDevice.PresentationParameters.BackBufferHeight, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+            //_renderTargetLightReflection = new RenderTarget2D(_graphicsDevice, _graphicsDevice.PresentationParameters.BackBufferWidth,
+            //    _graphicsDevice.PresentationParameters.BackBufferHeight, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
 
-            _renderTargetLightDepth = new RenderTarget2D(_graphicsDevice, _graphicsDevice.PresentationParameters.BackBufferWidth,
-                _graphicsDevice.PresentationParameters.BackBufferHeight, false, SurfaceFormat.Single, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+            //_renderTargetLightDepth = new RenderTarget2D(_graphicsDevice, _graphicsDevice.PresentationParameters.BackBufferWidth,
+            //    _graphicsDevice.PresentationParameters.BackBufferHeight, false, SurfaceFormat.Single, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
 
-            _renderTargetBinding2[0] = new RenderTargetBinding(_renderTargetAccumulation);
-            _renderTargetBinding2[1] = new RenderTargetBinding(_renderTargetLightReflection);
-            _renderTargetBinding2[2] = new RenderTargetBinding(_renderTargetLightDepth);
+            //_renderTargetBinding2[0] = new RenderTargetBinding(_renderTargetAccumulation);
+            //_renderTargetBinding2[1] = new RenderTargetBinding(_renderTargetLightReflection);
+            //_renderTargetBinding2[2] = new RenderTargetBinding(_renderTargetLightDepth);
 
+
+            _renderTargetDiffuse = new RenderTarget2D(_graphicsDevice, _graphicsDevice.PresentationParameters.BackBufferWidth,
+               _graphicsDevice.PresentationParameters.BackBufferHeight, false, SurfaceFormat.Vector4, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+
+            _renderTargetSpecular = new RenderTarget2D(_graphicsDevice, _graphicsDevice.PresentationParameters.BackBufferWidth,
+               _graphicsDevice.PresentationParameters.BackBufferHeight, false, SurfaceFormat.Vector4, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+
+            _renderTargetLightBinding[0] = new RenderTargetBinding(_renderTargetDiffuse);
+            _renderTargetLightBinding[1] = new RenderTargetBinding(_renderTargetSpecular); 
          }
 
         private void ClearGBuffer()

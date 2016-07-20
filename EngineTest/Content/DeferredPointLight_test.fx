@@ -126,6 +126,38 @@ float3 SpecularCookTorrance(float NdotL, float3 normal, float3 negativeLightDire
     return specular;
 }
 
+float3 OrenNayar(float3 normal, float3 eyeDir, float3 lightDir, float roughness, float3 lightColor)
+{
+    
+    const float PI = 3.14159;
+
+        // calculate intermediary values
+    float NdotL = dot(normal, lightDir);
+    float NdotV = dot(normal, eyeDir);
+
+    float angleVN = acos(NdotV);
+    float angleLN = acos(NdotL);
+    
+    float alpha = max(angleVN, angleLN);
+    float beta = min(angleVN, angleLN);
+    float gamma = dot(eyeDir - normal * NdotV, lightDir - normal * NdotL);
+    
+    float roughnessSquared = roughness * roughness;
+    
+        // calculate A and B
+    float A = 1.0 - 0.5 * (roughnessSquared / (roughnessSquared + 0.57));
+
+    float B = 0.45 * (roughnessSquared / (roughnessSquared + 0.09));
+ 
+    float C = sin(alpha) * tan(beta);
+    
+        // put it all together
+    float L1 = max(0.0, NdotL) * (A + B * max(0.0, gamma) * C);
+    
+        // get the final color 
+    return L1 * lightColor;
+}
+
 float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 {
     //obtain screen position

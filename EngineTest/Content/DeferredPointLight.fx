@@ -62,6 +62,11 @@ struct VertexShaderOutput
     float4 ScreenPosition : TEXCOORD0;
 };
 
+struct PixelShaderOutput
+{
+    float4 Diffuse : COLOR0;
+    float4 Specular : COLOR1;
+};
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -72,10 +77,9 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 {
     VertexShaderOutput output;
     //processing geometry coordinates
-    float4 worldPosition = mul(float4(input.Position.xyz, 1), World);
+    float4 worldPosition = mul(float4(input.Position.rgb, 1), World);
     float4 viewPosition = mul(worldPosition, View);
     output.Position = mul(viewPosition, Projection);
-    output.Position = input.Position;
     output.ScreenPosition = output.Position;
     return output;
 }
@@ -126,7 +130,37 @@ float3 SpecularCookTorrance(float NdotL, float3 normal, float3 negativeLightDire
     return specular;
 }
 
-float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
+float3 DiffuseOrenNayar(float NdotL, float3 normal, float3 lightDirection, float3 cameraDirection, float lightIntensity, float3 lightColor, float roughness)
+{
+    const float PI = 3.14159;
+    
+    // calculate intermediary values
+    float NdotV = dot(normal, cameraDirection);
+
+    float angleVN = acos(NdotV);
+    float angleLN = acos(NdotL);
+    
+    float alpha = max(angleVN, angleLN);
+    float beta = min(angleVN, angleLN);
+    float gamma = dot(cameraDirection - normal * NdotV, lightDirection - normal * NdotL);
+    
+    float roughnessSquared = roughness * roughness;
+    
+    // calculate A and B
+    float A = 1.0 - 0.5 * (roughnessSquared / (roughnessSquared + 0.57));
+
+    float B = 0.45 * (roughnessSquared / (roughnessSquared + 0.09));
+ 
+    float C = sin(alpha) * tan(beta);
+    
+    // put it all together
+    float L1 = max(0.0, NdotL) * (A + B * max(0.0, gamma) * C);
+    
+    // get the final color 
+    return L1 * lightColor* lightIntensity / 4;
+}
+
+PixelShaderOutput PixelShaderFunctionPBR(VertexShaderOutput input) : COLOR0
 {
     //obtain screen position
     input.ScreenPosition.xy /= input.ScreenPosition.w;
@@ -161,25 +195,100 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
     float attenuation = saturate(1.0f - length(lightVector) / lightRadius) * lightIntensity;
     //normalize light vector
     lightVector = normalize(lightVector);
+
+    float3 cameraDirection = normalize(cameraPosition - position.xyz);
     //compute diffuse light
     float NdL = saturate(dot(normal, lightVector));
 
-    float3 diffuseLight = NdL * lightColor.rgb;
+    float3 diffuseLight = DiffuseOrenNayar(NdL, normal, lightVector, cameraDirection, lightIntensity, lightColor, roughness); //NdL * lightColor.rgb;
     
-    float3 specular = SpecularCookTorrance(NdL, normal, lightVector, normalize(cameraPosition - position), lightIntensity, lightColor, f0, roughness);
+    float3 specular = SpecularCookTorrance(NdL, normal, lightVector, cameraDirection, lightIntensity, lightColor, f0, roughness);
     //take into account attenuation and lightIntensity.
 
     //return attenuation * lightIntensity * float4(diffuseLight.rgb, specular);
+    PixelShaderOutput output;
+    output.Diffuse.rgb = (attenuation * diffuseLight * (1 - f0)) * (f0 + 1) * (f0 + 1)  * 0.1f;
+    output.Specular.rgb = specular * attenuation          *0.1f;
 
-   return float4(color.rgb * (attenuation * diffuseLight * (1 - f0)) * (f0 + 1) * (f0 + 1) *0.5f + specular*attenuation, 1);
+    return output;
+   //return float4(color.rgb * (attenuation * diffuseLight * (1 - f0)) * (f0 + 1) * (f0 + 1) *0.5f + specular*attenuation, 1);
 
 }
 
-technique Technique1
+PixelShaderOutput PixelShaderFunctionClassic(VertexShaderOutput input) : COLOR0
+{
+    //obtain screen position
+    input.ScreenPosition.xy /= input.ScreenPosition.w;
+    //obtain textureCoordinates corresponding to the current pixel
+    //the screen coordinates are in [-1,1]*[1,-1]
+    //the texture coordinates need to be in [0,1]*[0,1]
+    float2 texCoord = 0.5f * (float2(input.ScreenPosition.x, -input.ScreenPosition.y) + 1);
+    
+    //get normal data from the normalMap
+    float4 normalData = tex2D(normalSampler, texCoord);
+    //tranform normal back into [-1,1] range
+    float3 normal = 2.0f * normalData.xyz - 1.0f; //could do mad
+    //get specular power
+    float f0 = normalData.a;
+    //get specular intensity from the colorMap
+    float4 color = tex2D(colorSampler, texCoord);
+
+    float roughness = color.a;
+    //read depth
+    float depthVal = 1 - tex2D(depthSampler, texCoord).r;
+           
+    PixelShaderOutput output;
+
+    //compute screen-space position
+        float4 position;
+        position.xy = input.ScreenPosition.xy;
+        position.z = depthVal;
+        position.w = 1.0f;
+    //transform to world space
+        position = mul(position, InvertViewProjection);
+        position /= position.w;
+    //surface-to-light vector
+        float3 lightVector = lightPosition - position.xyz;
+    //compute attenuation based on distance - linear attenuation
+        float attenuation = saturate(1.0f - length(lightVector) / lightRadius) * lightIntensity;
+    //normalize light vector
+        lightVector = normalize(lightVector);
+
+        float3 cameraDirection = normalize(cameraPosition - position.xyz);
+    //compute diffuse light
+        float NdL = saturate(dot(normal, lightVector));
+
+        float3 diffuseLight = NdL * lightColor.rgb;
+    
+        float3 reflectionVector = normalize(reflect(-lightVector, normal));
+    //camera-to-surface vector
+        float3 specular = /*(1-roughness)*/(1 - roughness) * (1 - roughness) * 4 * pow(saturate(dot(reflectionVector, cameraDirection)), (1 - roughness) * (1 - roughness) * 60); //+ (1 - NdL) * (1 - NdL) * f0;
+
+    //take into account attenuation and lightIntensity.
+
+    //return attenuation * lightIntensity * float4(diffuseLight.rgb, specular);
+        output.Diffuse.rgb = attenuation * diffuseLight * 0.1f;
+        output.Specular.rgb = specular * lightColor * attenuation * 0.1f;
+    
+    return output;
+   //return float4(color.rgb * (attenuation * diffuseLight * (1 - f0)) * (f0 + 1) * (f0 + 1) *0.5f + specular*attenuation, 1);
+
+}
+
+technique PBR
 {
     pass Pass1
     {
         VertexShader = compile vs_4_0 VertexShaderFunction();
-        PixelShader = compile ps_4_0 PixelShaderFunction();
+        PixelShader = compile ps_4_0 PixelShaderFunctionPBR();
+    }
+}
+
+technique Classic
+{
+    pass Pass1
+    {
+        VertexShader = compile vs_4_0 VertexShaderFunction();
+        PixelShader = compile ps_4_0 PixelShaderFunctionClassic();
     }
 }
