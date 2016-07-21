@@ -766,3 +766,15 @@
 /processorParam:DebugMode=Auto
 /build:RayMarchReflection.fx
 
+#begin DeferredSpotLight.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:DeferredSpotLight.fx
+
+#begin Glass.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Glass.fx
+

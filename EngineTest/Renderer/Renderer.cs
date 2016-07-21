@@ -43,7 +43,7 @@ namespace EngineTest.Renderer
         
         //Light
         private List<PointLight> pointLights = new List<PointLight>();
-
+        private List<SpotLight> spotLights = new List<SpotLight>();
 
         //Matrices
         private Matrix _world;
@@ -54,6 +54,7 @@ namespace EngineTest.Renderer
 
         private Art _art;
         private Vector3 DragonPosition = new Vector3(-10, 0, -10);
+        private Vector3 Dragon2Position = new Vector3(40, 0, 5);
         private RenderTarget2D _renderTargetAlbedo;
         private RenderTargetBinding[] _renderTargetBinding = new RenderTargetBinding[3];
         private RenderTargetBinding[] _renderTargetBinding2 = new RenderTargetBinding[3];
@@ -79,6 +80,10 @@ namespace EngineTest.Renderer
         private RenderTarget2D _renderTargetFinal;
         private RenderTargetBinding[] _renderTargetFinalBinding = new RenderTargetBinding[1];
 
+        private Matrix SSRmatrix;
+        private Effect _deferredSpotLight;
+        private Effect _glass;
+
         private enum RenderModes { Default, Albedo, Normal, Depth, Deferred, Diffuse, Specular};
 
         public Renderer(GraphicsDevice graphicsDevice, ContentManager content)
@@ -90,7 +95,12 @@ namespace EngineTest.Renderer
             _art.Load(content);
 
             _deferredLight = content.Load<Effect>("DeferredPointLight");
+            _deferredSpotLight = content.Load<Effect>("DeferredSpotLight");
             _deferredCompose = content.Load<Effect>("DeferredCompose");
+            _glass = content.Load<Effect>("Glass");
+
+            SSRmatrix = new Matrix(0.5f,0,0,0,0,-0.5f, 0,0,0,0,1,0,0,0,0,1);
+
 
             //_deferredLightGI = content.Load<Effect>("DeferredPointLightGI");
             //_deferredCombine = content.Load<Effect>("DeferredRecombine");
@@ -126,6 +136,8 @@ namespace EngineTest.Renderer
             pointLights.Add(new PointLight(new Vector3(40,10,-10),40,Color.White,4));
             pointLights.Add(new PointLight(new Vector3(20, 0, -10), 40, Color.BlueViolet, 4));
             pointLights.Add(new PointLight(new Vector3(-20, -5, -5), 40, Color.Yellow, 4));
+
+            spotLights.Add(new SpotLight(new Vector3(-3,-3,-10), 200, Color.White, 10, -Vector3.UnitX));
             InitializePointLights();
             
         }
@@ -175,9 +187,18 @@ namespace EngineTest.Renderer
             if (keyboardState.IsKeyDown(Keys.L))
             {
                 pointLights.Add(new PointLight(new Vector3((float) (random.NextDouble()*250-125), (float) (random.NextDouble()*50-25), (float) (-random.NextDouble()*10)-3), 20, new Color(random.Next(255),random.Next(255),random.Next(255)), 2));
+                
+                window.Title = pointLights.Count + "";
+            }
+
+
+            if (keyboardState.IsKeyDown(Keys.K))
+            {
+                spotLights.Add(new SpotLight(new Vector3((float)(random.NextDouble() * 250 - 125), (float)(random.NextDouble() * 50 - 25), (float)(-random.NextDouble() * 10) - 3), 20, new Color(random.Next(255), random.Next(255), random.Next(255)), 2, Vector3.Left));
 
                 window.Title = pointLights.Count + "";
             }
+
 
             if (keyboardState.IsKeyDown(Keys.S))
             {
@@ -281,14 +302,25 @@ namespace EngineTest.Renderer
                 //DrawPointLight();
                 
                 _graphicsDevice.SetRenderTargets(_renderTargetLightBinding);
-                DrawPointLights();
+
+                _graphicsDevice.Clear(Color.TransparentBlack);
+
+
+                //DrawPointLights();
+                DrawSpotLights();
+
+                Compose();
 
                 if(_renderMode == RenderModes.Diffuse)
                     DrawMapToScreenToTarget(_renderTargetDiffuse, null);
                 if(_renderMode == RenderModes.Specular)
                     DrawMapToScreenToTarget(_renderTargetSpecular, null);
 
-                DrawReflection();
+                DrawMapToScreenToTarget(_renderTargetFinal, null);
+
+                DrawTransparents();
+                //
+                //DrawReflection();
             }
             
             //else //GI!
@@ -316,13 +348,71 @@ namespace EngineTest.Renderer
             
         }
 
+        private void DrawTransparents()
+        {
+            _graphicsDevice.BlendState = BlendState.AlphaBlend;
+            _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+            _graphicsDevice.DepthStencilState = DepthStencilState.Default;
+           
+            
+
+            foreach (ModelMesh mesh in _art.DragonUvSmoothModel.Meshes)
+            {
+                foreach (ModelMeshPart meshpart in mesh.MeshParts)
+                {
+                    Matrix world = Matrix.CreateScale(10)*
+                                   Matrix.CreateRotationZ((float) (-Math.PI/2))*
+                                   Matrix.CreateRotationY((float) (Math.PI/2))*Matrix.CreateTranslation(Dragon2Position);
+                    _glass.Parameters["World"].SetValue(world);
+
+                    _glass.Parameters["View"].SetValue(_view);
+                    _glass.Parameters["Projection"].SetValue(_projection);
+                    _glass.Parameters["WorldViewProj"].SetValue(world*_view*_projection);
+
+                    _glass.Parameters["LightPosition"].SetValue(spotLights[0].Position);
+                    _glass.Parameters["LightDirection"].SetValue(spotLights[0].Direction);
+                    _glass.Parameters["LightIntensity"].SetValue(spotLights[0].Intensity);
+                    _glass.Parameters["LightColor"].SetValue(spotLights[0].Color.ToVector3());
+                    _glass.Parameters["LightRadius"].SetValue(spotLights[0].Radius);
+
+                    _glass.Parameters["CameraPosition"].SetValue(_camera.Position);
+                    _glass.Parameters["CameraDirection"].SetValue(_camera.Lookat-_camera.Position);
+
+                    _glass.CurrentTechnique.Passes[0].Apply();
+
+                    _graphicsDevice.SetVertexBuffer(meshpart.VertexBuffer);
+                    _graphicsDevice.Indices = (meshpart.IndexBuffer);
+                    int primitiveCount = meshpart.PrimitiveCount;
+                    int vertexOffset = meshpart.VertexOffset;
+                    int vCount = meshpart.NumVertices;
+                    int startIndex = meshpart.StartIndex;
+
+                    _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset, startIndex, primitiveCount);
+                }
+
+            }
+        }
+
+        private void Compose()
+        {
+            _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+
+            _graphicsDevice.SetRenderTargets(_renderTargetFinalBinding);
+            //combine!
+            _deferredCompose.CurrentTechnique.Passes[0].Apply();
+            quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+
+        }
+
         private void DrawReflection()
         {
             _graphicsDevice.SetRenderTarget(null);
 
             _raymarchingEffect.Parameters["InvertViewProjection"].SetValue(Matrix.Invert(_view * _projection));
-            _raymarchingEffect.Parameters["ViewProjection"].SetValue(_view * _projection);
+            _raymarchingEffect.Parameters["View"].SetValue(_view);
             _raymarchingEffect.Parameters["Projection"].SetValue(_projection);
+            _raymarchingEffect.Parameters["ViewProjection"].SetValue(_view*_projection);
+            _raymarchingEffect.Parameters["SSProjection"].SetValue(SSRmatrix*_projection);
             _raymarchingEffect.Parameters["cameraPosition"].SetValue(_camera.Position);
             _raymarchingEffect.Parameters["cameraDir"].SetValue(_camera.Lookat-_camera.Position);
             _raymarchingEffect.CurrentTechnique.Passes[0].Apply();
@@ -336,20 +426,24 @@ namespace EngineTest.Renderer
             _deferredLight.Parameters["normalMap"].SetValue(_renderTargetNormal);
             _deferredLight.Parameters["depthMap"].SetValue(_renderTargetDepth);
 
+            _deferredSpotLight.Parameters["colorMap"].SetValue(_renderTargetAlbedo);
+            _deferredSpotLight.Parameters["normalMap"].SetValue(_renderTargetNormal);
+            _deferredSpotLight.Parameters["depthMap"].SetValue(_renderTargetDepth);
+
+
             _raymarchingEffect.Parameters["colorMap"].SetValue(_renderTargetFinal);
             _raymarchingEffect.Parameters["normalMap"].SetValue(_renderTargetNormal);
-            //_raymarchingEffect.Parameters["depthMap"].SetValue(_renderTargetDepth);
-
+            _raymarchingEffect.Parameters["depthMap"].SetValue(_renderTargetDepth);
 
             _deferredCompose.Parameters["colorMap"].SetValue(_renderTargetAlbedo);
             _deferredCompose.Parameters["diffuseLightMap"].SetValue(_renderTargetDiffuse);
             _deferredCompose.Parameters["specularLightMap"].SetValue(_renderTargetSpecular);
+
+            _glass.Parameters["Depth"].SetValue(_renderTargetDepth);
         }
 
         private void DrawPointLights()
         {
-            _graphicsDevice.Clear(Color.TransparentBlack);
-
             _graphicsDevice.BlendState = LightBlendState;
 
             _deferredLight.Parameters["View"].SetValue(_view);
@@ -365,15 +459,68 @@ namespace EngineTest.Renderer
             {
                 DrawPointLight(light);
             }
+        }
 
-            _graphicsDevice.SetRenderTargets(_renderTargetFinalBinding);
-                //combine!
-            _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+        private void DrawSpotLights()
+        {
+            _graphicsDevice.BlendState = LightBlendState;
 
-            _deferredCompose.CurrentTechnique.Passes[0].Apply();
-            quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+            _deferredSpotLight.Parameters["View"].SetValue(_view);
+            _deferredSpotLight.Parameters["Projection"].SetValue(_projection);
 
-            //DrawMapToScreenToTarget(_renderTargetSpecular, null);
+            _deferredSpotLight.Parameters["cameraPosition"].SetValue(_camera.Position);
+            _deferredSpotLight.Parameters["cameraDirection"].SetValue(_camera.Forward);
+            _deferredSpotLight.Parameters["InvertViewProjection"].SetValue(Matrix.Invert(_view * _projection));
+
+            _graphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
+
+            foreach (SpotLight light in spotLights)
+            {
+                DrawSpotLight(light);
+            }
+
+        }
+
+        private void DrawSpotLight(SpotLight light)
+        {
+            Matrix sphereWorldMatrix = Matrix.CreateScale(light.Radius) * Matrix.CreateTranslation(light.Position);
+            _deferredSpotLight.Parameters["World"].SetValue(sphereWorldMatrix);
+
+            //light position
+            _deferredSpotLight.Parameters["lightPosition"].SetValue(light.Position);
+            _deferredSpotLight.Parameters["lightDirection"].SetValue(light.Direction);
+            //set the color, radius and Intensity
+            _deferredSpotLight.Parameters["lightColor"].SetValue(light.Color.ToVector3());
+            _deferredSpotLight.Parameters["lightRadius"].SetValue(light.Radius);
+            _deferredSpotLight.Parameters["lightIntensity"].SetValue(light.Intensity);
+            //parameters for specular computations
+
+            _deferredLight.CurrentTechnique.Passes[0].Apply();
+            //quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+
+            float cameraToCenter = Vector3.Distance(_camera.Position, light.Position);
+
+            if (cameraToCenter < light.Radius)
+                _graphicsDevice.RasterizerState = RasterizerState.CullClockwise;
+            else
+                _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+
+            foreach (ModelMesh mesh in _art.Sphere.Meshes)
+            {
+                foreach (ModelMeshPart meshpart in mesh.MeshParts)
+                {
+                    _deferredSpotLight.CurrentTechnique.Passes[0].Apply();
+
+                    _graphicsDevice.SetVertexBuffer(meshpart.VertexBuffer);
+                    _graphicsDevice.Indices = (meshpart.IndexBuffer);
+                    int primitiveCount = meshpart.PrimitiveCount;
+                    int vertexOffset = meshpart.VertexOffset;
+                    int vCount = meshpart.NumVertices;
+                    int startIndex = meshpart.StartIndex;
+
+                    _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset, startIndex, primitiveCount);
+                }
+            }
         }
 
         //private void CombineRender()
@@ -493,6 +640,7 @@ namespace EngineTest.Renderer
                 DrawModel(_art.SponzaModel, Matrix.CreateScale(0.1f) * Matrix.CreateRotationX((float)(-Math.PI / 2)), false);
 
                 DrawModel(_art.DragonUvSmoothModel, localWorld, true);
+
             }
         }
 
