@@ -276,6 +276,7 @@ PixelShaderOutput PixelShaderFunctionPBR(VertexShaderOutput input) : COLOR0
 PixelShaderOutput PixelShaderFunctionClassic(VertexShaderOutput input) : COLOR0
 {
     //obtain screen position
+    //obtain screen position
     input.ScreenPosition.xy /= input.ScreenPosition.w;
     //obtain textureCoordinates corresponding to the current pixel
     //the screen coordinates are in [-1,1]*[1,-1]
@@ -294,27 +295,48 @@ PixelShaderOutput PixelShaderFunctionClassic(VertexShaderOutput input) : COLOR0
     float roughness = color.a;
     //read depth
     float depthVal = 1 - tex2D(depthSampler, texCoord).r;
-           
-    PixelShaderOutput output;
-
     //compute screen-space position
-        float4 position;
-        position.xy = input.ScreenPosition.xy;
-        position.z = depthVal;
-        position.w = 1.0f;
+    float4 position;
+    position.xy = input.ScreenPosition.xy;
+    position.z = depthVal;
+    position.w = 1.0f;
     //transform to world space
-        position = mul(position, InvertViewProjection);
-        position /= position.w;
+    position = mul(position, InvertViewProjection);
+    position /= position.w;
     //surface-to-light vector
-        float3 lightVector = lightPosition - position.xyz;
-    //compute attenuation based on distance - linear attenuation
-        float attenuation = saturate(1.0f - length(lightVector) / lightRadius) * lightIntensity;
-    //normalize light vector
-        lightVector = normalize(lightVector);
+    float3 lightVector = lightPosition - position.xyz;
+    float3 lightVectorNormalized = normalize(lightVector);
 
-        float3 cameraDirection = normalize(cameraPosition - position.xyz);
+    
+
+    //Shadow
+
+    float4 positionInLS = mul(position, LightViewProjection);
+    float2 ShadowTexCoord = mad(positionInLS.xy / positionInLS.w, 0.5f, float2(0.5f, 0.5f));
+    ShadowTexCoord.y = 1 - ShadowTexCoord.y;
+    float depthInLS = (positionInLS.z / positionInLS.w);
+    
+    float shadowVSM = chebyshevUpperBound(depthInLS, ShadowTexCoord);
+
+
+    float spotReach = 0.75f;
+
+    float spotStrength = saturate(dot(lightVectorNormalized, lightDirection) - spotReach) * 1 / (1 - spotReach);
+
+    PixelShaderOutput output;
+    output.Diffuse = float4(0, 0, 0, 0);
+    output.Specular = float4(0, 0, 0, 0);
+
+    if (spotStrength <= 0)
+        return output;
+    //compute attenuation based on distance - linear attenuation
+    float attenuation = saturate(1.0f - length(lightVector) / lightRadius) * lightIntensity * spotStrength;
+    //normalize light vector
+    
+
+    float3 cameraDirection = normalize(cameraPosition - position.xyz);
     //compute diffuse light
-        float NdL = saturate(dot(normal, lightVector));
+    float NdL = saturate(dot(normal, lightVectorNormalized));
 
         float3 diffuseLight = NdL * lightColor.rgb;
     
@@ -325,8 +347,8 @@ PixelShaderOutput PixelShaderFunctionClassic(VertexShaderOutput input) : COLOR0
     //take into account attenuation and lightIntensity.
 
     //return attenuation * lightIntensity * float4(diffuseLight.rgb, specular);
-        output.Diffuse.rgb = attenuation * diffuseLight * 0.1f;
-        output.Specular.rgb = specular * lightColor * attenuation * 0.1f;
+    output.Diffuse.rgb = attenuation * diffuseLight * 0.1f * shadowVSM;
+    output.Specular.rgb = specular * lightColor * attenuation * 0.1f * max(shadowVSM - 0.1f, 0);;
     
     return output;
    //return float4(color.rgb * (attenuation * diffuseLight * (1 - f0)) * (f0 + 1) * (f0 + 1) *0.5f + specular*attenuation, 1);

@@ -42,10 +42,11 @@ float3 LightColor;
 float LightIntensity;
 float LightRadius;
 
-#define POINTLIGHTAMOUNT 4
+#define POINTLIGHTAMOUNT 20
+
+int lowerBound = 0;
 
 float3 PointLightPosition[POINTLIGHTAMOUNT];
-float3 PointLightDirection[POINTLIGHTAMOUNT];
 float3 PointLightColor[POINTLIGHTAMOUNT];
 float PointLightIntensity[POINTLIGHTAMOUNT];
 float PointLightRadius[POINTLIGHTAMOUNT];
@@ -135,6 +136,12 @@ struct Render_IN
 struct PixelShaderOutput
 {
     float4 Color : COLOR0;
+};
+
+struct LightStruct
+{
+    float3 Diffuse : COLOR0;
+    float3 Specular : COLOR1;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -250,10 +257,47 @@ float4 GaussianSampler(float2 TexCoord, float offset)
     return finalColor;
 }
 
-float3 ComputePointLightDiffuse(float3 position, float3 normal, float3 cameraDirection, float roughness)
+float lengthSquared(float3 v1)
 {
+    return v1.x * v1.x + v1.y * v1.y + v1.z * v1.z;
+}
 
+LightStruct ComputePointLights(float3 worldPos, float3 normal )
+{
+    LightStruct Out;
 
+    float3 diffusePoint = float3(0, 0, 0);
+    float3 specularPoint = float3(0, 0, 0);
+
+    float3 cameraDir = normalize(CameraDirection);
+    [loop]
+    for (int i = 0; i < lowerBound; i++)
+    {
+        float3 DirectionToLight = PointLightPosition[i] - worldPos;
+                           
+        float Distance = length(DirectionToLight);
+
+        float radius = PointLightRadius[i];
+             
+        [branch]
+        if (Distance < radius)
+        {
+
+            DirectionToLight /= Distance;
+
+            float attenuation = saturate(1.0f - Distance / PointLightRadius[i]) * PointLightIntensity[i];
+
+            float NdotLPoint = saturate(dot(DirectionToLight, normal));
+
+            diffusePoint += DiffuseOrenNayar(NdotLPoint, normal, DirectionToLight, cameraDir, PointLightIntensity[i], PointLightColor[i], Roughness) * attenuation;
+            
+            specularPoint += SpecularCookTorrance(NdotLPoint, normal, DirectionToLight, -cameraDir, PointLightIntensity[i], PointLightColor[i], F0, Roughness) * attenuation;
+            
+        }
+    }
+    Out.Diffuse = diffusePoint;
+    Out.Specular = specularPoint;
+    return Out;
 }
 
 
@@ -304,11 +348,16 @@ PixelShaderOutput Lighting(Render_IN input)
 
     float Transparency = min(Roughness,0.2);
 
-    float3 PointLightDiffuse = ComputePointLightDiffuse(input.Position, input.Normal, normalize(CameraDirection), Roughness);
+    LightStruct pointLightContribution = ComputePointLights(input.Position.xyz, input.Normal);
 
     Out.Color = float4(input.Color.rgb *
-    DiffuseOrenNayar(NdotL, input.Normal, LightDir, normalize(CameraDirection), LightIntensity, LightColor, Roughness) * 0.05f * attenuation, Transparency) * Transparency + glassColor * (1 - Transparency) + float4(specular, 0.8) * 0.2f;
+    (DiffuseOrenNayar(NdotL, input.Normal, LightDir, normalize(CameraDirection), LightIntensity, LightColor, Roughness)
+    + pointLightContribution.Diffuse)
+     * 0.05f * attenuation, Transparency) * Transparency
+    //Specular
+    + glassColor * (1 - Transparency) + float4(specular, 0.8f) * 0.2f + float4(pointLightContribution.Specular, 0.8f);
 
+   
 
     return Out;
 }

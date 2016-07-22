@@ -18,6 +18,8 @@ float lightIntensity = 1.0f;
 Texture2D colorMap;
 // normals, and specularPower in the alpha channel
 texture normalMap;
+
+bool inside = false;
 //depth
 texture depthMap;
 sampler colorSampler = sampler_state
@@ -163,11 +165,13 @@ float3 DiffuseOrenNayar(float NdotL, float3 normal, float3 lightDirection, float
 PixelShaderOutput PixelShaderFunctionPBR(VertexShaderOutput input) : COLOR0
 {
     //obtain screen position
-    input.ScreenPosition.xy /= input.ScreenPosition.w;
+    input.ScreenPosition.xyz /= input.ScreenPosition.w;
     //obtain textureCoordinates corresponding to the current pixel
     //the screen coordinates are in [-1,1]*[1,-1]
     //the texture coordinates need to be in [0,1]*[0,1]
     float2 texCoord = 0.5f * (float2(input.ScreenPosition.x, -input.ScreenPosition.y) + 1);
+
+
     
     //get normal data from the normalMap
     float4 normalData = tex2D(normalSampler, texCoord);
@@ -181,6 +185,49 @@ PixelShaderOutput PixelShaderFunctionPBR(VertexShaderOutput input) : COLOR0
     float roughness = color.a;
     //read depth
     float depthVal = 1-tex2D(depthSampler, texCoord).r;
+
+    //Cull?
+
+    float lightDepth = input.ScreenPosition.z;
+
+    PixelShaderOutput output;
+
+    float insideMult = inside;
+    if (insideMult == 0)
+        insideMult = -1;
+
+    [branch]
+   // if(lightDepth*inside < depthVal*inside)
+    if(lightDepth*insideMult < depthVal*insideMult)
+    {
+        clip(-1);
+
+        //output.Diffuse.rgb = float3(0, 0, 0);
+        //output.Specular.rgb = float3(0, 1, 0);
+        return output;
+    }
+
+    //check if our depth pixel is actually behind the light's influence!
+    //if(!inside)
+    //{
+    //    float zDepth = 299.0f; // why is this wrong?Projection._43/(1-Projection._33);
+    //    float zRadius = lightRadius*2/ zDepth;
+
+    //    //float lightDepthLin = -Projection._43 / (lightDepth - Projection._33);
+    //    //float depthValLin = -Projection._43 / (depthVal - Projection._33) / 3;
+    //    ////we transform the light's diameter into our zCoordinate
+
+    //    ////now we check if the depthVal pixel is behind the light, if yes ->
+    //    if(lightDepth < depthVal)
+    //    {
+    //        output.Diffuse.rgb = float3(0, 0, 0);
+    //        output.Specular = float4(0,depthVal,0, 1);
+    //        return output;
+    //    }
+
+    //}
+
+
     //compute screen-space position
     float4 position;
     position.xy = input.ScreenPosition.xy;
@@ -191,8 +238,18 @@ PixelShaderOutput PixelShaderFunctionPBR(VertexShaderOutput input) : COLOR0
     position /= position.w;
     //surface-to-light vector
     float3 lightVector = lightPosition - position.xyz;
+
+    float lengthLight = length(lightVector);
+
+    [branch]
+    if(lengthLight>lightRadius)
+    {
+        clip(-1);
+        return output;
+    }
+
     //compute attenuation based on distance - linear attenuation
-    float attenuation = saturate(1.0f - length(lightVector) / lightRadius) * lightIntensity;
+    float attenuation = saturate(1.0f - lengthLight/ lightRadius) * lightIntensity;
     //normalize light vector
     lightVector = normalize(lightVector);
 
@@ -206,7 +263,6 @@ PixelShaderOutput PixelShaderFunctionPBR(VertexShaderOutput input) : COLOR0
     //take into account attenuation and lightIntensity.
 
     //return attenuation * lightIntensity * float4(diffuseLight.rgb, specular);
-    PixelShaderOutput output;
     output.Diffuse.rgb = (attenuation * diffuseLight * (1 - f0)) * (f0 + 1) * (f0 + 1)  * 0.1f;
     output.Specular.rgb = specular * attenuation          *0.1f;
 
