@@ -34,6 +34,8 @@ namespace EngineTest.Renderer
 
         private float currentRoughness = 0.3f;
 
+        private float glassRoughness = 0.1f;
+
         private bool PBR = true;
 
         private RenderModes _renderMode;
@@ -54,7 +56,8 @@ namespace EngineTest.Renderer
 
         private Art _art;
         private Vector3 DragonPosition = new Vector3(-10, 0, -10);
-        private Vector3 Dragon2Position = new Vector3(40, 0, 5);
+        private Vector3 Dragon2Position = new Vector3(40, 2, 1);
+        private Matrix DragonMatrix;
         private RenderTarget2D _renderTargetAlbedo;
         private RenderTargetBinding[] _renderTargetBinding = new RenderTargetBinding[3];
         private RenderTargetBinding[] _renderTargetBinding2 = new RenderTargetBinding[3];
@@ -80,9 +83,17 @@ namespace EngineTest.Renderer
         private RenderTarget2D _renderTargetFinal;
         private RenderTargetBinding[] _renderTargetFinalBinding = new RenderTargetBinding[1];
 
+        private RenderTarget2D _renderTargetVSM;
+        private RenderTargetBinding[] _renderTargetVSMBinding = new RenderTargetBinding[1];
+
+
+        private RenderTarget2D _renderTargetVSMBlur;
+        private RenderTargetBinding[] _renderTargetVSMBlurBinding = new RenderTargetBinding[1];
+
         private Matrix SSRmatrix;
         private Effect _deferredSpotLight;
         private Effect _glass;
+        private Effect _gaussBlur;
 
         private enum RenderModes { Default, Albedo, Normal, Depth, Deferred, Diffuse, Specular};
 
@@ -94,10 +105,12 @@ namespace EngineTest.Renderer
             _art = new Art();
             _art.Load(content);
 
+            _virtualShadowMapGenerate = content.Load<Effect>("VirtualShadowMapsGenerate");
             _deferredLight = content.Load<Effect>("DeferredPointLight");
             _deferredSpotLight = content.Load<Effect>("DeferredSpotLight");
             _deferredCompose = content.Load<Effect>("DeferredCompose");
             _glass = content.Load<Effect>("Glass");
+            _gaussBlur = content.Load<Effect>("GaussianBlur");
 
             SSRmatrix = new Matrix(0.5f,0,0,0,0,-0.5f, 0,0,0,0,1,0,0,0,0,1);
 
@@ -133,11 +146,10 @@ namespace EngineTest.Renderer
 
             pointLights.Add(new PointLight(new Vector3(-10, 0, -50), 200, Color.White, 2));
 
-            pointLights.Add(new PointLight(new Vector3(40,10,-10),40,Color.White,4));
-            pointLights.Add(new PointLight(new Vector3(20, 0, -10), 40, Color.BlueViolet, 4));
             pointLights.Add(new PointLight(new Vector3(-20, -5, -5), 40, Color.Yellow, 4));
 
-            spotLights.Add(new SpotLight(new Vector3(-3,-3,-10), 200, Color.White, 10, -Vector3.UnitX));
+            spotLights.Add(new SpotLight(new Vector3(-30, -3, -80), 150, Color.White, 6, -Vector3.UnitZ));
+            spotLights.Add(new SpotLight(new Vector3(-3,-3,-10), 150, Color.White, 6, -Vector3.UnitX));
             InitializePointLights();
             
         }
@@ -155,6 +167,10 @@ namespace EngineTest.Renderer
             direction.Normalize();
 
             Vector3 normal = Vector3.Cross(direction, _camera.Up);
+
+            DragonMatrix = Matrix.CreateScale(10) *
+                                   Matrix.CreateRotationZ((float)(-Math.PI / 2)) * Matrix.CreateRotationX((float)(gameTime.TotalGameTime.TotalSeconds * 0.4f)) *
+                                   Matrix.CreateRotationY((float)(Math.PI / 2)) * Matrix.CreateTranslation(Dragon2Position);
 
             if (mouseState.LeftButton == ButtonState.Pressed)
             {
@@ -199,6 +215,16 @@ namespace EngineTest.Renderer
                 window.Title = pointLights.Count + "";
             }
 
+
+            if (keyboardState.IsKeyDown(Keys.NumPad1))
+            {
+                glassRoughness = Math.Min(1, glassRoughness - 0.01f);
+            }
+
+            if (keyboardState.IsKeyDown(Keys.NumPad2))
+            {
+                glassRoughness = Math.Max(0, glassRoughness + 0.01f);
+            }
 
             if (keyboardState.IsKeyDown(Keys.S))
             {
@@ -270,7 +296,52 @@ namespace EngineTest.Renderer
         {
             PrepareSettings();
 
+            PrepareShadowSettings();
+
+            RenderShadowMap();
+
             Render();
+
+            //DrawMapToScreenToTarget(_renderTargetVSM, null);
+        }
+
+        private void RenderShadowMap()
+        {
+            _graphicsDevice.SetRenderTargets(_renderTargetVSM);
+
+            Matrix localWorld = Matrix.CreateScale(10) * Matrix.CreateTranslation(DragonPosition) * Matrix.CreateRotationX((float)(-Math.PI / 2));
+
+            _virtualShadowMapGenerate.Parameters["transparent"].SetValue(true);
+
+            DrawModelVSM(_art.DragonUvSmoothModel, DragonMatrix);
+
+            _virtualShadowMapGenerate.Parameters["transparent"].SetValue(false);
+
+            DrawModelVSM(_art.SponzaModel, Matrix.CreateScale(0.1f) * Matrix.CreateRotationX((float)(-Math.PI / 2)));
+
+            DrawModelVSM(_art.DragonUvSmoothModel, localWorld);
+
+            //Blur it
+
+            DrawGaussianBlur();
+            DrawGaussianBlur();
+           
+            
+        }
+
+        private Matrix LightViewProjection;
+        private Effect _virtualShadowMapGenerate;
+
+        private void PrepareShadowSettings()
+        {
+            Matrix LightView = Matrix.CreateLookAt(spotLights[0].Position,
+                spotLights[0].Position - spotLights[0].Direction, Vector3.Up);
+            Matrix LightProjection = Matrix.CreatePerspectiveFieldOfView((float) (Math.PI/2), 1, 1, spotLights[0].Radius);
+
+            _virtualShadowMapGenerate.Parameters["Projection"].SetValue(LightProjection);
+            _deferredSpotLight.Parameters["LightProjection"].SetValue(LightProjection);
+
+            LightViewProjection = LightView*LightProjection;
         }
 
         private void Render()
@@ -306,7 +377,7 @@ namespace EngineTest.Renderer
                 _graphicsDevice.Clear(Color.TransparentBlack);
 
 
-                //DrawPointLights();
+                DrawPointLights();
                 DrawSpotLights();
 
                 Compose();
@@ -348,9 +419,36 @@ namespace EngineTest.Renderer
             
         }
 
+        private void DrawModelVSM(Model model, Matrix world)
+        {
+            
+            foreach (ModelMesh mesh in model.Meshes)
+            {
+                if (mesh.Name != "g sponza_04") 
+                foreach (ModelMeshPart meshpart in mesh.MeshParts)
+                {
+
+                    
+                    _virtualShadowMapGenerate.Parameters["WorldViewProj"].SetValue(world*LightViewProjection);
+
+                    _virtualShadowMapGenerate.CurrentTechnique.Passes[0].Apply();
+
+                    _graphicsDevice.SetVertexBuffer(meshpart.VertexBuffer);
+                    _graphicsDevice.Indices = (meshpart.IndexBuffer);
+                    int primitiveCount = meshpart.PrimitiveCount;
+                    int vertexOffset = meshpart.VertexOffset;
+                    int vCount = meshpart.NumVertices;
+                    int startIndex = meshpart.StartIndex;
+
+                    _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset, startIndex, primitiveCount);
+                }
+
+            }
+        }
+
         private void DrawTransparents()
         {
-            _graphicsDevice.BlendState = BlendState.AlphaBlend;
+            _graphicsDevice.BlendState = BlendState.Opaque;
             _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
             _graphicsDevice.DepthStencilState = DepthStencilState.Default;
            
@@ -360,23 +458,24 @@ namespace EngineTest.Renderer
             {
                 foreach (ModelMeshPart meshpart in mesh.MeshParts)
                 {
-                    Matrix world = Matrix.CreateScale(10)*
-                                   Matrix.CreateRotationZ((float) (-Math.PI/2))*
-                                   Matrix.CreateRotationY((float) (Math.PI/2))*Matrix.CreateTranslation(Dragon2Position);
-                    _glass.Parameters["World"].SetValue(world);
+                    
+                    _glass.Parameters["World"].SetValue(DragonMatrix);
 
                     _glass.Parameters["View"].SetValue(_view);
                     _glass.Parameters["Projection"].SetValue(_projection);
-                    _glass.Parameters["WorldViewProj"].SetValue(world*_view*_projection);
+                    _glass.Parameters["WorldViewProj"].SetValue(DragonMatrix*_view*_projection);
 
-                    _glass.Parameters["LightPosition"].SetValue(spotLights[0].Position);
-                    _glass.Parameters["LightDirection"].SetValue(spotLights[0].Direction);
-                    _glass.Parameters["LightIntensity"].SetValue(spotLights[0].Intensity);
-                    _glass.Parameters["LightColor"].SetValue(spotLights[0].Color.ToVector3());
-                    _glass.Parameters["LightRadius"].SetValue(spotLights[0].Radius);
+                    _glass.Parameters["LightPosition"].SetValue(spotLights[1].Position);
+                    _glass.Parameters["LightDirection"].SetValue(spotLights[1].Direction);
+                    _glass.Parameters["LightIntensity"].SetValue(spotLights[1].Intensity);
+                    _glass.Parameters["LightColor"].SetValue(spotLights[1].Color.ToVector3());
+                    _glass.Parameters["LightRadius"].SetValue(spotLights[1].Radius);
 
                     _glass.Parameters["CameraPosition"].SetValue(_camera.Position);
                     _glass.Parameters["CameraDirection"].SetValue(_camera.Lookat-_camera.Position);
+
+
+                    _glass.Parameters["Roughness"].SetValue(glassRoughness);
 
                     _glass.CurrentTechnique.Passes[0].Apply();
 
@@ -429,7 +528,7 @@ namespace EngineTest.Renderer
             _deferredSpotLight.Parameters["colorMap"].SetValue(_renderTargetAlbedo);
             _deferredSpotLight.Parameters["normalMap"].SetValue(_renderTargetNormal);
             _deferredSpotLight.Parameters["depthMap"].SetValue(_renderTargetDepth);
-
+            _deferredSpotLight.Parameters["shadowMap"].SetValue(_renderTargetVSM);
 
             _raymarchingEffect.Parameters["colorMap"].SetValue(_renderTargetFinal);
             _raymarchingEffect.Parameters["normalMap"].SetValue(_renderTargetNormal);
@@ -440,6 +539,7 @@ namespace EngineTest.Renderer
             _deferredCompose.Parameters["specularLightMap"].SetValue(_renderTargetSpecular);
 
             _glass.Parameters["Depth"].SetValue(_renderTargetDepth);
+            _glass.Parameters["colorMap"].SetValue(_renderTargetFinal);
         }
 
         private void DrawPointLights()
@@ -471,6 +571,8 @@ namespace EngineTest.Renderer
             _deferredSpotLight.Parameters["cameraPosition"].SetValue(_camera.Position);
             _deferredSpotLight.Parameters["cameraDirection"].SetValue(_camera.Forward);
             _deferredSpotLight.Parameters["InvertViewProjection"].SetValue(Matrix.Invert(_view * _projection));
+
+            _deferredSpotLight.Parameters["LightViewProjection"].SetValue(LightViewProjection);
 
             _graphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
 
@@ -523,31 +625,7 @@ namespace EngineTest.Renderer
             }
         }
 
-        //private void CombineRender()
-        //{
-        //    _deferredCombine.Parameters["colorMap"].SetValue(_renderTargetAccumulation);
-        //    _deferredCombine.Parameters["lightReflectionMap"].SetValue(_renderTargetLightReflection);
-        //    _deferredCombine.Parameters["lightDepthMap"].SetValue(_renderTargetLightDepth);
-        //    _deferredCombine.Parameters["depthMap"].SetValue(_renderTargetDepth);
-
-        //    Vector3 lightPosition = _lightPosition;
-
-        //    Matrix sphereWorldMatrix = Matrix.CreateScale(lightRadius) * Matrix.CreateTranslation(lightPosition);
-        //    _deferredCombine.Parameters["World"].SetValue(sphereWorldMatrix);
-        //    _deferredCombine.Parameters["View"].SetValue(_view);
-        //    _deferredCombine.Parameters["Projection"].SetValue(_projection);
-        //    //light position
-        //    _deferredCombine.Parameters["lightPosition"].SetValue(lightPosition);
-        //    //set the color, radius and Intensity
-        //    _deferredCombine.Parameters["lightColor"].SetValue(Vector3.One);
-        //    _deferredCombine.Parameters["lightRadius"].SetValue(lightRadius);
-        //    _deferredCombine.Parameters["lightIntensity"].SetValue(lightIntensity);
-        //    //parameters for specular computations
-        //    _deferredCombine.Parameters["InvertViewProjection"].SetValue(Matrix.Invert(_view * _projection));
-
-        //    _deferredCombine.CurrentTechnique.Passes[0].Apply();
-        //    quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
-        //}
+       
 
         private void DrawPointLight(PointLight light)
         {
@@ -593,36 +671,6 @@ namespace EngineTest.Renderer
 
         }
 
-        //private void DrawPointLightGI()
-        //{
-        //    //Could be done once at the beginning
-        //    _deferredLightGI.Parameters["colorMap"].SetValue(_renderTargetAlbedo);
-        //    _deferredLightGI.Parameters["normalMap"].SetValue(_renderTargetNormal);
-        //    _deferredLightGI.Parameters["depthMap"].SetValue(_renderTargetDepth);
-
-
-        //    Vector3 lightPosition = _lightPosition;
-
-
-        //    Matrix sphereWorldMatrix = Matrix.CreateScale(lightRadius) * Matrix.CreateTranslation(lightPosition);
-        //    _deferredLightGI.Parameters["World"].SetValue(sphereWorldMatrix);
-        //    _deferredLightGI.Parameters["View"].SetValue(_view);
-        //    _deferredLightGI.Parameters["Projection"].SetValue(_projection);
-        //    //light position
-        //    _deferredLightGI.Parameters["lightPosition"].SetValue(lightPosition);
-        //    //set the color, radius and Intensity
-        //    _deferredLightGI.Parameters["lightColor"].SetValue(Vector3.One);
-        //    _deferredLightGI.Parameters["lightRadius"].SetValue(lightRadius);
-        //    _deferredLightGI.Parameters["lightIntensity"].SetValue(lightIntensity);
-        //    //parameters for specular computations
-        //    _deferredLightGI.Parameters["cameraPosition"].SetValue(_camera.Position);
-        //    _deferredLightGI.Parameters["cameraDirection"].SetValue(_camera.Forward);
-        //    _deferredLightGI.Parameters["InvertViewProjection"].SetValue(Matrix.Invert(_view * _projection));
-
-        //    _deferredLightGI.CurrentTechnique.Passes[0].Apply();
-        //    quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
-
-        //}
 
         private void DrawModels()
         {
@@ -651,6 +699,9 @@ namespace EngineTest.Renderer
 
             foreach (ModelMesh mesh in model.Meshes)
             {
+                if(mesh.Name != "g sponza_04") 
+                    
+
                 foreach (ModelMeshPart meshpart in mesh.MeshParts)
                 {
 
@@ -777,6 +828,22 @@ namespace EngineTest.Renderer
             //_graphicsDevice.SamplerStates[0] = SamplerState.LinearWrap;
         }
 
+        private void DrawGaussianBlur()
+        {
+            _graphicsDevice.SetRenderTargets(_renderTargetVSMBlurBinding);
+
+            _gaussBlur.Parameters["InverseRenderTargetDimension"].SetValue(new Vector2(1.0f / 1024.0f, 1.0f / 1024.0f));
+            _gaussBlur.Parameters["SceneMap"].SetValue(_renderTargetVSM);
+
+            _gaussBlur.Techniques["GaussianBlur"].Passes["Horizontal"].Apply();
+            quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+
+            _gaussBlur.Parameters["SceneMap"].SetValue(_renderTargetVSMBlur);
+            _gaussBlur.Techniques["GaussianBlur"].Passes["Vertical"].Apply();
+            _graphicsDevice.SetRenderTargets(_renderTargetVSMBinding);
+            quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+        }
+
         private void PrepareSettings()
         {
             _graphicsDevice.RasterizerState = RasterizerState.CullNone;
@@ -839,7 +906,13 @@ namespace EngineTest.Renderer
                _graphicsDevice.PresentationParameters.BackBufferHeight, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
 
             _renderTargetFinalBinding[0] = new RenderTargetBinding(_renderTargetFinal);
-         }
+
+            _renderTargetVSM = new RenderTarget2D(_graphicsDevice, 1024, 1024, false, SurfaceFormat.Vector2, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+            _renderTargetVSMBinding[0] = new RenderTargetBinding( _renderTargetVSM);
+
+            _renderTargetVSMBlur = new RenderTarget2D(_graphicsDevice, 1024, 1024, false, SurfaceFormat.Vector2, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+            _renderTargetVSMBlurBinding[0] = new RenderTargetBinding( _renderTargetVSMBlur);
+        }
 
         private void ClearGBuffer()
         {
@@ -848,6 +921,63 @@ namespace EngineTest.Renderer
             quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
         }
 
+        //private void CombineRender()
+        //{
+        //    _deferredCombine.Parameters["colorMap"].SetValue(_renderTargetAccumulation);
+        //    _deferredCombine.Parameters["lightReflectionMap"].SetValue(_renderTargetLightReflection);
+        //    _deferredCombine.Parameters["lightDepthMap"].SetValue(_renderTargetLightDepth);
+        //    _deferredCombine.Parameters["depthMap"].SetValue(_renderTargetDepth);
+
+        //    Vector3 lightPosition = _lightPosition;
+
+        //    Matrix sphereWorldMatrix = Matrix.CreateScale(lightRadius) * Matrix.CreateTranslation(lightPosition);
+        //    _deferredCombine.Parameters["World"].SetValue(sphereWorldMatrix);
+        //    _deferredCombine.Parameters["View"].SetValue(_view);
+        //    _deferredCombine.Parameters["Projection"].SetValue(_projection);
+        //    //light position
+        //    _deferredCombine.Parameters["lightPosition"].SetValue(lightPosition);
+        //    //set the color, radius and Intensity
+        //    _deferredCombine.Parameters["lightColor"].SetValue(Vector3.One);
+        //    _deferredCombine.Parameters["lightRadius"].SetValue(lightRadius);
+        //    _deferredCombine.Parameters["lightIntensity"].SetValue(lightIntensity);
+        //    //parameters for specular computations
+        //    _deferredCombine.Parameters["InvertViewProjection"].SetValue(Matrix.Invert(_view * _projection));
+
+        //    _deferredCombine.CurrentTechnique.Passes[0].Apply();
+        //    quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+        //}
+
+
+        //private void DrawPointLightGI()
+        //{
+        //    //Could be done once at the beginning
+        //    _deferredLightGI.Parameters["colorMap"].SetValue(_renderTargetAlbedo);
+        //    _deferredLightGI.Parameters["normalMap"].SetValue(_renderTargetNormal);
+        //    _deferredLightGI.Parameters["depthMap"].SetValue(_renderTargetDepth);
+
+
+        //    Vector3 lightPosition = _lightPosition;
+
+
+        //    Matrix sphereWorldMatrix = Matrix.CreateScale(lightRadius) * Matrix.CreateTranslation(lightPosition);
+        //    _deferredLightGI.Parameters["World"].SetValue(sphereWorldMatrix);
+        //    _deferredLightGI.Parameters["View"].SetValue(_view);
+        //    _deferredLightGI.Parameters["Projection"].SetValue(_projection);
+        //    //light position
+        //    _deferredLightGI.Parameters["lightPosition"].SetValue(lightPosition);
+        //    //set the color, radius and Intensity
+        //    _deferredLightGI.Parameters["lightColor"].SetValue(Vector3.One);
+        //    _deferredLightGI.Parameters["lightRadius"].SetValue(lightRadius);
+        //    _deferredLightGI.Parameters["lightIntensity"].SetValue(lightIntensity);
+        //    //parameters for specular computations
+        //    _deferredLightGI.Parameters["cameraPosition"].SetValue(_camera.Position);
+        //    _deferredLightGI.Parameters["cameraDirection"].SetValue(_camera.Forward);
+        //    _deferredLightGI.Parameters["InvertViewProjection"].SetValue(Matrix.Invert(_view * _projection));
+
+        //    _deferredLightGI.CurrentTechnique.Passes[0].Apply();
+        //    quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+
+        //}
     }
 
 }

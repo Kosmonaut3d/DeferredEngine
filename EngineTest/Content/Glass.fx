@@ -11,7 +11,28 @@ matrix  WorldViewProj;
 
 float4 FogColor = float4(1, 0.375, 0, 1);
 
-float2 Resolution;
+float2 InverseResolution = (1.0f/1280.0f, 1.0f/800.0f); 
+
+#define SAMPLE_COUNT 9
+static float2 SampleOffsets[9] = 
+{
+    float2(-1, -1), float2(0, -1), float2(1, -1),
+    float2(-1, 0), float2(0, 0), float2(1, 0),
+    float2(-1, 1), float2(0, 1), float2(1, 1)
+};
+
+static float SampleWeights[9] = 
+{
+    0.077847f, 
+    0.123317f, 
+    0.077847f,
+    0.123317f, 
+    0.195346f,
+    0.123317f,
+    0.077847f, 
+    0.123317f, 
+    0.077847f,
+};
 
 //      Light
 
@@ -21,31 +42,37 @@ float3 LightColor;
 float LightIntensity;
 float LightRadius;
 
+#define POINTLIGHTAMOUNT 4
+
+float3 PointLightPosition[POINTLIGHTAMOUNT];
+float3 PointLightDirection[POINTLIGHTAMOUNT];
+float3 PointLightColor[POINTLIGHTAMOUNT];
+float PointLightIntensity[POINTLIGHTAMOUNT];
+float PointLightRadius[POINTLIGHTAMOUNT];
+
 float3 CameraPosition;
 float3 CameraDirection;
 
 
 
 //      MATERIAL
-float   Roughness = 0.05f; // 0 : smooth, 1: rough
-float   F0 = 0.8f;
-float Transparency = 0.3f;
+float   Roughness = 0.1f; // 0 : smooth, 1: rough
+float   F0 = 0.5f;
+
 
 float CLIP_VALUE = 0.99;
 
 float4 DiffuseColor = float4(1,1,1, 1);
 
-Texture2D<float4> Texture : register(t0); 
-sampler TextureSampler : register(s0)
+Texture2D colorMap;
+sampler colorSampler = sampler_state
 {
-    Texture = (Texture);
-
-    MinFilter = Linear;
-    MagFilter = Linear;
-    MipFilter = Linear;
-
-    AddressU = Wrap;
-    AddressV = Wrap;
+    Texture = (colorMap);
+    AddressU = CLAMP;
+    AddressV = CLAMP;
+    MagFilter = LINEAR;
+    MinFilter = LINEAR;
+    Mipfilter = LINEAR;
 };
 
 Texture2D<float4> Specular;
@@ -87,7 +114,7 @@ struct DrawBasic_VSIn
 
 struct DrawBasic_VSOut
 {
-    float4 Position : SV_POSITION0;
+    float4 ScreenPosition : POSITION0;
     float4 WorldPos : TEXCOORD3;
     float3 Normal : NORMAL0;
     float2 TexCoord : TEXCOORD1;
@@ -96,7 +123,7 @@ struct DrawBasic_VSOut
 
 struct Render_IN
 {
-    float4 Position : SV_POSITION0;
+    float4 Position : POSITION0;
     float4 Color : COLOR0;
     float3 Normal : TEXCOORD0;
     float2 Depth : DEPTH;
@@ -117,12 +144,19 @@ struct PixelShaderOutput
 DrawBasic_VSOut DrawBasic_VertexShader(DrawBasic_VSIn input)
 {
     DrawBasic_VSOut Output;
-    Output.Position = mul(input.Position, WorldViewProj);
-    Output.Normal = mul(float4(input.Normal, 0), World).xyz;
-    Output.WorldPos = mul(input.Position, World);
-    Output.TexCoord = input.TexCoord;
-    Output.Depth.x = Output.Position.z;
-    Output.Depth.y = Output.Position.w;
+ 
+    Output.Normal = mul(float4(input.Normal, 0), World);
+
+    //input.Position.xyz += refract(CameraDirection, Output.Normal, 0.66) * 0.002;
+
+    Output.WorldPos = mul(float4(input.Position), World);
+    float4 viewPosition = mul(Output.WorldPos, View);
+    float4 PositionVS = mul(viewPosition, Projection);
+
+
+    Output.ScreenPosition = PositionVS;
+    Output.Depth.x = PositionVS.z;
+    Output.Depth.y = PositionVS.w;
     return Output;
 }
 
@@ -203,32 +237,40 @@ float3 DiffuseOrenNayar(float NdotL, float3 normal, float3 lightDirection, float
 }
 
 
+
+float4 GaussianSampler(float2 TexCoord, float offset)
+{
+    float4 finalColor = float4(0, 0, 0, 0);
+    for (int i = 0; i < SAMPLE_COUNT; i++)
+    {
+        finalColor += colorMap.Sample(colorSampler, TexCoord.xy +
+                    offset * SampleOffsets[i] * InverseResolution) * SampleWeights[i];
+    }
+   // finalColor = colorMap.Sample(colorSampler, TexCoord.xy);
+    return finalColor;
+}
+
+float3 ComputePointLightDiffuse(float3 position, float3 normal, float3 cameraDirection, float roughness)
+{
+
+
+}
+
+
 PixelShaderOutput Lighting(Render_IN input)
 {
     
-    //Deferred MRT
-
-    float depth = 1- input.Depth.x / input.Depth.y;
-
-    float sampleDepth = Depth.Sample(DepthSampler, input.TexCoord).r;
     PixelShaderOutput Out;
-    if (depth < sampleDepth+.002f)
-    {
-        Out.Color = float4(1, 1, 0, 1);
-    }
-    else
-    {
-
-        
-
+    
         float3 LightDir = normalize
     (LightPosition - input.Position.xyz);
 
-        float spotStrength = 1;
-        saturate(dot(LightDir, LightDirection) - 0.75);
+    float spotReach = 0.75;
+        float spotStrength = 
+    saturate(dot(LightDir, LightDirection) - spotReach) * 1 / (1 - spotReach);
 
     //compute attenuation based on distance - linear attenuation
-        float attenuation = 1;
+        float attenuation = 
         saturate(1.0f - length(LightPosition - input.Position.xyz) / LightRadius) * LightIntensity * spotStrength;
 
         float NdotL = saturate(dot(input.Normal, LightDir));
@@ -237,14 +279,36 @@ PixelShaderOutput Lighting(Render_IN input)
 
         float alpha = dot(specular, float3(0.33, 0.33, 0.33));
 
-        float NdotC = saturate(dot(input.Normal, CameraDirection));
+        float NdotC = saturate(dot(input.Normal, -CameraDirection));
 
-    
+    float3 refractVector = refract(CameraDirection, input.Normal, 0.66 - Roughness) * 0.1;
 
-        Out.Color = float4(input.Color.rgb *
-    DiffuseOrenNayar(NdotL, input.Normal, LightDir, normalize(CameraDirection), LightIntensity, LightColor, Roughness) * 0.1f * attenuation, Transparency * 4 * NdotC) + float4(specular, alpha) * 0.1f;
+    float2 refraction = mul(float4(refractVector, 0), View * Projection).xy;
 
-    }
+    float2 TexCoordRefract = input.TexCoord + refraction;
+
+    float4 backgroundColorRefract = GaussianSampler(TexCoordRefract, Roughness*10) * NdotC;
+    //colorMap.Sample(colorSampler, TexCoordRefract) * NdotC;
+
+    float3 reflectVector = reflect(CameraDirection, input.Normal) * .5;
+
+    float2 reflection = mul(float4(reflectVector, 0), View * Projection).xy;
+
+    float2 TexCoordReflect = input.TexCoord - reflection;
+
+    float4 backgroundColorReflect = colorMap.Sample(colorSampler, TexCoordReflect) * (1-NdotC) * 0.5;
+
+    float4 glassColor = backgroundColorReflect + backgroundColorRefract;
+
+    glassColor.a = 0.5f;
+
+    float Transparency = min(Roughness,0.2);
+
+    float3 PointLightDiffuse = ComputePointLightDiffuse(input.Position, input.Normal, normalize(CameraDirection), Roughness);
+
+    Out.Color = float4(input.Color.rgb *
+    DiffuseOrenNayar(NdotL, input.Normal, LightDir, normalize(CameraDirection), LightIntensity, LightColor, Roughness) * 0.05f * attenuation, Transparency) * Transparency + glassColor * (1 - Transparency) + float4(specular, 0.8) * 0.2f;
+
 
     return Out;
 }
@@ -255,16 +319,31 @@ PixelShaderOutput DrawBasic_PixelShader(DrawBasic_VSOut input) : SV_TARGET
 
     float4 outputColor = DiffuseColor; //* input.Color;
 
+    //input.ScreenPosition.xy /= input.ScreenPosition.w;
+    ////obtain textureCoordinates corresponding to the current pixel
+    ////the screen coordinates are in [-1,1]*[1,-1]
+    ////the texture coordinates need to be in [0,1]*[0,1]
+    float2 texCoord = float2(0.63f*input.ScreenPosition.x, input.ScreenPosition.y)* InverseResolution;
+    //0.5f * (float2(input.ScreenPosition.x, -input.ScreenPosition.y) + 1);
+    //read depth
+    float depthVal = Depth.Sample(DepthSampler, texCoord).r;
 
+    float depth = 1 - input.Depth.x / input.Depth.y;
 
-         
+    if(depth < depthVal)
+    {
+        clip(-1);
+        PixelShaderOutput output;
+        output.Color = float4(depthVal,0, 0,1);
+    }
+
     renderParams.Position = input.WorldPos;
     renderParams.Color = outputColor;
     renderParams.Normal = normalize(input.Normal);
     renderParams.Depth = input.Depth;
     renderParams.f0 = F0;
     renderParams.roughness = Roughness;
-    renderParams.TexCoord = input.TexCoord;
+    renderParams.TexCoord = texCoord;
 
     return Lighting(renderParams);
 }

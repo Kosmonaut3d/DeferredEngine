@@ -778,3 +778,15 @@
 /processorParam:DebugMode=Auto
 /build:Glass.fx
 
+#begin VirtualShadowMapsGenerate.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:VirtualShadowMapsGenerate.fx
+
+#begin GaussianBlur.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:GaussianBlur.fx
+

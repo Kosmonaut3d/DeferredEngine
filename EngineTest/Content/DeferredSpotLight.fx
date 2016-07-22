@@ -11,6 +11,9 @@ float4x4 InvertViewProjection;
 //this is the position of the light
 float3 lightPosition;
 float3 lightDirection;
+
+float4x4 LightViewProjection;
+float4x4 LightProjection;
 //how far does this light reach
 float lightRadius;
 //control the brightness of the light
@@ -49,6 +52,16 @@ sampler normalSampler = sampler_state
     Mipfilter = POINT;
 };
 
+Texture2D shadowMap;
+sampler shadowSampler = sampler_state
+{
+    Texture = (colorMap);
+    AddressU = CLAMP;
+    AddressV = CLAMP;
+    MagFilter = LINEAR;
+    MinFilter = LINEAR;
+    Mipfilter = LINEAR;
+};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  STRUCT DEFINITIONS
@@ -161,6 +174,26 @@ float3 DiffuseOrenNayar(float NdotL, float3 normal, float3 lightDirection, float
     return L1 * lightColor* lightIntensity / 4;
 }
 
+float chebyshevUpperBound(float distance, float2 texCoord)
+{
+		// We retrive the two moments previously stored (depth and depth*depth)
+    float2 moments = 1-shadowMap.Sample(shadowSampler, texCoord).rg;
+		
+		// Surface is fully lit. as the current fragment is before the light occluder
+    if (distance <= moments.x)
+        return 1.0;
+	
+		// The fragment is either in shadow or penumbra. We now use chebyshev's upperBound to check
+		// How likely this pixel is to be lit (p_max)
+    float variance = moments.y - (moments.x * moments.x);
+    variance = max(variance, 0.000002);
+	
+    float d = distance - moments.x;
+    float p_max = variance / (variance + d * d);
+	
+    return p_max;
+}
+
 PixelShaderOutput PixelShaderFunctionPBR(VertexShaderOutput input) : COLOR0
 {
     //obtain screen position
@@ -194,9 +227,21 @@ PixelShaderOutput PixelShaderFunctionPBR(VertexShaderOutput input) : COLOR0
     float3 lightVector = lightPosition - position.xyz;
     float3 lightVectorNormalized = normalize(lightVector);
 
+    
+
+    //Shadow
+
+    float4 positionInLS = mul(position, LightViewProjection);
+    float2 ShadowTexCoord = mad(positionInLS.xy / positionInLS.w, 0.5f, float2(0.5f, 0.5f));
+    ShadowTexCoord.y = 1 - ShadowTexCoord.y;
+    float depthInLS = (positionInLS.z / positionInLS.w);
+    
+    float shadowVSM = chebyshevUpperBound(depthInLS, ShadowTexCoord);
+
+
     float spotReach = 0.75f;
 
-    float spotStrength = saturate(dot(lightVectorNormalized, lightDirection) - spotReach);
+    float spotStrength = saturate(dot(lightVectorNormalized, lightDirection) - spotReach) * 1/(1-spotReach);
 
     PixelShaderOutput output;
     output.Diffuse = float4(0, 0, 0, 0);
@@ -220,8 +265,8 @@ PixelShaderOutput PixelShaderFunctionPBR(VertexShaderOutput input) : COLOR0
 
     //return attenuation * lightIntensity * float4(diffuseLight.rgb, specular);
     
-    output.Diffuse.rgb = (attenuation * diffuseLight * (1 - f0)) * (f0 + 1) * (f0 + 1)  * 0.1f;
-    output.Specular.rgb = specular * attenuation          *0.1f;
+    output.Diffuse.rgb = (attenuation * diffuseLight * (1 - f0)) * (f0 + 1) * (f0 + 1)  * 0.1f * shadowVSM;
+    output.Specular.rgb = specular * attenuation          *0.1f * max(shadowVSM-0.1f, 0);
 
     return output;
    //return float4(color.rgb * (attenuation * diffuseLight * (1 - f0)) * (f0 + 1) * (f0 + 1) *0.5f + specular*attenuation, 1);
