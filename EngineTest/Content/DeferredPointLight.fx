@@ -85,6 +85,7 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
     float4 worldPosition = mul(float4(input.Position.rgb, 1), World);
     float4 viewPosition = mul(worldPosition, View);
     output.Position = mul(viewPosition, Projection);
+    output.Position.z -= 0.1f;
     output.ScreenPosition = output.Position;
     return output;
 }

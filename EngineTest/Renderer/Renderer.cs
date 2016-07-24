@@ -352,7 +352,7 @@ namespace EngineTest.Renderer
 
             if (keyboardState.IsKeyDown(Keys.L))
             {
-                pointLights.Add(new PointLight(new Vector3((float) (random.NextDouble()*250-125), (float) (random.NextDouble()*50-25), (float) (-random.NextDouble()*10)-3), 20, new Color(random.Next(255),random.Next(255),random.Next(255)), 4));
+                pointLights.Add(new PointLight(new Vector3((float) (random.NextDouble()*250-125), (float) (random.NextDouble()*50-25), (float) (-random.NextDouble()*10)-3), 200, new Color(random.Next(255),random.Next(255),random.Next(255)), 4));
                 
                 GetClosestLights();
                 window.Title = pointLights.Count + "";
@@ -1192,10 +1192,10 @@ namespace EngineTest.Renderer
 
 
             _renderTargetDiffuse = new RenderTarget2D(_graphicsDevice, width,
-               height, false, SurfaceFormat.HalfVector4, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+               height, false, SurfaceFormat.HalfVector4, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
 
             _renderTargetSpecular = new RenderTarget2D(_graphicsDevice, width,
-               height, false, SurfaceFormat.HalfVector4, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+               height, false, SurfaceFormat.HalfVector4, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
 
             _renderTargetLightBinding[0] = new RenderTargetBinding(_renderTargetDiffuse);
             _renderTargetLightBinding[1] = new RenderTargetBinding(_renderTargetSpecular);
