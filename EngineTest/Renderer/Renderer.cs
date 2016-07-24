@@ -196,7 +196,7 @@ namespace EngineTest.Renderer
 
             pointLights.Add(new PointLight(new Vector3(-20, -5, -5), 20, Color.Wheat, 4));
 
-            spotLights.Add(new SpotLight(new Vector3(-20, -3, -50), 120, Color.White, 3, -new Vector3(1,0,1)));
+            spotLights.Add(new SpotLight(new Vector3(-20, -3, -50), 150, Color.White, 3, -new Vector3(1,0,1)));
             //spotLights.Add(new SpotLight(new Vector3(-3,-3,-10), 150, Color.White, 6, Vector3.UnitX));
             
 
@@ -492,6 +492,9 @@ namespace EngineTest.Renderer
                                    Matrix.CreateRotationZ((float)(-Math.PI / 2)) * Matrix.CreateRotationX(-0.9f) *
                                    Matrix.CreateRotationY((float)(Math.PI / 2)) * Matrix.CreateTranslation(Dragon2Position + Vector3.Down * 15));
 
+            DrawModelVSM(_art.HelmetModel, Matrix.CreateScale(1) *
+                                   Matrix.CreateRotationX((float)(-Math.PI / 2)) * Matrix.CreateRotationY(0) *
+                                   Matrix.CreateRotationZ((float)(-Math.PI / 2)) * Matrix.CreateTranslation(new Vector3(30, 0, -10)));
             //Blur it
 
             //DrawGaussianBlur();
@@ -1189,10 +1192,10 @@ namespace EngineTest.Renderer
 
 
             _renderTargetDiffuse = new RenderTarget2D(_graphicsDevice, width,
-               height, false, SurfaceFormat.Vector4, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+               height, false, SurfaceFormat.HalfVector4, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
 
             _renderTargetSpecular = new RenderTarget2D(_graphicsDevice, width,
-               height, false, SurfaceFormat.Vector4, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+               height, false, SurfaceFormat.HalfVector4, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
 
             _renderTargetLightBinding[0] = new RenderTargetBinding(_renderTargetDiffuse);
             _renderTargetLightBinding[1] = new RenderTargetBinding(_renderTargetSpecular);

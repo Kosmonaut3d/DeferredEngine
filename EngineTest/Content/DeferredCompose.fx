@@ -133,7 +133,9 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
     
     float3 diffuseLight = diffuseLightMap.Sample(diffuseLightSampler, input.TexCoord).rgb;
     float3 specularLight = specularLightMap.Sample(specularLightSampler, input.TexCoord).rgb;
-    return float4(((diffuseColor.rgb) * diffuseLight + diffuseContrib + specularLight), 1) * exposure;
+    float3 hdr = ((diffuseColor.rgb) * diffuseLight + diffuseContrib + specularLight);
+
+    return float4(hdr, 1) * exposure;
 }
 
 
