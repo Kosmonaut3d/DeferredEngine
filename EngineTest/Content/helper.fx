@@ -1,4 +1,28 @@
-﻿//float2 encode(float3 n)
+﻿       
+float2 InverseResolution = (1.0f / 1280.0f, 1.0f / 800.0f);
+
+#define SAMPLE_COUNT 9
+static float2 SampleOffsets[9] =
+{
+    float2(-1, -1), float2(0, -1), float2(1, -1),
+    float2(-1, 0), float2(0, 0), float2(1, 0),
+    float2(-1, 1), float2(0, 1), float2(1, 1)
+};
+
+static float SampleWeights[9] =
+{
+    0.077847f,
+    0.123317f,
+    0.077847f,
+    0.123317f,
+    0.195346f,
+    0.123317f,
+    0.077847f,
+    0.123317f,
+    0.077847f,
+};
+
+//float2 encode(float3 n)
 //{
 //    half2 enc = normalize(n.xy) * (sqrt(-n.z * 0.5 + 0.5));
 //    enc = enc * 0.5 + 0.5;
@@ -54,6 +78,7 @@ float decodeMattype(float input)
     input *= 10;
     return round(trunc(input));
 }
+
 
 
 //half2 encode(float3 n)

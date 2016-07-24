@@ -19,6 +19,8 @@ namespace EngineTest
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
 
+            graphics.SynchronizeWithVerticalRetrace = false;
+            IsFixedTimeStep = false;
 
             graphics.PreferredBackBufferWidth = 1280;
             graphics.PreferredBackBufferHeight = 800;

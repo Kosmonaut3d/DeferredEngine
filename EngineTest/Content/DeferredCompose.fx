@@ -6,6 +6,8 @@ Texture2D specularLightMap;
 
 static float2 Resolution = float2(1280, 800);
 
+float average_skull_depth = 10;
+
 #include "helper.fx"
 
 float exposure = 20;
@@ -81,7 +83,21 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
     return output;
 }
 
-float pixelsize = 3;
+float pixelsize_intended = 3;
+ 
+
+float4 GaussianSampler(float2 TexCoord, float offset)
+{
+    float4 finalColor = float4(0, 0, 0, 0);
+    for (int i = 0; i < SAMPLE_COUNT; i++)
+    {
+        finalColor += skull.Sample(skullSampler, TexCoord.xy +
+                    offset * SampleOffsets[i] * InverseResolution) * SampleWeights[i];
+    }
+   // finalColor = colorMap.Sample(colorSampler, TexCoord.xy);
+    return finalColor;
+}
+
 
 float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 {
@@ -89,15 +105,21 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 
     float albedoColorProp = diffuseColor.a;
 
+    float pixelsize = pixelsize_intended;
     
-    float2 skullTexCoord = trunc(input.TexCoord * Resolution / pixelsize / 2) / Resolution * pixelsize*2;
+    float2 skullTexCoord = trunc(input.TexCoord * Resolution / pixelsize / 2) / Resolution * pixelsize * 2;
        
-    float skullColor = skull.Sample(skullSampler, skullTexCoord).r;
+    
 
     float materialType = decodeMattype(albedoColorProp);
 
     float3 diffuseContrib = float3(0, 0, 0);
 
+    float skullColor = skull.Sample(skullSampler, skullTexCoord).r;
+    
+    //float skullColor = GaussianSampler(skullTexCoord, 3);
+
+    [branch]
     if (abs(materialType - 1) < 0.1f)
     {
         float2 pixel = trunc(input.TexCoord * Resolution);
@@ -105,8 +127,8 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
         float pixelsize2 = 2 * pixelsize;
         if (pixel.x % pixelsize2 <= pixelsize && pixel.y % pixelsize2 <= pixelsize)
         diffuseContrib = float3(0, skullColor * 0.49, skullColor*0.95f) * 0.06f;
-    }
-
+    }     
+    
 
     
     float3 diffuseLight = diffuseLightMap.Sample(diffuseLightSampler, input.TexCoord).rgb;

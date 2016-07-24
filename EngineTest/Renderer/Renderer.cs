@@ -19,6 +19,9 @@ namespace EngineTest.Renderer
 
         private SpriteBatch _spriteBatch;
 
+        private int _screenWidth;
+        private int _screenHeight;
+
         //Mouse Key
         private KeyboardState keyboardState;
         private MouseState mouseState;
@@ -40,7 +43,7 @@ namespace EngineTest.Renderer
         private bool PBR = true;
 
         private RenderModes _renderMode;
-        private int _renderModeCycle = 1;
+        private int _renderModeCycle = 0;
 
         private Vector3 _lightPosition;
         
@@ -124,7 +127,7 @@ namespace EngineTest.Renderer
         private TextureCube EnvironmentMap;
         private Effect _deferredEnvironment;
 
-        private enum RenderModes { Default, Albedo, Normal, Depth, Deferred, Diffuse, Specular};
+        private enum RenderModes { Skull, Albedo, Normal, Depth, Deferred, Diffuse, Specular};
 
         public Renderer(GraphicsDevice graphicsDevice, ContentManager content)
         {
@@ -133,6 +136,9 @@ namespace EngineTest.Renderer
             _camera = new Camera(new Vector3(0, 0, -10), new Vector3(1, 0, -10));
             _art = new Art();
             _art.Load(content);
+
+            _screenHeight = _graphicsDevice.PresentationParameters.BackBufferHeight;
+            _screenWidth = _graphicsDevice.PresentationParameters.BackBufferWidth;
 
 
             _virtualShadowMapGenerate = content.Load<Effect>("VirtualShadowMapsGenerate");
@@ -401,7 +407,7 @@ namespace EngineTest.Renderer
 
                 switch (_renderModeCycle)
                 {
-                    case 0: _renderMode = RenderModes.Default;
+                    case 0: _renderMode = RenderModes.Deferred;
                         break;
                     case 1: _renderMode = RenderModes.Albedo;
                         break;
@@ -413,7 +419,7 @@ namespace EngineTest.Renderer
                         break;
                     case 5: _renderMode = RenderModes.Specular;
                         break;
-                    case 6: _renderMode = RenderModes.Deferred;
+                    case 6: _renderMode = RenderModes.Skull;
                         break;
 
 
@@ -527,11 +533,13 @@ namespace EngineTest.Renderer
             DrawModels();
 
             if (_renderMode == RenderModes.Albedo)
-                DrawMapToScreenToTarget(_renderTargetAlbedo, null);
+                DrawMapToScreenToFullScreen(_renderTargetAlbedo);
             else if (_renderMode == RenderModes.Normal)
-                DrawMapToScreenToTarget(_renderTargetNormal, null);
+                DrawMapToScreenToFullScreen(_renderTargetNormal);
             else if (_renderMode == RenderModes.Depth)
-                DrawMapToScreenToTarget(_renderTargetDepth, null);
+                DrawMapToScreenToFullScreen(_renderTargetDepth);
+            else if (_renderMode == RenderModes.Skull)
+                DrawMapToScreenToFullScreen(_renderTargetSkull);
             else //if (_renderMode == RenderModes.Deferred)
             {
 
@@ -709,6 +717,10 @@ namespace EngineTest.Renderer
             _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
 
             _graphicsDevice.SetRenderTargets(_renderTargetFinalBinding);
+
+            //Skull depth
+            //_deferredCompose.Parameters["average_skull_depth"].SetValue(Vector3.Distance(_camera.Position , new Vector3(29, 0, -6.5f)));
+
             //combine!
             _deferredCompose.CurrentTechnique.Passes[0].Apply();
             quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
@@ -905,19 +917,7 @@ namespace EngineTest.Renderer
         {
             Matrix localWorld = Matrix.CreateScale(10)*Matrix.CreateTranslation(DragonPosition)* Matrix.CreateRotationX((float) (-Math.PI/2));
 
-            if (_renderMode == RenderModes.Default)
-            {
-
-                //_art.DragonUvSmoothModel.Draw(localWorld, _view, _projection);
-
-                //_art.SponzaModel.Draw(Matrix.Identity*Matrix.CreateRotationX((float) (-Math.PI/2)), _view, _projection);
-            }
-            else
-            {
-                
-
-                
-                
+            
                 DrawModel(_art.SponzaModel, Matrix.CreateScale(0.1f) * Matrix.CreateRotationX((float)(-Math.PI / 2)), false);
 
                 _lightingEffect.Parameters["F0"].SetValue(0.3f);
@@ -938,7 +938,7 @@ namespace EngineTest.Renderer
                                    Matrix.CreateRotationZ((float)(-Math.PI / 2)) * Matrix.CreateTranslation(new Vector3(30,0,-10)),false);
 
 
-            }
+            
         }
 
         private void DrawModel(Model model, Matrix world, bool drake)
@@ -1063,9 +1063,39 @@ namespace EngineTest.Renderer
 
         private void DrawMapToScreenToTarget(RenderTarget2D map, RenderTarget2D target)
         {
+            
             _graphicsDevice.SetRenderTarget(target);
             _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.PointClamp);
             _spriteBatch.Draw(map, new Rectangle(0, 0, map.Width, map.Height), Color.White);
+            _spriteBatch.End();
+        }
+
+        private void DrawMapToScreenToFullScreen(RenderTarget2D map)
+        {
+            int height;
+            int width;
+            if (Math.Abs(map.Width / (float)map.Height - _screenWidth / (float)_screenHeight) < 0.001)
+            //If same aspectration
+            {
+                height = _screenHeight;
+                width = _screenWidth;
+            }
+            else
+            {
+                if (_screenHeight < _screenWidth)
+                {
+                    height = _screenHeight;
+                    width = _screenHeight;
+                }
+                else
+                {
+                    height = _screenWidth;
+                    width = _screenWidth;
+                }
+            }
+            _graphicsDevice.SetRenderTarget(null);
+            _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.PointClamp);
+            _spriteBatch.Draw(map, new Rectangle(0, 0, width, height), Color.White);
             _spriteBatch.End();
         }
 
@@ -1118,22 +1148,27 @@ namespace EngineTest.Renderer
 
             //SKULL
 
-            _renderTargetSkull = new RenderTarget2D(_graphicsDevice, width,
-                height, false, SurfaceFormat.Single, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+            _renderTargetSkull = new RenderTarget2D(_graphicsDevice, width/2,
+                height/2, false, SurfaceFormat.Single, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
 
             _renderTargetSkullBinding[0] = new RenderTargetBinding(_renderTargetSkull);
 
 
             //DEFAULT
 
-            _renderTargetAlbedo = new RenderTarget2D(_graphicsDevice, width,
-                height, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+            int multiplier = 1;
 
-            _renderTargetNormal = new RenderTarget2D(_graphicsDevice, width,
-                height, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+            int special_width = width*multiplier;
+            int special_height = height*multiplier;
 
-            _renderTargetDepth = new RenderTarget2D(_graphicsDevice, width,
-                height, false, SurfaceFormat.Single, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+            _renderTargetAlbedo = new RenderTarget2D(_graphicsDevice, special_width,
+                special_height, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+
+            _renderTargetNormal = new RenderTarget2D(_graphicsDevice, special_width,
+                special_height, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+
+            _renderTargetDepth = new RenderTarget2D(_graphicsDevice, special_width,
+                special_height, false, SurfaceFormat.Single, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
 
             _renderTargetBinding[0] = new RenderTargetBinding(_renderTargetAlbedo);
             _renderTargetBinding[1] = new RenderTargetBinding(_renderTargetNormal);
