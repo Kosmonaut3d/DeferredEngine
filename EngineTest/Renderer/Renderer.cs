@@ -1165,7 +1165,7 @@ namespace EngineTest.Renderer
                 special_height, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
 
             _renderTargetNormal = new RenderTarget2D(_graphicsDevice, special_width,
-                special_height, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+                special_height, false, SurfaceFormat.HalfVector4, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
 
             _renderTargetDepth = new RenderTarget2D(_graphicsDevice, special_width,
                 special_height, false, SurfaceFormat.Single, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
