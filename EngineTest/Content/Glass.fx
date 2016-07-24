@@ -54,6 +54,17 @@ float PointLightRadius[POINTLIGHTAMOUNT];
 float3 CameraPosition;
 float3 CameraDirection;
 
+TextureCube ReflectionCubeMap;
+sampler ReflectionCubeMapSampler = sampler_state
+{
+    texture = <ReflectionCubeMap>;
+    AddressU = CLAMP;
+    AddressV = CLAMP;
+    MagFilter = LINEAR;
+    MinFilter = LINEAR;
+    Mipfilter = LINEAR;
+};
+
 
 
 //      MATERIAL
@@ -334,13 +345,21 @@ PixelShaderOutput Lighting(Render_IN input)
     float4 backgroundColorRefract = GaussianSampler(TexCoordRefract, Roughness*10) * NdotC;
     //colorMap.Sample(colorSampler, TexCoordRefract) * NdotC;
 
-    float3 reflectVector = reflect(CameraDirection, input.Normal) * .5;
 
-    float2 reflection = mul(float4(reflectVector, 0), View * Projection).xy;
+    float3 reflectionVector = reflect(CameraDirection, input.Normal);
 
-    float2 TexCoordReflect = input.TexCoord - reflection;
+    //float NdotC = saturate(dot(-incident, normal));
 
-    float4 backgroundColorReflect = colorMap.Sample(colorSampler, TexCoordReflect) * (1-NdotC) * 0.5;
+    reflectionVector.z = -reflectionVector.z;
+
+    float4 backgroundColorReflect = ReflectionCubeMap.Sample(ReflectionCubeMapSampler, reflectionVector) * (1 - Roughness) * 0.4f;
+    //float3 reflectVector = reflect(CameraDirection, input.Normal) * .5;
+
+    //float2 reflection = mul(float4(reflectVector, 0), View * Projection).xy;
+
+    //float2 TexCoordReflect = input.TexCoord - reflection;
+
+    //float4 backgroundColorReflect = colorMap.Sample(colorSampler, TexCoordReflect) * (1-NdotC) * 0.5;
 
     float4 glassColor = backgroundColorReflect + backgroundColorRefract;
 

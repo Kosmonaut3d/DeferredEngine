@@ -13,10 +13,14 @@ float4 FogColor = float4(1, 0.375, 0, 1);
 
 float2 Resolution;
 
+#include "helper.fx"
+
 
 //      MATERIAL
 float   Roughness = 0.3f; // 0 : smooth, 1: rough
 float   F0 = 0.05f;
+
+int MaterialType = 0;
 
 float CLIP_VALUE = 0.99;
 
@@ -170,9 +174,12 @@ PixelShaderOutput Lighting(Render_IN input)
 
     Out.Color = finalValue;
 
-    Out.Color.a = input.roughness; 
+    Out.Color.a = encodeRoughnessMattype(input.roughness, MaterialType);
 
-    Out.Normal.rgb = 0.5f * (input.Normal + 1.0f);
+    //if (MaterialType == 1)
+    //    clip(-1);
+
+    Out.Normal.rgb =  encode(input.Normal); //
 
     Out.Normal.a = input.f0;
 

@@ -43,6 +43,11 @@ namespace EngineTest.Recources
             private Texture2D vase_round_ddn;
             private Texture2D vase_round_spec;
 
+
+            public Model SkullModel { get; set; }
+
+            public Model HelmetModel { get; set; }
+
             public Model DragonUvSmoothModel { get; set; }
 
             public Model SponzaModel { get; set; }
@@ -53,6 +58,8 @@ namespace EngineTest.Recources
             {
                 DragonUvSmoothModel = content.Load<Model>("dragon_uv_smooth");
                 SponzaModel = content.Load<Model>("Sponza/Sponza");
+                HelmetModel = content.Load<Model>("daft_helmets");
+                SkullModel = content.Load<Model>("skull");
 
                 SponzaTextures.Add(background_ddn = content.Load<Texture2D>("Sponza/textures/background_ddn"));
                 SponzaTextures.Add(chain_texture_ddn = content.Load<Texture2D>("Sponza/textures/chain_texture_ddn"));
@@ -94,6 +101,62 @@ namespace EngineTest.Recources
                         DiffuseColor = Color.MonoGameOrange.ToVector3()
                     };
 
+                ProcessHelmets();
+            }
+
+            private void ProcessHelmets()
+            {
+                for (int i = 0; i < HelmetModel.Meshes.Count; i++)
+                {
+                    ModelMesh mesh = HelmetModel.Meshes[i];
+                    for (int index = 0; index < mesh.MeshParts.Count; index++)
+                    {
+                        ModelMeshPart meshPart = mesh.MeshParts[index];
+                        MaterialEffect matEffect = new MaterialEffect(meshPart.Effect);
+
+                        matEffect.DiffuseColor = Color.Gray.ToVector3();
+
+                        if (mesh.Name == "Helmet1_Interior")
+                        {
+                            matEffect.DiffuseColor = Color.White.ToVector3();
+                            matEffect.MaterialType = 1;
+                        }
+
+                        if (i == 0)
+                        {
+                            matEffect.DiffuseColor = Color.Black.ToVector3();
+                            matEffect.Roughness = 0.1f;
+                            matEffect.MaterialType = 1;
+                        }
+
+                        if (i == 1)
+                            matEffect.DiffuseColor = Color.Blue.ToVector3();
+
+                        if (i == 2)
+                        {
+                            matEffect.DiffuseColor = Color.Black.ToVector3();
+                            matEffect.Roughness = 0.1f;
+                            matEffect.MaterialType = 2;
+                        }
+
+                        //Helmet color - should be gold!
+                        if (i == 4)
+                        {
+                            matEffect.DiffuseColor = new Color(255,255,155).ToVector3()*0.5f;
+                            matEffect.Roughness = 0.05f;
+                            matEffect.MaterialType = 2;
+                        }
+
+                        if (i == 13)
+                        {
+                            matEffect.DiffuseColor = Color.Black.ToVector3();
+                            matEffect.Roughness = 0.05f;
+                            matEffect.MaterialType = 1;
+                        }
+
+                        meshPart.Effect = matEffect;
+                    }
+                }
             }
 
             private void ProcessSponza()

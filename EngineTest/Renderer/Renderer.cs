@@ -57,7 +57,9 @@ namespace EngineTest.Renderer
 
         private Art _art;
         private Vector3 DragonPosition = new Vector3(-10, 0, -10);
-        private Vector3 Dragon2Position = new Vector3(40, 2, 1);
+        private Vector3 Dragon2Position = new Vector3(80, 2, 1);
+
+        private Matrix skullMatrix;
         private Matrix DragonMatrix;
         private RenderTarget2D _renderTargetAlbedo;
         private RenderTargetBinding[] _renderTargetBinding = new RenderTargetBinding[3];
@@ -83,6 +85,9 @@ namespace EngineTest.Renderer
         private Effect _raymarchingEffect;
         private RenderTarget2D _renderTargetFinal;
         private RenderTargetBinding[] _renderTargetFinalBinding = new RenderTargetBinding[1];
+
+        private RenderTarget2D _renderTargetSkull;
+        private RenderTargetBinding[] _renderTargetSkullBinding = new RenderTargetBinding[1];
 
         private RenderTarget2D _renderTargetVSM;
         private RenderTargetBinding[] _renderTargetVSMBinding = new RenderTargetBinding[1];
@@ -113,6 +118,11 @@ namespace EngineTest.Renderer
         private EffectParameter _param_deferredLightIntensity;
         private EffectParameter _param_deferredLightInside;
         private bool dynamicLights = true;
+        private Effect _skullEffect;
+
+        private RenderTargetCube _renderTargetCubeMap;
+        private TextureCube EnvironmentMap;
+        private Effect _deferredEnvironment;
 
         private enum RenderModes { Default, Albedo, Normal, Depth, Deferred, Diffuse, Specular};
 
@@ -124,12 +134,20 @@ namespace EngineTest.Renderer
             _art = new Art();
             _art.Load(content);
 
+
             _virtualShadowMapGenerate = content.Load<Effect>("VirtualShadowMapsGenerate");
             _deferredLight = content.Load<Effect>("DeferredPointLight");
             _deferredSpotLight = content.Load<Effect>("DeferredSpotLight");
+            _deferredEnvironment = content.Load<Effect>("DeferredEnvironmentMap");
             _deferredCompose = content.Load<Effect>("DeferredCompose");
             _glass = content.Load<Effect>("Glass");
             _gaussBlur = content.Load<Effect>("GaussianBlur");
+            _skullEffect = content.Load<Effect>("skullEffect");
+
+            skullMatrix = Matrix.CreateScale(0.9f)*
+                          Matrix.CreateRotationX((float) (-Math.PI/2))*Matrix.CreateRotationY(0)*
+                          Matrix.CreateRotationZ((float) (Math.PI/2 + 0.3f))*
+                          Matrix.CreateTranslation(new Vector3(29, 0, -6.5f));
 
             SSRmatrix = new Matrix(0.5f,0,0,0,0,-0.5f, 0,0,0,0,1,0,0,0,0,1);
 
@@ -164,7 +182,7 @@ namespace EngineTest.Renderer
             _lightEffectView = _lightingEffect.Parameters["View"];
             _lightingEffectProjection = _lightingEffect.Parameters["Projection"];
 
-            SetUpRenderTargets();
+            StaticRenderBuffers();
 
             _renderMode = RenderModes.Deferred;
 
@@ -172,12 +190,96 @@ namespace EngineTest.Renderer
 
             pointLights.Add(new PointLight(new Vector3(-20, -5, -5), 20, Color.Wheat, 4));
 
-            spotLights.Add(new SpotLight(new Vector3(-20, -3, -50), 150, Color.White, 4, -new Vector3(1,0,1)));
+            spotLights.Add(new SpotLight(new Vector3(-20, -3, -50), 120, Color.White, 3, -new Vector3(1,0,1)));
             //spotLights.Add(new SpotLight(new Vector3(-3,-3,-10), 150, Color.White, 6, Vector3.UnitX));
-            InitializePointLights();
+            
 
             GetClosestLights();
-            
+
+            InitializePointLights();
+
+            RenderCubeMap();
+
+            SetUpRenderTargets(_graphicsDevice.PresentationParameters.BackBufferWidth, _graphicsDevice.PresentationParameters.BackBufferHeight);
+
+            InitializePointLights();
+
+            _graphicsDevice.SetRenderTarget(null);
+
+        }
+
+
+        private void RenderCubeMap()
+        {
+            PrepareShadowSettings();
+
+            RenderShadowMap();
+
+            _renderTargetCubeMap = new RenderTargetCube(_graphicsDevice, 512, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.PreserveContents);
+
+            SetUpRenderTargets(512, 512);
+
+            InitializePointLights();
+
+            _projection = Matrix.CreatePerspectiveFieldOfView((float) (Math.PI/2), 1, 1, 300);
+
+            for (int i = 0; i < 6; i++)
+            {
+                // render the scene to all cubemap faces
+                CubeMapFace cubeMapFace = (CubeMapFace)i;
+
+                switch (cubeMapFace)
+                {
+                    case CubeMapFace.NegativeX:
+                        {
+                            _view = Matrix.CreateLookAt(_camera.Position, _camera.Position+ Vector3.Left, Vector3.Up);
+                            break;
+                        }
+                    case CubeMapFace.NegativeY:
+                        {
+                            _view = Matrix.CreateLookAt(_camera.Position, _camera.Position + Vector3.Down, Vector3.Forward);
+                            break;
+                        }
+                    case CubeMapFace.NegativeZ:
+                        {
+                            _view = Matrix.CreateLookAt(_camera.Position, _camera.Position + Vector3.Backward, Vector3.Up);
+                            break;
+                        }
+                    case CubeMapFace.PositiveX:
+                        {
+                            _view = Matrix.CreateLookAt(_camera.Position, _camera.Position + Vector3.Right, Vector3.Up);
+                            break;
+                        }
+                    case CubeMapFace.PositiveY:
+                        {
+                            _view = Matrix.CreateLookAt(_camera.Position, _camera.Position + Vector3.Up, Vector3.Backward);
+                            break;
+                        }
+                    case CubeMapFace.PositiveZ:
+                        {
+                            _view = Matrix.CreateLookAt(_camera.Position, _camera.Position + Vector3.Forward, Vector3.Up);
+                            break;
+                        }
+                }
+
+                _graphicsDevice.RasterizerState = RasterizerState.CullNone;
+                _graphicsDevice.BlendState = BlendState.Opaque;
+                _graphicsDevice.DepthStencilState = DepthStencilState.Default;
+
+                //Set up transformation
+                _world = Matrix.Identity;
+
+                Render(null, _renderTargetCubeMap, cubeMapFace, true);
+
+                //_graphicsDevice.SetRenderTarget(_renderTargetCubeMap, cubeMapFace);
+                //_graphicsDevice.Clear(Color.White);
+
+            }
+
+
+            _graphicsDevice.SetRenderTarget(null);
+
+
         }
 
 
@@ -226,6 +328,15 @@ namespace EngineTest.Renderer
             if (keyboardState.IsKeyDown(Keys.Space) && keyboardLastState.IsKeyUp(Keys.Space))
             {
                 dynamicLights = !dynamicLights;
+            }
+
+            if (keyboardState.IsKeyDown(Keys.C) && keyboardLastState.IsKeyUp(Keys.C))
+            {
+                RenderCubeMap();
+
+                SetUpRenderTargets(_graphicsDevice.PresentationParameters.BackBufferWidth, _graphicsDevice.PresentationParameters.BackBufferHeight);
+
+                InitializePointLights();
             }
 
             if (keyboardState.IsKeyDown(Keys.W))
@@ -328,15 +439,31 @@ namespace EngineTest.Renderer
 
         public void Draw()
         {
+            //RenderCubeMap();
+
+            //SetUpRenderTargets(_graphicsDevice.PresentationParameters.BackBufferWidth, _graphicsDevice.PresentationParameters.BackBufferHeight);
+
+            //InitializePointLights();
+
             PrepareSettings();
 
             PrepareShadowSettings();
 
             RenderShadowMap();
 
-            Render();
+            RenderSkull();
+
+            Render(null, null, null, false);
 
             //DrawMapToScreenToTarget(_renderTargetVSM, null);
+        }
+
+        private void RenderSkull()
+        {
+            _graphicsDevice.SetRenderTargets(_renderTargetSkullBinding);
+            DrawModelSkull(_art.SkullModel, skullMatrix);
+
+            DrawModelSkull(_art.SkullModel, Matrix.CreateScale(0.8f)*skullMatrix*Matrix.CreateTranslation(0.5f,8.5f,-0.5f));
         }
 
         private void RenderShadowMap()
@@ -385,7 +512,7 @@ namespace EngineTest.Renderer
             LightViewProjection = LightView*LightProjection;
         }
 
-        private void Render()
+        private void Render(RenderTarget2D target, RenderTargetCube targetCube, CubeMapFace? face, bool cubeMap)
         {
             //_graphicsDevice.SetRenderTargets(_renderTargetAlbedo, _renderTargetDepth);
 
@@ -393,13 +520,11 @@ namespace EngineTest.Renderer
 
             ClearGBuffer();
 
-            _graphicsDevice.Clear(Color.AliceBlue);
+            //_graphicsDevice.Clear(Color.AliceBlue);
 
             _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
 
             DrawModels();
-
-
 
             if (_renderMode == RenderModes.Albedo)
                 DrawMapToScreenToTarget(_renderTargetAlbedo, null);
@@ -410,25 +535,27 @@ namespace EngineTest.Renderer
             else //if (_renderMode == RenderModes.Deferred)
             {
 
-                //_graphicsDevice.SetRenderTarget(null);
-                //DrawPointLight();
-                
                 _graphicsDevice.SetRenderTargets(_renderTargetLightBinding);
 
                 _graphicsDevice.Clear(Color.TransparentBlack);
 
-
                 DrawPointLights();
                 DrawSpotLights();
+                if(!cubeMap) DrawEnvironmentMap();
 
                 Compose();
 
-                
+                if (!cubeMap)
+                {
+                    DrawMapToScreenToTarget(_renderTargetFinal, target);
+                    DrawTransparents();
+                }
+                else
+                {
+                    DrawMapToScreenToCube(_renderTargetFinal, targetCube, face);
+                }
 
-                DrawMapToScreenToTarget(_renderTargetFinal, null);
-
                 
-                DrawTransparents();
                 //
                 //DrawReflection();
                 if (_renderMode == RenderModes.Diffuse)
@@ -438,29 +565,19 @@ namespace EngineTest.Renderer
 
             }
             
-            //else //GI!
-            //{
-                
-            //    _graphicsDevice.SetRenderTargets(_renderTargetBinding2);
-            //    DrawPointLightGI();
+        }
 
-            //    if (_renderMode == RenderModes.LightReflection)
-            //    {
-            //        DrawMapToScreenToTarget(_renderTargetLightReflection, null);
-            //    }
-            //    else if (_renderMode == RenderModes.LightDepth)
-            //    {
-            //        DrawMapToScreenToTarget(_renderTargetLightDepth, null);
-            //    }
-            //    else if (_renderMode == RenderModes.Combined)
-            //    {
-            //        _graphicsDevice.SetRenderTarget(null);
-            //        CombineRender();
-            //    }
-
-            //}
-
+        private void DrawEnvironmentMap()
+        {
+            _graphicsDevice.DepthStencilState = DepthStencilState.Default;
+            _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+            _deferredEnvironment.Parameters["InvertViewProjection"].SetValue(Matrix.Invert(_view*_projection));
             
+            _deferredEnvironment.Parameters["cameraPosition"].SetValue(_camera.Position);
+            _deferredEnvironment.Parameters["cameraDirection"].SetValue(_camera.Forward);
+
+            _deferredEnvironment.CurrentTechnique.Passes[0].Apply();
+            quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
         }
 
         private void DrawModelVSM(Model model, Matrix world)
@@ -475,6 +592,32 @@ namespace EngineTest.Renderer
                         _virtualShadowMapGenerate.Parameters["WorldViewProj"].SetValue(world*LightViewProjection);
 
                         _virtualShadowMapGenerate.CurrentTechnique.Passes[0].Apply();
+
+                        _graphicsDevice.SetVertexBuffer(meshpart.VertexBuffer);
+                        _graphicsDevice.Indices = (meshpart.IndexBuffer);
+                        int primitiveCount = meshpart.PrimitiveCount;
+                        int vertexOffset = meshpart.VertexOffset;
+                        int vCount = meshpart.NumVertices;
+                        int startIndex = meshpart.StartIndex;
+
+                        _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset, startIndex,
+                            primitiveCount);
+                    }
+            }
+        }
+
+        private void DrawModelSkull(Model model, Matrix world)
+        {
+            for (int index = 0; index < model.Meshes.Count; index++)
+            {
+                ModelMesh mesh = model.Meshes[index];
+               
+                    for (int i = 0; i < mesh.MeshParts.Count; i++)
+                    {
+                        ModelMeshPart meshpart = mesh.MeshParts[i];
+                        _skullEffect.Parameters["WorldViewProj"].SetValue(world * _view * _projection);
+                        _skullEffect.Parameters["World"].SetValue(world);
+                        _skullEffect.CurrentTechnique.Passes[0].Apply();
 
                         _graphicsDevice.SetVertexBuffer(meshpart.VertexBuffer);
                         _graphicsDevice.Indices = (meshpart.IndexBuffer);
@@ -607,8 +750,18 @@ namespace EngineTest.Renderer
             _deferredCompose.Parameters["diffuseLightMap"].SetValue(_renderTargetDiffuse);
             _deferredCompose.Parameters["specularLightMap"].SetValue(_renderTargetSpecular);
 
+            
+            _deferredEnvironment.Parameters["colorMap"].SetValue(_renderTargetAlbedo);
+            _deferredEnvironment.Parameters["normalMap"].SetValue(_renderTargetNormal);
+            _deferredEnvironment.Parameters["depthMap"].SetValue(_renderTargetDepth);
+            _deferredEnvironment.Parameters["ReflectionCubeMap"].SetValue(_renderTargetCubeMap);
+
+            _deferredCompose.Parameters["skull"].SetValue(_renderTargetSkull);
+
             _glass.Parameters["Depth"].SetValue(_renderTargetDepth);
             _glass.Parameters["colorMap"].SetValue(_renderTargetFinal);
+            _glass.Parameters["ReflectionCubeMap"].SetValue(_renderTargetCubeMap);
+
         }
 
         private void DrawPointLights()
@@ -774,10 +927,16 @@ namespace EngineTest.Renderer
 
                 _lightingEffect.Parameters["F0"].SetValue(0.1f);
                 _lightingEffect.Parameters["Roughness"].SetValue(0.05f);
-                _lightingEffect.Parameters["DiffuseColor"].SetValue(Color.LimeGreen.ToVector3()*0.5f);
+                _lightingEffect.Parameters["DiffuseColor"].SetValue(Color.DarkRed.ToVector3()*0.5f);
                 DrawModel(_art.DragonUvSmoothModel, Matrix.CreateScale(10) *
                                    Matrix.CreateRotationZ((float)(-Math.PI / 2)) * Matrix.CreateRotationX(-0.9f) *
                                    Matrix.CreateRotationY((float)(Math.PI / 2)) * Matrix.CreateTranslation(Dragon2Position + Vector3.Down*15),true);
+
+
+                DrawModel(_art.HelmetModel, Matrix.CreateScale(1) *
+                                   Matrix.CreateRotationX((float)(-Math.PI / 2)) * Matrix.CreateRotationY(0) *
+                                   Matrix.CreateRotationZ((float)(-Math.PI / 2)) * Matrix.CreateTranslation(new Vector3(30,0,-10)),false);
+
 
             }
         }
@@ -878,13 +1037,14 @@ namespace EngineTest.Renderer
                             _lightingEffect.Parameters["Roughness"].SetValue(effect.Roughness);
                             _lightingEffect.Parameters["DiffuseColor"].SetValue(effect.DiffuseColor);
                         }
-                        _lightingEffectWorld.SetValue(world);
-                       _lightingEffectWorldViewProj.SetValue(world * _view * _projection);
 
+                        _lightingEffect.Parameters["MaterialType"].SetValue(effect.MaterialType);
                        
 
                     }
 
+                    _lightingEffectWorld.SetValue(world);
+                    _lightingEffectWorldViewProj.SetValue(world * _view * _projection);
                    
                     _lightingEffect.CurrentTechnique.Passes[0].Apply();
 
@@ -907,9 +1067,16 @@ namespace EngineTest.Renderer
             _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.PointClamp);
             _spriteBatch.Draw(map, new Rectangle(0, 0, map.Width, map.Height), Color.White);
             _spriteBatch.End();
+        }
 
-            //_graphicsDevice.Textures[0] = null;
-            //_graphicsDevice.SamplerStates[0] = SamplerState.LinearWrap;
+        private void DrawMapToScreenToCube(RenderTarget2D map, RenderTargetCube target, CubeMapFace? face)
+        {
+            
+            if (face != null) _graphicsDevice.SetRenderTarget(target, (CubeMapFace) face);
+            _graphicsDevice.Clear(Color.CornflowerBlue);
+            _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.PointClamp);
+            _spriteBatch.Draw(map, new Rectangle(0, 0, map.Width, map.Height), Color.White);
+            _spriteBatch.End();
         }
 
         private void DrawGaussianBlur()
@@ -946,56 +1113,69 @@ namespace EngineTest.Renderer
             _lightingEffectProjection.SetValue(_projection);
         }
 
-        private void SetUpRenderTargets()
+        private void SetUpRenderTargets(int width, int height)
         {
 
+            //SKULL
 
-            _renderTargetAlbedo = new RenderTarget2D(_graphicsDevice, _graphicsDevice.PresentationParameters.BackBufferWidth,
-                _graphicsDevice.PresentationParameters.BackBufferHeight, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+            _renderTargetSkull = new RenderTarget2D(_graphicsDevice, width,
+                height, false, SurfaceFormat.Single, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
 
-            _renderTargetNormal = new RenderTarget2D(_graphicsDevice, _graphicsDevice.PresentationParameters.BackBufferWidth,
-                _graphicsDevice.PresentationParameters.BackBufferHeight, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+            _renderTargetSkullBinding[0] = new RenderTargetBinding(_renderTargetSkull);
 
-            _renderTargetDepth = new RenderTarget2D(_graphicsDevice, _graphicsDevice.PresentationParameters.BackBufferWidth,
-                _graphicsDevice.PresentationParameters.BackBufferHeight, false, SurfaceFormat.Single, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+
+            //DEFAULT
+
+            _renderTargetAlbedo = new RenderTarget2D(_graphicsDevice, width,
+                height, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+
+            _renderTargetNormal = new RenderTarget2D(_graphicsDevice, width,
+                height, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+
+            _renderTargetDepth = new RenderTarget2D(_graphicsDevice, width,
+                height, false, SurfaceFormat.Single, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
 
             _renderTargetBinding[0] = new RenderTargetBinding(_renderTargetAlbedo);
             _renderTargetBinding[1] = new RenderTargetBinding(_renderTargetNormal);
             _renderTargetBinding[2] = new RenderTargetBinding(_renderTargetDepth);
 
-            //_renderTargetAccumulation = new RenderTarget2D(_graphicsDevice, _graphicsDevice.PresentationParameters.BackBufferWidth,
-            //    _graphicsDevice.PresentationParameters.BackBufferHeight, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+            //_renderTargetAccumulation = new RenderTarget2D(_graphicsDevice, width,
+            //    height, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
 
-            //_renderTargetLightReflection = new RenderTarget2D(_graphicsDevice, _graphicsDevice.PresentationParameters.BackBufferWidth,
-            //    _graphicsDevice.PresentationParameters.BackBufferHeight, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+            //_renderTargetLightReflection = new RenderTarget2D(_graphicsDevice, width,
+            //    height, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
 
-            //_renderTargetLightDepth = new RenderTarget2D(_graphicsDevice, _graphicsDevice.PresentationParameters.BackBufferWidth,
-            //    _graphicsDevice.PresentationParameters.BackBufferHeight, false, SurfaceFormat.Single, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+            //_renderTargetLightDepth = new RenderTarget2D(_graphicsDevice, width,
+            //    height, false, SurfaceFormat.Single, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
 
             //_renderTargetBinding2[0] = new RenderTargetBinding(_renderTargetAccumulation);
             //_renderTargetBinding2[1] = new RenderTargetBinding(_renderTargetLightReflection);
             //_renderTargetBinding2[2] = new RenderTargetBinding(_renderTargetLightDepth);
 
 
-            _renderTargetDiffuse = new RenderTarget2D(_graphicsDevice, _graphicsDevice.PresentationParameters.BackBufferWidth,
-               _graphicsDevice.PresentationParameters.BackBufferHeight, false, SurfaceFormat.Vector4, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+            _renderTargetDiffuse = new RenderTarget2D(_graphicsDevice, width,
+               height, false, SurfaceFormat.Vector4, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
 
-            _renderTargetSpecular = new RenderTarget2D(_graphicsDevice, _graphicsDevice.PresentationParameters.BackBufferWidth,
-               _graphicsDevice.PresentationParameters.BackBufferHeight, false, SurfaceFormat.Vector4, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+            _renderTargetSpecular = new RenderTarget2D(_graphicsDevice, width,
+               height, false, SurfaceFormat.Vector4, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
 
             _renderTargetLightBinding[0] = new RenderTargetBinding(_renderTargetDiffuse);
             _renderTargetLightBinding[1] = new RenderTargetBinding(_renderTargetSpecular);
 
-            _renderTargetFinal = new RenderTarget2D(_graphicsDevice, _graphicsDevice.PresentationParameters.BackBufferWidth,
-               _graphicsDevice.PresentationParameters.BackBufferHeight, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+            _renderTargetFinal = new RenderTarget2D(_graphicsDevice, width,
+               height, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
 
             _renderTargetFinalBinding[0] = new RenderTargetBinding(_renderTargetFinal);
+        }
 
+        private void StaticRenderBuffers()
+        {
             _renderTargetVSM = new RenderTarget2D(_graphicsDevice, 1024, 1024, false, SurfaceFormat.Vector2, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
-            _renderTargetVSMBinding[0] = new RenderTargetBinding( _renderTargetVSM);
+            _renderTargetVSMBinding[0] = new RenderTargetBinding(_renderTargetVSM);
 
             _renderTargetVSMBlur = new RenderTarget2D(_graphicsDevice, 1024, 1024, false, SurfaceFormat.Vector2, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
-            _renderTargetVSMBlurBinding[0] = new RenderTargetBinding( _renderTargetVSMBlur);
+            _renderTargetVSMBlurBinding[0] = new RenderTargetBinding(_renderTargetVSMBlur);
+
         }
 
         private void ClearGBuffer()

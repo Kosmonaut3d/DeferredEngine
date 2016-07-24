@@ -20,6 +20,9 @@ Texture2D colorMap;
 texture normalMap;
 
 bool inside = false;
+
+#include "helper.fx"
+
 //depth
 texture depthMap;
 sampler colorSampler = sampler_state
@@ -176,13 +179,13 @@ PixelShaderOutput PixelShaderFunctionPBR(VertexShaderOutput input) : COLOR0
     //get normal data from the normalMap
     float4 normalData = tex2D(normalSampler, texCoord);
     //tranform normal back into [-1,1] range
-    float3 normal = 2.0f * normalData.xyz - 1.0f;    //could do mad
+    float3 normal = decode(normalData); //2.0f * normalData.xyz - 1.0f;    //could do mad
     //get specular power
     float f0 = normalData.a;
     //get specular intensity from the colorMap
     float4 color = tex2D(colorSampler, texCoord);
 
-    float roughness = color.a;
+    float roughness = decodeRoughness(color.a);
     //read depth
     float depthVal = 1-tex2D(depthSampler, texCoord).r;
 
@@ -263,8 +266,8 @@ PixelShaderOutput PixelShaderFunctionPBR(VertexShaderOutput input) : COLOR0
     //take into account attenuation and lightIntensity.
 
     //return attenuation * lightIntensity * float4(diffuseLight.rgb, specular);
-    output.Diffuse.rgb = (attenuation * diffuseLight * (1 - f0)) * (f0 + 1) * (f0 + 1)  * 0.1f;
-    output.Specular.rgb = specular * attenuation          *0.1f;
+    output.Diffuse.rgb = (attenuation * diffuseLight * (1 - f0)) * (f0 + 1) * (f0 + 1)  * 0.01f;
+    output.Specular.rgb = specular * attenuation          *0.01f;
 
     return output;
    //return float4(color.rgb * (attenuation * diffuseLight * (1 - f0)) * (f0 + 1) * (f0 + 1) *0.5f + specular*attenuation, 1);
@@ -289,7 +292,8 @@ PixelShaderOutput PixelShaderFunctionClassic(VertexShaderOutput input) : COLOR0
     //get specular intensity from the colorMap
     float4 color = tex2D(colorSampler, texCoord);
 
-    float roughness = color.a;
+    float roughness = decodeRoughness(color.a);
+
     //read depth
     float depthVal = 1 - tex2D(depthSampler, texCoord).r;
            
@@ -323,8 +327,8 @@ PixelShaderOutput PixelShaderFunctionClassic(VertexShaderOutput input) : COLOR0
     //take into account attenuation and lightIntensity.
 
     //return attenuation * lightIntensity * float4(diffuseLight.rgb, specular);
-        output.Diffuse.rgb = attenuation * diffuseLight * 0.1f;
-        output.Specular.rgb = specular * lightColor * attenuation * 0.1f;
+        output.Diffuse.rgb = attenuation * diffuseLight * 0.01f;
+        output.Specular.rgb = specular * lightColor * attenuation * 0.01f;
     
     return output;
    //return float4(color.rgb * (attenuation * diffuseLight * (1 - f0)) * (f0 + 1) * (f0 + 1) *0.5f + specular*attenuation, 1);

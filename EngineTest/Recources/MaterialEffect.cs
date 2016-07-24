@@ -20,6 +20,8 @@ namespace EngineTest.Recources
         public bool HasMask = false;
         public bool HasNormal = false;
 
+        public int MaterialType = 0;
+
         public Vector3 DiffuseColor;
 
         public float Roughness = 0.3f;
