@@ -26,6 +26,8 @@ namespace EngineTest.Recources
 
         public float Roughness = 0.3f;
 
+        public float F0 = 0.4f;
+
 
         public Texture2D Diffuse
         {

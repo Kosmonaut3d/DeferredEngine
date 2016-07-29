@@ -68,7 +68,7 @@ sampler ReflectionCubeMapSampler = sampler_state
 
 
 //      MATERIAL
-float   Roughness = 0.1f; // 0 : smooth, 1: rough
+float   Roughness = 0.04f; // 0 : smooth, 1: rough
 float   F0 = 0.5f;
 
 

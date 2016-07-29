@@ -119,7 +119,13 @@ namespace EngineTest.Recources
                         if (mesh.Name == "Helmet1_Interior")
                         {
                             matEffect.DiffuseColor = Color.White.ToVector3();
-                            matEffect.MaterialType = 1;
+                            matEffect.MaterialType = 2;
+                        }
+
+                        if (i == 5)
+                        {
+                            matEffect.DiffuseColor = new Color(0, 0.49f, 0.95f).ToVector3();
+                            matEffect.MaterialType = 10;
                         }
 
                         if (i == 0)
@@ -130,7 +136,7 @@ namespace EngineTest.Recources
                         }
 
                         if (i == 1)
-                            matEffect.DiffuseColor = Color.Blue.ToVector3();
+                            matEffect.DiffuseColor = new Color(0, 0.49f,  0.95f).ToVector3();
 
                         if (i == 2)
                         {
@@ -143,7 +149,8 @@ namespace EngineTest.Recources
                         if (i == 4)
                         {
                             matEffect.DiffuseColor = new Color(255,255,155).ToVector3()*0.5f;
-                            matEffect.Roughness = 0.05f;
+                            matEffect.Roughness = 0.3f;
+                            matEffect.F0 = 0.8f;
                             matEffect.MaterialType = 2;
                         }
 

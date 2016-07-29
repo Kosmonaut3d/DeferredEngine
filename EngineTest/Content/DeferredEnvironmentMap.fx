@@ -6,9 +6,11 @@ float4x4 InvertViewProjection;
 
 #include "helper.fx"
 
+static int SamplesCount = 8;
+
 Texture2D colorMap;
 // normals, and specularPower in the alpha channel
-texture normalMap;
+Texture2D normalMap;
 //depth
 texture depthMap;
 sampler colorSampler = sampler_state
@@ -16,9 +18,9 @@ sampler colorSampler = sampler_state
     Texture = (colorMap);
     AddressU = CLAMP;
     AddressV = CLAMP;
-    MagFilter = LINEAR;
-    MinFilter = LINEAR;
-    Mipfilter = LINEAR;
+    MagFilter = POINT;
+    MinFilter = POINT;
+    Mipfilter = POINT;
 };
 sampler depthSampler = sampler_state
 {
@@ -46,7 +48,7 @@ sampler ReflectionCubeMapSampler = sampler_state
     AddressU = CLAMP;
     AddressV = CLAMP;
     MagFilter = LINEAR;
-    MinFilter = LINEAR;
+    MinFilter = ANISOTROPIC;
     Mipfilter = LINEAR;
 };
 
@@ -85,7 +87,24 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 
 }
 
-PixelShaderOutput PixelShaderFunctionPBR(VertexShaderOutput input) : COLOR0
+float GetNormalVariance(float2 texCoord, float3 baseNormal, float offset)
+{
+    float variance = 0;
+
+    float3 normalTest;
+    for (int i = 0; i < SAMPLE_COUNT; i++)
+    {
+        normalTest = normalMap.Sample(normalSampler, texCoord.xy + offset*
+                     SampleOffsets[i] * InverseResolution);
+        normalTest = decode(normalTest.xyz);
+
+        variance += 1-dot(baseNormal, normalTest);
+    }
+
+    return variance/SAMPLE_COUNT;
+}
+
+PixelShaderOutput PixelShaderFunctionClassic(VertexShaderOutput input) : COLOR0
 {
     //obtain screen position
     float4 position;
@@ -111,15 +130,15 @@ PixelShaderOutput PixelShaderFunctionPBR(VertexShaderOutput input) : COLOR0
 
     if (abs(materialType - 1) < 0.1f)
     {
-        matMultiplier = 2;
+        matMultiplier = 1;
     }
 
     if (abs(materialType - 2) < 0.1f)
     {
-        matMultiplier = 4;
+        matMultiplier = 2;
     }
 
-    float depthVal = 1-tex2D(depthSampler, texCoord).r;
+    float depthVal = 1 - tex2D(depthSampler, texCoord).r;
     ////compute screen-space position
 
     position.z = depthVal;
@@ -130,30 +149,43 @@ PixelShaderOutput PixelShaderFunctionPBR(VertexShaderOutput input) : COLOR0
     //surface-to-light vector
 
     
-    float3 incident = -cameraPosition+position.xyz;
+    float3 incident = -cameraPosition + position.xyz;
     float3 reflectionVector = reflect(incident, normal);
+
+    float VdotH = saturate(dot(normal, incident));
+    float fresnel = pow(1.0 - VdotH, 5.0);
+    fresnel *= (1.0 - f0);
+    fresnel += f0;
 
     //float NdotC = saturate(dot(-incident, normal));
 
     reflectionVector.z = -reflectionVector.z;
 
-    float3 ReflectColor = ReflectionCubeMap.Sample(ReflectionCubeMapSampler, reflectionVector) * (1 - roughness) * (1 + matMultiplier); //* NdotC * NdotC * NdotC;
+    //float3 ReflectColor = ReflectionCubeMap.Sample(ReflectionCubeMapSampler, reflectionVector) * (1 - roughness) * (1 + matMultiplier); //* NdotC * NdotC * NdotC;
 
+    //roughness from 0.05 to 0.5
+    float mip = roughness / 0.04f;
+
+
+    float3 ReflectColor = ReflectionCubeMap.SampleLevel(ReflectionCubeMapSampler, reflectionVector, mip)* (1 - roughness) * (1 + matMultiplier) * fresnel; //* NdotC * NdotC * NdotC;
+
+    
+    
 
     PixelShaderOutput output;
 
     output.Diffuse = float4(0, 0, 0, 0);
-    output.Specular = float4(ReflectColor, 0) * 0.01;
+    output.Specular = float4(ReflectColor, 0) * 0.02;
 
     return output;
 
 }
 
-technique PBR
+technique Classic
 {
     pass Pass1
     {
         VertexShader = compile vs_4_0 VertexShaderFunction();
-        PixelShader = compile ps_4_0 PixelShaderFunctionPBR();
+        PixelShader = compile ps_4_0 PixelShaderFunctionClassic();
     }
 }

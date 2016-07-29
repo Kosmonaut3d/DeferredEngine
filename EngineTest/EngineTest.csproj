@@ -58,6 +58,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Recources\Art.cs" />
+    <Compile Include="Recources\GameSettings.cs" />
     <Compile Include="Recources\MaterialEffect.cs" />
     <Compile Include="Recources\SpotLight.cs" />
     <Compile Include="Recources\PointLight.cs" />

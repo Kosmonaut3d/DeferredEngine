@@ -31,9 +31,9 @@ sampler TextureSampler : register(s0)
 {
     Texture = (Texture);
 
-    MinFilter = Linear;
-    MagFilter = Linear;
-    MipFilter = Linear;
+    Filter = Anisotropic;
+
+    MaxAnisotropy = 16;
 
     AddressU = Wrap;
     AddressV = Wrap;
@@ -44,9 +44,9 @@ sampler SpecularTextureSampler
 {
     Texture = (Specular);
 
-    MinFilter = Linear;
-    MagFilter = Linear;
-    MipFilter = Linear;
+    Filter = Anisotropic;
+
+    MaxAnisotropy = 16;
 
     AddressU = Wrap;
     AddressV = Wrap;
@@ -57,9 +57,9 @@ sampler MaskSampler
 {
     Texture = (Mask);
 
-    MinFilter = Linear;
-    MagFilter = Linear;
-    MipFilter = Linear;
+    Filter = Anisotropic;
+
+    MaxAnisotropy = 16;
 
     AddressU = Wrap;
     AddressV = Wrap;
@@ -70,9 +70,9 @@ sampler NormalMapSampler
 {
     Texture = (NormalMap);
 
-    MinFilter = Linear;
-    MagFilter = Linear;
-    MipFilter = Linear;
+    Filter = Anisotropic;
+
+    MaxAnisotropy = 16;
 
     AddressU = Wrap;
     AddressV = Wrap;
@@ -129,6 +129,12 @@ struct PixelShaderOutput
     float4 Color : COLOR0;
     float4 Normal : COLOR1;
     float4 Depth : COLOR2;
+};
+
+struct PixelShaderOutputVSM
+{
+    float4 Position : SV_POSITION0;
+    float2 Depth : TEXCOORD2;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -447,7 +453,7 @@ technique DrawTextureMask
     pass Pass1
     {
         VertexShader = compile vs_4_0 DrawBasic_VertexShader();
-        PixelShader = compile ps_5_0 DrawTextureMask_PixelShader();
+        PixelShader = compile ps_4_0 DrawTextureMask_PixelShader();
     }
 }
 
@@ -456,7 +462,7 @@ technique DrawTextureSpecularMask
     pass Pass1
     {
         VertexShader = compile vs_4_0 DrawBasic_VertexShader();
-        PixelShader = compile ps_5_0 DrawTextureSpecularMask_PixelShader();
+        PixelShader = compile ps_4_0 DrawTextureSpecularMask_PixelShader();
     }
 }
 
@@ -465,7 +471,7 @@ technique DrawTextureSpecularNormalMask
     pass Pass1
     {
         VertexShader = compile vs_4_0 DrawNormals_VertexShader();
-        PixelShader = compile ps_5_0 DrawTextureSpecularNormalMask_PixelShader();
+        PixelShader = compile ps_4_0 DrawTextureSpecularNormalMask_PixelShader();
     }
 }
 
@@ -474,6 +480,6 @@ technique DrawTextureNormalMask
     pass Pass1
     {
         VertexShader = compile vs_4_0 DrawNormals_VertexShader();
-        PixelShader = compile ps_5_0 DrawTextureNormalMask_PixelShader();
+        PixelShader = compile ps_4_0 DrawTextureNormalMask_PixelShader();
     }
 }

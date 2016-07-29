@@ -9,10 +9,7 @@ matrix  WorldViewProj;
 
 #include "helper.fx"
 
-
-//      MATERIAL
-float   Roughness = 0.3f; // 0 : smooth, 1: rough
-float   F0 = 0.05f;
+bool shade = true;
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -46,7 +43,11 @@ DrawBasic_VSOut DrawBasic_VertexShader(DrawBasic_VSIn input)
 
 float4 DrawBasic_PixelShader(DrawBasic_VSOut input) : SV_TARGET
 {
-    float color = saturate(dot(input.Normal, float3(-1, 0, 1)));
+    float color = 1;
+
+    [branch]
+    if(shade)
+        color = saturate(dot(input.Normal, float3(-1, 0, 1)));
 
     //float color = 0.5f*saturate(dot(input.Normal, normalize(float3(-1, 0.5, 1))));
     //color += 0.5f*saturate(dot(input.Normal, normalize(float3(-1, -0.5, 1))));

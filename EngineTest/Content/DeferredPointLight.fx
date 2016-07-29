@@ -30,9 +30,9 @@ sampler colorSampler = sampler_state
     Texture = (colorMap);
     AddressU = CLAMP;
     AddressV = CLAMP;
-    MagFilter = LINEAR;
-    MinFilter = LINEAR;
-    Mipfilter = LINEAR;
+    MagFilter = POINT;
+    MinFilter = POINT;
+    Mipfilter = POINT;
 };
 sampler depthSampler = sampler_state
 {
@@ -85,7 +85,7 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
     float4 worldPosition = mul(float4(input.Position.rgb, 1), World);
     float4 viewPosition = mul(worldPosition, View);
     output.Position = mul(viewPosition, Projection);
-    output.Position.z -= 0.1f;
+    //need t
     output.ScreenPosition = output.Position;
     return output;
 }
@@ -180,7 +180,7 @@ PixelShaderOutput PixelShaderFunctionPBR(VertexShaderOutput input) : COLOR0
     //get normal data from the normalMap
     float4 normalData = tex2D(normalSampler, texCoord);
     //tranform normal back into [-1,1] range
-    float3 normal = decode(normalData); //2.0f * normalData.xyz - 1.0f;    //could do mad
+    float3 normal = decode(normalData.xyz); //2.0f * normalData.xyz - 1.0f;    //could do mad
     //get specular power
     float f0 = normalData.a;
     //get specular intensity from the colorMap

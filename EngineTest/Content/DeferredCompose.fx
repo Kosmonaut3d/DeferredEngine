@@ -7,6 +7,7 @@ Texture2D specularLightMap;
 static float2 Resolution = float2(1280, 800);
 
 float average_skull_depth = 10;
+bool useGauss = false;
 
 #include "helper.fx"
 
@@ -17,9 +18,9 @@ sampler colorSampler = sampler_state
     Texture = (colorMap);
     AddressU = CLAMP;
     AddressV = CLAMP;
-    MagFilter = LINEAR;
-    MinFilter = LINEAR;
-    Mipfilter = LINEAR;
+    MagFilter = POINT;
+    MinFilter = POINT;
+    Mipfilter = POINT;
 };
 
 sampler diffuseLightSampler = sampler_state
@@ -115,19 +116,35 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 
     float3 diffuseContrib = float3(0, 0, 0);
 
-    float skullColor = skull.Sample(skullSampler, skullTexCoord).r;
+    //
     
-    //float skullColor = GaussianSampler(skullTexCoord, 3);
-
-    [branch]
-    if (abs(materialType - 1) < 0.1f)
+    if(useGauss)
     {
+        float skullColor = GaussianSampler(input.TexCoord, 3);
+
+    //[branch]
+        if (abs(materialType - 1) < 0.1f)
+        {
+    //    float2 pixel = trunc(input.TexCoord * Resolution);
+
+    //    float pixelsize2 = 2 * pixelsize;
+    //    if (pixel.x % pixelsize2 <= pixelsize && pixel.y % pixelsize2 <= pixelsize)
+            diffuseContrib = float3(0, skullColor * 0.49, skullColor * 0.95f) * 0.06f;
+        }
+    }
+    else
+    {
+        float skullColor = skull.Sample(skullSampler, skullTexCoord).r;
+        if (abs(materialType - 1) < 0.1f)
+        {
         float2 pixel = trunc(input.TexCoord * Resolution);
 
         float pixelsize2 = 2 * pixelsize;
         if (pixel.x % pixelsize2 <= pixelsize && pixel.y % pixelsize2 <= pixelsize)
-        diffuseContrib = float3(0, skullColor * 0.49, skullColor*0.95f) * 0.06f;
-    }     
+            diffuseContrib = float3(0, skullColor * 0.49, skullColor * 0.95f) * 0.06f;
+        }
+    }
+
     
 
     
