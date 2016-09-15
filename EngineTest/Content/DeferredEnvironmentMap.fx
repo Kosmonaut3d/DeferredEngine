@@ -117,23 +117,25 @@ PixelShaderOutput PixelShaderFunctionClassic(VertexShaderOutput input) : COLOR0
     float4 normalData = tex2D(normalSampler, texCoord);
     //tranform normal back into [-1,1] range
     float3 normal = decode(normalData.xyz); //2.0f * normalData.xyz - 1.0f;    //could do mad
-    //get specular power
-    float f0 = normalData.a;
+    //get metalness
+    float roughness = normalData.a;
     //get specular intensity from the colorMap
     float4 color = tex2D(colorSampler, texCoord);
 
-    float roughness = decodeRoughness(color.a);
+    float metalness = decodeMetalness(color.a);
+    
+    float f0 = lerp(0.04f, color.g * 0.25 + 0.75, metalness);
 
     float materialType = decodeMattype(color.a);
 
-    float matMultiplier = 0;
+    float matMultiplier = 1;
 
     if (abs(materialType - 1) < 0.1f)
     {
         matMultiplier = 1;
     }
 
-    if (abs(materialType - 2) < 0.1f)
+    if (abs(materialType - 3) < 0.1f)
     {
         matMultiplier = 2;
     }
@@ -169,12 +171,14 @@ PixelShaderOutput PixelShaderFunctionClassic(VertexShaderOutput input) : COLOR0
 
     float3 ReflectColor = ReflectionCubeMap.SampleLevel(ReflectionCubeMapSampler, reflectionVector, mip)* (1 - roughness) * (1 + matMultiplier) * fresnel; //* NdotC * NdotC * NdotC;
 
+    float3 DiffuseReflectColor = ReflectionCubeMap.SampleLevel(ReflectionCubeMapSampler, reflectionVector, 9) * fresnel; //* NdotC * NdotC * NdotC;
+
     
     
 
     PixelShaderOutput output;
 
-    output.Diffuse = float4(0, 0, 0, 0);
+    output.Diffuse = float4(DiffuseReflectColor, 0) * 0.01;
     output.Specular = float4(ReflectColor, 0) * 0.02;
 
     return output;

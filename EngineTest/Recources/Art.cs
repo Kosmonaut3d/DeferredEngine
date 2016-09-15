@@ -78,6 +78,11 @@ namespace EngineTest.Recources
                 SponzaTextures.Add(sponza_column_c_spec = content.Load<Texture2D>("Sponza/textures/sponza_column_c_spec"));
                 SponzaTextures.Add(sponza_column_c_ddn = content.Load<Texture2D>("Sponza/textures/sponza_column_c_ddn"));
 
+                SponzaTextures.Add(content.Load<Texture2D>("Sponza/textures/sponza_fabric_spec"));
+                SponzaTextures.Add(content.Load<Texture2D>("Sponza/textures/sponza_curtain_green_spec"));
+                SponzaTextures.Add(content.Load<Texture2D>("Sponza/textures/sponza_curtain_blue_spec"));
+                SponzaTextures.Add(content.Load<Texture2D>("Sponza/textures/sponza_curtain_spec"));
+
                 SponzaTextures.Add(sponza_details_spec = content.Load<Texture2D>("Sponza/textures/sponza_details_spec"));
                 SponzaTextures.Add(sponza_flagpole_spec = content.Load<Texture2D>("Sponza/textures/sponza_flagpole_spec"));
                 SponzaTextures.Add(sponza_floor_a_spec = content.Load<Texture2D>("Sponza/textures/sponza_floor_a_spec"));
@@ -119,20 +124,20 @@ namespace EngineTest.Recources
                         if (mesh.Name == "Helmet1_Interior")
                         {
                             matEffect.DiffuseColor = Color.White.ToVector3();
-                            matEffect.MaterialType = 2;
+                            matEffect.MaterialType = 3;
                         }
 
                         if (i == 5)
                         {
                             matEffect.DiffuseColor = new Color(0, 0.49f, 0.95f).ToVector3();
-                            matEffect.MaterialType = 10;
+                            matEffect.MaterialType = 2;
                         }
 
                         if (i == 0)
                         {
                             matEffect.DiffuseColor = Color.Black.ToVector3();
                             matEffect.Roughness = 0.1f;
-                            matEffect.MaterialType = 1;
+                            matEffect.MaterialType = 2;
                         }
 
                         if (i == 1)
@@ -142,7 +147,7 @@ namespace EngineTest.Recources
                         {
                             matEffect.DiffuseColor = Color.Black.ToVector3();
                             matEffect.Roughness = 0.1f;
-                            matEffect.MaterialType = 2;
+                            matEffect.MaterialType = 4;
                         }
 
                         //Helmet color - should be gold!
@@ -150,15 +155,15 @@ namespace EngineTest.Recources
                         {
                             matEffect.DiffuseColor = new Color(255,255,155).ToVector3()*0.5f;
                             matEffect.Roughness = 0.3f;
-                            matEffect.F0 = 0.8f;
-                            matEffect.MaterialType = 2;
+                            matEffect.Metalness = 0.8f;
+                            matEffect.MaterialType = 3;
                         }
 
                         if (i == 13)
                         {
                             matEffect.DiffuseColor = Color.Black.ToVector3();
                             matEffect.Roughness = 0.05f;
-                            matEffect.MaterialType = 1;
+                            matEffect.MaterialType = 2;
                         }
 
                         meshPart.Effect = matEffect;
@@ -187,9 +192,21 @@ namespace EngineTest.Recources
 
                             string compare = name[2].Replace("_0", "");
 
-                            if (compare.Contains("vase"))
+                            if (compare.Contains("vase_round") || compare.Contains("vase_hanging"))
                             {
                                 matEffect.Roughness = 0.1f;
+                                matEffect.Metalness = 0.5f;
+                            }
+
+                            if (compare.Contains("chain"))
+                            {
+                                matEffect.Roughness = 0.5f;
+                                matEffect.Metalness = 1f;
+                            }
+
+                            if (compare.Contains("lion"))
+                            {
+                                matEffect.Metalness = 0.9f;
                             }
 
                             if (compare.Contains("_diff"))

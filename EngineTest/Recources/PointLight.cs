@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace EngineTest.Recources
 {
@@ -14,12 +15,22 @@ namespace EngineTest.Recources
         public Color Color;
         public float Intensity;
 
-        public PointLight(Vector3 position, float radius, Color color, float intensity)
+        public RenderTargetCube shadowMapCube;
+
+        public bool DrawShadow = false;
+
+        public PointLight(Vector3 position, float radius, Color color, float intensity, bool drawShadow)
         {
             Position = position;
             Radius = radius;
             Color = color;
             Intensity = intensity;
+            DrawShadow = drawShadow;
+        }
+
+        protected PointLight()
+        {
+
         }
     }
 }

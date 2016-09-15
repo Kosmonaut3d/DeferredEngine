@@ -114,6 +114,8 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 
     float materialType = decodeMattype(albedoColorProp);
 
+    float metalness = decodeMetalness(albedoColorProp);
+                
     float3 diffuseContrib = float3(0, 0, 0);
 
     //
@@ -123,7 +125,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
         float skullColor = GaussianSampler(input.TexCoord, 3);
 
     //[branch]
-        if (abs(materialType - 1) < 0.1f)
+        if (abs(materialType - 2) < 0.1f)
         {
     //    float2 pixel = trunc(input.TexCoord * Resolution);
 
@@ -135,24 +137,30 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
     else
     {
         float skullColor = skull.Sample(skullSampler, skullTexCoord).r;
-        if (abs(materialType - 1) < 0.1f)
+        if (abs(materialType - 2) < 0.1f)
         {
         float2 pixel = trunc(input.TexCoord * Resolution);
 
         float pixelsize2 = 2 * pixelsize;
         if (pixel.x % pixelsize2 <= pixelsize && pixel.y % pixelsize2 <= pixelsize)
             diffuseContrib = float3(0, skullColor * 0.49, skullColor * 0.95f) * 0.06f;
+
         }
     }
 
-    
 
+    float f0 = lerp(0.04f, diffuseColor.g * 0.25 + 0.75, metalness);
     
     float3 diffuseLight = diffuseLightMap.Sample(diffuseLightSampler, input.TexCoord).rgb;
     float3 specularLight = specularLightMap.Sample(specularLightSampler, input.TexCoord).rgb;
-    float3 hdr = ((diffuseColor.rgb) * diffuseLight + diffuseContrib + specularLight);
 
-    return float4(hdr, 1) * exposure;
+    float3 plasticFinal = diffuseColor.rgb * (diffuseLight) + specularLight;
+                  
+    float3 metalFinal = specularLight * diffuseColor.rgb;
+
+    float3 finalValue = lerp(plasticFinal, metalFinal, metalness) + diffuseContrib;
+
+    return float4(finalValue, 1) * exposure;
 }
 
 

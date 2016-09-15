@@ -24,9 +24,9 @@ namespace EngineTest.Recources
 
         public Vector3 DiffuseColor;
 
-        public float Roughness = 0.3f;
+        public float Roughness = 0.5f;
 
-        public float F0 = 0.4f;
+        public float Metalness = 0;
 
 
         public Texture2D Diffuse

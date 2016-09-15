@@ -18,7 +18,7 @@ float2 Resolution;
 
 //      MATERIAL
 float   Roughness = 0.3f; // 0 : smooth, 1: rough
-float   F0 = 0.05f;
+float   Metalness = 0;
 
 int MaterialType = 0;
 
@@ -120,7 +120,7 @@ struct Render_IN
     float4 Color : COLOR0;
     float3 Normal : TEXCOORD0;
     float2 Depth : DEPTH;
-    float f0 : TEXCOORD1;
+    float metalness : TEXCOORD1;
     float roughness : TEXCOORD2;
 };
 
@@ -180,14 +180,11 @@ PixelShaderOutput Lighting(Render_IN input)
 
     Out.Color = finalValue;
 
-    Out.Color.a = encodeRoughnessMattype(input.roughness, MaterialType);
-
-    //if (MaterialType == 1)
-    //    clip(-1);
+    Out.Color.a = encodeMetalnessMattype(input.metalness, MaterialType);
 
     Out.Normal.rgb =  encode(input.Normal); //
 
-    Out.Normal.a = input.f0;
+    Out.Normal.a = input.roughness;
 
     Out.Depth = 1- input.Depth.x / input.Depth.y;
 
@@ -206,7 +203,7 @@ PixelShaderOutput DrawTexture_PixelShader(DrawBasic_VSOut input) : SV_TARGET
     renderParams.Color = outputColor;
     renderParams.Normal = normalize(input.Normal);
     renderParams.Depth = input.Depth;
-    renderParams.f0 = F0;
+    renderParams.metalness = Metalness;
     renderParams.roughness = Roughness;
     
     return Lighting(renderParams);
@@ -220,15 +217,15 @@ PixelShaderOutput DrawTextureSpecular_PixelShader(DrawBasic_VSOut input) : SV_TA
     float4 textureColor = Texture.Sample(TextureSampler, input.TexCoord);
     float4 outputColor = textureColor; //* input.Color;
 
-    float4 RoughnessTexture = Specular.Sample(SpecularTextureSampler, input.TexCoord);
-  
+    float RoughnessTexture = Specular.Sample(SpecularTextureSampler, input.TexCoord).r;
+
     renderParams.Position = input.Position;
     renderParams.Color = outputColor;
     renderParams.Normal = normalize(input.Normal);
     renderParams.Depth = input.Depth;
-    renderParams.f0 = F0;
-    renderParams.roughness = 1 - (RoughnessTexture.r+RoughnessTexture.b+RoughnessTexture.g) / 3;
-    
+    renderParams.metalness = Metalness;
+    renderParams.roughness = RoughnessTexture;
+
     return Lighting(renderParams);
 }
 
@@ -242,7 +239,7 @@ PixelShaderOutput DrawTextureSpecularNormal_PixelShader(DrawNormals_VSOut input)
 
     float3x3 worldSpace = input.WorldToTangentSpace;
 
-    float4 RoughnessTexture = Specular.Sample(SpecularTextureSampler, input.TexCoord);
+    float RoughnessTexture = Specular.Sample(SpecularTextureSampler, input.TexCoord).r;
 
     // NORMAL MAP ////
     float3 normalMap = 1 * NormalMap.Sample(NormalMapSampler, (input.TexCoord)).rgb - float3(0.5f, 0.5f, 0.5f);
@@ -252,9 +249,9 @@ PixelShaderOutput DrawTextureSpecularNormal_PixelShader(DrawNormals_VSOut input)
     renderParams.Color = outputColor;
     renderParams.Normal = normalMap;
     renderParams.Depth = input.Depth;
-    renderParams.f0 = F0;
-    renderParams.roughness = 1 - (RoughnessTexture.r+RoughnessTexture.b+RoughnessTexture.g) / 3;
-    
+    renderParams.metalness = Metalness;
+    renderParams.roughness = RoughnessTexture;
+
     return Lighting(renderParams);
 }
 
@@ -276,7 +273,7 @@ PixelShaderOutput DrawTextureNormal_PixelShader(DrawNormals_VSOut input) : SV_TA
     renderParams.Color = outputColor;
     renderParams.Normal = normalMap;
     renderParams.Depth = input.Depth;
-    renderParams.f0 = F0;
+    renderParams.metalness = Metalness;
     renderParams.roughness = Roughness;
     
     return Lighting(renderParams);
@@ -298,7 +295,7 @@ PixelShaderOutput DrawTextureMask_PixelShader(DrawBasic_VSOut input) : SV_TARGET
     renderParams.Color = outputColor;
     renderParams.Normal = normalize(input.Normal);
     renderParams.Depth = input.Depth;
-    renderParams.f0 = F0;
+    renderParams.metalness = Metalness;
     renderParams.roughness = Roughness;
     
     return Lighting(renderParams);
@@ -312,7 +309,7 @@ PixelShaderOutput DrawTextureSpecularMask_PixelShader(DrawBasic_VSOut input) : S
     float4 textureColor = Texture.Sample(TextureSampler, input.TexCoord);
     float4 outputColor = textureColor; //* input.Color;
 
-    float4 RoughnessTexture = Specular.Sample(SpecularTextureSampler, input.TexCoord);
+    float RoughnessTexture = Specular.Sample(SpecularTextureSampler, input.TexCoord).r;
 
     float mask = Mask.Sample(MaskSampler, input.TexCoord).r;
     if (mask < CLIP_VALUE)
@@ -322,8 +319,8 @@ PixelShaderOutput DrawTextureSpecularMask_PixelShader(DrawBasic_VSOut input) : S
     renderParams.Color = outputColor;
     renderParams.Normal = normalize(input.Normal);
     renderParams.Depth = input.Depth;
-    renderParams.f0 = F0;
-    renderParams.roughness = 1 - (RoughnessTexture.r+RoughnessTexture.b+RoughnessTexture.g) / 3;
+    renderParams.metalness = Metalness;
+    renderParams.roughness = RoughnessTexture; // 1 - (RoughnessTexture.r+RoughnessTexture.b+RoughnessTexture.g) / 3;
     
     return Lighting(renderParams);
 }
@@ -338,7 +335,7 @@ PixelShaderOutput DrawTextureSpecularNormalMask_PixelShader(DrawNormals_VSOut in
 
     float3x3 worldSpace = input.WorldToTangentSpace;
 
-    float4 RoughnessTexture = Specular.Sample(SpecularTextureSampler, input.TexCoord);
+    float RoughnessTexture = Specular.Sample(SpecularTextureSampler, input.TexCoord).r;
 
     float mask = Mask.Sample(MaskSampler, input.TexCoord).r;
     if (mask < CLIP_VALUE)
@@ -352,9 +349,9 @@ PixelShaderOutput DrawTextureSpecularNormalMask_PixelShader(DrawNormals_VSOut in
     renderParams.Color = outputColor;
     renderParams.Normal = normalMap;
     renderParams.Depth = input.Depth;
-    renderParams.f0 = F0;
-    renderParams.roughness = 1 - (RoughnessTexture.r+RoughnessTexture.b+RoughnessTexture.g) / 3;
-    
+    renderParams.metalness = Metalness;
+    renderParams.roughness = RoughnessTexture;
+
     return Lighting(renderParams);
 }
 
@@ -380,7 +377,7 @@ PixelShaderOutput DrawTextureNormalMask_PixelShader(DrawNormals_VSOut input) : S
     renderParams.Color = outputColor;
     renderParams.Normal = normalMap;
     renderParams.Depth = input.Depth;
-    renderParams.f0 = F0;
+    renderParams.metalness = Metalness;
     renderParams.roughness = Roughness;
     
     return Lighting(renderParams);
@@ -397,7 +394,7 @@ PixelShaderOutput DrawBasic_PixelShader(DrawBasic_VSOut input) : SV_TARGET
     renderParams.Color = outputColor;
     renderParams.Normal = normalize(input.Normal);
     renderParams.Depth = input.Depth;
-    renderParams.f0 = F0;
+    renderParams.metalness = Metalness;
     renderParams.roughness = Roughness;
 
     return Lighting(renderParams);

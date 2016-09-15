@@ -14,7 +14,7 @@ namespace EngineTest.Renderer
 {
     public class Renderer
     {
-       
+
         private GraphicsDevice _graphicsDevice;
 
         private SpriteBatch _spriteBatch;
@@ -37,8 +37,6 @@ namespace EngineTest.Renderer
         private QuadRenderer quadRenderer;
 
         private float glassRoughness = 0.04f;
-
-        private bool PBR = true;
 
         private bool supersample = false;
         private bool isUsingSuperSample = true;
@@ -93,8 +91,6 @@ namespace EngineTest.Renderer
         private RenderTarget2D _renderTargetSkull;
         private RenderTargetBinding[] _renderTargetSkullBinding = new RenderTargetBinding[1];
 
-        private RenderTarget2D _renderTargetVSM;
-        private RenderTargetBinding[] _renderTargetVSMBinding = new RenderTargetBinding[1];
 
 
         private RenderTarget2D _renderTargetVSMBlur;
@@ -122,6 +118,7 @@ namespace EngineTest.Renderer
         private EffectParameter _param_deferredLightIntensity;
         private EffectParameter _param_deferredLightInside;
         private bool dynamicLights = true;
+        private bool dynamicCubeMap = true;
         private Effect _skullEffect;
 
         private RenderTargetCube _renderTargetCubeMap;
@@ -155,7 +152,7 @@ namespace EngineTest.Renderer
         private bool skullGauss = false;
         private Effect _passThroughEffect;
 
-        private enum RenderModes { Skull, Albedo, Normal, Depth, Deferred, Diffuse, Specular, Bloom};
+        private enum RenderModes { Skull, Albedo, Normal, Depth, Deferred, Diffuse, Specular, Bloom };
 
         public Renderer(GraphicsDevice graphicsDevice, ContentManager content)
         {
@@ -168,11 +165,14 @@ namespace EngineTest.Renderer
             _screenHeight = _graphicsDevice.PresentationParameters.BackBufferHeight;
             _screenWidth = _graphicsDevice.PresentationParameters.BackBufferWidth;
 
+            Shaders.Load(content);
 
             _virtualShadowMapGenerate = content.Load<Effect>("VirtualShadowMapsGenerate");
             _deferredLight = content.Load<Effect>("DeferredPointLight");
-            _deferredSpotLight = content.Load<Effect>("DeferredSpotLight");
+
+            _deferredSpotLight = Shaders.deferredSpotLight;
             _deferredEnvironment = content.Load<Effect>("DeferredEnvironmentMap");
+
             _deferredCompose = content.Load<Effect>("DeferredCompose");
             _glass = content.Load<Effect>("Glass");
             _gaussBlur = content.Load<Effect>("GaussianBlur");
@@ -196,12 +196,12 @@ namespace EngineTest.Renderer
             _bloomEffectTechniquesDownsampleLuminance = _bloomEffect.Techniques["DownsampleLuminance"];
             _bloomEffectTechniquesDownsample = _bloomEffect.Techniques["DownsampleLuminance"];
 
-            skullMatrix = Matrix.CreateScale(0.9f)*
-                          Matrix.CreateRotationX((float) (-Math.PI/2))*Matrix.CreateRotationY(0)*
-                          Matrix.CreateRotationZ((float) (Math.PI/2 + 0.3f))*
+            skullMatrix = Matrix.CreateScale(0.9f) *
+                          Matrix.CreateRotationX((float)(-Math.PI / 2)) * Matrix.CreateRotationY(0) *
+                          Matrix.CreateRotationZ((float)(Math.PI / 2 + 0.3f)) *
                           Matrix.CreateTranslation(new Vector3(89, 0, -1.5f));
 
-            SSRmatrix = new Matrix(0.5f,0,0,0,0,-0.5f, 0,0,0,0,1,0,0,0,0,1);
+            SSRmatrix = new Matrix(0.5f, 0, 0, 0, 0, -0.5f, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
 
 
             //_deferredLightGI = content.Load<Effect>("DeferredPointLightGI");
@@ -240,11 +240,11 @@ namespace EngineTest.Renderer
 
             //pointLights.Add(new PointLight(new Vector3(-10, 0, -50), 200, Color.White, 2));
 
-            pointLights.Add(new PointLight(new Vector3(-20, -5, -5), 20, Color.Wheat, 4));
+            pointLights.Add(new PointLight(new Vector3(-60, -3, -5), 40, Color.Wheat, 20, false));
 
-            spotLights.Add(new SpotLight(new Vector3(-20, -3, -20), 150, Color.White, 3, -new Vector3(1,0,1)));
+            spotLights.Add(new SpotLight(new Vector3(-20, -3, -20), 150, Color.White, 20, -new Vector3(1, 0, 1), true));
             //spotLights.Add(new SpotLight(new Vector3(-3,-3,-10), 150, Color.White, 6, Vector3.UnitX));
-            
+
 
             GetClosestLights();
 
@@ -261,9 +261,11 @@ namespace EngineTest.Renderer
 
         public void Update(GameTime gameTime, GameWindow window)
         {
-            
+
             mouseState = Mouse.GetState();
             keyboardState = Keyboard.GetState();
+
+            float delta = (float)gameTime.ElapsedGameTime.TotalMilliseconds * 60 / 1000;
 
             float mouseAmount = 0.01f;
 
@@ -272,34 +274,34 @@ namespace EngineTest.Renderer
 
             Vector3 normal = Vector3.Cross(direction, _camera.Up);
 
-            if(dynamicLights)
-            DragonMatrix = Matrix.CreateScale(10) *
-                                   Matrix.CreateRotationZ((float)(-Math.PI / 2)) * Matrix.CreateRotationX((float)(gameTime.TotalGameTime.TotalSeconds * 0.4f)) *
-                                   Matrix.CreateRotationY((float)(Math.PI / 2)) * Matrix.CreateTranslation(Dragon2Position);
+            if (dynamicLights)
+                DragonMatrix = Matrix.CreateScale(10) *
+                                       Matrix.CreateRotationZ((float)(-Math.PI / 2)) * Matrix.CreateRotationX((float)(gameTime.TotalGameTime.TotalSeconds * 0.4f)) *
+                                       Matrix.CreateRotationY((float)(Math.PI / 2)) * Matrix.CreateTranslation(Dragon2Position);
 
             if (mouseState.RightButton == ButtonState.Pressed)
             {
                 float y = mouseState.Y - mouseLastState.Y;
                 float x = mouseState.X - mouseLastState.X;
 
-                _camera.Forward += x*mouseAmount*normal;
+                _camera.Forward += x * mouseAmount * normal;
 
-                _camera.Forward -= y*mouseAmount*_camera.Up;
+                _camera.Forward -= y * mouseAmount * _camera.Up;
                 _camera.Forward.Normalize();
             }
 
-            if(dynamicLights)
-            for (var i = 1; i < pointLights.Count; i++)
-            {
-                PointLight point = pointLights[i];
-                point.Position.Z = (float) (Math.Sin(gameTime.TotalGameTime.TotalSeconds*0.8f + i)*5 - 10);
-            }
+            if (dynamicLights)
+                for (var i = 1; i < pointLights.Count; i++)
+                {
+                    PointLight point = pointLights[i];
+                    point.Position.Z = (float)(Math.Sin(gameTime.TotalGameTime.TotalSeconds * 0.8f + i) * 30 - 30);
+                }
 
-            
 
-            float amount = 0.8f;
 
-            float amountNormal = 0.2f;
+            float amount = 0.8f * delta;
+
+            float amountNormal = 0.2f * delta;
 
             if (keyboardState.IsKeyDown(Keys.Space) && keyboardLastState.IsKeyUp(Keys.Space))
             {
@@ -315,17 +317,17 @@ namespace EngineTest.Renderer
                 InitializePointLights();
             }
 
-            
+
 
             if (keyboardState.IsKeyDown(Keys.W))
             {
-                _camera.Position += direction*amount;
+                _camera.Position += direction * amount;
             }
 
             if (keyboardState.IsKeyDown(Keys.L))
             {
-                pointLights.Add(new PointLight(new Vector3((float) (random.NextDouble()*250-125), (float) (random.NextDouble()*50-25), (float) (-random.NextDouble()*10)-3), 20, new Color(random.Next(255),random.Next(255),random.Next(255)), 4));
-                
+                pointLights.Add(new PointLight(new Vector3((float)(random.NextDouble() * 250 - 125), (float)(random.NextDouble() * 50 - 25), (float)(-random.NextDouble() * 10) - 3), 30, new Color(random.Next(255), random.Next(255), random.Next(255)), 4, false));
+
                 GetClosestLights();
                 window.Title = pointLights.Count + "";
             }
@@ -333,7 +335,7 @@ namespace EngineTest.Renderer
 
             if (keyboardState.IsKeyDown(Keys.K))
             {
-                spotLights.Add(new SpotLight(new Vector3((float)(random.NextDouble() * 250 - 125), (float)(random.NextDouble() * 50 - 25), (float)(-random.NextDouble() * 10) - 3), 20, new Color(random.Next(255), random.Next(255), random.Next(255)), 2, Vector3.Left));
+                spotLights.Add(new SpotLight(new Vector3((float)(random.NextDouble() * 250 - 125), (float)(random.NextDouble() * 50 - 25), (float)(-random.NextDouble() * 10) - 3), 30, new Color(random.Next(255), random.Next(255), random.Next(255)), 2, Vector3.Left, false));
 
                 window.Title = pointLights.Count + "";
             }
@@ -352,26 +354,26 @@ namespace EngineTest.Renderer
 
             if (keyboardState.IsKeyDown(Keys.NumPad4))
             {
-                MaterialEffect mat = (MaterialEffect) _art.HelmetModel.Meshes[4].MeshParts[0].Effect; 
-                mat.Roughness = Math.Max(0,Math.Min(1, mat.Roughness - 0.007f));
+                MaterialEffect mat = (MaterialEffect)_art.HelmetModel.Meshes[4].MeshParts[0].Effect;
+                mat.Roughness = Math.Max(0, Math.Min(1, mat.Roughness - 0.007f));
             }
 
             if (keyboardState.IsKeyDown(Keys.NumPad5))
             {
                 MaterialEffect mat = (MaterialEffect)_art.HelmetModel.Meshes[4].MeshParts[0].Effect;
-                mat.Roughness = Math.Min(1,Math.Max(0, mat.Roughness + 0.007f));
+                mat.Roughness = Math.Min(1, Math.Max(0, mat.Roughness + 0.007f));
             }
 
             if (keyboardState.IsKeyDown(Keys.NumPad7))
             {
                 MaterialEffect mat = (MaterialEffect)_art.HelmetModel.Meshes[4].MeshParts[0].Effect;
-                mat.F0 = Math.Max(0, Math.Min(1, mat.F0 - 0.01f));
+                mat.Metalness = Math.Max(0, Math.Min(1, mat.Metalness - 0.01f));
             }
 
             if (keyboardState.IsKeyDown(Keys.NumPad8))
             {
                 MaterialEffect mat = (MaterialEffect)_art.HelmetModel.Meshes[4].MeshParts[0].Effect;
-                mat.F0 = Math.Min(1, Math.Max(0, mat.F0 + 0.01f));
+                mat.Metalness = Math.Min(1, Math.Max(0, mat.Metalness + 0.01f));
             }
 
             if (keyboardState.IsKeyDown(Keys.S))
@@ -408,13 +410,13 @@ namespace EngineTest.Renderer
                 window.Title = "Supersample = " + supersample.ToString();
             }
 
-            if (keyboardState.IsKeyDown(Keys.F5) && keyboardLastState.IsKeyUp(Keys.F5))
-            {
-                PBR = !PBR;
-                _deferredLight.CurrentTechnique = PBR ? _deferredLight.Techniques["PBR"] : _deferredLight.Techniques["Classic"];
-                _deferredSpotLight.CurrentTechnique = PBR ? _deferredSpotLight.Techniques["PBR"] : _deferredSpotLight.Techniques["Classic"];
-                window.Title = "PBR = "+PBR.ToString();
-            }
+            //if (keyboardState.IsKeyDown(Keys.F5) && keyboardLastState.IsKeyUp(Keys.F5))
+            //{
+            //    PBR = !PBR;
+            //    _deferredLight.CurrentTechnique = PBR ? _deferredLight.Techniques["PBR"] : _deferredLight.Techniques["Classic"];
+            //    _deferredSpotLight.CurrentTechnique = PBR ? _deferredSpotLight.Techniques["PBR"] : _deferredSpotLight.Techniques["Classic"];
+            //    window.Title = "PBR = "+PBR.ToString();
+            //}
 
             if (keyboardState.IsKeyDown(Keys.F1) && keyboardLastState.IsKeyUp(Keys.F1))
             {
@@ -466,7 +468,12 @@ namespace EngineTest.Renderer
 
         public void Draw()
         {
+
             //RenderCubeMap();
+
+            //SetUpRenderTargets(_graphicsDevice.PresentationParameters.BackBufferWidth, _graphicsDevice.PresentationParameters.BackBufferHeight);
+
+            //InitializePointLights();
 
             if (supersample != isUsingSuperSample)
             {
@@ -479,9 +486,17 @@ namespace EngineTest.Renderer
 
             PrepareSettings();
 
-            PrepareShadowSettings();
+            foreach (SpotLight light in spotLights)
+            {
+              if(light.DrawShadow)  
+                CreateShadowMap(light, 1024);
+            }
 
-            RenderShadowMap();
+            foreach (PointLight light in pointLights)
+            {
+                if (light.DrawShadow)
+                    CreateShadowMap(light, 1024);
+            }
 
             RenderSkull();
 
@@ -492,6 +507,145 @@ namespace EngineTest.Renderer
 
         }
 
+        private void CreateShadowMap(PointLight light, int size)
+        {
+            if (light is SpotLight)
+            {
+                RenderShadowMap((SpotLight)light, size);
+            }
+            else
+            {
+                CreateCubeShadowMap(light, size);
+            }
+        }
+
+        private void CreateCubeShadowMap(PointLight light, int size)
+        {
+
+            if(light.shadowMapCube==null)
+            light.shadowMapCube = new RenderTargetCube(_graphicsDevice, size, true, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.PreserveContents);
+
+            _projection = Matrix.CreatePerspectiveFieldOfView((float)(Math.PI / 2), 1, 1, light.Radius);
+           
+            for (int i = 0; i < 6; i++)
+            {
+                // render the scene to all cubemap faces
+                CubeMapFace cubeMapFace = (CubeMapFace)i;
+
+                switch (cubeMapFace)
+                {
+                    case CubeMapFace.NegativeX:
+                        {
+                            _view = Matrix.CreateLookAt(light.Position, light.Position + Vector3.Left, Vector3.Up);
+                            break;
+                        }
+                    case CubeMapFace.NegativeY:
+                        {
+                            _view = Matrix.CreateLookAt(light.Position, light.Position + Vector3.Down,
+                                Vector3.Forward);
+                            break;
+                        }
+                    case CubeMapFace.NegativeZ:
+                        {
+                            _view = Matrix.CreateLookAt(light.Position, light.Position + Vector3.Backward,
+                                Vector3.Up);
+                            break;
+                        }
+                    case CubeMapFace.PositiveX:
+                        {
+                            _view = Matrix.CreateLookAt(light.Position, light.Position + Vector3.Right, Vector3.Up);
+                            break;
+                        }
+                    case CubeMapFace.PositiveY:
+                        {
+                            _view = Matrix.CreateLookAt(light.Position, light.Position + Vector3.Up,
+                                Vector3.Backward);
+                            break;
+                        }
+                    case CubeMapFace.PositiveZ:
+                        {
+                            _view = Matrix.CreateLookAt(light.Position, light.Position + Vector3.Forward, Vector3.Up);
+                            break;
+                        }
+                }
+
+                RenderShadowMapFace(cubeMapFace, light.shadowMapCube);
+            }
+        }
+
+        private void RenderShadowMapFace(CubeMapFace cubeMapFace, RenderTargetCube shadowMapCube)
+        {
+            _graphicsDevice.SetRenderTarget(shadowMapCube, cubeMapFace);
+
+            Matrix localWorld = Matrix.CreateScale(10) * Matrix.CreateTranslation(DragonPosition) * Matrix.CreateRotationX((float)(-Math.PI / 2));
+
+            _virtualShadowMapGenerate.Parameters["transparent"].SetValue(true);
+
+            DrawModelVSM(_art.DragonUvSmoothModel, DragonMatrix);
+
+            _virtualShadowMapGenerate.Parameters["transparent"].SetValue(false);
+
+            DrawModelVSM(_art.SponzaModel, Matrix.CreateScale(0.1f) * Matrix.CreateRotationX((float)(-Math.PI / 2)));
+
+            DrawModelVSM(_art.DragonUvSmoothModel, localWorld);
+
+            DrawModelVSM(_art.DragonUvSmoothModel, Matrix.CreateScale(10) *
+                                   Matrix.CreateRotationZ((float)(-Math.PI / 2)) * Matrix.CreateRotationX(-0.9f) *
+                                   Matrix.CreateRotationY((float)(Math.PI / 2)) * Matrix.CreateTranslation(Dragon2Position + Vector3.Down * 15));
+
+            DrawModelVSM(_art.HelmetModel, Matrix.CreateScale(1) *
+                                   Matrix.CreateRotationX((float)(-Math.PI / 2)) * Matrix.CreateRotationY(0) *
+                                   Matrix.CreateRotationZ((float)(-Math.PI / 2)) * helmetMatrix);
+        }
+
+
+        private void RenderShadowMap(SpotLight spotlight, int size)
+        {
+
+            Matrix LightView = Matrix.CreateLookAt(spotlight.Position,
+                spotlight.Position - (spotlight).Direction, Vector3.Up);
+            Matrix LightProjection = Matrix.CreatePerspectiveFieldOfView((float)(Math.PI / 1.5f), 1, 1, spotlight.Radius / 2);
+
+
+            _virtualShadowMapGenerate.Parameters["Projection"].SetValue(LightProjection);
+            _deferredSpotLight.Parameters["LightProjection"].SetValue(LightProjection);
+
+            LightViewProjection = LightView * LightProjection;
+
+            if (spotlight.RenderTargetShadowMap == null)
+            {
+                spotlight.RenderTargetShadowMap = new RenderTarget2D(_graphicsDevice, size, size, false, SurfaceFormat.Vector2, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+                spotlight.RenderTargetShadowMapBinding[0] = new RenderTargetBinding(spotlight.RenderTargetShadowMap);
+            }
+
+            _graphicsDevice.SetRenderTargets(spotlight.RenderTargetShadowMapBinding[0]);
+
+            Matrix localWorld = Matrix.CreateScale(10) * Matrix.CreateTranslation(DragonPosition) * Matrix.CreateRotationX((float)(-Math.PI / 2));
+
+            _virtualShadowMapGenerate.Parameters["transparent"].SetValue(true);
+
+            DrawModelVSM(_art.DragonUvSmoothModel, DragonMatrix);
+
+            _virtualShadowMapGenerate.Parameters["transparent"].SetValue(false);
+
+            DrawModelVSM(_art.SponzaModel, Matrix.CreateScale(0.1f) * Matrix.CreateRotationX((float)(-Math.PI / 2)));
+
+            DrawModelVSM(_art.DragonUvSmoothModel, localWorld);
+
+            DrawModelVSM(_art.DragonUvSmoothModel, Matrix.CreateScale(10) *
+                                   Matrix.CreateRotationZ((float)(-Math.PI / 2)) * Matrix.CreateRotationX(-0.9f) *
+                                   Matrix.CreateRotationY((float)(Math.PI / 2)) * Matrix.CreateTranslation(Dragon2Position + Vector3.Down * 15));
+
+            DrawModelVSM(_art.HelmetModel, Matrix.CreateScale(1) *
+                                   Matrix.CreateRotationX((float)(-Math.PI / 2)) * Matrix.CreateRotationY(0) *
+                                   Matrix.CreateRotationZ((float)(-Math.PI / 2)) * helmetMatrix);
+            //Blur it
+
+            DrawGaussianBlur(spotlight.RenderTargetShadowMap, spotlight.RenderTargetShadowMapBinding);
+            //DrawGaussianBlur();
+            //DrawGaussianBlur();
+
+        }
 
         /////////////////////////// RENDER /////////////////////////////////
 
@@ -509,7 +663,7 @@ namespace EngineTest.Renderer
 
             DrawModels();
 
-          
+
 
             if (_renderMode == RenderModes.Albedo)
                 DrawMapToScreenToFullScreen(_renderTargetAlbedo);
@@ -565,14 +719,12 @@ namespace EngineTest.Renderer
 
         private void RenderCubeMap()
         {
-            PrepareShadowSettings();
 
-            RenderShadowMap();
-
-            if(_renderTargetCubeMap!=null) _renderTargetCubeMap.Dispose();
-
-            _renderTargetCubeMap = new RenderTargetCube(_graphicsDevice, 512, true, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.PreserveContents);
-
+            if (_renderTargetCubeMap == null) // _renderTargetCubeMap.Dispose();
+            {
+                _renderTargetCubeMap = new RenderTargetCube(_graphicsDevice, 512, true, SurfaceFormat.Color,
+                    DepthFormat.Depth24, 0, RenderTargetUsage.PreserveContents);
+            }
             SetUpRenderTargets(512, 512);
 
             InitializePointLights();
@@ -643,58 +795,15 @@ namespace EngineTest.Renderer
             _graphicsDevice.SetRenderTargets(_renderTargetSkullBinding);
             DrawModelSkull(_art.SkullModel, skullMatrix);
 
-            DrawModelSkull(_art.SkullModel, Matrix.CreateScale(0.8f)*skullMatrix*Matrix.CreateTranslation(0.5f,8.6f,-0.5f));
+            DrawModelSkull(_art.SkullModel, Matrix.CreateScale(0.8f) * skullMatrix * Matrix.CreateTranslation(0.5f, 8.6f, -0.5f));
 
             DrawModelSkull(_art.HelmetModel, Matrix.CreateScale(1) *
                                    Matrix.CreateRotationX((float)(-Math.PI / 2)) * Matrix.CreateRotationY(0) *
                                    Matrix.CreateRotationZ((float)(-Math.PI / 2)) * helmetMatrix);
         }
 
-        private void RenderShadowMap()
-        {
-            _graphicsDevice.SetRenderTargets(_renderTargetVSM);
-
-            Matrix localWorld = Matrix.CreateScale(10) * Matrix.CreateTranslation(DragonPosition) * Matrix.CreateRotationX((float)(-Math.PI / 2));
-
-            _virtualShadowMapGenerate.Parameters["transparent"].SetValue(true);
-
-            DrawModelVSM(_art.DragonUvSmoothModel, DragonMatrix);
-
-            _virtualShadowMapGenerate.Parameters["transparent"].SetValue(false);
-
-            DrawModelVSM(_art.SponzaModel, Matrix.CreateScale(0.1f) * Matrix.CreateRotationX((float)(-Math.PI / 2)));
-
-            DrawModelVSM(_art.DragonUvSmoothModel, localWorld);
-
-            DrawModelVSM(_art.DragonUvSmoothModel, Matrix.CreateScale(10) *
-                                   Matrix.CreateRotationZ((float)(-Math.PI / 2)) * Matrix.CreateRotationX(-0.9f) *
-                                   Matrix.CreateRotationY((float)(Math.PI / 2)) * Matrix.CreateTranslation(Dragon2Position + Vector3.Down * 15));
-
-            DrawModelVSM(_art.HelmetModel, Matrix.CreateScale(1) *
-                                   Matrix.CreateRotationX((float)(-Math.PI / 2)) * Matrix.CreateRotationY(0) *
-                                   Matrix.CreateRotationZ((float)(-Math.PI / 2)) * helmetMatrix);
-            //Blur it
-
-            DrawGaussianBlur();
-            //DrawGaussianBlur();
-            //DrawGaussianBlur();
-            
-        }
-
 
         /////////////////////////// P R E P A R E /////////////////////////////////
-
-        private void PrepareShadowSettings()
-        {
-            Matrix LightView = Matrix.CreateLookAt(spotLights[0].Position,
-                spotLights[0].Position - spotLights[0].Direction, Vector3.Up);
-            Matrix LightProjection = Matrix.CreatePerspectiveFieldOfView((float) (Math.PI/1.5f), 1, 1, spotLights[0].Radius);
-
-            _virtualShadowMapGenerate.Parameters["Projection"].SetValue(LightProjection);
-            _deferredSpotLight.Parameters["LightProjection"].SetValue(LightProjection);
-
-            LightViewProjection = LightView*LightProjection;
-        }
 
         private void PrepareSettings()
         {
@@ -722,33 +831,33 @@ namespace EngineTest.Renderer
 
 
         /////////////////////////// MODELS /////////////////////////////////
-        
+
         private void DrawModels()
         {
-            Matrix localWorld = Matrix.CreateScale(10)*Matrix.CreateTranslation(DragonPosition)* Matrix.CreateRotationX((float) (-Math.PI/2));
-
-            
-                DrawModel(_art.SponzaModel, Matrix.CreateScale(0.1f) * Matrix.CreateRotationX((float)(-Math.PI / 2)), false);
-
-                _lightingEffect.Parameters["F0"].SetValue(0.3f);
-                _lightingEffect.Parameters["Roughness"].SetValue(0.2f);
-                _lightingEffect.Parameters["DiffuseColor"].SetValue(Color.IndianRed.ToVector3());
-                DrawModel(_art.DragonUvSmoothModel, localWorld, true);
-
-                _lightingEffect.Parameters["F0"].SetValue(0.5f);
-                _lightingEffect.Parameters["Roughness"].SetValue(0.05f);
-                _lightingEffect.Parameters["DiffuseColor"].SetValue(Color.DarkRed.ToVector3()*0.5f);
-                DrawModel(_art.DragonUvSmoothModel, Matrix.CreateScale(10) *
-                                   Matrix.CreateRotationZ((float)(-Math.PI / 2)) * Matrix.CreateRotationX(-0.9f) *
-                                   Matrix.CreateRotationY((float)(Math.PI / 2)) * Matrix.CreateTranslation(Dragon2Position + Vector3.Down*15),true);
+            Matrix localWorld = Matrix.CreateScale(10) * Matrix.CreateTranslation(DragonPosition) * Matrix.CreateRotationX((float)(-Math.PI / 2));
 
 
-                DrawModel(_art.HelmetModel, Matrix.CreateScale(1) *
-                                   Matrix.CreateRotationX((float)(-Math.PI / 2)) * Matrix.CreateRotationY(0) *
-                                   Matrix.CreateRotationZ((float)(-Math.PI / 2)) * helmetMatrix,false);
+            DrawModel(_art.SponzaModel, Matrix.CreateScale(0.1f) * Matrix.CreateRotationX((float)(-Math.PI / 2)), false);
+
+            _lightingEffect.Parameters["Metalness"].SetValue(0f);
+            _lightingEffect.Parameters["Roughness"].SetValue(0.5f);
+            _lightingEffect.Parameters["DiffuseColor"].SetValue(Color.IndianRed.ToVector3());
+            DrawModel(_art.DragonUvSmoothModel, localWorld, true);
+
+            _lightingEffect.Parameters["Metalness"].SetValue(1f);
+            _lightingEffect.Parameters["Roughness"].SetValue(0.2f);
+            _lightingEffect.Parameters["DiffuseColor"].SetValue(Color.Gold.ToVector3());
+            DrawModel(_art.DragonUvSmoothModel, Matrix.CreateScale(10) *
+                               Matrix.CreateRotationZ((float)(-Math.PI / 2)) * Matrix.CreateRotationX(-0.9f) *
+                               Matrix.CreateRotationY((float)(Math.PI / 2)) * Matrix.CreateTranslation(Dragon2Position + Vector3.Down * 15), true);
 
 
-            
+            DrawModel(_art.HelmetModel, Matrix.CreateScale(1) *
+                               Matrix.CreateRotationX((float)(-Math.PI / 2)) * Matrix.CreateRotationY(0) *
+                               Matrix.CreateRotationZ((float)(-Math.PI / 2)) * helmetMatrix, false);
+
+
+
         }
 
         private void DrawModel(Model model, Matrix world, bool drake)
@@ -845,7 +954,7 @@ namespace EngineTest.Renderer
                             if (!drake)
                             {
                                 _lightingEffect.Parameters["Roughness"].SetValue(effect.Roughness);
-                                _lightingEffect.Parameters["F0"].SetValue(effect.F0);
+                                _lightingEffect.Parameters["Metalness"].SetValue(effect.Metalness);
                                 _lightingEffect.Parameters["DiffuseColor"].SetValue(effect.DiffuseColor);
                             }
 
@@ -888,7 +997,7 @@ namespace EngineTest.Renderer
                     for (int i = 0; i < mesh.MeshParts.Count; i++)
                     {
                         ModelMeshPart meshpart = mesh.MeshParts[i];
-                        _virtualShadowMapGenerate.Parameters["WorldViewProj"].SetValue(world*LightViewProjection);
+                        _virtualShadowMapGenerate.Parameters["WorldViewProj"].SetValue(world * LightViewProjection);
 
                         _virtualShadowMapGenerate.CurrentTechnique.Passes[0].Apply();
 
@@ -911,35 +1020,35 @@ namespace EngineTest.Renderer
             {
                 ModelMesh mesh = model.Meshes[index];
 
-                    for (int i = 0; i < mesh.MeshParts.Count; i++)
+                for (int i = 0; i < mesh.MeshParts.Count; i++)
+                {
+                    ModelMeshPart meshpart = mesh.MeshParts[i];
+
+                    if (meshpart.Effect is MaterialEffect)
                     {
-                        ModelMeshPart meshpart = mesh.MeshParts[i];
-
-                        if (meshpart.Effect is MaterialEffect)
-                        {
-                            _skullEffect.Parameters["shade"].SetValue(false);
-                            if ((meshpart.Effect as MaterialEffect).MaterialType != 10)
-                                continue;
-                        }
-                        else
-                        {
-                            _skullEffect.Parameters["shade"].SetValue(true);
-                        }
-
-                        _skullEffect.Parameters["WorldViewProj"].SetValue(world * _view * _projection);
-                        _skullEffect.Parameters["World"].SetValue(world);
-                        _skullEffect.CurrentTechnique.Passes[0].Apply();
-
-                        _graphicsDevice.SetVertexBuffer(meshpart.VertexBuffer);
-                        _graphicsDevice.Indices = (meshpart.IndexBuffer);
-                        int primitiveCount = meshpart.PrimitiveCount;
-                        int vertexOffset = meshpart.VertexOffset;
-                        int vCount = meshpart.NumVertices;
-                        int startIndex = meshpart.StartIndex;
-
-                        _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset, startIndex,
-                            primitiveCount);
+                        _skullEffect.Parameters["shade"].SetValue(false);
+                        if ((meshpart.Effect as MaterialEffect).MaterialType != 10)
+                            continue;
                     }
+                    else
+                    {
+                        _skullEffect.Parameters["shade"].SetValue(true);
+                    }
+
+                    _skullEffect.Parameters["WorldViewProj"].SetValue(world * _view * _projection);
+                    _skullEffect.Parameters["World"].SetValue(world);
+                    _skullEffect.CurrentTechnique.Passes[0].Apply();
+
+                    _graphicsDevice.SetVertexBuffer(meshpart.VertexBuffer);
+                    _graphicsDevice.Indices = (meshpart.IndexBuffer);
+                    int primitiveCount = meshpart.PrimitiveCount;
+                    int vertexOffset = meshpart.VertexOffset;
+                    int vCount = meshpart.NumVertices;
+                    int startIndex = meshpart.StartIndex;
+
+                    _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset, startIndex,
+                        primitiveCount);
+                }
             }
         }
 
@@ -982,7 +1091,7 @@ namespace EngineTest.Renderer
             _glass.Parameters["PointLightColor"].SetValue(pointLightColor);
             _glass.Parameters["PointLightRadius"].SetValue(pointLightRadius);
             _glass.Parameters["PointLightIntensity"].SetValue(pointLightIntensity);
-            
+
             foreach (Vector3 Position in pointLightPosition)
             {
                 float distance = Vector3.Distance(Dragon2Position, Position);
@@ -997,8 +1106,8 @@ namespace EngineTest.Renderer
             {
                 foreach (ModelMeshPart meshpart in mesh.MeshParts)
                 {
-                    
-                    
+
+
 
                     _glass.CurrentTechnique.Passes[0].Apply();
 
@@ -1062,7 +1171,7 @@ namespace EngineTest.Renderer
 
         private void DrawSpotLight(SpotLight light)
         {
-            Matrix sphereWorldMatrix = Matrix.CreateScale(light.Radius) * Matrix.CreateTranslation(light.Position);
+            Matrix sphereWorldMatrix = Matrix.CreateScale(light.Radius + 2) * Matrix.CreateTranslation(light.Position);
             _deferredSpotLight.Parameters["World"].SetValue(sphereWorldMatrix);
 
             //light position
@@ -1088,7 +1197,7 @@ namespace EngineTest.Renderer
             {
                 foreach (ModelMeshPart meshpart in mesh.MeshParts)
                 {
-                    _deferredSpotLight.CurrentTechnique.Passes[0].Apply();
+                    light.ApplyShader();
 
                     _graphicsDevice.SetVertexBuffer(meshpart.VertexBuffer);
                     _graphicsDevice.Indices = (meshpart.IndexBuffer);
@@ -1105,7 +1214,7 @@ namespace EngineTest.Renderer
         private void DrawPointLight(PointLight light)
         {
 
-            Matrix sphereWorldMatrix = Matrix.CreateScale(light.Radius) * Matrix.CreateTranslation(light.Position);
+            Matrix sphereWorldMatrix = Matrix.CreateScale(light.Radius * 1.2f) * Matrix.CreateTranslation(light.Position);
             _param_deferredLightWorld.SetValue(sphereWorldMatrix);
 
             //light position
@@ -1121,7 +1230,7 @@ namespace EngineTest.Renderer
 
             float cameraToCenter = Vector3.Distance(_camera.Position, light.Position);
 
-            if (cameraToCenter < light.Radius)
+            if (cameraToCenter < light.Radius * 1.2f)
             {
                 _param_deferredLightInside.SetValue(true);
                 _graphicsDevice.RasterizerState = RasterizerState.CullClockwise;
@@ -1156,8 +1265,8 @@ namespace EngineTest.Renderer
         {
             _graphicsDevice.DepthStencilState = DepthStencilState.Default;
             _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
-            _deferredEnvironment.Parameters["InvertViewProjection"].SetValue(Matrix.Invert(_view*_projection));
-            
+            _deferredEnvironment.Parameters["InvertViewProjection"].SetValue(Matrix.Invert(_view * _projection));
+
             _deferredEnvironment.Parameters["cameraPosition"].SetValue(_camera.Position);
             _deferredEnvironment.Parameters["cameraDirection"].SetValue(_camera.Forward);
 
@@ -1174,7 +1283,7 @@ namespace EngineTest.Renderer
             //Skull depth
             //_deferredCompose.Parameters["average_skull_depth"].SetValue(Vector3.Distance(_camera.Position , new Vector3(29, 0, -6.5f)));
 
-            
+
             //combine!
             _deferredCompose.CurrentTechnique.Passes[0].Apply();
             quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
@@ -1188,10 +1297,10 @@ namespace EngineTest.Renderer
             _raymarchingEffect.Parameters["InvertViewProjection"].SetValue(Matrix.Invert(_view * _projection));
             _raymarchingEffect.Parameters["View"].SetValue(_view);
             _raymarchingEffect.Parameters["Projection"].SetValue(_projection);
-            _raymarchingEffect.Parameters["ViewProjection"].SetValue(_view*_projection);
-            _raymarchingEffect.Parameters["SSProjection"].SetValue(SSRmatrix*_projection);
+            _raymarchingEffect.Parameters["ViewProjection"].SetValue(_view * _projection);
+            _raymarchingEffect.Parameters["SSProjection"].SetValue(SSRmatrix * _projection);
             _raymarchingEffect.Parameters["cameraPosition"].SetValue(_camera.Position);
-            _raymarchingEffect.Parameters["cameraDir"].SetValue(_camera.Lookat-_camera.Position);
+            _raymarchingEffect.Parameters["cameraDir"].SetValue(_camera.Lookat - _camera.Position);
             _raymarchingEffect.CurrentTechnique.Passes[0].Apply();
             quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
         }
@@ -1206,7 +1315,7 @@ namespace EngineTest.Renderer
             _deferredSpotLight.Parameters["colorMap"].SetValue(_renderTargetAlbedo);
             _deferredSpotLight.Parameters["normalMap"].SetValue(_renderTargetNormal);
             _deferredSpotLight.Parameters["depthMap"].SetValue(_renderTargetDepth);
-            _deferredSpotLight.Parameters["shadowMap"].SetValue(_renderTargetVSM);
+            //_deferredSpotLight.Parameters["shadowMap"].SetValue(_renderTargetVSM);
 
             _raymarchingEffect.Parameters["colorMap"].SetValue(_renderTargetFinal);
             _raymarchingEffect.Parameters["normalMap"].SetValue(_renderTargetNormal);
@@ -1216,7 +1325,7 @@ namespace EngineTest.Renderer
             _deferredCompose.Parameters["diffuseLightMap"].SetValue(_renderTargetDiffuse);
             _deferredCompose.Parameters["specularLightMap"].SetValue(_renderTargetSpecular);
 
-            
+
             _deferredEnvironment.Parameters["colorMap"].SetValue(_renderTargetAlbedo);
             _deferredEnvironment.Parameters["normalMap"].SetValue(_renderTargetNormal);
             _deferredEnvironment.Parameters["depthMap"].SetValue(_renderTargetDepth);
@@ -1232,7 +1341,7 @@ namespace EngineTest.Renderer
 
         private void DrawMapToScreenToTarget(RenderTarget2D map, RenderTarget2D target)
         {
-            
+
             _graphicsDevice.SetRenderTarget(target);
             _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.PointClamp, null, null, _passThroughEffect, null);
             //_spriteBatch.Draw(map, new Rectangle(0, 0, map.Width, map.Height), Color.White);
@@ -1271,15 +1380,15 @@ namespace EngineTest.Renderer
 
         private void DrawMapToScreenToCube(RenderTarget2D map, RenderTargetCube target, CubeMapFace? face)
         {
-            
-            if (face != null) _graphicsDevice.SetRenderTarget(target, (CubeMapFace) face);
+
+            if (face != null) _graphicsDevice.SetRenderTarget(target, (CubeMapFace)face);
             _graphicsDevice.Clear(Color.CornflowerBlue);
             _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.PointClamp);
             _spriteBatch.Draw(map, new Rectangle(0, 0, map.Width, map.Height), Color.White);
             _spriteBatch.End();
         }
 
-        private void DrawGaussianBlur()
+        private void DrawGaussianBlur(RenderTarget2D _renderTargetVSM, RenderTargetBinding[] _renderTargetVSMBinding)
         {
             _graphicsDevice.SetRenderTargets(_renderTargetVSMBlurBinding);
 
@@ -1297,215 +1406,215 @@ namespace EngineTest.Renderer
 
         private void DrawBloom()
         {
-            
-                _graphicsDevice.SetRenderTargets(_bloomRenderTarget2DMip0Binding);
 
-                // Extract the bloom
+            _graphicsDevice.SetRenderTargets(_bloomRenderTarget2DMip0Binding);
 
-                if (Math.Abs(GameSettings.BloomThreshold - _bloomThreshold) > 0.01f)
-                {
-                    _bloomThreshold = GameSettings.BloomThreshold;
-                    _bloomEffectThreshold.SetValue(_bloomThreshold);
-                }
+            // Extract the bloom
 
-                if (Math.Abs(GameSettings.BloomStreakLength - _previousBloomStreak) > 0.01f)
-                {
-                    _previousBloomStreak = GameSettings.BloomStreakLength;
-                    _bloomEffectStreak.SetValue(_previousBloomStreak);
-                }
+            if (Math.Abs(GameSettings.BloomThreshold - _bloomThreshold) > 0.01f)
+            {
+                _bloomThreshold = GameSettings.BloomThreshold;
+                _bloomEffectThreshold.SetValue(_bloomThreshold);
+            }
 
-                int width = _renderTargetFinal.Width;
-                int height = _renderTargetFinal.Height;
+            if (Math.Abs(GameSettings.BloomStreakLength - _previousBloomStreak) > 0.01f)
+            {
+                _previousBloomStreak = GameSettings.BloomStreakLength;
+                _bloomEffectStreak.SetValue(_previousBloomStreak);
+            }
 
-                float radiusBias = 1.0f;
+            int width = _renderTargetFinal.Width;
+            int height = _renderTargetFinal.Height;
+
+            float radiusBias = 1.0f;
 
 
-                _bloomEffectResolution.SetValue(new Vector2(width, height));
+            _bloomEffectResolution.SetValue(new Vector2(width, height));
 
-                _bloomEffect.CurrentTechnique = _bloomEffect.Techniques["Extract"];
+            _bloomEffect.CurrentTechnique = _bloomEffect.Techniques["Extract"];
 
-                _graphicsDevice.SetRenderTargets(_bloomRenderTarget2DMip0Binding);
+            _graphicsDevice.SetRenderTargets(_bloomRenderTarget2DMip0Binding);
 
-                _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.PointClamp, null, null, _bloomEffect);
-                _spriteBatch.Draw(_renderTargetFinal, new Rectangle(0, 0, width, height), Color.White);
-                _spriteBatch.End();
+            _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.PointClamp, null, null, _bloomEffect);
+            _spriteBatch.Draw(_renderTargetFinal, new Rectangle(0, 0, width, height), Color.White);
+            _spriteBatch.End();
 
-                // Downsample to MIP1
-                if (GameSettings.BloomLuminance)
-                {
-                    _bloomEffect.CurrentTechnique = _bloomEffectTechniquesDownsampleLuminance;
-                }
-                else
-                {
-                    _bloomEffect.CurrentTechnique = _bloomEffectTechniquesDownsample;
-                }
-                _graphicsDevice.SetRenderTargets(_bloomRenderTarget2DMip1Binding);
+            // Downsample to MIP1
+            if (GameSettings.BloomLuminance)
+            {
+                _bloomEffect.CurrentTechnique = _bloomEffectTechniquesDownsampleLuminance;
+            }
+            else
+            {
+                _bloomEffect.CurrentTechnique = _bloomEffectTechniquesDownsample;
+            }
+            _graphicsDevice.SetRenderTargets(_bloomRenderTarget2DMip1Binding);
 
-                //_bloomEffectResolution.SetValue(new Vector2(width, height)); //fullres
+            //_bloomEffectResolution.SetValue(new Vector2(width, height)); //fullres
 
-                _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.LinearClamp, null, null, _bloomEffect);
-                _spriteBatch.Draw(_bloomRenderTarget2DMip0, new Rectangle(0, 0, width / 2, height / 2), Color.White);
-                _spriteBatch.End();
+            _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.LinearClamp, null, null, _bloomEffect);
+            _spriteBatch.Draw(_bloomRenderTarget2DMip0, new Rectangle(0, 0, width / 2, height / 2), Color.White);
+            _spriteBatch.End();
 
-                // Downsample to MIP2
+            // Downsample to MIP2
 
-                _graphicsDevice.SetRenderTargets(_bloomRenderTarget2DMip2Binding);
+            _graphicsDevice.SetRenderTargets(_bloomRenderTarget2DMip2Binding);
 
-                width /= 2;
-                height /= 2;
+            width /= 2;
+            height /= 2;
 
-                _bloomEffectResolution.SetValue(new Vector2(width, height)); // 1/2 res
+            _bloomEffectResolution.SetValue(new Vector2(width, height)); // 1/2 res
 
-                _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.LinearClamp, null, null, _bloomEffect);
-                _spriteBatch.Draw(_bloomRenderTarget2DMip1, new Rectangle(0, 0, width / 2, height / 2), Color.White);
-                _spriteBatch.End();
+            _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.LinearClamp, null, null, _bloomEffect);
+            _spriteBatch.Draw(_bloomRenderTarget2DMip1, new Rectangle(0, 0, width / 2, height / 2), Color.White);
+            _spriteBatch.End();
 
-                // Downsample to MIP3
+            // Downsample to MIP3
 
-                _graphicsDevice.SetRenderTargets(_bloomRenderTarget2DMip3Binding);
+            _graphicsDevice.SetRenderTargets(_bloomRenderTarget2DMip3Binding);
 
-                width /= 2;
-                height /= 2;
+            width /= 2;
+            height /= 2;
 
-                _bloomEffectResolution.SetValue(new Vector2(width, height)); // 1/4 res
+            _bloomEffectResolution.SetValue(new Vector2(width, height)); // 1/4 res
 
-                _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.LinearClamp, null, null, _bloomEffect);
-                _spriteBatch.Draw(_bloomRenderTarget2DMip2, new Rectangle(0, 0, width / 2, height / 2), Color.White);
-                _spriteBatch.End();
+            _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.LinearClamp, null, null, _bloomEffect);
+            _spriteBatch.Draw(_bloomRenderTarget2DMip2, new Rectangle(0, 0, width / 2, height / 2), Color.White);
+            _spriteBatch.End();
 
-                // Downsample to MIP4
+            // Downsample to MIP4
 
-                _graphicsDevice.SetRenderTargets(_bloomRenderTarget2DMip4Binding);
+            _graphicsDevice.SetRenderTargets(_bloomRenderTarget2DMip4Binding);
 
-                width /= 2;
-                height /= 2;
+            width /= 2;
+            height /= 2;
 
-                _bloomEffectResolution.SetValue(new Vector2(width, height)); // 1/8 res
+            _bloomEffectResolution.SetValue(new Vector2(width, height)); // 1/8 res
 
-                _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.LinearClamp, null, null, _bloomEffect);
-                _spriteBatch.Draw(_bloomRenderTarget2DMip3, new Rectangle(0, 0, width / 2, height / 2), Color.White); // -> mip4 is 1/16 res
-                _spriteBatch.End();
+            _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.LinearClamp, null, null, _bloomEffect);
+            _spriteBatch.Draw(_bloomRenderTarget2DMip3, new Rectangle(0, 0, width / 2, height / 2), Color.White); // -> mip4 is 1/16 res
+            _spriteBatch.End();
 
-                // Downsample to MIP5
+            // Downsample to MIP5
 
-                _graphicsDevice.SetRenderTargets(_bloomRenderTarget2DMip5Binding);
+            _graphicsDevice.SetRenderTargets(_bloomRenderTarget2DMip5Binding);
 
-                width /= 2;
-                height /= 2;
+            width /= 2;
+            height /= 2;
 
-                _bloomEffectResolution.SetValue(new Vector2(width, height)); // 1/^16 res
+            _bloomEffectResolution.SetValue(new Vector2(width, height)); // 1/^16 res
 
-                _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.LinearClamp, null, null, _bloomEffect);
-                _spriteBatch.Draw(_bloomRenderTarget2DMip4, new Rectangle(0, 0, width / 2, height / 2), Color.White); // -> mip4 is 1/16 res
-                _spriteBatch.End();
+            _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.LinearClamp, null, null, _bloomEffect);
+            _spriteBatch.Draw(_bloomRenderTarget2DMip4, new Rectangle(0, 0, width / 2, height / 2), Color.White); // -> mip4 is 1/16 res
+            _spriteBatch.End();
 
-                // Upsample to MIP4
+            // Upsample to MIP4
 
-                if (GameSettings.BloomLuminance)
-                {
-                    _bloomEffect.CurrentTechnique = _bloomEffectTechniquesUpsampleLuminance;
-                }
-                else
-                {
-                    _bloomEffect.CurrentTechnique = _bloomEffectTechniquesUpsample;
-                }
+            if (GameSettings.BloomLuminance)
+            {
+                _bloomEffect.CurrentTechnique = _bloomEffectTechniquesUpsampleLuminance;
+            }
+            else
+            {
+                _bloomEffect.CurrentTechnique = _bloomEffectTechniquesUpsample;
+            }
 
-                _graphicsDevice.SetRenderTargets(_bloomRenderTarget2DMip4Binding);
+            _graphicsDevice.SetRenderTargets(_bloomRenderTarget2DMip4Binding);
 
-                BlendState blend;
-                float strengthBias = 1.0f;
+            BlendState blend;
+            float strengthBias = 1.0f;
 
-                //if (GameSettings.PostProccessingMode == 4)
-                //{
-                //    blend = _blendStateBloom;
-                //}
-                //else if (GameSettings.PostProccessingMode >= 2)
-                //{
-                //    blend = _blendStateBloom;
-                //    if (GameSettings.PostProccessingMode == 2)
-                //        strengthBias = 1.5f;
-                //}
-                //else
-                //{
+            //if (GameSettings.PostProccessingMode == 4)
+            //{
+            //    blend = _blendStateBloom;
+            //}
+            //else if (GameSettings.PostProccessingMode >= 2)
+            //{
+            //    blend = _blendStateBloom;
+            //    if (GameSettings.PostProccessingMode == 2)
+            //        strengthBias = 1.5f;
+            //}
+            //else
+            //{
             blend = BlendState.AlphaBlend;
-                //}
+            //}
 
-                _bloomEffectResolution.SetValue(new Vector2(width, height));
-                _bloomEffectRadius.SetValue(GameSettings.BloomRadius5 * radiusBias);
-                _bloomEffectStrength.SetValue(GameSettings.BloomStrength5 * strengthBias);
+            _bloomEffectResolution.SetValue(new Vector2(width, height));
+            _bloomEffectRadius.SetValue(GameSettings.BloomRadius5 * radiusBias);
+            _bloomEffectStrength.SetValue(GameSettings.BloomStrength5 * strengthBias);
 
-                _spriteBatch.Begin(0, blend, SamplerState.LinearClamp, null, null, _bloomEffect);
-                _spriteBatch.Draw(_bloomRenderTarget2DMip5, new Rectangle(0, 0, width, height), Color.White);
-                _spriteBatch.End();
+            _spriteBatch.Begin(0, blend, SamplerState.LinearClamp, null, null, _bloomEffect);
+            _spriteBatch.Draw(_bloomRenderTarget2DMip5, new Rectangle(0, 0, width, height), Color.White);
+            _spriteBatch.End();
 
-                // Upsample to MIP3
+            // Upsample to MIP3
 
-                _graphicsDevice.SetRenderTargets(_bloomRenderTarget2DMip3Binding);
+            _graphicsDevice.SetRenderTargets(_bloomRenderTarget2DMip3Binding);
 
-                _bloomEffectResolution.SetValue(new Vector2(width, height));
-                _bloomEffectRadius.SetValue(GameSettings.BloomRadius4 * radiusBias);
-                _bloomEffectStrength.SetValue(GameSettings.BloomStrength4 * strengthBias);
-                width *= 2;
-                height *= 2;
+            _bloomEffectResolution.SetValue(new Vector2(width, height));
+            _bloomEffectRadius.SetValue(GameSettings.BloomRadius4 * radiusBias);
+            _bloomEffectStrength.SetValue(GameSettings.BloomStrength4 * strengthBias);
+            width *= 2;
+            height *= 2;
 
-                _spriteBatch.Begin(0, blend, SamplerState.LinearClamp, null, null, _bloomEffect);
-                _spriteBatch.Draw(_bloomRenderTarget2DMip4, new Rectangle(0, 0, width, height), Color.White);
-                _spriteBatch.End();
+            _spriteBatch.Begin(0, blend, SamplerState.LinearClamp, null, null, _bloomEffect);
+            _spriteBatch.Draw(_bloomRenderTarget2DMip4, new Rectangle(0, 0, width, height), Color.White);
+            _spriteBatch.End();
 
-                // Upsample to MIP2
+            // Upsample to MIP2
 
-                _graphicsDevice.SetRenderTargets(_bloomRenderTarget2DMip2Binding);
+            _graphicsDevice.SetRenderTargets(_bloomRenderTarget2DMip2Binding);
 
-                _bloomEffectResolution.SetValue(new Vector2(width, height));
-                _bloomEffectRadius.SetValue(GameSettings.BloomRadius3 * radiusBias);
-                _bloomEffectStrength.SetValue(GameSettings.BloomStrength3 * strengthBias);
-                width *= 2;
-                height *= 2;
+            _bloomEffectResolution.SetValue(new Vector2(width, height));
+            _bloomEffectRadius.SetValue(GameSettings.BloomRadius3 * radiusBias);
+            _bloomEffectStrength.SetValue(GameSettings.BloomStrength3 * strengthBias);
+            width *= 2;
+            height *= 2;
 
 
-                _spriteBatch.Begin(0, blend, SamplerState.LinearClamp, null, null, _bloomEffect);
-                _spriteBatch.Draw(_bloomRenderTarget2DMip3, new Rectangle(0, 0, width, height), Color.Red);
-                _spriteBatch.End();
+            _spriteBatch.Begin(0, blend, SamplerState.LinearClamp, null, null, _bloomEffect);
+            _spriteBatch.Draw(_bloomRenderTarget2DMip3, new Rectangle(0, 0, width, height), Color.Red);
+            _spriteBatch.End();
 
-                // Upsample to MIP1
+            // Upsample to MIP1
 
-                _graphicsDevice.SetRenderTargets(_bloomRenderTarget2DMip1Binding);
+            _graphicsDevice.SetRenderTargets(_bloomRenderTarget2DMip1Binding);
 
-                _bloomEffectResolution.SetValue(new Vector2(width, height));
-                _bloomEffectRadius.SetValue(GameSettings.BloomRadius2 * radiusBias);
-                _bloomEffectStrength.SetValue(GameSettings.BloomStrength2 * strengthBias);
-                width *= 2;
-                height *= 2;
+            _bloomEffectResolution.SetValue(new Vector2(width, height));
+            _bloomEffectRadius.SetValue(GameSettings.BloomRadius2 * radiusBias);
+            _bloomEffectStrength.SetValue(GameSettings.BloomStrength2 * strengthBias);
+            width *= 2;
+            height *= 2;
 
-                _spriteBatch.Begin(0, blend, SamplerState.LinearClamp, null, null, _bloomEffect);
-                _spriteBatch.Draw(_bloomRenderTarget2DMip2, new Rectangle(0, 0, width, height), Color.White);
-                _spriteBatch.End();
+            _spriteBatch.Begin(0, blend, SamplerState.LinearClamp, null, null, _bloomEffect);
+            _spriteBatch.Draw(_bloomRenderTarget2DMip2, new Rectangle(0, 0, width, height), Color.White);
+            _spriteBatch.End();
 
-                _bloomEffectRadius.SetValue(GameSettings.BloomRadius1 * radiusBias);
-                _bloomEffectStrength.SetValue(GameSettings.BloomStrength1 * strengthBias);
+            _bloomEffectRadius.SetValue(GameSettings.BloomRadius1 * radiusBias);
+            _bloomEffectStrength.SetValue(GameSettings.BloomStrength1 * strengthBias);
 
             // apply bloom
 
 
             _graphicsDevice.BlendState = BlendState.Opaque;
-                DrawMapToScreenToFullScreen(_renderTargetFinal);
+            DrawMapToScreenToFullScreen(_renderTargetFinal);
 
-                blend = BlendState.Additive;
+            blend = BlendState.Additive;
 
-                width = _graphicsDevice.PresentationParameters.BackBufferWidth;
-                height = _graphicsDevice.PresentationParameters.BackBufferHeight;
+            width = _graphicsDevice.PresentationParameters.BackBufferWidth;
+            height = _graphicsDevice.PresentationParameters.BackBufferHeight;
 
-                _bloomEffectResolution.SetValue(new Vector2(width, height));
+            _bloomEffectResolution.SetValue(new Vector2(width, height));
 
-                //_spriteBatch.Begin(0, blend, SamplerState.LinearClamp);
-                //_spriteBatch.Draw(_renderTargetFinal, new Rectangle(0, 0, width, height), Color.White);
-                //_spriteBatch.End();
+            //_spriteBatch.Begin(0, blend, SamplerState.LinearClamp);
+            //_spriteBatch.Draw(_renderTargetFinal, new Rectangle(0, 0, width, height), Color.White);
+            //_spriteBatch.End();
 
-                _spriteBatch.Begin(0, blend, SamplerState.LinearClamp, null, null, _bloomEffect);
-                _spriteBatch.Draw(_bloomRenderTarget2DMip1, new Rectangle(0, 0, width, height), Color.White);
-                _spriteBatch.End();
-                _graphicsDevice.DepthStencilState = DepthStencilState.Default;
-                _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+            _spriteBatch.Begin(0, blend, SamplerState.LinearClamp, null, null, _bloomEffect);
+            _spriteBatch.Draw(_bloomRenderTarget2DMip1, new Rectangle(0, 0, width, height), Color.White);
+            _spriteBatch.End();
+            _graphicsDevice.DepthStencilState = DepthStencilState.Default;
+            _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
         }
 
 
@@ -1533,8 +1642,8 @@ namespace EngineTest.Renderer
 
             //SKULL
 
-            _renderTargetSkull = new RenderTarget2D(_graphicsDevice, width/2,
-                height/2, false, SurfaceFormat.Single, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+            _renderTargetSkull = new RenderTarget2D(_graphicsDevice, width / 2,
+                height / 2, false, SurfaceFormat.Single, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
 
             _renderTargetSkullBinding[0] = new RenderTargetBinding(_renderTargetSkull);
 
@@ -1546,11 +1655,11 @@ namespace EngineTest.Renderer
 
             if (supersample) ssmultiplier = 2;
 
-            int special_width = width*multiplier*ssmultiplier;
-            int special_height = height*multiplier*ssmultiplier;
+            int special_width = width * multiplier * ssmultiplier;
+            int special_height = height * multiplier * ssmultiplier;
 
-            int supersample_width = width*ssmultiplier;
-            int supersample_height = height*ssmultiplier;
+            int supersample_width = width * ssmultiplier;
+            int supersample_height = height * ssmultiplier;
 
             _renderTargetAlbedo = new RenderTarget2D(_graphicsDevice, special_width,
                 special_height, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
@@ -1596,23 +1705,23 @@ namespace EngineTest.Renderer
             //BLOOM
 
             _bloomRenderTarget2DMip0 = new RenderTarget2D(_graphicsDevice,
-                (int)(width ),
-                (int)(height ), false, SurfaceFormat.Rgba1010102, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
+                (int)(width),
+                (int)(height), false, SurfaceFormat.Rgba1010102, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
             _bloomRenderTarget2DMip1 = new RenderTarget2D(_graphicsDevice,
-                (int)(width / 2 ),
-                (int)(height / 2 ), false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
+                (int)(width / 2),
+                (int)(height / 2), false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
             _bloomRenderTarget2DMip2 = new RenderTarget2D(_graphicsDevice,
-                (int)(width / 4 ),
-                (int)(height / 4 ), false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
+                (int)(width / 4),
+                (int)(height / 4), false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
             _bloomRenderTarget2DMip3 = new RenderTarget2D(_graphicsDevice,
-                (int)(width / 8 ),
-                (int)(height / 8 ), false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
+                (int)(width / 8),
+                (int)(height / 8), false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
             _bloomRenderTarget2DMip4 = new RenderTarget2D(_graphicsDevice,
-                (int)(width / 16 ),
-                (int)(height / 16 ), false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
+                (int)(width / 16),
+                (int)(height / 16), false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
             _bloomRenderTarget2DMip5 = new RenderTarget2D(_graphicsDevice,
-                (int)(width / 32 ),
-                (int)(height / 32 ), false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
+                (int)(width / 32),
+                (int)(height / 32), false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
 
             _bloomRenderTarget2DMip0Binding[0] = new RenderTargetBinding(_bloomRenderTarget2DMip0);
             _bloomRenderTarget2DMip1Binding[0] = new RenderTargetBinding(_bloomRenderTarget2DMip1);
@@ -1624,8 +1733,6 @@ namespace EngineTest.Renderer
 
         private void StaticRenderBuffers()
         {
-            _renderTargetVSM = new RenderTarget2D(_graphicsDevice, 1024, 1024, false, SurfaceFormat.Vector2, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
-            _renderTargetVSMBinding[0] = new RenderTargetBinding(_renderTargetVSM);
 
             _renderTargetVSMBlur = new RenderTarget2D(_graphicsDevice, 1024, 1024, false, SurfaceFormat.Vector2, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
             _renderTargetVSMBlurBinding[0] = new RenderTargetBinding(_renderTargetVSMBlur);

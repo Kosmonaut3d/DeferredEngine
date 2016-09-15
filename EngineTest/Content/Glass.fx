@@ -68,7 +68,7 @@ sampler ReflectionCubeMapSampler = sampler_state
 
 
 //      MATERIAL
-float   Roughness = 0.04f; // 0 : smooth, 1: rough
+float   Roughness = 0.1f; // 0 : smooth, 1: rough
 float   F0 = 0.5f;
 
 
@@ -178,46 +178,38 @@ DrawBasic_VSOut DrawBasic_VertexShader(DrawBasic_VSIn input)
     return Output;
 }
 
-float3 SpecularCookTorrance(float NdotL, float3 normal, float3 negativeLightDirection, float3 cameraDirectionP, float diffuseIntensity, float3 diffuseColor, float F0, float Roughness)
+float3 SpecularCookTorrance(float NdotL, float3 normal, float3 negativeLightDirection, float3 cameraDirectionP, float diffuseIntensity, float3 diffuseColor, float f0, float roughness)
 {
     float3 specular = float3(0, 0, 0);
+
     [branch]
     if (NdotL > 0.0f)
     {
-        //http://ruh.li/GraphicsCookTorrance.html
-
-        float3 cameraDir = cameraDirectionP; //-mul(float4(CameraDir, 0), World).xyz;
-        
-        float3 halfVector = normalize(negativeLightDirection + cameraDir);
+        float3 halfVector = normalize(negativeLightDirection + cameraDirectionP);
 
         float NdotH = saturate(dot(normal, halfVector));
-        float NdotV = saturate(dot(normal, cameraDir));
-        float VdotH = saturate(dot(normal, halfVector));
-        float mSquared = Roughness * Roughness;
+        float NdotV = saturate(dot(normal, cameraDirectionP));
+        float VdotH = saturate(dot(cameraDirectionP, halfVector));
+        float mSquared = roughness * roughness;
 
-        //float NH2 = 2.0 * NdotH;
-        //float g1 = (NH2 * NdotV) / VdotH;
-        //float g2 = (NH2 * NdotL) / VdotH;
-        //float geoAtt = min(1.0, min(g1, g2));
-        // ->
-        float g_min = min(NdotV, NdotL);
-        float geoAtt = saturate(2 * NdotH * g_min / VdotH);
 
-        //roughness
-        //float r1 = 0.25/(mSquared * pow(NdotH, 4.0));
-        //->
-        float NdotHtemp = NdotH * NdotH;
-
-        float r1 = 0.25 / (mSquared * NdotHtemp * NdotHtemp);
-        float r2 = (mad(NdotH, NdotH, -1.0)) / (mSquared * NdotH * NdotH);
-        float roughness2 = r1 * exp(r2);
+        //Trowbridge-Reitz
+        float D_lowerTerm = (NdotH * NdotH * (mSquared * mSquared - 1) + 1);
+        float D = mSquared * mSquared / (3.14 * D_lowerTerm * D_lowerTerm);
 
         //fresnel        (Schlick)
-        float fresnel = pow(1.0 - VdotH, 5.0);
-        fresnel *= (1.0 - F0);
-        fresnel += F0;
+        float F = pow(1.0 - VdotH, 5.0);
+        F *= (1.0 - f0);
+        F += f0;
 
-        specular = max(0, (fresnel * geoAtt * roughness2) / (4 * NdotV * NdotL)) * diffuseIntensity * diffuseColor * NdotL; //todo check this!!!!!!!!!!! why 3.14?j only relevant if we have it 
+        //Schlick Smith
+        float k = (roughness + 1) * (roughness + 1) / 8;
+        float g_v = NdotV / (NdotV * (1 - k) + k);
+        float g_l = NdotL / (NdotL * (1 - k) + k);
+
+        float G = g_l * g_v;
+
+        specular = max(0, (D * F * G) / (4 * NdotV * NdotL)) * diffuseIntensity * diffuseColor * NdotL; //todo check this!!!!!!!!!!! why 3.14?j only relevant if we have it 
         
         //http://malcolm-mcneely.co.uk/blog/?p=214
     }
@@ -365,7 +357,7 @@ PixelShaderOutput Lighting(Render_IN input)
 
     glassColor.a = 0.5f;
 
-    float Transparency = min(Roughness,0.2);
+    float Transparency = min(Roughness,0.05 * (1-NdotC));
 
     LightStruct pointLightContribution = ComputePointLights(input.Position.xyz, input.Normal);
 

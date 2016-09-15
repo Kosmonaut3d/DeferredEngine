@@ -39,7 +39,7 @@
     <DefineConstants>DEBUG;TRACE;WINDOWS</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <UseVSHostingProcess>true</UseVSHostingProcess>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -60,6 +60,7 @@
     <Compile Include="Recources\Art.cs" />
     <Compile Include="Recources\GameSettings.cs" />
     <Compile Include="Recources\MaterialEffect.cs" />
+    <Compile Include="Recources\Shaders.cs" />
     <Compile Include="Recources\SpotLight.cs" />
     <Compile Include="Recources\PointLight.cs" />
     <Compile Include="Renderer\Camera.cs" />
