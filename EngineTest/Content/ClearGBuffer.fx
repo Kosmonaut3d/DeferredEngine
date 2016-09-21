@@ -29,7 +29,7 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input)
     //no specular power
     output.Normal.a = 0.0f;
     //max depth
-    output.Depth = 1.0f;
+    output.Depth = 0.0f;
     return output;
 }
 technique Technique1

@@ -43,6 +43,8 @@ float4 DrawBasic_PixelShader(DrawBasic_VSOut input) : SV_TARGET
 {
     float depth = input.Depth.x / input.Depth.y;
 
+    //depth = Projection._43 / (depth - Projection._33);
+
     float depthsq = depth * depth ;
 
     float dx = ddx(depth);

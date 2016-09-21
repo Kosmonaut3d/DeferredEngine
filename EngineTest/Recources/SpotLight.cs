@@ -14,6 +14,7 @@ namespace EngineTest.Recources
 
         public RenderTarget2D RenderTargetShadowMap;
         public RenderTargetBinding[] RenderTargetShadowMapBinding = new RenderTargetBinding[1];
+        public Matrix LightViewProjection;
 
         public SpotLight(Vector3 position, float radius, Color color, float intensity, Vector3 direction, bool drawShadow) : base()
         {
@@ -25,12 +26,12 @@ namespace EngineTest.Recources
             DrawShadow = drawShadow;
         }
 
-        public void ApplyShader()
+        public override void ApplyShader()
         {
             if (RenderTargetShadowMap != null)
             {
-                Shaders.deferredSpotLightShadowed.Passes[0].Apply();
                 Shaders.deferredSpotLightParameterShadowMap.SetValue(RenderTargetShadowMap);
+                Shaders.deferredSpotLightShadowed.Passes[0].Apply();
             }
             else
             {

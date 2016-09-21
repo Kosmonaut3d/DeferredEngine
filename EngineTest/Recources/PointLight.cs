@@ -17,6 +17,13 @@ namespace EngineTest.Recources
 
         public RenderTargetCube shadowMapCube;
 
+        public Matrix LightViewProjectionPositiveX;
+        public Matrix LightViewProjectionNegativeX;
+        public Matrix LightViewProjectionPositiveY;
+        public Matrix LightViewProjectionNegativeY;
+        public Matrix LightViewProjectionPositiveZ;
+        public Matrix LightViewProjectionNegativeZ;
+
         public bool DrawShadow = false;
 
         public PointLight(Vector3 position, float radius, Color color, float intensity, bool drawShadow)
@@ -31,6 +38,29 @@ namespace EngineTest.Recources
         protected PointLight()
         {
 
+        }
+
+        public virtual void ApplyShader()
+        {
+            if (shadowMapCube != null)
+            {
+                Shaders.deferredPointLightParameterShadowMap.SetValue(shadowMapCube);
+
+                Shaders.deferredPointLightParameterLightViewProjectionPositiveX.SetValue(LightViewProjectionPositiveX);
+                Shaders.deferredPointLightParameterLightViewProjectionNegativeX.SetValue(LightViewProjectionNegativeX);
+
+                Shaders.deferredPointLightParameterLightViewProjectionPositiveY.SetValue(LightViewProjectionPositiveY);
+                Shaders.deferredPointLightParameterLightViewProjectionNegativeY.SetValue(LightViewProjectionNegativeY);
+
+                Shaders.deferredPointLightParameterLightViewProjectionPositiveZ.SetValue(LightViewProjectionPositiveZ);
+                Shaders.deferredPointLightParameterLightViewProjectionNegativeZ.SetValue(LightViewProjectionNegativeZ);
+
+                Shaders.deferredPointLightShadowed.Passes[0].Apply();
+            }
+            else
+            {
+                Shaders.deferredPointLightUnshadowed.Passes[0].Apply();
+            }
         }
     }
 }

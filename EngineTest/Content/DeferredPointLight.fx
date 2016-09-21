@@ -9,11 +9,19 @@ float3 cameraDirection;
 //this is used to compute the world-position
 float4x4 InvertViewProjection;
 //this is the position of the light
-float3 lightPosition;
+float3 lightPosition = float3(0,0,0);
 //how far does this light reach
 float lightRadius;
 //control the brightness of the light
 float lightIntensity = 1.0f;
+
+matrix LightViewProjectionPositiveX;
+matrix LightViewProjectionNegativeX;
+matrix LightViewProjectionPositiveY;
+matrix LightViewProjectionNegativeY;
+matrix LightViewProjectionPositiveZ;
+matrix LightViewProjectionNegativeZ;
+
 // diffuse color, and specularIntensity in the alpha channel
 Texture2D colorMap;
 // normals, and specularPower in the alpha channel
@@ -22,6 +30,7 @@ texture normalMap;
 bool inside = false;
 
 #include "helper.fx"
+       
 
 //depth
 texture depthMap;
@@ -52,7 +61,16 @@ sampler normalSampler = sampler_state
     MinFilter = POINT;
     Mipfilter = POINT;
 };
-
+TextureCube shadowCubeMap;
+sampler shadowCubeMapSampler = sampler_state
+{
+    texture = <shadowCubeMap>;
+    AddressU = CLAMP;
+    AddressV = CLAMP;
+    MagFilter = LINEAR;
+    MinFilter = ANISOTROPIC;
+    Mipfilter = LINEAR;
+};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  STRUCT DEFINITIONS
@@ -98,6 +116,7 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 
 PixelShaderInput BaseCalculations(VertexShaderOutput input)
 {
+    
      //obtain screen position
     input.ScreenPosition.xyz /= input.ScreenPosition.w;
     //obtain textureCoordinates corresponding to the current pixel
@@ -145,6 +164,26 @@ PixelShaderInput BaseCalculations(VertexShaderOutput input)
     return output;
 }
 
+float chebyshevUpperBound(float distance, float3 texCoord)
+{
+		// We retrive the two moments previously stored (depth and depth*depth)
+    float2 moments = 1 - shadowCubeMap.Sample(shadowCubeMapSampler, texCoord).rg;
+		
+		// Surface is fully lit. as the current fragment is before the light occluder
+    if (distance <= moments.x)
+        return 1.0;
+
+		// The fragment is either in shadow or penumbra. We now use chebyshev's upperBound to check
+		// How likely this pixel is to be lit (p_max)
+    float variance = moments.y - (moments.x * moments.x);
+    variance = max(variance, 0.000002);
+	
+    float d = distance - moments.x;
+    float p_max = variance / (variance + d * d);
+	
+    return p_max;
+}
+
 PixelShaderOutput BasePixelShaderFunction(PixelShaderInput input) : COLOR0
 {
     
@@ -163,9 +202,6 @@ PixelShaderOutput BasePixelShaderFunction(PixelShaderInput input) : COLOR0
     
     float f0 = lerp(0.04f, color.g * 0.25 + 0.75, metalness);
 
-    //read depth
-    float depthVal = 1-tex2D(depthSampler, input.TexCoord).r;
-
     //surface-to-light vector
     float3 lightVector = lightPosition - input.Position.xyz;
 
@@ -180,8 +216,9 @@ PixelShaderOutput BasePixelShaderFunction(PixelShaderInput input) : COLOR0
 
     //compute attenuation based on distance - linear attenuation
     float attenuation = saturate(1.0f - lengthLight/ lightRadius);
+
     //normalize light vector
-    lightVector = normalize(lightVector);
+    lightVector /= lengthLight;
 
     float3 cameraDirection = normalize(cameraPosition - input.Position.xyz);
     //compute diffuse light
@@ -195,11 +232,112 @@ PixelShaderOutput BasePixelShaderFunction(PixelShaderInput input) : COLOR0
         diffuseLight = DiffuseOrenNayar(NdL, normal, -lightVector, cameraDirection, lightIntensity, lightColor, roughness); //NdL * lightColor.rgb;
     }
     float3 specular = SpecularCookTorrance(NdL, normal, lightVector, cameraDirection, lightIntensity, lightColor, f0, roughness);
-    //take into account attenuation and lightIntensity.
-
+      
     //return attenuation * lightIntensity * float4(diffuseLight.rgb, specular);
     output.Diffuse.rgb = (attenuation * diffuseLight * (1 - f0)) * 0.01f; //* (1 - f0)) * (f0 + 1) * (f0 + 1);
-    output.Specular.rgb = specular * attenuation          *0.01f;
+    output.Specular.rgb = specular * attenuation * 0.01f;
+
+    return output;
+   //return float4(color.rgb * (attenuation * diffuseLight * (1 - f0)) * (f0 + 1) * (f0 + 1) *0.5f + specular*attenuation, 1);
+
+}
+
+PixelShaderOutput BasePixelShaderFunctionShadow(PixelShaderInput input) : COLOR0
+{
+    
+    PixelShaderOutput output;
+    
+    //get normal data from the normalMap
+    float4 normalData = tex2D(normalSampler, input.TexCoord);
+    //tranform normal back into [-1,1] range
+    float3 normal = decode(normalData.xyz); //2.0f * normalData.xyz - 1.0f;    //could do mad
+    //get metalness
+    float roughness = normalData.a;
+    //get specular intensity from the colorMap
+    float4 color = tex2D(colorSampler, input.TexCoord);
+
+    float metalness = decodeMetalness(color.a);
+    
+    float f0 = lerp(0.04f, color.g * 0.25 + 0.75, metalness);
+
+    //surface-to-light vector
+    float3 lightVector = lightPosition - input.Position.xyz;
+
+    float lengthLight = length(lightVector);
+
+    [branch]
+    if (lengthLight > lightRadius)
+    {
+        clip(-1);
+        return output;
+    }
+
+    //compute attenuation based on distance - linear attenuation
+    float attenuation = saturate(1.0f - lengthLight / lightRadius);
+
+    //normalize light vector
+    lightVector /= lengthLight;
+
+    float3 cameraDirection = normalize(cameraPosition - input.Position.xyz);
+    //compute diffuse light
+    float NdL = saturate(dot(normal, lightVector));
+
+    float3 diffuseLight = float3(0, 0, 0);
+
+    [branch]
+    if (metalness < 0.99)
+    {
+        diffuseLight = DiffuseOrenNayar(NdL, normal, -lightVector, cameraDirection, lightIntensity, lightColor, roughness); //NdL * lightColor.rgb;
+    }
+    float3 specular = SpecularCookTorrance(NdL, normal, lightVector, cameraDirection, lightIntensity, lightColor, f0, roughness);
+    //take into account attenuation and lightIntensity.
+        
+    //float zw = depthSample;
+    //float linearZ = Projection._43 / (zw - Projection._33);
+    //return linearZ;
+    matrix lightProjection = LightViewProjectionPositiveX;
+
+    lightVector = -lightVector;
+
+    [branch]
+    if (lightVector.z >= abs(lightVector.x) && lightVector.z >= abs(lightVector.y))
+    {
+        lightProjection = LightViewProjectionNegativeZ;
+    }
+    else
+    [branch] if (lightVector.z <= -abs(lightVector.x) && lightVector.z <= -abs(lightVector.y))
+    {
+        lightProjection = LightViewProjectionPositiveZ;
+    }
+    else
+    [branch] if (lightVector.y >= abs(lightVector.x) && lightVector.y >= abs(lightVector.z))
+    {
+        lightProjection = LightViewProjectionPositiveY;
+    }
+    else
+    [branch] if (lightVector.y <= -abs(lightVector.x) && lightVector.y <= -abs(lightVector.z))
+    {
+        lightProjection = LightViewProjectionNegativeY;
+    }
+    else
+    [branch] if (lightVector.x <= -abs(lightVector.y) && lightVector.x <= -abs(lightVector.y))
+    {
+        lightProjection = LightViewProjectionNegativeX;
+    }
+
+    float4 positionInLS = mul(input.Position, lightProjection);
+    float depthInLS = (positionInLS.z / positionInLS.w);
+
+
+    lightVector.z = -lightVector.z;
+    //float shadowVSM = 
+    //float shadowDepth = 1-shadowCubeMap.Sample(shadowCubeMapSampler, -lightVector).g; // chebyshevUpperBound(distanceToLightNonLinear, -lightVector);
+
+    float shadowVSM = chebyshevUpperBound(depthInLS, lightVector);
+
+    //return attenuation * lightIntensity * float4(diffuseLight.rgb, specular);
+    output.Diffuse.rgb = (attenuation * diffuseLight * (1 - f0)) * 0.01f * shadowVSM; //* (1 - f0)) * (f0 + 1) * (f0 + 1);
+    output.Specular.rgb = specular * attenuation * 0.01f * max(shadowVSM - 0.1f, 0);
 
     return output;
    //return float4(color.rgb * (attenuation * diffuseLight * (1 - f0)) * (f0 + 1) * (f0 + 1) *0.5f + specular*attenuation, 1);
@@ -217,7 +355,20 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input) : COLOR0
     return Output;
 }
 
-technique PBR
+
+PixelShaderOutput PixelShaderFunctionShadowed(VertexShaderOutput input) : COLOR0
+{
+    PixelShaderInput p_input = BaseCalculations(input);
+
+
+    PixelShaderOutput Output;
+
+    Output = BasePixelShaderFunctionShadow(p_input);
+
+    return Output;
+}
+   
+technique Unshadowed
 {
     pass Pass1
     {
@@ -226,6 +377,14 @@ technique PBR
     }
 }
 
+technique Shadowed
+{
+    pass Pass1
+    {
+        VertexShader = compile vs_5_0 VertexShaderFunction();
+        PixelShader = compile ps_5_0 PixelShaderFunctionShadowed();
+    }
+}
 
 
 

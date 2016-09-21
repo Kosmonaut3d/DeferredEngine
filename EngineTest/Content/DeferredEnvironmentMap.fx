@@ -11,6 +11,8 @@ static int SamplesCount = 8;
 Texture2D colorMap;
 // normals, and specularPower in the alpha channel
 Texture2D normalMap;
+
+Texture2D ReflectionMap;
 //depth
 texture depthMap;
 sampler colorSampler = sampler_state
@@ -22,6 +24,17 @@ sampler colorSampler = sampler_state
     MinFilter = POINT;
     Mipfilter = POINT;
 };
+
+sampler reflectionSampler = sampler_state
+{
+    Texture = (colorMap);
+    AddressU = CLAMP;
+    AddressV = CLAMP;
+    MagFilter = LINEAR;
+    MinFilter = ANISOTROPIC;
+    Mipfilter = LINEAR;
+};
+
 sampler depthSampler = sampler_state
 {
     Texture = (depthMap);
@@ -51,6 +64,7 @@ sampler ReflectionCubeMapSampler = sampler_state
     MinFilter = ANISOTROPIC;
     Mipfilter = LINEAR;
 };
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  STRUCT DEFINITIONS
@@ -168,18 +182,24 @@ PixelShaderOutput PixelShaderFunctionClassic(VertexShaderOutput input) : COLOR0
     //roughness from 0.05 to 0.5
     float mip = roughness / 0.04f;
 
+    float4 ReflectColor = ReflectionMap.Sample(reflectionSampler, input.TexCoord);
 
-    float3 ReflectColor = ReflectionCubeMap.SampleLevel(ReflectionCubeMapSampler, reflectionVector, mip)* (1 - roughness) * (1 + matMultiplier) * fresnel; //* NdotC * NdotC * NdotC;
+    //float4 DiffuseReflectColor = ReflectionMap.SampleLevel(reflectionSampler, input.TexCoord, 9) * fresnel;
 
-    float3 DiffuseReflectColor = ReflectionCubeMap.SampleLevel(ReflectionCubeMapSampler, reflectionVector, 9) * fresnel; //* NdotC * NdotC * NdotC;
+    //if(ReflectColor.a < 0.1f)
+    //{
 
-    
+    ReflectColor = lerp(ReflectionCubeMap.SampleLevel(ReflectionCubeMapSampler, reflectionVector, mip), ReflectColor, ReflectColor.a) * (1 - roughness) * (1 + matMultiplier) * fresnel; //* NdotC * NdotC * NdotC;
+
+    float4 DiffuseReflectColor = ReflectionCubeMap.SampleLevel(ReflectionCubeMapSampler, reflectionVector, 9) * fresnel; //* NdotC * NdotC * NdotC;
+
+    //}
     
 
     PixelShaderOutput output;
 
-    output.Diffuse = float4(DiffuseReflectColor, 0) * 0.01;
-    output.Specular = float4(ReflectColor, 0) * 0.02;
+    output.Diffuse = float4(DiffuseReflectColor.xyz, 0) * 0.01;
+    output.Specular = float4(ReflectColor.xyz, 0) * 0.02;
 
     return output;
 

@@ -15,7 +15,6 @@ float3 lightDirection;
 #include "helper.fx"
 
 float4x4 LightViewProjection;
-float4x4 LightProjection;
 //how far does this light reach
 float lightRadius;
 //control the brightness of the light

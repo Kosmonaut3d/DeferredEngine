@@ -23,5 +23,6 @@ namespace EngineTest.Recources
 
         public static float BloomStreakLength = 1;
         public static bool BloomLuminance = false;
+        public static bool SSAO = true;
     }
 }

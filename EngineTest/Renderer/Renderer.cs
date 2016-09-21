@@ -151,8 +151,9 @@ namespace EngineTest.Renderer
         private readonly BlendState _blendStateBloom = new BlendState();
         private bool skullGauss = false;
         private Effect _passThroughEffect;
+        private RenderTarget2D _renderTargetSSAO;
 
-        private enum RenderModes { Skull, Albedo, Normal, Depth, Deferred, Diffuse, Specular, Bloom };
+        private enum RenderModes { Skull, Albedo, Normal, Depth, Deferred, Diffuse, Specular, Bloom, SSAO };
 
         public Renderer(GraphicsDevice graphicsDevice, ContentManager content)
         {
@@ -238,11 +239,14 @@ namespace EngineTest.Renderer
 
             _renderMode = RenderModes.Deferred;
 
-            //pointLights.Add(new PointLight(new Vector3(-10, 0, -50), 200, Color.White, 2));
+            pointLights.Add(new PointLight(new Vector3(10, -3, -10), 50, Color.Wheat, 20, true));
 
-            pointLights.Add(new PointLight(new Vector3(-60, -3, -5), 40, Color.Wheat, 20, false));
+            //pointLights.Add(new PointLight(new Vector3(-20, 0, -20), 80, Color.NavajoWhite, 20, true));
+
 
             spotLights.Add(new SpotLight(new Vector3(-20, -3, -20), 150, Color.White, 20, -new Vector3(1, 0, 1), true));
+
+            //spotLights.Add(new SpotLight(new Vector3(-20, 3, -20), 150, Color.White, 20, -new Vector3(1, 0, 1), true));
             //spotLights.Add(new SpotLight(new Vector3(-3,-3,-10), 150, Color.White, 6, Vector3.UnitX));
 
 
@@ -279,6 +283,7 @@ namespace EngineTest.Renderer
                                        Matrix.CreateRotationZ((float)(-Math.PI / 2)) * Matrix.CreateRotationX((float)(gameTime.TotalGameTime.TotalSeconds * 0.4f)) *
                                        Matrix.CreateRotationY((float)(Math.PI / 2)) * Matrix.CreateTranslation(Dragon2Position);
 
+
             if (mouseState.RightButton == ButtonState.Pressed)
             {
                 float y = mouseState.Y - mouseLastState.Y;
@@ -291,7 +296,7 @@ namespace EngineTest.Renderer
             }
 
             if (dynamicLights)
-                for (var i = 1; i < pointLights.Count; i++)
+                for (var i = 2; i < pointLights.Count; i++)
                 {
                     PointLight point = pointLights[i];
                     point.Position.Z = (float)(Math.Sin(gameTime.TotalGameTime.TotalSeconds * 0.8f + i) * 30 - 30);
@@ -317,7 +322,14 @@ namespace EngineTest.Renderer
                 InitializePointLights();
             }
 
-
+            if (keyboardState.IsKeyDown(Keys.Up))
+            {
+                pointLights[0].Position += Vector3.UnitX * amount;
+            }
+            if (keyboardState.IsKeyDown(Keys.Down))
+            {
+                pointLights[0].Position -= Vector3.UnitX * amount;
+            }
 
             if (keyboardState.IsKeyDown(Keys.W))
             {
@@ -421,7 +433,7 @@ namespace EngineTest.Renderer
             if (keyboardState.IsKeyDown(Keys.F1) && keyboardLastState.IsKeyUp(Keys.F1))
             {
                 _renderModeCycle++;
-                if (_renderModeCycle > 7) _renderModeCycle = 0;
+                if (_renderModeCycle > 8) _renderModeCycle = 0;
 
                 switch (_renderModeCycle)
                 {
@@ -441,7 +453,8 @@ namespace EngineTest.Renderer
                         break;
                     case 7: _renderMode = RenderModes.Bloom;
                         break;
-
+                    case 8: _renderMode = RenderModes.SSAO;
+                        break;
 
                 }
 
@@ -523,10 +536,13 @@ namespace EngineTest.Renderer
         {
 
             if(light.shadowMapCube==null)
-            light.shadowMapCube = new RenderTargetCube(_graphicsDevice, size, true, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.PreserveContents);
+                light.shadowMapCube = new RenderTargetCube(_graphicsDevice, size, false, SurfaceFormat.Vector2, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
 
-            _projection = Matrix.CreatePerspectiveFieldOfView((float)(Math.PI / 2), 1, 1, light.Radius);
-           
+            Matrix LightProjection = Matrix.CreatePerspectiveFieldOfView((float)(Math.PI / 2), 1, 1, light.Radius*2);
+           Matrix LightView = Matrix.Identity;
+
+           _virtualShadowMapGenerate.Parameters["Projection"].SetValue(LightProjection);
+
             for (int i = 0; i < 6; i++)
             {
                 // render the scene to all cubemap faces
@@ -536,41 +552,65 @@ namespace EngineTest.Renderer
                 {
                     case CubeMapFace.NegativeX:
                         {
-                            _view = Matrix.CreateLookAt(light.Position, light.Position + Vector3.Left, Vector3.Up);
+                            LightView = Matrix.CreateLookAt(light.Position, light.Position + Vector3.Left, Vector3.Up);
+
+                            LightViewProjection = LightView * LightProjection;
+
+                            light.LightViewProjectionNegativeX = LightViewProjection;
                             break;
                         }
                     case CubeMapFace.NegativeY:
                         {
-                            _view = Matrix.CreateLookAt(light.Position, light.Position + Vector3.Down,
-                                Vector3.Forward);
+                            LightView = Matrix.CreateLookAt(light.Position, light.Position + Vector3.Down, Vector3.Forward);
+
+                            LightViewProjection = LightView * LightProjection;
+
+                            light.LightViewProjectionNegativeY = LightViewProjection;
                             break;
                         }
                     case CubeMapFace.NegativeZ:
                         {
-                            _view = Matrix.CreateLookAt(light.Position, light.Position + Vector3.Backward,
-                                Vector3.Up);
+                            LightView = Matrix.CreateLookAt(light.Position, light.Position + Vector3.Backward, Vector3.Up);
+
+                            LightViewProjection = LightView * LightProjection;
+
+                            light.LightViewProjectionNegativeZ = LightViewProjection;
                             break;
                         }
                     case CubeMapFace.PositiveX:
                         {
-                            _view = Matrix.CreateLookAt(light.Position, light.Position + Vector3.Right, Vector3.Up);
+                            LightView = Matrix.CreateLookAt(light.Position, light.Position + Vector3.Right, Vector3.Up);
+
+                            LightViewProjection = LightView * LightProjection;
+
+                            light.LightViewProjectionPositiveX = LightViewProjection;
                             break;
                         }
                     case CubeMapFace.PositiveY:
                         {
-                            _view = Matrix.CreateLookAt(light.Position, light.Position + Vector3.Up,
-                                Vector3.Backward);
+                            LightView = Matrix.CreateLookAt(light.Position, light.Position + Vector3.Up,Vector3.Backward);
+
+                            LightViewProjection = LightView * LightProjection;
+
+                            light.LightViewProjectionPositiveY = LightViewProjection;
                             break;
                         }
                     case CubeMapFace.PositiveZ:
                         {
-                            _view = Matrix.CreateLookAt(light.Position, light.Position + Vector3.Forward, Vector3.Up);
+                            LightView = Matrix.CreateLookAt(light.Position, light.Position + Vector3.Forward, Vector3.Up);
+
+                            LightViewProjection = LightView * LightProjection;
+
+                            light.LightViewProjectionPositiveZ = LightViewProjection;
+
                             break;
                         }
                 }
 
+                
                 RenderShadowMapFace(cubeMapFace, light.shadowMapCube);
             }
+
         }
 
         private void RenderShadowMapFace(CubeMapFace cubeMapFace, RenderTargetCube shadowMapCube)
@@ -606,11 +646,12 @@ namespace EngineTest.Renderer
                 spotlight.Position - (spotlight).Direction, Vector3.Up);
             Matrix LightProjection = Matrix.CreatePerspectiveFieldOfView((float)(Math.PI / 1.5f), 1, 1, spotlight.Radius / 2);
 
-
             _virtualShadowMapGenerate.Parameters["Projection"].SetValue(LightProjection);
-            _deferredSpotLight.Parameters["LightProjection"].SetValue(LightProjection);
+            //_deferredSpotLight.Parameters["LightProjection"].SetValue(LightProjection);
 
             LightViewProjection = LightView * LightProjection;
+
+            spotlight.LightViewProjection = LightViewProjection;
 
             if (spotlight.RenderTargetShadowMap == null)
             {
@@ -618,7 +659,7 @@ namespace EngineTest.Renderer
                 spotlight.RenderTargetShadowMapBinding[0] = new RenderTargetBinding(spotlight.RenderTargetShadowMap);
             }
 
-            _graphicsDevice.SetRenderTargets(spotlight.RenderTargetShadowMapBinding[0]);
+            _graphicsDevice.SetRenderTargets(spotlight.RenderTargetShadowMapBinding);
 
             Matrix localWorld = Matrix.CreateScale(10) * Matrix.CreateTranslation(DragonPosition) * Matrix.CreateRotationX((float)(-Math.PI / 2));
 
@@ -675,13 +716,20 @@ namespace EngineTest.Renderer
                 DrawMapToScreenToFullScreen(_renderTargetSkull);
             else //if (_renderMode == RenderModes.Deferred)
             {
+                if (GameSettings.SSAO && !cubeMap)
+                {
+                    DrawSSAO();
+                }
 
                 _graphicsDevice.SetRenderTargets(_renderTargetLightBinding);
 
                 _graphicsDevice.Clear(Color.TransparentBlack);
 
+                
+
                 DrawPointLights();
                 DrawSpotLights();
+
                 if (!cubeMap)
                 {
                     DrawEnvironmentMap();
@@ -712,7 +760,10 @@ namespace EngineTest.Renderer
                     DrawMapToScreenToTarget(_renderTargetSpecular, null);
                 if (_renderMode == RenderModes.Bloom)
                     DrawMapToScreenToFullScreen(_bloomRenderTarget2DMip1);
+                if (_renderMode == RenderModes.SSAO)
+                    DrawMapToScreenToFullScreen(_renderTargetSSAO);
 
+                //DrawMapToScreenToFullScreen(_renderTargetSSAO);
             }
 
         }
@@ -817,7 +868,7 @@ namespace EngineTest.Renderer
             _view = Matrix.CreateLookAt(_camera.Position, _camera.Lookat, _camera.Up);
 
             _projection = Matrix.CreatePerspectiveFieldOfView((float)Math.PI / 4,
-                    _graphicsDevice.Viewport.AspectRatio, 1, 300);
+                    _graphicsDevice.Viewport.AspectRatio, 1, 500);
 
 
             _lightEffectView.SetValue(_view);
@@ -1064,11 +1115,11 @@ namespace EngineTest.Renderer
             _glass.Parameters["Projection"].SetValue(_projection);
             _glass.Parameters["WorldViewProj"].SetValue(DragonMatrix * _view * _projection);
 
-            _glass.Parameters["LightPosition"].SetValue(spotLights[0].Position);
-            _glass.Parameters["LightDirection"].SetValue(spotLights[0].Direction);
-            _glass.Parameters["LightIntensity"].SetValue(spotLights[0].Intensity);
-            _glass.Parameters["LightColor"].SetValue(spotLights[0].Color.ToVector3());
-            _glass.Parameters["LightRadius"].SetValue(spotLights[0].Radius);
+            //_glass.Parameters["LightPosition"].SetValue(spotLights[0].Position);
+            //_glass.Parameters["LightDirection"].SetValue(spotLights[0].Direction);
+            //_glass.Parameters["LightIntensity"].SetValue(spotLights[0].Intensity);
+            //_glass.Parameters["LightColor"].SetValue(spotLights[0].Color.ToVector3());
+            //_glass.Parameters["LightRadius"].SetValue(spotLights[0].Radius);
 
             _glass.Parameters["CameraPosition"].SetValue(_camera.Position);
             _glass.Parameters["CameraDirection"].SetValue(_camera.Lookat - _camera.Position);
@@ -1158,8 +1209,6 @@ namespace EngineTest.Renderer
             _deferredSpotLight.Parameters["cameraDirection"].SetValue(_camera.Forward);
             _deferredSpotLight.Parameters["InvertViewProjection"].SetValue(Matrix.Invert(_view * _projection));
 
-            _deferredSpotLight.Parameters["LightViewProjection"].SetValue(LightViewProjection);
-
             _graphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
 
             foreach (SpotLight light in spotLights)
@@ -1181,6 +1230,9 @@ namespace EngineTest.Renderer
             _deferredSpotLight.Parameters["lightColor"].SetValue(light.Color.ToVector3());
             _deferredSpotLight.Parameters["lightRadius"].SetValue(light.Radius);
             _deferredSpotLight.Parameters["lightIntensity"].SetValue(light.Intensity);
+
+
+            _deferredSpotLight.Parameters["LightViewProjection"].SetValue(light.LightViewProjection);
             //parameters for specular computations
 
             //_deferredLight.CurrentTechnique.Passes[0].Apply();
@@ -1245,7 +1297,7 @@ namespace EngineTest.Renderer
             {
                 foreach (ModelMeshPart meshpart in mesh.MeshParts)
                 {
-                    _deferredLight.CurrentTechnique.Passes[0].Apply();
+                    light.ApplyShader();
 
                     _graphicsDevice.SetVertexBuffer(meshpart.VertexBuffer);
                     _graphicsDevice.Indices = (meshpart.IndexBuffer);
@@ -1271,6 +1323,22 @@ namespace EngineTest.Renderer
             _deferredEnvironment.Parameters["cameraDirection"].SetValue(_camera.Forward);
 
             _deferredEnvironment.CurrentTechnique.Passes[0].Apply();
+            quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+        }
+
+        private void DrawSSAO()
+        {
+            _graphicsDevice.SetRenderTarget(_renderTargetSSAO);
+            _graphicsDevice.DepthStencilState = DepthStencilState.Default;
+            _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+            
+            Shaders.ssaoProjection.SetValue(_projection);
+            Shaders.ssaoViewProjection.SetValue(_view*_projection);
+            Shaders.ssaoInvertViewProjection.SetValue(Matrix.Invert(_view * _projection));
+
+            Shaders.ssaoCameraPosition.SetValue(_camera.Position);
+
+            Shaders.ssao.CurrentTechnique.Passes[0].Apply();
             quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
         }
 
@@ -1330,6 +1398,7 @@ namespace EngineTest.Renderer
             _deferredEnvironment.Parameters["normalMap"].SetValue(_renderTargetNormal);
             _deferredEnvironment.Parameters["depthMap"].SetValue(_renderTargetDepth);
             _deferredEnvironment.Parameters["ReflectionCubeMap"].SetValue(_renderTargetCubeMap);
+            _deferredEnvironment.Parameters["ReflectionMap"].SetValue(_renderTargetSSAO);
 
             _deferredCompose.Parameters["skull"].SetValue(_renderTargetSkull);
 
@@ -1337,6 +1406,9 @@ namespace EngineTest.Renderer
             _glass.Parameters["colorMap"].SetValue(_renderTargetFinal);
             _glass.Parameters["ReflectionCubeMap"].SetValue(_renderTargetCubeMap);
 
+            Shaders.ssaoDepthMap.SetValue(_renderTargetDepth);
+            Shaders.ssaoNormalMap.SetValue(_renderTargetNormal);
+            Shaders.ssaoAlbedoMap.SetValue(_renderTargetFinal);
         }
 
         private void DrawMapToScreenToTarget(RenderTarget2D map, RenderTarget2D target)
@@ -1669,6 +1741,11 @@ namespace EngineTest.Renderer
 
             _renderTargetDepth = new RenderTarget2D(_graphicsDevice, special_width,
                 special_height, false, SurfaceFormat.Single, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+
+            _renderTargetSSAO = new RenderTarget2D(_graphicsDevice, special_width,
+                special_height, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+
+            Shaders.ssao.Parameters["resolution"].SetValue(new Vector2( special_width, special_height ));
 
             _renderTargetBinding[0] = new RenderTargetBinding(_renderTargetAlbedo);
             _renderTargetBinding[1] = new RenderTargetBinding(_renderTargetNormal);
