@@ -83,6 +83,7 @@ struct VertexShaderOutput
 {
     float4 Position : POSITION0;
     float4 ScreenPosition : TEXCOORD0;
+    float3 viewDirection : TEXCOORD1;
 };
 
 struct PixelShaderOutput
@@ -95,6 +96,7 @@ struct PixelShaderInput
 {
     float4 Position : POSITION0;
     float2 TexCoord : TEXCOORD0;
+    float3 viewDirection : TEXCOORD1;
 };
 
 
@@ -111,6 +113,8 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
     output.Position = mul(viewPosition, Projection);
     //need t
     output.ScreenPosition = output.Position;
+
+    output.viewDirection = normalize(cameraPosition - worldPosition.xyz);
     return output;
 }
 
@@ -143,6 +147,7 @@ PixelShaderInput BaseCalculations(VertexShaderOutput input)
     PixelShaderInput output;
     output.Position = position;
     output.TexCoord = texCoord;
+    output.viewDirection = input.viewDirection;
 
         /////////////////////////////////////
     //CULL?
@@ -213,14 +218,14 @@ PixelShaderOutput BasePixelShaderFunction(PixelShaderInput input) : COLOR0
         clip(-1);
         return output;
     }
-
+    
     //compute attenuation based on distance - linear attenuation
     float attenuation = saturate(1.0f - lengthLight/ lightRadius);
 
     //normalize light vector
     lightVector /= lengthLight;
 
-    float3 cameraDirection = normalize(cameraPosition - input.Position.xyz);
+    float3 cameraDirection = input.viewDirection; //normalize(cameraPosition - input.Position.xyz);
     //compute diffuse light
     float NdL = saturate(dot(normal, lightVector));
 
@@ -271,14 +276,13 @@ PixelShaderOutput BasePixelShaderFunctionShadow(PixelShaderInput input) : COLOR0
         clip(-1);
         return output;
     }
-
     //compute attenuation based on distance - linear attenuation
     float attenuation = saturate(1.0f - lengthLight / lightRadius);
 
     //normalize light vector
     lightVector /= lengthLight;
 
-    float3 cameraDirection = normalize(cameraPosition - input.Position.xyz);
+    float3 cameraDirection = input.viewDirection; //normalize(cameraPosition - input.Position.xyz);
     //compute diffuse light
     float NdL = saturate(dot(normal, lightVector));
 

@@ -239,7 +239,7 @@ namespace EngineTest.Renderer
 
             _renderMode = RenderModes.Deferred;
 
-            pointLights.Add(new PointLight(new Vector3(10, -3, -10), 50, Color.Wheat, 20, true));
+            //pointLights.Add(new PointLight(new Vector3(10, -3, -10), 50, Color.Wheat, 20, true));
 
             //pointLights.Add(new PointLight(new Vector3(-20, 0, -20), 80, Color.NavajoWhite, 20, true));
 
@@ -420,6 +420,12 @@ namespace EngineTest.Renderer
             {
                 supersample = !supersample;
                 window.Title = "Supersample = " + supersample.ToString();
+            }
+
+            if (keyboardState.IsKeyDown(Keys.F5) && keyboardLastState.IsKeyUp(Keys.F5))
+            {
+                GameSettings.SSAO = !GameSettings.SSAO;
+                window.Title = "Screen Space Reflections = " + GameSettings.SSAO.ToString();
             }
 
             //if (keyboardState.IsKeyDown(Keys.F5) && keyboardLastState.IsKeyUp(Keys.F5))
@@ -1322,6 +1328,9 @@ namespace EngineTest.Renderer
             _deferredEnvironment.Parameters["cameraPosition"].SetValue(_camera.Position);
             _deferredEnvironment.Parameters["cameraDirection"].SetValue(_camera.Forward);
 
+            _deferredEnvironment.CurrentTechnique = GameSettings.SSAO
+                ? _deferredEnvironment.Techniques["SSR"]
+                : _deferredEnvironment.Techniques["Classic"];
             _deferredEnvironment.CurrentTechnique.Passes[0].Apply();
             quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
         }

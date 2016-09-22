@@ -118,7 +118,7 @@ float GetNormalVariance(float2 texCoord, float3 baseNormal, float offset)
     return variance/SAMPLE_COUNT;
 }
 
-PixelShaderOutput PixelShaderFunctionClassic(VertexShaderOutput input) : COLOR0
+PixelShaderOutput PixelShaderFunctionSSR(VertexShaderOutput input) : COLOR0
 {
     //obtain screen position
     float4 position;
@@ -186,11 +186,13 @@ PixelShaderOutput PixelShaderFunctionClassic(VertexShaderOutput input) : COLOR0
 
     //float4 DiffuseReflectColor = ReflectionMap.SampleLevel(reflectionSampler, input.TexCoord, 9) * fresnel;
 
-    //if(ReflectColor.a < 0.1f)
-    //{
+    [branch]
+    if(ReflectColor.a < 0.1f)
+    {
 
-    ReflectColor = lerp(ReflectionCubeMap.SampleLevel(ReflectionCubeMapSampler, reflectionVector, mip), ReflectColor, ReflectColor.a) * (1 - roughness) * (1 + matMultiplier) * fresnel; //* NdotC * NdotC * NdotC;
+        ReflectColor = lerp(ReflectionCubeMap.SampleLevel(ReflectionCubeMapSampler, reflectionVector, mip), ReflectColor, ReflectColor.a) * (1 - roughness) * (1 + matMultiplier) * fresnel; //* NdotC * NdotC * NdotC;
 
+    }
     float4 DiffuseReflectColor = ReflectionCubeMap.SampleLevel(ReflectionCubeMapSampler, reflectionVector, 9) * fresnel; //* NdotC * NdotC * NdotC;
 
     //}
@@ -202,7 +204,84 @@ PixelShaderOutput PixelShaderFunctionClassic(VertexShaderOutput input) : COLOR0
     output.Specular = float4(ReflectColor.xyz, 0) * 0.02;
 
     return output;
+}
 
+PixelShaderOutput PixelShaderFunctionClassic(VertexShaderOutput input) : COLOR0
+{
+    //obtain screen position
+    float4 position;
+    position.x = input.TexCoord.x * 2.0f - 1.0f;
+    position.y = -(input.TexCoord.y * 2.0f - 1.0f);
+
+    float2 texCoord = float2(input.TexCoord);
+    
+    //get normal data from the normalMap
+    float4 normalData = tex2D(normalSampler, texCoord);
+    //tranform normal back into [-1,1] range
+    float3 normal = decode(normalData.xyz); //2.0f * normalData.xyz - 1.0f;    //could do mad
+    //get metalness
+    float roughness = normalData.a;
+    //get specular intensity from the colorMap
+    float4 color = tex2D(colorSampler, texCoord);
+
+    float metalness = decodeMetalness(color.a);
+    
+    float f0 = lerp(0.04f, color.g * 0.25 + 0.75, metalness);
+
+    float materialType = decodeMattype(color.a);
+
+    float matMultiplier = 1;
+
+    if (abs(materialType - 1) < 0.1f)
+    {
+        matMultiplier = 1;
+    }
+
+    if (abs(materialType - 3) < 0.1f)
+    {
+        matMultiplier = 2;
+    }
+
+    float depthVal = 1 - tex2D(depthSampler, texCoord).r;
+    ////compute screen-space position
+
+    position.z = depthVal;
+    position.w = 1.0f;
+    //transform to world space
+    position = mul(position, InvertViewProjection);
+    position /= position.w;
+    //surface-to-light vector
+
+    
+    float3 incident = -cameraPosition + position.xyz;
+    float3 reflectionVector = reflect(incident, normal);
+
+    float VdotH = saturate(dot(normal, incident));
+    float fresnel = pow(1.0 - VdotH, 5.0);
+    fresnel *= (1.0 - f0);
+    fresnel += f0;
+
+    //float NdotC = saturate(dot(-incident, normal));
+
+    reflectionVector.z = -reflectionVector.z;
+
+    //float3 ReflectColor = ReflectionCubeMap.Sample(ReflectionCubeMapSampler, reflectionVector) * (1 - roughness) * (1 + matMultiplier); //* NdotC * NdotC * NdotC;
+
+    //roughness from 0.05 to 0.5
+    float mip = roughness / 0.04f;
+
+
+    float4 ReflectColor = ReflectionCubeMap.SampleLevel(ReflectionCubeMapSampler, reflectionVector, mip) * (1 - roughness) * (1 + matMultiplier) * fresnel; //* NdotC * NdotC * NdotC;
+
+    float4 DiffuseReflectColor = ReflectionCubeMap.SampleLevel(ReflectionCubeMapSampler, reflectionVector, 9) * fresnel; //* NdotC * NdotC * NdotC;
+
+
+    PixelShaderOutput output;
+
+    output.Diffuse = float4(DiffuseReflectColor.xyz, 0) * 0.01;
+    output.Specular = float4(ReflectColor.xyz, 0) * 0.02;
+
+    return output;
 }
 
 technique Classic
@@ -213,3 +292,13 @@ technique Classic
         PixelShader = compile ps_4_0 PixelShaderFunctionClassic();
     }
 }
+
+technique SSR
+{
+    pass Pass1
+    {
+        VertexShader = compile vs_4_0 VertexShaderFunction();
+        PixelShader = compile ps_4_0 PixelShaderFunctionSSR();
+    }
+}
+

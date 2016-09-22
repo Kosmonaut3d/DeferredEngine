@@ -86,11 +86,15 @@ float4 PixelShaderFunctionClassic(VertexShaderOutput input) : COLOR0
     float4 positionWS = mul(positionVS, InvertViewProjection);
     positionWS /= positionWS.w;
 
-    float3 incident = normalize(-cameraPosition + positionWS.xyz);
+    float3 incident = -cameraPosition + positionWS.xyz;
+    float realDepth = length(incident);
+
+    //normalize
+    incident /= realDepth;
     float3 reflectVector = reflect(incident, normal);
     // go
 
-    float4 samplePositionWS = positionWS + float4(reflectVector, 0)* depthVal * dot(reflectVector, incident)*2;
+    float4 samplePositionWS = positionWS + float4(reflectVector, 0)* realDepth / 15;
                                                
     float4 samplePositionVS = mul(samplePositionWS, ViewProjection);
 
@@ -120,8 +124,10 @@ float4 PixelShaderFunctionClassic(VertexShaderOutput input) : COLOR0
 
         float oldZ = samplePositionVS.z;
 
-        float lerpDelta = i;
-        float delta = lerp(1, 20, lerpDelta / samples);
+        //float lerpDelta = i;
+        //float delta = lerp(1, 20, lerpDelta / samples);
+
+        float delta = i+1;
 
         //march in the given direction
         samplePositionVS = //positionVS + viewOffset * i;
@@ -152,6 +158,7 @@ float4 PixelShaderFunctionClassic(VertexShaderOutput input) : COLOR0
 
             float border = 0.1f;
 
+            [branch]
             if(sampleTexCoord.y > 0.9f)
             {
                 output.a = lerp(1, 0, (sampleTexCoord.y - 0.9) * 10);
@@ -159,6 +166,15 @@ float4 PixelShaderFunctionClassic(VertexShaderOutput input) : COLOR0
             else if (sampleTexCoord.y < 0.1f)
             {
                 output.a = lerp(0, 1, sampleTexCoord.y * 10);
+            }
+            [branch]
+            if (sampleTexCoord.x > 0.9f)
+            {
+                output.a *= lerp(1, 0, (sampleTexCoord.x - 0.9) * 10);
+            }
+            else if (sampleTexCoord.x < 0.1f)
+            {
+                output.a *= lerp(0, 1, sampleTexCoord.x * 10);
             }
             
             output.rgb *= output.a;
