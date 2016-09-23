@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,6 +17,9 @@ namespace EngineTest.Renderer.Helper
     {
         const int InitialLibrarySize = 10;
         public MaterialLibrary[] MaterialLib = new MaterialLibrary[InitialLibrarySize];
+
+        public int[] MaterialLibPointer = new int[InitialLibrarySize];
+
         public int Index;
 
         private bool _previousMode = GameSettings.g_CPU_Culling;
@@ -82,6 +86,34 @@ namespace EngineTest.Renderer.Helper
                 MaterialLibrary[] tempLib = new MaterialLibrary[Index+1];
                 MaterialLib.CopyTo(tempLib, 0);
                 MaterialLib = tempLib;
+
+                MaterialLibPointer = new int[Index+1];
+                //sort from 0 to Index
+                for (int j = 0; j < MaterialLibPointer.Length; j++)
+                {
+                    MaterialLibPointer[j] = j;
+                }
+                SortByDistance();
+            }
+        }
+
+        //Not a real sort, but it does it's job over time
+        private void SortByDistance()
+        {
+            if (!GameSettings.g_CPU_Sort) return;
+
+            for (int i = 1; i < Index; i++)
+            {
+                float distanceI = MaterialLib[MaterialLibPointer[i]].distanceSquared;
+                float distanceJ = MaterialLib[MaterialLibPointer[i-1]].distanceSquared;
+
+                if (distanceJ < distanceI)
+                {
+                    //swap
+                    int temp = MaterialLibPointer[i];
+                    MaterialLibPointer[i] = MaterialLibPointer[i-1];
+                    MaterialLibPointer[i - 1] = temp;
+                }
             }
         }
 
@@ -130,7 +162,7 @@ namespace EngineTest.Renderer.Helper
         /// <param name="entities"></param>
         /// <param name="boundingFrustrum"></param>
         /// <param name="hasCameraChanged"></param>
-        public void MeshCulling(List<BasicEntity> entities, BoundingFrustum boundingFrustrum, bool hasCameraChanged)
+        public bool FrustumCulling(List<BasicEntity> entities, BoundingFrustum boundingFrustrum, bool hasCameraChanged, Vector3 cameraPosition)
         {
             //Check if the culling mode has changed
             if (_previousMode != GameSettings.g_CPU_Culling)
@@ -156,7 +188,7 @@ namespace EngineTest.Renderer.Helper
                 
             }
 
-            if (!GameSettings.g_CPU_Culling) return;
+            if (!GameSettings.g_CPU_Culling) return false;
 
             //Vector3 RenderBoundingBoxCenter = (RenderBoundingBox.Max + RenderBoundingBox.Min)/2;
 
@@ -176,17 +208,50 @@ namespace EngineTest.Renderer.Helper
                 entity.ApplyTransformation();
             }
 
+            bool hasAnythingChanged = false;
             //Ok we applied the transformation to all the entities, now update the submesh boundingboxes!
             for (int index1 = 0; index1 < Index; index1++)
             {
-                MaterialLibrary matLib = MaterialLib[index1];
+                float distance = 0;
+                int counter = 0;
+
+
+                MaterialLibrary matLib = GameSettings.g_CPU_Sort ? MaterialLib[MaterialLibPointer[index1]] : MaterialLib[index1];
                 for (int i = 0; i < matLib.Index; i++)
                 {
                     MeshLibrary meshLib = matLib.GetMeshLibrary()[i];
-                    meshLib.UpdatePositionAndCheckRender(hasCameraChanged, boundingFrustrum);
+                    float? distanceSq = meshLib.UpdatePositionAndCheckRender(hasCameraChanged, boundingFrustrum, cameraPosition);
+
+                    //If we get a new distance, apply it to the material
+                    if (distanceSq != null)
+                    {
+                        distance += (float) distanceSq;
+                        counter++;
+                        hasAnythingChanged = true;
+                    }
+                }
+
+                if (distance != 0)
+                {
+                    distance /= counter;
+                    matLib.distanceSquared = distance;
+                    matLib.hasChangedThisFrame = true;
                 }
             }
 
+            //finally sort the materials by distance. Bubble sort should in theory be fast here since little changes.
+            if(hasAnythingChanged)
+                SortByDistance();
+
+            return hasAnythingChanged;
+        }
+
+        /// <summary>
+        /// Should be called when the frame is done.
+        /// </summary>
+        /// <param name="entities"></param>
+        public void FrustumCullingFinalizeFrame(List<BasicEntity> entities)
+        {
 
             //Set Changed to false
             for (int index1 = 0; index1 < entities.Count; index1++)
@@ -195,85 +260,16 @@ namespace EngineTest.Renderer.Helper
                 entity.WorldTransform.HasChanged = false;
             }
 
+            for (int index1 = 0; index1 < Index; index1++)
+            {
+                MaterialLibrary matLib = GameSettings.g_CPU_Sort ? MaterialLib[MaterialLibPointer[index1]] : MaterialLib[index1];
+
+                matLib.hasChangedThisFrame = false;
+            }
 
         }
 
-        ///// <summary>
-        ///// Update whether or not Objects are in the viewFrustum and need to be rendered or not.
-        ///// </summary>
-        ///// <param name="entities"></param>
-        ///// <param name="boundingFrustrum"></param>
-        ///// <param name="hasCameraChanged"></param>
-        //public void UpdateWorld(List<BasicEntity> entities,  BoundingFrustum boundingFrustrum, bool hasCameraChanged)
-        //{
-
-        //    //Vector3 RenderBoundingBoxCenter = (RenderBoundingBox.Max + RenderBoundingBox.Min)/2;
-
-        //    bool isInsiderRenderVolume = false;
-
-        //    //First change their world value! We only need to do that once though, when we draw shadows!
-            
-        //    for (int index1 = 0; index1 < entities.Count; index1++)
-        //    {
-        //        BasicEntity entity = entities[index1];
-
-        //        ModelMesh entityModelMeshPart = entity.Model.Meshes[0];
-
-        //        //If both the camera hasn't changed and the Transformation isn't changed we don't need to update the renderstate
-        //        if (!hasCameraChanged && !entity.WorldTransform.HasChanged)
-        //        {
-        //            continue;
-        //        }
-
-        //        //Otherwise we set the changed variable to false, since we process the current position
-        //        entity.WorldTransform.HasChanged = false;
-
-
-        //        isInsiderRenderVolume = false;
-
-        //        //First test, check entity origin vs RenderBoundingBox
-        //        if (boundingFrustrum.Contains(entity.Position) == ContainmentType.Contains)
-        //        {
-        //            isInsiderRenderVolume = true;
-        //        }
-
-        //        //Check boundingsphere
-        //        if (!isInsiderRenderVolume)
-        //        {
-        //            //Get the geometry center of the model
-
-        //            Vector3 modelCenter = entity.Position - entityModelMeshPart.MeshBoundingSphere.Center * entity.Scale / 2;
-
-        //            //Create RenderSphere!
-        //            MeshBoundingSphere renderSphere =
-        //                entityModelMeshPart.MeshBoundingSphere.Transform(Matrix.CreateScale(entity.Scale) * Matrix.CreateTranslation(modelCenter));
-
-        //            //Check containment!
-        //            if (boundingFrustrum.Intersects(renderSphere))
-        //            {
-        //                isInsiderRenderVolume = true;
-        //            }
-
-        //        }
-
-        //        //We can also take into account screenpos
-        //        if (!isInsiderRenderVolume)
-        //        {
-        //            //Update all parts as well!
-        //            entity.WorldTransform.Rendered = false;
-
-        //            entity.SetRenderMode(false);
-
-        //            continue;
-        //        }
-        //        entity.SetRenderMode(true);
-
-        //        Matrix worldTransform = entity.GetTransformation();
-        //        entity.WorldTransform.World = worldTransform;
-        //    }
-        //}
-
-        public void Draw(bool shadow, GraphicsDevice graphicsDevice, Matrix viewProjection, bool opaque)
+        public void Draw(bool shadow, GraphicsDevice graphicsDevice, Matrix viewProjection, bool opaque, bool lightViewPointChanged = false, bool hasAnyObjectMoved = false)
         {
             if (opaque)
             {
@@ -287,9 +283,49 @@ namespace EngineTest.Renderer.Helper
                 graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
             }
 
-            //Count our drawcalls, for debug purposes
-            int materialDraws = 0;
-            int meshDraws = 0;
+            //For shadowmaps we need to find out whether any object has moved and if so if it is rendered. If yes, redraw the whole frame, if no don't do anything
+            if (!lightViewPointChanged && hasAnyObjectMoved)
+            {
+                bool discardFrame = true;
+
+                for (int index1 = 0; index1 < Index; index1++)
+                {
+                    MaterialLibrary matLib = MaterialLib[index1];
+
+                    //We determined beforehand whether something changed this frame
+                    if (matLib.hasChangedThisFrame)
+                    {
+                        for (int i = 0; i < matLib.Index; i++)
+                        {
+                            //Now we have to check whether we have a rendered thing in here
+                            MeshLibrary meshLib = matLib.GetMeshLibrary()[i];
+                            for (int index = 0; index < meshLib.Index; index++)
+                            {
+                                //If it's set to "not rendered" skip
+                                for (int j = 0; j < meshLib.Rendered.Length; j++)
+                                {
+                                    if (meshLib.Rendered[j])
+                                    {
+                                        discardFrame = false;
+                                    }
+                                    break;
+                                }
+
+                                if (!discardFrame) break;
+
+                            }
+                        }
+                        if (!discardFrame) break;
+                    }
+                }
+
+                if (discardFrame) return;
+
+                if(shadow)
+                graphicsDevice.Clear(new Color(0.51f, 0.501f, 0, 0)); 
+            }
+
+            if (shadow) GameStats.activeShadowMaps++;
 
             for (int index1 = 0; index1 < Index; index1++)
             {
@@ -311,12 +347,16 @@ namespace EngineTest.Renderer.Helper
                             if (meshLib.Rendered[j] == true)
                             {
                                 isUsed = true;
-                                break;
+                                //if (meshLib.GetWorldMatrices()[j].HasChanged)
+                                //    hasAnyObjectMoved = true;
                             }
+
+                            if (isUsed)// && hasAnyObjectMoved)
+                                break;
 
                         }
                        
-                        if(isUsed)
+                        if(isUsed)// && hasAnyObjectMoved)
                         break;
                     }
                 }
@@ -324,7 +364,6 @@ namespace EngineTest.Renderer.Helper
                 if (!isUsed) continue;
 
                 //Count the draws of different materials!
-                materialDraws++;
 
                 MaterialEffect material = /*GameSettings.DebugDrawUntextured==2 ? Art.DefaultMaterial :*/ matLib.GetMaterial();
 
@@ -332,28 +371,131 @@ namespace EngineTest.Renderer.Helper
                 if (opaque && material.IsTransparent) continue;
                 if (!opaque && !material.IsTransparent) continue;
 
-                Effect shader = Shaders.GBufferEffect;
+                Effect shader;
                 //Set the appropriate Shader for the material
                 if (shadow)
                 {
                     if (material.HasShadow)
                     {
                         //if we have special shadow shaders for the material
-
+                        shader = Shaders.virtualShadowMappingEffect;
                     }
                     else continue;
                 }
+                else
+                {
+                    shader = Shaders.GBufferEffect;
+                }
+
+                GameStats.MaterialDraws ++;
 
                 //todo: We only need textures for non shadow mapping, right? Not quite actually, for alpha textures we need materials
                 if (!shadow)
                 {
                     //Set up the right GBuffer shader!
 
-                    Shaders.GBufferEffect.CurrentTechnique = Shaders.GBufferEffect.Techniques["DrawBasic"];
+                    //if (material.HasDiffuse)
+                    //{
+                    //    Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
+                    //    Shaders.GBufferEffect.CurrentTechnique = Shaders.GBufferEffect.Techniques["DrawTexture"];
+                    //}
+                    //else
+                    //{
+                    //    Shaders.GBufferEffectParameter_Material_DiffuseColor.SetValue(material.DiffuseColor);
+                    //    Shaders.GBufferEffect.CurrentTechnique = Shaders.GBufferEffect.Techniques["DrawBasic"]; 
+                    //}
 
-                    Shaders.GBufferEffectParameter_Material_DiffuseColor.SetValue(material.DiffuseColor);
-                    Shaders.GBufferEffectParameter_Material_Roughness.SetValue(material.Roughness);
-                    Shaders.GBufferEffectParameter_Material_Metalness.SetValue(material.Metalness);
+                    if (material.HasMask) //Has diffuse for sure then
+                    {
+                        if (material.HasNormal && material.HasRoughness)
+                        {
+                            Shaders.GBufferEffectParameter_Material_Mask.SetValue(material.Mask);
+                            Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
+                            Shaders.GBufferEffectParameter_Material_NormalMap.SetValue(material.NormalMap);
+                            Shaders.GBufferEffectParameter_Material_Specular.SetValue(material.RoughnessMap);
+                            Shaders.GBufferEffect.CurrentTechnique =
+                                Shaders.GBufferEffectTechniques_DrawTextureSpecularNormalMask;
+                        }
+
+                        else if (material.HasNormal)
+                        {
+                            Shaders.GBufferEffectParameter_Material_Mask.SetValue(material.Mask);
+                            Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
+                            Shaders.GBufferEffectParameter_Material_NormalMap.SetValue(material.NormalMap);
+                            Shaders.GBufferEffect.CurrentTechnique =
+                                Shaders.GBufferEffectTechniques_DrawTextureNormalMask;
+                        }
+
+                        else if (material.HasRoughness)
+                        {
+                            Shaders.GBufferEffectParameter_Material_Mask.SetValue(material.Mask);
+                            Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
+                            Shaders.GBufferEffectParameter_Material_Specular.SetValue(material.RoughnessMap);
+                            Shaders.GBufferEffect.CurrentTechnique =
+                                Shaders.GBufferEffectTechniques_DrawTextureSpecularMask;
+                        }
+                        else
+                        {
+                            Shaders.GBufferEffectParameter_Material_Mask.SetValue(material.Mask);
+                            Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
+                            Shaders.GBufferEffect.CurrentTechnique =
+                                Shaders.GBufferEffectTechniques_DrawTextureSpecularMask;
+                        }
+                    }
+
+
+                    else
+                    {
+                        if (material.HasNormal && material.HasRoughness && material.HasDiffuse && material.HasMetallic)
+                        {
+                            Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
+                            Shaders.GBufferEffectParameter_Material_NormalMap.SetValue(material.NormalMap);
+                            Shaders.GBufferEffectParameter_Material_Specular.SetValue(material.RoughnessMap);
+                            Shaders.GBufferEffectParameter_Material_Metallic.SetValue(material.MetallicMap);
+                            Shaders.GBufferEffect.CurrentTechnique =
+                                Shaders.GBufferEffectTechniques_DrawTextureSpecularNormalMetallic;
+                        }
+
+                        else if (material.HasNormal && material.HasRoughness && material.HasDiffuse)
+                        {
+                            Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
+                            Shaders.GBufferEffectParameter_Material_NormalMap.SetValue(material.NormalMap);
+                            Shaders.GBufferEffectParameter_Material_Specular.SetValue(material.RoughnessMap);
+                            Shaders.GBufferEffect.CurrentTechnique =
+                                Shaders.GBufferEffectTechniques_DrawTextureSpecularNormal;
+                        }
+
+                        else if (material.HasNormal && material.HasDiffuse)
+                        {
+                            Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
+                            Shaders.GBufferEffectParameter_Material_NormalMap.SetValue(material.NormalMap);
+                            Shaders.GBufferEffect.CurrentTechnique = Shaders.GBufferEffectTechniques_DrawTextureNormal;
+                        }
+
+                        else if (material.HasRoughness && material.HasDiffuse)
+                        {
+                            Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
+                            Shaders.GBufferEffectParameter_Material_Specular.SetValue(material.RoughnessMap);
+                            Shaders.GBufferEffect.CurrentTechnique = Shaders.GBufferEffectTechniques_DrawTextureSpecular;
+                        }
+
+                        else if (material.HasDiffuse)
+                        {
+                            Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
+                            Shaders.GBufferEffect.CurrentTechnique = Shaders.GBufferEffectTechniques_DrawTexture;
+                        }
+
+                        else
+                        {
+                            Shaders.GBufferEffect.CurrentTechnique = Shaders.GBufferEffectTechniques_DrawBasic;
+                        }
+                    }
+
+
+                    if(!material.HasDiffuse) Shaders.GBufferEffectParameter_Material_DiffuseColor.SetValue(material.DiffuseColor);
+
+                    if (!material.HasRoughness) Shaders.GBufferEffectParameter_Material_Roughness.SetValue(material.Roughness);
+                    Shaders.GBufferEffectParameter_Material_Metallic.SetValue(material.Metallic);
                     Shaders.GBufferEffectParameter_Material_MaterialType.SetValue(material.MaterialType);
                 }
                 else
@@ -381,7 +523,8 @@ namespace EngineTest.Renderer.Helper
                         //if (!meshLib.GetWorldMatrices()[index].Rendered) continue;
                         if (!meshLib.Rendered[index]) continue;
 
-                        meshDraws ++;
+                        GameStats.MeshDraws ++;
+
 
                         Matrix localWorldMatrix = meshLib.GetWorldMatrices()[index].World;
                         if (!shadow)
@@ -391,7 +534,7 @@ namespace EngineTest.Renderer.Helper
                         }
                         else
                         {
-                           
+                           Shaders.virtualShadowMappingEffectParameter_WorldViewProj.SetValue(localWorldMatrix * viewProjection);
                         }
 
                         shader.CurrentTechnique.Passes[0].Apply();
@@ -413,8 +556,7 @@ namespace EngineTest.Renderer.Helper
             }
 
             //Update the drawcalls in our stats
-            GameStats.MaterialDraws += materialDraws;
-            GameStats.MeshDraws += meshDraws;
+            
         }
 
     				
@@ -433,6 +575,11 @@ namespace EngineTest.Renderer.Helper
         private MeshLibrary[] _meshLib = new MeshLibrary[InitialLibrarySize];
         public int Index;
 
+        //efficiency: REnder front to back. So we must know the distance!
+
+        public float distanceSquared = 0;
+        public bool hasChangedThisFrame = true;
+
         public void SetMaterial(ref MaterialEffect mat)
         {
             _material = mat;
@@ -440,7 +587,8 @@ namespace EngineTest.Renderer.Helper
 
         public bool HasMaterial(MaterialEffect mat)
         {
-            return mat == _material;
+            if (!GameSettings.g_BatchByMaterial) return false;
+            return mat.Equals(_material);
         }
 
         public MaterialEffect GetMaterial()
@@ -549,12 +697,18 @@ namespace EngineTest.Renderer.Helper
         }
 
         //IF a submesh belongs to an entity that has moved we need to update the BoundingBoxWorld Position!
-        public void UpdatePositionAndCheckRender(bool cameraHasChanged, BoundingFrustum viewFrustum)
+        //returns the mean distance of all objects iwth that material
+        public float? UpdatePositionAndCheckRender(bool cameraHasChanged, BoundingFrustum viewFrustum, Vector3 cameraPosition)
         {
-            BoundingSphere sphere = new BoundingSphere(Vector3.Zero, MeshBoundingSphere.Radius);
+            float? distance = null;
+
+            bool hasAnythingChanged = false;
+
+            BoundingSphere sphere = new BoundingSphere(Vector3.Zero, 0);
             for (var i = 0; i < Index; i++)
             {
                 TransformMatrix trafoMatrix = _worldMatrices[i];
+
 
                 if (trafoMatrix.HasChanged)
                 {
@@ -565,6 +719,7 @@ namespace EngineTest.Renderer.Helper
                 if (trafoMatrix.HasChanged || cameraHasChanged)
                 {
                     sphere.Center = _worldBoundingCenters[i];
+                    sphere.Radius = MeshBoundingSphere.Radius* _worldMatrices[i].Scale;
                     if (viewFrustum.Contains(sphere)==ContainmentType.Disjoint )
                     {
                         Rendered[i] = false;
@@ -573,8 +728,25 @@ namespace EngineTest.Renderer.Helper
                     {
                         Rendered[i] = true;
                     }
+
+                    //we just register that something has changed
+                    hasAnythingChanged = true;
+                }
+
+            }
+
+            //We need to calcualte a new average distance
+            if (hasAnythingChanged)
+            {
+                distance = 0;
+
+                for (var i = 0; i < Index; i++)
+                {
+                    distance += Vector3.DistanceSquared(cameraPosition, _worldBoundingCenters[i]);
                 }
             }
+
+            return distance;
         }
 
         //Basically no chance we have the same model already. We should be fine just adding it to the list if we did everything else right.

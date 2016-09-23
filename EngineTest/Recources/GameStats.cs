@@ -11,5 +11,8 @@ namespace EngineTest.Recources
         public static int MeshDraws = 0;
         public static int MaterialDraws = 0;
         public static int LightsDrawn = 0;
+
+        public static int shadowMaps = 0;
+        public static int activeShadowMaps = 0;
     }
 }

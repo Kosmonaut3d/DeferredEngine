@@ -12,12 +12,12 @@ float4 FogColor = float4(1, 0.375, 0, 1);
 
 float2 Resolution;
 
-#include "helper.fx"
+#include "Shaders/helper.fx"
 
 
 //      MATERIAL
 float   Roughness = 0.3f; // 0 : smooth, 1: rough
-float   Metalness = 0;
+float   Metallic = 0;
 
 int MaterialType = 0;
 
@@ -38,44 +38,13 @@ sampler TextureSampler : register(s0)
     AddressV = Wrap;
 };
 
-Texture2D<float4> Specular;
-sampler SpecularTextureSampler
-{
-    Texture = (Specular);
+Texture2D<float4> MetallicMap;
 
-    Filter = Anisotropic;
-
-    MaxAnisotropy = 16;
-
-    AddressU = Wrap;
-    AddressV = Wrap;
-};
+Texture2D<float4> RoughnessMap;
 
 Texture2D<float4> Mask;
-sampler MaskSampler
-{
-    Texture = (Mask);
-
-    Filter = Anisotropic;
-
-    MaxAnisotropy = 16;
-
-    AddressU = Wrap;
-    AddressV = Wrap;
-};
 
 Texture2D<float4> NormalMap;
-sampler NormalMapSampler
-{
-    Texture = (NormalMap);
-
-    Filter = Anisotropic;
-
-    MaxAnisotropy = 16;
-
-    AddressU = Wrap;
-    AddressV = Wrap;
-};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  STRUCT DEFINITIONS
@@ -119,7 +88,7 @@ struct Render_IN
     float4 Color : COLOR0;
     float3 Normal : TEXCOORD0;
     float2 Depth : DEPTH;
-    float metalness : TEXCOORD1;
+    float Metallic : TEXCOORD1;
     float roughness : TEXCOORD2;
 };
 
@@ -179,7 +148,7 @@ PixelShaderOutput Lighting(Render_IN input)
 
     Out.Color = finalValue;
 
-    Out.Color.a = encodeMetalnessMattype(input.metalness, MaterialType);
+    Out.Color.a = encodeMetallicMattype(input.Metallic, MaterialType);
 
     Out.Normal.rgb =  encode(input.Normal); //
 
@@ -202,7 +171,7 @@ PixelShaderOutput DrawTexture_PixelShader(DrawBasic_VSOut input) : SV_TARGET
     renderParams.Color = outputColor;
     renderParams.Normal = normalize(input.Normal);
     renderParams.Depth = input.Depth;
-    renderParams.metalness = Metalness;
+    renderParams.Metallic = Metallic;
     renderParams.roughness = Roughness;
     
     return Lighting(renderParams);
@@ -216,13 +185,13 @@ PixelShaderOutput DrawTextureSpecular_PixelShader(DrawBasic_VSOut input) : SV_TA
     float4 textureColor = Texture.Sample(TextureSampler, input.TexCoord);
     float4 outputColor = textureColor; //* input.Color;
 
-    float RoughnessTexture = Specular.Sample(SpecularTextureSampler, input.TexCoord).r;
+    float RoughnessTexture = RoughnessMap.Sample(TextureSampler, input.TexCoord).r;
 
     renderParams.Position = input.Position;
     renderParams.Color = outputColor;
     renderParams.Normal = normalize(input.Normal);
     renderParams.Depth = input.Depth;
-    renderParams.metalness = Metalness;
+    renderParams.Metallic = Metallic;
     renderParams.roughness = RoughnessTexture;
 
     return Lighting(renderParams);
@@ -238,21 +207,48 @@ PixelShaderOutput DrawTextureSpecularNormal_PixelShader(DrawNormals_VSOut input)
 
     float3x3 worldSpace = input.WorldToTangentSpace;
 
-    float RoughnessTexture = Specular.Sample(SpecularTextureSampler, input.TexCoord).r;
+    float RoughnessTexture = RoughnessMap.Sample(TextureSampler, input.TexCoord).r;
 
     // NORMAL MAP ////
-    float3 normalMap = 1 * NormalMap.Sample(NormalMapSampler, (input.TexCoord)).rgb - float3(0.5f, 0.5f, 0.5f);
+    float3 normalMap = 1 * NormalMap.Sample(TextureSampler, (input.TexCoord)).rgb - float3(0.5f, 0.5f, 0.5f);
     normalMap = normalize(mul(normalMap, worldSpace));
   
     renderParams.Position = input.Position;
     renderParams.Color = outputColor;
     renderParams.Normal = normalMap;
     renderParams.Depth = input.Depth;
-    renderParams.metalness = Metalness;
+    renderParams.Metallic = Metallic;
     renderParams.roughness = RoughnessTexture;
 
     return Lighting(renderParams);
 }
+
+[earlydepthstencil]      //experimental
+PixelShaderOutput DrawTextureSpecularNormalMetallic_PixelShader(DrawNormals_VSOut input) : SV_TARGET
+{
+    Render_IN renderParams;
+
+    float4 textureColor = Texture.Sample(TextureSampler, input.TexCoord);
+    float4 outputColor = textureColor; //* input.Color;
+
+    float3x3 worldSpace = input.WorldToTangentSpace;
+
+    float RoughnessTexture = RoughnessMap.Sample(TextureSampler, input.TexCoord).r;
+    float metallicTexture = MetallicMap.Sample(TextureSampler, input.TexCoord).r;
+    // NORMAL MAP ////
+    float3 normalMap = 1 * NormalMap.Sample(TextureSampler, (input.TexCoord)).rgb - float3(0.5f, 0.5f, 0.5f);
+    normalMap = normalize(mul(normalMap, worldSpace));
+  
+    renderParams.Position = input.Position;
+    renderParams.Color = outputColor;
+    renderParams.Normal = normalMap;
+    renderParams.Depth = input.Depth;
+    renderParams.Metallic = metallicTexture;
+    renderParams.roughness = RoughnessTexture;
+
+    return Lighting(renderParams);
+}
+
 
 [earlydepthstencil]      //experimental
 PixelShaderOutput DrawTextureNormal_PixelShader(DrawNormals_VSOut input) : SV_TARGET
@@ -265,14 +261,14 @@ PixelShaderOutput DrawTextureNormal_PixelShader(DrawNormals_VSOut input) : SV_TA
     float3x3 worldSpace = input.WorldToTangentSpace;
 
     // NORMAL MAP ////
-    float3 normalMap = 1 * NormalMap.Sample(NormalMapSampler, (input.TexCoord)).rgb - float3(0.5f, 0.5f, 0.5f);
+    float3 normalMap = 1 * NormalMap.Sample(TextureSampler, (input.TexCoord)).rgb - float3(0.5f, 0.5f, 0.5f);
     normalMap = normalize(mul(normalMap, worldSpace));
   
     renderParams.Position = input.Position;
     renderParams.Color = outputColor;
     renderParams.Normal = normalMap;
     renderParams.Depth = input.Depth;
-    renderParams.metalness = Metalness;
+    renderParams.Metallic = Metallic;
     renderParams.roughness = Roughness;
     
     return Lighting(renderParams);
@@ -286,7 +282,7 @@ PixelShaderOutput DrawTextureMask_PixelShader(DrawBasic_VSOut input) : SV_TARGET
     float4 textureColor = Texture.Sample(TextureSampler, input.TexCoord);
     float4 outputColor = textureColor; //* input.Color;
 
-    float mask = Mask.Sample(MaskSampler, input.TexCoord).r;
+    float mask = Mask.Sample(TextureSampler, input.TexCoord).r;
     if (mask < CLIP_VALUE)
         clip(-1);
  
@@ -294,7 +290,7 @@ PixelShaderOutput DrawTextureMask_PixelShader(DrawBasic_VSOut input) : SV_TARGET
     renderParams.Color = outputColor;
     renderParams.Normal = normalize(input.Normal);
     renderParams.Depth = input.Depth;
-    renderParams.metalness = Metalness;
+    renderParams.Metallic = Metallic;
     renderParams.roughness = Roughness;
     
     return Lighting(renderParams);
@@ -308,9 +304,9 @@ PixelShaderOutput DrawTextureSpecularMask_PixelShader(DrawBasic_VSOut input) : S
     float4 textureColor = Texture.Sample(TextureSampler, input.TexCoord);
     float4 outputColor = textureColor; //* input.Color;
 
-    float RoughnessTexture = Specular.Sample(SpecularTextureSampler, input.TexCoord).r;
+    float RoughnessTexture = RoughnessMap.Sample(TextureSampler, input.TexCoord).r;
 
-    float mask = Mask.Sample(MaskSampler, input.TexCoord).r;
+    float mask = Mask.Sample(TextureSampler, input.TexCoord).r;
     if (mask < CLIP_VALUE)
         clip(-1);
   
@@ -318,7 +314,7 @@ PixelShaderOutput DrawTextureSpecularMask_PixelShader(DrawBasic_VSOut input) : S
     renderParams.Color = outputColor;
     renderParams.Normal = normalize(input.Normal);
     renderParams.Depth = input.Depth;
-    renderParams.metalness = Metalness;
+    renderParams.Metallic = Metallic;
     renderParams.roughness = RoughnessTexture; // 1 - (RoughnessTexture.r+RoughnessTexture.b+RoughnessTexture.g) / 3;
     
     return Lighting(renderParams);
@@ -334,21 +330,21 @@ PixelShaderOutput DrawTextureSpecularNormalMask_PixelShader(DrawNormals_VSOut in
 
     float3x3 worldSpace = input.WorldToTangentSpace;
 
-    float RoughnessTexture = Specular.Sample(SpecularTextureSampler, input.TexCoord).r;
+    float RoughnessTexture = RoughnessMap.Sample(TextureSampler, input.TexCoord).r;
 
-    float mask = Mask.Sample(MaskSampler, input.TexCoord).r;
+    float mask = Mask.Sample(TextureSampler, input.TexCoord).r;
     if (mask < CLIP_VALUE)
         clip(-1);
 
     // NORMAL MAP ////
-    float3 normalMap = 1 * NormalMap.Sample(NormalMapSampler, (input.TexCoord)).rgb - float3(0.5f, 0.5f, 0.5f);
+    float3 normalMap = 1 * NormalMap.Sample(TextureSampler, (input.TexCoord)).rgb - float3(0.5f, 0.5f, 0.5f);
     normalMap = normalize(mul(normalMap, worldSpace));
   
     renderParams.Position = input.Position;
     renderParams.Color = outputColor;
     renderParams.Normal = normalMap;
     renderParams.Depth = input.Depth;
-    renderParams.metalness = Metalness;
+    renderParams.Metallic = Metallic;
     renderParams.roughness = RoughnessTexture;
 
     return Lighting(renderParams);
@@ -364,19 +360,19 @@ PixelShaderOutput DrawTextureNormalMask_PixelShader(DrawNormals_VSOut input) : S
 
     float3x3 worldSpace = input.WorldToTangentSpace;
 
-    float mask = Mask.Sample(MaskSampler, input.TexCoord).r;
+    float mask = Mask.Sample(TextureSampler, input.TexCoord).r;
     if (mask < CLIP_VALUE)
         clip(-1);
 
     // NORMAL MAP ////
-    float3 normalMap = 1 * NormalMap.Sample(NormalMapSampler, (input.TexCoord)).rgb - float3(0.5f, 0.5f, 0.5f);
+    float3 normalMap = 1 * NormalMap.Sample(TextureSampler, (input.TexCoord)).rgb - float3(0.5f, 0.5f, 0.5f);
     normalMap = normalize(mul(normalMap, worldSpace));
   
     renderParams.Position = input.Position;
     renderParams.Color = outputColor;
     renderParams.Normal = normalMap;
     renderParams.Depth = input.Depth;
-    renderParams.metalness = Metalness;
+    renderParams.Metallic = Metallic;
     renderParams.roughness = Roughness;
     
     return Lighting(renderParams);
@@ -393,7 +389,7 @@ PixelShaderOutput DrawBasic_PixelShader(DrawBasic_VSOut input) : SV_TARGET
     renderParams.Color = outputColor;
     renderParams.Normal = normalize(input.Normal);
     renderParams.Depth = input.Depth;
-    renderParams.metalness = Metalness;
+    renderParams.Metallic = Metallic;
     renderParams.roughness = Roughness;
 
     return Lighting(renderParams);
@@ -434,6 +430,16 @@ technique DrawTextureSpecularNormal
         PixelShader = compile ps_5_0 DrawTextureSpecularNormal_PixelShader();
     }
 }
+
+technique DrawTextureSpecularNormalMetallic
+{
+    pass Pass1
+    {
+        VertexShader = compile vs_4_0 DrawNormals_VertexShader();
+        PixelShader = compile ps_5_0 DrawTextureSpecularNormalMetallic_PixelShader();
+    }
+}
+
 
 technique DrawTextureNormal
 {

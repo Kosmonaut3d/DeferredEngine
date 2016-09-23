@@ -1,23 +1,20 @@
 ﻿
 float3 cameraPosition;
-float3 cameraDirection;
 //this is used to compute the world-position
 float4x4 InvertViewProjection;
 
 #include "helper.fx"
 
-static int SamplesCount = 8;
-
-Texture2D colorMap;
+Texture2D AlbedoMap;
 // normals, and specularPower in the alpha channel
-Texture2D normalMap;
+Texture2D NormalMap;
 
 Texture2D ReflectionMap;
 //depth
-texture depthMap;
+Texture2D DepthMap;
 sampler colorSampler = sampler_state
 {
-    Texture = (colorMap);
+    Texture = (AlbedoMap);
     AddressU = CLAMP;
     AddressV = CLAMP;
     MagFilter = POINT;
@@ -27,7 +24,7 @@ sampler colorSampler = sampler_state
 
 sampler reflectionSampler = sampler_state
 {
-    Texture = (colorMap);
+    Texture = (AlbedoMap);
     AddressU = CLAMP;
     AddressV = CLAMP;
     MagFilter = LINEAR;
@@ -37,7 +34,7 @@ sampler reflectionSampler = sampler_state
 
 sampler depthSampler = sampler_state
 {
-    Texture = (depthMap);
+    Texture = (DepthMap);
     AddressU = CLAMP;
     AddressV = CLAMP;
     MagFilter = POINT;
@@ -46,7 +43,7 @@ sampler depthSampler = sampler_state
 };
 sampler normalSampler = sampler_state
 {
-    Texture = (normalMap);
+    Texture = (NormalMap);
     AddressU = CLAMP;
     AddressV = CLAMP;
     MagFilter = POINT;
@@ -108,8 +105,8 @@ float GetNormalVariance(float2 texCoord, float3 baseNormal, float offset)
     float3 normalTest;
     for (int i = 0; i < SAMPLE_COUNT; i++)
     {
-        normalTest = normalMap.Sample(normalSampler, texCoord.xy + offset*
-                     SampleOffsets[i] * InverseResolution);
+        normalTest = NormalMap.Sample(normalSampler, texCoord.xy + offset*
+                     SampleOffsets[i] * InverseResolution).rgb;
         normalTest = decode(normalTest.xyz);
 
         variance += 1-dot(baseNormal, normalTest);
@@ -127,13 +124,13 @@ PixelShaderOutput PixelShaderFunctionSSR(VertexShaderOutput input) : COLOR0
 
     float2 texCoord = float2(input.TexCoord);
     
-    //get normal data from the normalMap
+    //get normal data from the NormalMap
     float4 normalData = tex2D(normalSampler, texCoord);
     //tranform normal back into [-1,1] range
     float3 normal = decode(normalData.xyz); //2.0f * normalData.xyz - 1.0f;    //could do mad
     //get metalness
     float roughness = normalData.a;
-    //get specular intensity from the colorMap
+    //get specular intensity from the AlbedoMap
     float4 color = tex2D(colorSampler, texCoord);
 
     float metalness = decodeMetalness(color.a);
@@ -206,7 +203,7 @@ PixelShaderOutput PixelShaderFunctionSSR(VertexShaderOutput input) : COLOR0
     return output;
 }
 
-PixelShaderOutput PixelShaderFunctionClassic(VertexShaderOutput input) : COLOR0
+PixelShaderOutput PixelShaderFunctionClassic(VertexShaderOutput input)
 {
     //obtain screen position
     float4 position;
@@ -215,13 +212,13 @@ PixelShaderOutput PixelShaderFunctionClassic(VertexShaderOutput input) : COLOR0
 
     float2 texCoord = float2(input.TexCoord);
     
-    //get normal data from the normalMap
+    //get normal data from the NormalMap
     float4 normalData = tex2D(normalSampler, texCoord);
     //tranform normal back into [-1,1] range
     float3 normal = decode(normalData.xyz); //2.0f * normalData.xyz - 1.0f;    //could do mad
     //get metalness
     float roughness = normalData.a;
-    //get specular intensity from the colorMap
+    //get specular intensity from the AlbedoMap
     float4 color = tex2D(colorSampler, texCoord);
 
     float metalness = decodeMetalness(color.a);

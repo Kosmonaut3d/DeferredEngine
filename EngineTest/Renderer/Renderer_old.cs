@@ -135,18 +135,18 @@ namespace EngineTest.Renderer
 
             Shaders.Load(content);
 
-            _virtualShadowMapGenerate = content.Load<Effect>("VirtualShadowMapsGenerate");
-            _deferredLight = content.Load<Effect>("DeferredPointLight");
+            _virtualShadowMapGenerate = content.Load<Effect>("Shaders/VirtualShadowMapsGenerate");
+            _deferredLight = content.Load<Effect>("Shaders/DeferredPointLight");
 
             _deferredSpotLight = Shaders.deferredSpotLight;
-            _deferredEnvironment = content.Load<Effect>("DeferredEnvironmentMap");
+            _deferredEnvironment = content.Load<Effect>("Shaders/DeferredEnvironmentMap");
 
-            _deferredCompose = content.Load<Effect>("DeferredCompose");
-            _glass = content.Load<Effect>("Glass");
-            _gaussBlur = content.Load<Effect>("GaussianBlur");
-            _skullEffect = content.Load<Effect>("skullEffect");
+            _deferredCompose = content.Load<Effect>("Shaders/DeferredCompose");
+            _glass = content.Load<Effect>("Shaders/Glass");
+            _gaussBlur = content.Load<Effect>("Shaders/GaussianBlur");
+            _skullEffect = content.Load<Effect>("Shaders/skullEffect");
           
-            _passThroughEffect = content.Load<Effect>("PostProcessing");
+            _passThroughEffect = content.Load<Effect>("Shaders/PostProcessing");
 
 
             skullMatrix = Matrix.CreateScale(0.9f) *
@@ -157,9 +157,9 @@ namespace EngineTest.Renderer
             SSRmatrix = new Matrix(0.5f, 0, 0, 0, 0, -0.5f, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
 
 
-            clearBufferEffect = content.Load<Effect>("ClearGBuffer");
+            clearBufferEffect = content.Load<Effect>("Shaders/ClearGBuffer");
 
-            _raymarchingEffect = content.Load<Effect>("RayMarchReflection");
+            _raymarchingEffect = content.Load<Effect>("Shaders/RayMarchReflection");
 
             LightBlendState = new BlendState
             {
@@ -281,7 +281,7 @@ namespace EngineTest.Renderer
 
             if (keyboardState.IsKeyDown(Keys.L))
             {
-                pointLights.Add(new PointLight(new Vector3((float)(random.NextDouble() * 250 - 125), (float)(random.NextDouble() * 50 - 25), (float)(-random.NextDouble() * 10) - 3), 30, new Color(random.Next(255), random.Next(255), random.Next(255)), 4, false));
+                pointLights.Add(new PointLight(new Vector3((float)(random.NextDouble() * 250 - 125), (float)(random.NextDouble() * 50 - 25), (float)(-random.NextDouble() * 10) - 3), 30, new Color(random.Next(255), random.Next(255), random.Next(255)), 4, false, 1024, false));
 
                 GetClosestLights();
                 window.Title = pointLights.Count + "";
@@ -322,13 +322,13 @@ namespace EngineTest.Renderer
             if (keyboardState.IsKeyDown(Keys.NumPad7))
             {
                 MaterialEffect mat = (MaterialEffect)_assets.HelmetModel.Meshes[4].MeshParts[0].Effect;
-                mat.Metalness = Math.Max(0, Math.Min(1, mat.Metalness - 0.01f));
+                mat.Metallic = Math.Max(0, Math.Min(1, mat.Metallic - 0.01f));
             }
 
             if (keyboardState.IsKeyDown(Keys.NumPad8))
             {
                 MaterialEffect mat = (MaterialEffect)_assets.HelmetModel.Meshes[4].MeshParts[0].Effect;
-                mat.Metalness = Math.Min(1, Math.Max(0, mat.Metalness + 0.01f));
+                mat.Metallic = Math.Min(1, Math.Max(0, mat.Metallic + 0.01f));
             }
 
             if (keyboardState.IsKeyDown(Keys.S))
@@ -830,12 +830,12 @@ namespace EngineTest.Renderer
 
             DrawModel(_assets.SponzaModel, Matrix.CreateScale(0.1f) * Matrix.CreateRotationX((float)(-Math.PI / 2)), false);
 
-            //_lightingEffect.Parameters["Metalness"].SetValue(0f);
+            //_lightingEffect.Parameters["Metallic"].SetValue(0f);
             //_lightingEffect.Parameters["Roughness"].SetValue(0.5f);
             //_lightingEffect.Parameters["DiffuseColor"].SetValue(Color.IndianRed.ToVector3());
             DrawModel(_assets.DragonUvSmoothModel, localWorld, true);
 
-            //_lightingEffect.Parameters["Metalness"].SetValue(1f);
+            //_lightingEffect.Parameters["Metallic"].SetValue(1f);
             //_lightingEffect.Parameters["Roughness"].SetValue(0.2f);
             //_lightingEffect.Parameters["DiffuseColor"].SetValue(Color.Gold.ToVector3());
             DrawModel(_assets.DragonUvSmoothModel, Matrix.CreateScale(10) *
@@ -868,12 +868,12 @@ namespace EngineTest.Renderer
 
             //                if (effect.HasMask) //Has diffuse for sure then
             //                {
-            //                    if (effect.HasNormal && effect.HasSpecular)
+            //                    if (effect.HasNormal && effect.HasRoughness)
             //                    {
             //                        _lightingEffect.Parameters["Mask"].SetValue(effect.Mask);
-            //                        _lightingEffect.Parameters["Texture"].SetValue(effect.Diffuse);
-            //                        _lightingEffect.Parameters["NormalMap"].SetValue(effect.Normal);
-            //                        _lightingEffect.Parameters["Specular"].SetValue(effect.Specular);
+            //                        _lightingEffect.Parameters["Texture"].SetValue(effect.AlbedoMap);
+            //                        _lightingEffect.Parameters["NormalMap"].SetValue(effect.NormalMap);
+            //                        _lightingEffect.Parameters["RoughnessMap"].SetValue(effect.RoughnessMap);
             //                        _lightingEffect.CurrentTechnique =
             //                            _lightingEffect.Techniques["DrawTextureSpecularNormalMask"];
             //                    }
@@ -881,22 +881,22 @@ namespace EngineTest.Renderer
             //                    else if (effect.HasNormal)
             //                    {
             //                        _lightingEffect.Parameters["Mask"].SetValue(effect.Mask);
-            //                        _lightingEffect.Parameters["Texture"].SetValue(effect.Diffuse);
-            //                        _lightingEffect.Parameters["NormalMap"].SetValue(effect.Normal);
+            //                        _lightingEffect.Parameters["Texture"].SetValue(effect.AlbedoMap);
+            //                        _lightingEffect.Parameters["NormalMap"].SetValue(effect.NormalMap);
             //                        _lightingEffect.CurrentTechnique = _lightingEffect.Techniques["DrawTextureNormalMask"];
             //                    }
 
-            //                    else if (effect.HasSpecular)
+            //                    else if (effect.HasRoughness)
             //                    {
             //                        _lightingEffect.Parameters["Mask"].SetValue(effect.Mask);
-            //                        _lightingEffect.Parameters["Texture"].SetValue(effect.Diffuse);
-            //                        _lightingEffect.Parameters["Specular"].SetValue(effect.Specular);
+            //                        _lightingEffect.Parameters["Texture"].SetValue(effect.AlbedoMap);
+            //                        _lightingEffect.Parameters["RoughnessMap"].SetValue(effect.RoughnessMap);
             //                        _lightingEffect.CurrentTechnique = _lightingEffect.Techniques["DrawTextureSpecularMask"];
             //                    }
             //                    else
             //                    {
             //                        _lightingEffect.Parameters["Mask"].SetValue(effect.Mask);
-            //                        _lightingEffect.Parameters["Texture"].SetValue(effect.Diffuse);
+            //                        _lightingEffect.Parameters["Texture"].SetValue(effect.AlbedoMap);
             //                        _lightingEffect.CurrentTechnique = _lightingEffect.Techniques["DrawTextureMask"];
             //                    }
             //                }
@@ -905,32 +905,32 @@ namespace EngineTest.Renderer
             //                else
             //                {
 
-            //                    if (effect.HasNormal && effect.HasSpecular && effect.HasDiffuse)
+            //                    if (effect.HasNormal && effect.HasRoughness && effect.HasDiffuse)
             //                    {
-            //                        _lightingEffect.Parameters["Texture"].SetValue(effect.Diffuse);
-            //                        _lightingEffect.Parameters["NormalMap"].SetValue(effect.Normal);
-            //                        _lightingEffect.Parameters["Specular"].SetValue(effect.Specular);
+            //                        _lightingEffect.Parameters["Texture"].SetValue(effect.AlbedoMap);
+            //                        _lightingEffect.Parameters["NormalMap"].SetValue(effect.NormalMap);
+            //                        _lightingEffect.Parameters["RoughnessMap"].SetValue(effect.RoughnessMap);
             //                        _lightingEffect.CurrentTechnique =
             //                            _lightingEffect.Techniques["DrawTextureSpecularNormal"];
             //                    }
 
             //                    else if (effect.HasNormal && effect.HasDiffuse)
             //                    {
-            //                        _lightingEffect.Parameters["Texture"].SetValue(effect.Diffuse);
-            //                        _lightingEffect.Parameters["NormalMap"].SetValue(effect.Normal);
+            //                        _lightingEffect.Parameters["Texture"].SetValue(effect.AlbedoMap);
+            //                        _lightingEffect.Parameters["NormalMap"].SetValue(effect.NormalMap);
             //                        _lightingEffect.CurrentTechnique = _lightingEffect.Techniques["DrawTextureNormal"];
             //                    }
 
-            //                    else if (effect.HasSpecular && effect.HasDiffuse)
+            //                    else if (effect.HasRoughness && effect.HasDiffuse)
             //                    {
-            //                        _lightingEffect.Parameters["Texture"].SetValue(effect.Diffuse);
-            //                        _lightingEffect.Parameters["Specular"].SetValue(effect.Specular);
+            //                        _lightingEffect.Parameters["Texture"].SetValue(effect.AlbedoMap);
+            //                        _lightingEffect.Parameters["RoughnessMap"].SetValue(effect.RoughnessMap);
             //                        _lightingEffect.CurrentTechnique = _lightingEffect.Techniques["DrawTextureSpecular"];
             //                    }
 
             //                    else if (effect.HasDiffuse)
             //                    {
-            //                        _lightingEffect.Parameters["Texture"].SetValue(effect.Diffuse);
+            //                        _lightingEffect.Parameters["Texture"].SetValue(effect.AlbedoMap);
             //                        _lightingEffect.CurrentTechnique = _lightingEffect.Techniques["DrawTexture"];
             //                    }
 
@@ -943,7 +943,7 @@ namespace EngineTest.Renderer
             //                if (!drake)
             //                {
             //                    _lightingEffect.Parameters["Roughness"].SetValue(effect.Roughness);
-            //                    _lightingEffect.Parameters["Metalness"].SetValue(effect.Metalness);
+            //                    _lightingEffect.Parameters["Metallic"].SetValue(effect.Metallic);
             //                    _lightingEffect.Parameters["DiffuseColor"].SetValue(effect.DiffuseColor);
             //                }
 

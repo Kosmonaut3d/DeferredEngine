@@ -19,7 +19,7 @@ namespace EngineTest.Recources
         public static EffectParameter GBufferEffectParameter_WorldViewProj;
         public static EffectParameter GBufferEffectParameter_View;
 
-        public static EffectParameter GBufferEffectParameter_Material_Metalness;
+        public static EffectParameter GBufferEffectParameter_Material_Metallic;
         public static EffectParameter GBufferEffectParameter_Material_DiffuseColor;
         public static EffectParameter GBufferEffectParameter_Material_Roughness;
         public static EffectParameter GBufferEffectParameter_Material_Mask;
@@ -27,6 +27,19 @@ namespace EngineTest.Recources
         public static EffectParameter GBufferEffectParameter_Material_NormalMap;
         public static EffectParameter GBufferEffectParameter_Material_Specular;
         public static EffectParameter GBufferEffectParameter_Material_MaterialType;
+
+        public static EffectTechnique GBufferEffectTechniques_DrawTextureSpecularNormalMask;
+        public static EffectTechnique GBufferEffectTechniques_DrawTextureNormalMask;
+        public static EffectTechnique GBufferEffectTechniques_DrawTextureSpecularMask;
+        public static EffectTechnique GBufferEffectTechniques_DrawTextureMask;
+        public static EffectTechnique GBufferEffectTechniques_DrawTextureSpecularNormalMetallic;
+        public static EffectTechnique GBufferEffectTechniques_DrawTextureSpecularNormal;
+        public static EffectTechnique GBufferEffectTechniques_DrawTextureNormal;
+        public static EffectTechnique GBufferEffectTechniques_DrawTextureSpecular;
+        public static EffectTechnique GBufferEffectTechniques_DrawTexture;
+        public static EffectTechnique GBufferEffectTechniques_DrawBasic;
+
+        //COMPOSE
 
         public static Effect DeferredCompose;
         public static EffectParameter DeferredComposeEffectParameter_ColorMap;
@@ -43,6 +56,7 @@ namespace EngineTest.Recources
         public static Effect deferredPointLight;
         public static EffectTechnique deferredPointLightUnshadowed;
         public static EffectTechnique deferredPointLightShadowed;
+        public static EffectParameter deferredPointLightParameterResolution;
         public static EffectParameter deferredPointLightParameterShadowMap;
         public static EffectParameter deferredPointLightParameterLightViewProjectionPositiveX;
         public static EffectParameter deferredPointLightParameterLightViewProjectionNegativeX;
@@ -66,6 +80,20 @@ namespace EngineTest.Recources
         public static EffectParameter deferredPointLightParameter_NormalMap;
         public static EffectParameter deferredPointLightParameter_DepthMap;
 
+        //DeferredEnvironment
+
+
+        public static Effect deferredEnvironment;
+        public static EffectParameter deferredEnvironmentParameter_AlbedoMap;
+        public static EffectParameter deferredEnvironmentParameter_NormalMap;
+        public static EffectParameter deferredEnvironmentParameter_DepthMap;
+        public static EffectParameter deferredEnvironmentParameterCameraPosition;
+        public static EffectParameter deferredEnvironmentParameterInverseViewProjection;
+
+        //SHADOW MAPPING
+
+        public static Effect virtualShadowMappingEffect;
+        public static EffectParameter virtualShadowMappingEffectParameter_WorldViewProj;
 
         //SSR
 
@@ -81,29 +109,43 @@ namespace EngineTest.Recources
 
         public static void Load(ContentManager content)
         {
-            ClearGBufferEffect = content.Load<Effect>("ClearGBuffer");
+            ClearGBufferEffect = content.Load<Effect>("Shaders/ClearGBuffer");
 
             //Gbuffer
-            GBufferEffect = content.Load<Effect>("GBuffer");
+            GBufferEffect = content.Load<Effect>("Shaders/GBuffer");
 
             GBufferEffectParameter_World = GBufferEffect.Parameters["World"];
             GBufferEffectParameter_WorldViewProj = GBufferEffect.Parameters["WorldViewProj"];
             GBufferEffectParameter_View = GBufferEffect.Parameters["View"];
 
-            GBufferEffectParameter_Material_Metalness = GBufferEffect.Parameters["Metalness"];
+            GBufferEffectParameter_Material_Metallic = GBufferEffect.Parameters["Metallic"];
             GBufferEffectParameter_Material_DiffuseColor = GBufferEffect.Parameters["DiffuseColor"];
             GBufferEffectParameter_Material_Roughness = GBufferEffect.Parameters["Roughness"];
 
             GBufferEffectParameter_Material_Mask = GBufferEffect.Parameters["Mask"];
             GBufferEffectParameter_Material_Texture = GBufferEffect.Parameters["Texture"];
             GBufferEffectParameter_Material_NormalMap = GBufferEffect.Parameters["NormalMap"];
-            GBufferEffectParameter_Material_Specular = GBufferEffect.Parameters["Specular"];
+            GBufferEffectParameter_Material_Specular = GBufferEffect.Parameters["RoughnessMap"];
 
             GBufferEffectParameter_Material_MaterialType = GBufferEffect.Parameters["MaterialType"];
 
+            //Techniques
+
+            GBufferEffectTechniques_DrawTextureSpecularNormalMask = GBufferEffect.Techniques["DrawTextureSpecularNormalMask"];
+            GBufferEffectTechniques_DrawTextureNormalMask = GBufferEffect.Techniques["DrawTextureNormalMask"];
+            GBufferEffectTechniques_DrawTextureSpecularMask = GBufferEffect.Techniques["DrawTextureSpecularMask"];
+            GBufferEffectTechniques_DrawTextureMask = GBufferEffect.Techniques["DrawTextureMask"];
+            GBufferEffectTechniques_DrawTextureSpecularNormalMetallic = GBufferEffect.Techniques["DrawTextureSpecularNormalMetallic"];
+            GBufferEffectTechniques_DrawTextureSpecularNormal = GBufferEffect.Techniques["DrawTextureSpecularNormal"];
+            GBufferEffectTechniques_DrawTextureNormal = GBufferEffect.Techniques["DrawTextureNormal"];
+            GBufferEffectTechniques_DrawTextureSpecular = GBufferEffect.Techniques["DrawTextureSpecular"];
+            GBufferEffectTechniques_DrawTexture = GBufferEffect.Techniques["DrawTexture"];
+            GBufferEffectTechniques_DrawBasic = GBufferEffect.Techniques["DrawBasic"];
+
+
             //DeferredCompose
 
-            DeferredCompose = content.Load<Effect>("DeferredCompose");
+            DeferredCompose = content.Load<Effect>("Shaders/DeferredCompose");
 
             DeferredComposeEffectParameter_ColorMap = DeferredCompose.Parameters["colorMap"];
             DeferredComposeEffectParameter_diffuseLightMap = DeferredCompose.Parameters["diffuseLightMap"];
@@ -112,7 +154,7 @@ namespace EngineTest.Recources
 
             //DeferredLights
 
-            deferredSpotLight = content.Load<Effect>("DeferredSpotLight");
+            deferredSpotLight = content.Load<Effect>("Shaders/DeferredSpotLight");
 
             deferredSpotLightUnshadowed = deferredSpotLight.Techniques["Unshadowed"];
             deferredSpotLightShadowed = deferredSpotLight.Techniques["Shadowed"];
@@ -120,7 +162,7 @@ namespace EngineTest.Recources
             deferredSpotLightParameterShadowMap = deferredSpotLight.Parameters["shadowMap"];
 
             //PL
-            deferredPointLight = content.Load<Effect>("DeferredPointLight");
+            deferredPointLight = content.Load<Effect>("Shaders/DeferredPointLight");
 
             deferredPointLightUnshadowed = deferredPointLight.Techniques["Unshadowed"];
             deferredPointLightShadowed = deferredPointLight.Techniques["Shadowed"];
@@ -135,6 +177,7 @@ namespace EngineTest.Recources
             deferredPointLightParameterLightViewProjectionPositiveZ = deferredPointLight.Parameters["LightViewProjectionPositiveZ"];
             deferredPointLightParameterLightViewProjectionNegativeZ = deferredPointLight.Parameters["LightViewProjectionNegativeZ"];
 
+            deferredPointLightParameterResolution = deferredPointLight.Parameters["Resolution"];
             deferredPointLightParameterViewProjection = deferredPointLight.Parameters["ViewProjection"];
             deferredPointLightParameterCameraPosition = deferredPointLight.Parameters["cameraPosition"];
             deferredPointLightParameterInverseViewProjection = deferredPointLight.Parameters["InvertViewProjection"];
@@ -150,9 +193,22 @@ namespace EngineTest.Recources
             deferredPointLightParameter_NormalMap = deferredPointLight.Parameters["NormalMap"];
             deferredPointLightParameter_DepthMap = deferredPointLight.Parameters["DepthMap"];
 
+            //Environment
+            deferredEnvironment = content.Load<Effect>("Shaders/DeferredEnvironmentMap");
+            deferredEnvironmentParameter_AlbedoMap = deferredEnvironment.Parameters["AlbedoMap"];
+            deferredEnvironmentParameter_NormalMap = deferredEnvironment.Parameters["NormalMap"];
+            deferredEnvironmentParameter_DepthMap = deferredEnvironment.Parameters["DepthMap"];
+
+            deferredEnvironmentParameterCameraPosition = deferredEnvironment.Parameters["cameraPosition"];
+            deferredEnvironmentParameterInverseViewProjection = deferredEnvironment.Parameters["InvertViewProjection"];
+
+            //VSM
+
+            virtualShadowMappingEffect = content.Load<Effect>("Shaders/VirtualShadowMapsGenerate");
+            virtualShadowMappingEffectParameter_WorldViewProj = virtualShadowMappingEffect.Parameters["WorldViewProj"];
 
             //SSReflections
-            SSReflectionEffect = content.Load<Effect>("SSReflectionEffect");
+            SSReflectionEffect = content.Load<Effect>("Shaders/SSReflectionEffect");
 
             SSReflectionEffectParameter_InvertViewProjection = SSReflectionEffect.Parameters["InvertViewProjection"];
             SSReflectionEffectParameter_ViewProjection = SSReflectionEffect.Parameters["ViewProjection"];

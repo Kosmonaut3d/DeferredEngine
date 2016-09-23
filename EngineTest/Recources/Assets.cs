@@ -43,6 +43,7 @@ namespace EngineTest.Recources
             private Texture2D vase_round_ddn;
             private Texture2D vase_round_spec;
 
+            private Texture2D sponza_curtain_metallic;
 
             public Model SkullModel { get; set; }
 
@@ -54,10 +55,13 @@ namespace EngineTest.Recources
 
             public Model Sphere;
             public MaterialEffect baseMaterial;
+            public MaterialEffect goldMaterial;
+            public MaterialEffect silverMaterial;
 
             public void Load(ContentManager content)
             {
                 DragonUvSmoothModel = content.Load<Model>("dragon_uv_smooth");
+
                 SponzaModel = content.Load<Model>("Sponza/Sponza");
                 HelmetModel = content.Load<Model>("daft_helmets");
                 SkullModel = content.Load<Model>("skull");
@@ -97,6 +101,7 @@ namespace EngineTest.Recources
                 SponzaTextures.Add(vase_round_ddn = content.Load<Texture2D>("Sponza/textures/vase_round_ddn"));
                 SponzaTextures.Add(vase_round_spec = content.Load<Texture2D>("Sponza/textures/vase_round_spec"));
 
+                sponza_curtain_metallic = content.Load<Texture2D>("Sponza/textures/sponza_curtain_metallic");
 
                 Sphere = content.Load<Model>("sphere");
 
@@ -111,9 +116,33 @@ namespace EngineTest.Recources
                 ProcessHelmets();
 
 
-                baseMaterial = new MaterialEffect(Shaders.ClearGBufferEffect);
-                baseMaterial.Initialize(Color.Red, 0.2f, 0);
+                baseMaterial = CreateMaterial(Color.Red, 0.3f, 0);
+
+                goldMaterial = CreateMaterial(Color.Gold, 0.2f, 1);
+
+                silverMaterial = CreateMaterial(Color.Silver, 0.05f, 1);
             }
+
+           
+            /// <summary>
+            /// Create custom materials, you can add certain maps like Albedo, normal, etc. if you like.
+            /// </summary>
+            /// <param name="color"></param>
+            /// <param name="roughness">can be overwritten by a roughnessMap</param>
+            /// <param name="metallic">can be overwritten by a metallicMap</param>
+            /// <param name="albedoMap"></param>
+            /// <param name="normalMap"></param>
+            /// <param name="roughnessMap"></param>
+            /// <param name="metallicMap"></param>
+            /// <param name="mask"></param>
+            /// <returns></returns>
+            private MaterialEffect CreateMaterial(Color color, float roughness, float metallic, Texture2D albedoMap = null, Texture2D normalMap = null, Texture2D roughnessMap = null, Texture2D metallicMap = null, Texture2D mask = null, int type = 0)
+            {
+                MaterialEffect mat = new MaterialEffect(Shaders.ClearGBufferEffect);
+                mat.Initialize(color, roughness, metallic, albedoMap, normalMap, roughnessMap, metallicMap, mask, type);
+                return mat;
+            }
+
 
             private void ProcessHelmets()
             {
@@ -161,7 +190,7 @@ namespace EngineTest.Recources
                         {
                             matEffect.DiffuseColor = new Color(255,255,155).ToVector3()*0.5f;
                             matEffect.Roughness = 0.3f;
-                            matEffect.Metalness = 0.8f;
+                            matEffect.Metallic = 0.8f;
                             matEffect.MaterialType = 3;
                         }
 
@@ -179,8 +208,15 @@ namespace EngineTest.Recources
 
             private void ProcessSponza()
             {
+               
+
                 foreach (ModelMesh mesh in SponzaModel.Meshes)
                 {
+                    if (mesh.Name == "g sponza_04")
+                    {
+                        mesh.BoundingSphere = new BoundingSphere(new Vector3(-100000,0,0),0 );
+                    }
+
                     foreach (ModelMeshPart meshPart in mesh.MeshParts)
                     {
                         MaterialEffect matEffect = new MaterialEffect(meshPart.Effect);
@@ -192,27 +228,33 @@ namespace EngineTest.Recources
 
                         if (oEffect.TextureEnabled)
                         {
-                            matEffect.Diffuse = oEffect.Texture;
+                            matEffect.AlbedoMap = oEffect.Texture;
 
-                            string[] name = matEffect.Diffuse.Name.Split('\\');
+                            string[] name = matEffect.AlbedoMap.Name.Split('\\');
 
                             string compare = name[2].Replace("_0", "");
 
                             if (compare.Contains("vase_round") || compare.Contains("vase_hanging"))
                             {
                                 matEffect.Roughness = 0.1f;
-                                matEffect.Metalness = 0.5f;
+                                matEffect.Metallic = 0.5f;
                             }
 
                             if (compare.Contains("chain"))
                             {
                                 matEffect.Roughness = 0.5f;
-                                matEffect.Metalness = 1f;
+                                matEffect.Metallic = 1f;
                             }
+
+                            if (compare.Contains("curtain"))
+                            {
+                                matEffect.MetallicMap = sponza_curtain_metallic;
+                            }
+
 
                             if (compare.Contains("lion"))
                             {
-                                matEffect.Metalness = 0.9f;
+                                matEffect.Metallic = 0.9f;
                             }
 
                             if (compare.Contains("_diff"))
@@ -232,12 +274,12 @@ namespace EngineTest.Recources
 
                                     if(ending == "_spec")
                                     {
-                                        matEffect.Specular = tex2d;
+                                        matEffect.RoughnessMap = tex2d;
                                     }
 
                                     if (ending == "_ddn")
                                     {
-                                        matEffect.Normal = tex2d;
+                                        matEffect.NormalMap = tex2d;
                                     }
 
                                     if (ending == "_mask")

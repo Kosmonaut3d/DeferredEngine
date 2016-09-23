@@ -51,12 +51,6 @@
 /processorParam:TextureFormat=Color
 /build:Sponza/Sponza.obj
 
-#begin ClearGBuffer.fx
-/importer:EffectImporter
-/processor:EffectProcessor
-/processorParam:DebugMode=Auto
-/build:ClearGBuffer.fx
-
 #begin sphere.x
 /importer:XImporter
 /processor:ModelProcessor
@@ -75,54 +69,6 @@
 /processorParam:SwapWindingOrder=False
 /processorParam:TextureFormat=DxtCompressed
 /build:sphere.x
-
-#begin DeferredRecombine.fx
-/importer:EffectImporter
-/processor:EffectProcessor
-/processorParam:DebugMode=Auto
-/build:DeferredRecombine.fx
-
-#begin DeferredPointLight.fx
-/importer:EffectImporter
-/processor:EffectProcessor
-/processorParam:DebugMode=Auto
-/build:DeferredPointLight.fx
-
-#begin DeferredCompose.fx
-/importer:EffectImporter
-/processor:EffectProcessor
-/processorParam:DebugMode=Auto
-/build:DeferredCompose.fx
-
-#begin RayMarchReflection.fx
-/importer:EffectImporter
-/processor:EffectProcessor
-/processorParam:DebugMode=Auto
-/build:RayMarchReflection.fx
-
-#begin DeferredSpotLight.fx
-/importer:EffectImporter
-/processor:EffectProcessor
-/processorParam:DebugMode=Auto
-/build:DeferredSpotLight.fx
-
-#begin Glass.fx
-/importer:EffectImporter
-/processor:EffectProcessor
-/processorParam:DebugMode=Auto
-/build:Glass.fx
-
-#begin VirtualShadowMapsGenerate.fx
-/importer:EffectImporter
-/processor:EffectProcessor
-/processorParam:DebugMode=Auto
-/build:VirtualShadowMapsGenerate.fx
-
-#begin GaussianBlur.fx
-/importer:EffectImporter
-/processor:EffectProcessor
-/processorParam:DebugMode=Auto
-/build:GaussianBlur.fx
 
 #begin daft_helmets.obj
 /importer:OpenAssetImporter
@@ -162,29 +108,11 @@
 /processorParam:TextureFormat=DxtCompressed
 /build:skull.obj
 
-#begin skullEffect.fx
-/importer:EffectImporter
-/processor:EffectProcessor
-/processorParam:DebugMode=Auto
-/build:skullEffect.fx
-
-#begin DeferredEnvironmentMap.fx
-/importer:EffectImporter
-/processor:EffectProcessor
-/processorParam:DebugMode=Auto
-/build:DeferredEnvironmentMap.fx
-
 #begin Bloom.fx
 /importer:EffectImporter
 /processor:EffectProcessor
 /processorParam:DebugMode=Auto
 /build:Bloom.fx
-
-#begin PostProcessing.fx
-/importer:EffectImporter
-/processor:EffectProcessor
-/processorParam:DebugMode=Auto
-/build:PostProcessing.fx
 
 #begin Sponza/textures/background.jpg
 /importer:TextureImporter
@@ -906,21 +834,117 @@
 /processorParam:TextureFormat=Color
 /build:Sponza/textures/sponza_floor_a_ddn.png
 
-#begin Gbuffer.fx
-/importer:EffectImporter
-/processor:EffectProcessor
-/processorParam:DebugMode=Auto
-/build:Gbuffer.fx
-
-#begin SSReflectionEffect.fx
-/importer:EffectImporter
-/processor:EffectProcessor
-/processorParam:DebugMode=Auto
-/build:SSReflectionEffect.fx
-
 #begin Fonts/defaultfont.spritefont
 /importer:FontDescriptionImporter
 /processor:FontDescriptionProcessor
 /processorParam:TextureFormat=Compressed
 /build:Fonts/defaultfont.spritefont
+
+#begin Sponza/textures/sponza_curtain_metallic.jpg
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Sponza/textures/sponza_curtain_metallic.jpg
+
+#begin Shaders/ClearGBuffer.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/ClearGBuffer.fx
+
+#begin Shaders/DeferredCompose.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/DeferredCompose.fx
+
+#begin Shaders/DeferredEnvironmentMap.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/DeferredEnvironmentMap.fx
+
+#begin Shaders/DeferredPointLight.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/DeferredPointLight.fx
+
+#begin Shaders/DeferredPointLight_test.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/DeferredPointLight_test.fx
+
+#begin Shaders/DeferredPointLightGI.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/DeferredPointLightGI.fx
+
+#begin Shaders/DeferredRecombine.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/DeferredRecombine.fx
+
+#begin Shaders/DeferredSpotLight.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/DeferredSpotLight.fx
+
+#begin Shaders/GaussianBlur.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/GaussianBlur.fx
+
+#begin Shaders/Gbuffer.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/Gbuffer.fx
+
+#begin Shaders/Glass.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/Glass.fx
+
+#begin Shaders/PostProcessing.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/PostProcessing.fx
+
+#begin Shaders/RayMarchReflection.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/RayMarchReflection.fx
+
+#begin Shaders/skullEffect.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/skullEffect.fx
+
+#begin Shaders/SSReflectionEffect.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/SSReflectionEffect.fx
+
+#begin Shaders/VirtualShadowMapsGenerate.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/VirtualShadowMapsGenerate.fx
 

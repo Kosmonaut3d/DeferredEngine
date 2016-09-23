@@ -5,11 +5,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using EngineTest.Entities;
+using EngineTest.Main;
 using EngineTest.Recources;
 using EngineTest.Renderer.Helper;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 
 namespace EngineTest.Renderer
 {
@@ -23,8 +25,7 @@ namespace EngineTest.Renderer
         private SpriteBatch _spriteBatch;
         private QuadRenderer _quadRenderer;
 
-        private int _screenHeight;
-        private int _screenWidth;
+        private float _supersampling = 1;
 
         private Assets _assets;
 
@@ -37,6 +38,7 @@ namespace EngineTest.Renderer
         private Matrix _inverseViewProjection;
 
         private BoundingFrustum _boundingFrustum;
+        private BoundingFrustum _boundingFrustumShadow;
 
         //RenderTargets
         public enum RenderModes { Skull, Albedo, Normal, Depth, Deferred, Diffuse, Specular, SSR };
@@ -64,13 +66,17 @@ namespace EngineTest.Renderer
 
         private RenderTarget2D _renderTargetSSReflection;
 
+        //Cubemap
+        private RenderTargetCube _renderTargetCubeMap;
+
         //BlendStates
         
         private BlendState _lightBlendState;
-        
+
 
         /////////////////////////////////////////////////////// FUNCTIONS ////////////////////////////////
 
+        #region initialize
         //Done after Load
         public void Initialize(GraphicsDevice graphicsDevice, Assets assets)
         {
@@ -78,9 +84,7 @@ namespace EngineTest.Renderer
             _quadRenderer = new QuadRenderer();
             _spriteBatch = new SpriteBatch(graphicsDevice);
 
-            _screenWidth = _graphicsDevice.PresentationParameters.BackBufferWidth;
-            _screenHeight = _graphicsDevice.PresentationParameters.BackBufferHeight;
-            SetUpRenderTargets(_graphicsDevice.PresentationParameters.BackBufferWidth, _graphicsDevice.PresentationParameters.BackBufferHeight);
+            //SetUpRenderTargets(_graphicsDevice.PresentationParameters.BackBufferWidth, _graphicsDevice.PresentationParameters.BackBufferHeight);
 
             _assets = assets;
         }
@@ -102,13 +106,26 @@ namespace EngineTest.Renderer
                 AlphaDestinationBlend = Blend.One
             };
         }
+#endregion
 
+        
         //Main Draw!
         public void Draw(Camera camera, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities, List<PointLight> pointLights)
         {
             //Reset the mesh count
-
+            
             ResetStats();
+
+            CheckRenderChanges();
+
+            DrawShadows(meshMaterialLibrary, entities, pointLights, camera);
+
+            if ((Input.WasKeyPressed(Keys.C)&&!DebugScreen.ConsoleOpen) || GameSettings.g_EnvironmentMappingEveryFrame || _renderTargetCubeMap == null)
+            {
+                DrawCubeMap(camera.Position, meshMaterialLibrary, entities, pointLights);
+                camera.HasChanged = true;
+            }
+
 
             UpdateViewProjection(camera, meshMaterialLibrary, entities);
 
@@ -118,11 +135,99 @@ namespace EngineTest.Renderer
 
             DrawGBuffer(meshMaterialLibrary, entities);
 
-            DrawLights(pointLights, camera);
+            DrawLights(pointLights, camera.Position);
+
+            DrawEnvironmentMap(camera);
 
             Compose();
 
             RenderMode();
+
+            meshMaterialLibrary.FrustumCullingFinalizeFrame(entities);
+
+        }
+
+
+
+        private void DrawCubeMap(Vector3 origin, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities,
+            List<PointLight> pointLights)
+        {
+            if (_renderTargetCubeMap == null) // _renderTargetCubeMap.Dispose();
+            {
+                _renderTargetCubeMap = new RenderTargetCube(_graphicsDevice, 512, true, SurfaceFormat.Color,
+                    DepthFormat.Depth24, 0, RenderTargetUsage.PreserveContents);
+
+                Shaders.deferredEnvironment.Parameters["ReflectionCubeMap"].SetValue(_renderTargetCubeMap);
+            }
+            SetUpRenderTargets(512, 512);
+
+            _projection = Matrix.CreatePerspectiveFieldOfView((float) (Math.PI/2), 1, 1, 200);
+
+            for (int i = 0; i < 6; i++)
+            {
+                // render the scene to all cubemap faces
+                CubeMapFace cubeMapFace = (CubeMapFace) i;
+
+                switch (cubeMapFace)
+                {
+                    case CubeMapFace.NegativeX:
+                    {
+                        _view = Matrix.CreateLookAt(origin, origin + Vector3.Left, Vector3.Up);
+                        break;
+                    }
+                    case CubeMapFace.NegativeY:
+                    {
+                        _view = Matrix.CreateLookAt(origin, origin + Vector3.Down, Vector3.Forward);
+                        break;
+                    }
+                    case CubeMapFace.NegativeZ:
+                    {
+                        _view = Matrix.CreateLookAt(origin, origin + Vector3.Backward, Vector3.Up);
+                        break;
+                    }
+                    case CubeMapFace.PositiveX:
+                    {
+                        _view = Matrix.CreateLookAt(origin, origin + Vector3.Right, Vector3.Up);
+                        break;
+                    }
+                    case CubeMapFace.PositiveY:
+                    {
+                        _view = Matrix.CreateLookAt(origin, origin + Vector3.Up, Vector3.Backward);
+                        break;
+                    }
+                    case CubeMapFace.PositiveZ:
+                    {
+                        _view = Matrix.CreateLookAt(origin, origin + Vector3.Forward, Vector3.Up);
+                        break;
+                    }
+                }
+
+                _viewProjection = _view*_projection;
+                _inverseViewProjection = Matrix.Invert(_viewProjection);
+
+                viewProjectionHasChanged = true;
+
+                if (_boundingFrustum != null)
+                    _boundingFrustum.Matrix = _viewProjection;
+                else
+                    _boundingFrustum = new BoundingFrustum(_viewProjection);
+                //cull
+                meshMaterialLibrary.FrustumCulling(entities, _boundingFrustum, true, origin);
+
+                SetUpGBuffer();
+
+                DrawGBuffer(meshMaterialLibrary, entities);
+
+                DrawLights(pointLights, origin);
+
+                Compose();
+
+                DrawMapToScreenToCube(_renderTargetFinal, _renderTargetCubeMap, cubeMapFace);
+
+            }
+
+            SetUpRenderTargets(1280,800);
+
         }
 
         private void RenderMode()
@@ -150,22 +255,238 @@ namespace EngineTest.Renderer
             }
         }
 
+        #region Shadow Mapping
+
+        //todo: don't draw shadows for lights that are not visible
+        private void DrawShadows(MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities, List<PointLight> pointLights, Camera camera)
+        {
+            //Don't render for the first frame, we need a guideline first
+            if (_boundingFrustum == null) return;
+
+            _graphicsDevice.DepthStencilState = DepthStencilState.Default;
+
+            foreach (PointLight light in pointLights)
+            {
+                if (_boundingFrustum.Contains(light.BoundingSphere) == ContainmentType.Disjoint)
+                {
+                    continue;
+                }
+
+                GameStats.shadowMaps += 6;
+
+                if (light.DrawShadow)
+                {
+                    //Check for static
+                    if (!light.StaticShadows || light.shadowMapCube == null)
+                    {
+                        CreateCubeShadowMap(light, light.ShadowResolution, meshMaterialLibrary, entities);
+                        camera.HasChanged = true;
+                        light.HasChanged = false;
+                    }
+                }
+            }
+        }
+
+        private void CreateCubeShadowMap(PointLight light, int size, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities )
+        {
+            if (light.shadowMapCube == null)
+                light.shadowMapCube = new RenderTargetCube(_graphicsDevice, size, false, SurfaceFormat.Vector2, DepthFormat.Depth24, 0, RenderTargetUsage.PreserveContents);
+
+            Matrix LightViewProjection = new Matrix();
+            CubeMapFace cubeMapFace = CubeMapFace.NegativeX;
+
+            if (light.HasChanged)
+            {
+                Matrix LightProjection = Matrix.CreatePerspectiveFieldOfView((float) (Math.PI/2), 1, 1, light.Radius);
+                Matrix LightView = Matrix.Identity;
+
+                for (int i = 0; i < 6; i++)
+                {
+                    // render the scene to all cubemap faces
+                    cubeMapFace = (CubeMapFace) i;
+
+                    switch (cubeMapFace)
+                    {
+                        case CubeMapFace.NegativeX:
+                        {
+                            LightView = Matrix.CreateLookAt(light.Position, light.Position + Vector3.Left, Vector3.Up);
+
+                            LightViewProjection = LightView*LightProjection;
+
+                            light.LightViewProjectionNegativeX = LightViewProjection;
+                            break;
+                        }
+                        case CubeMapFace.NegativeY:
+                        {
+                            LightView = Matrix.CreateLookAt(light.Position, light.Position + Vector3.Down,
+                                Vector3.Forward);
+
+                            LightViewProjection = LightView*LightProjection;
+
+                            light.LightViewProjectionNegativeY = LightViewProjection;
+                            break;
+                        }
+                        case CubeMapFace.NegativeZ:
+                        {
+                            LightView = Matrix.CreateLookAt(light.Position, light.Position + Vector3.Backward,
+                                Vector3.Up);
+
+                            LightViewProjection = LightView*LightProjection;
+
+                            light.LightViewProjectionNegativeZ = LightViewProjection;
+                            break;
+                        }
+                        case CubeMapFace.PositiveX:
+                        {
+                            LightView = Matrix.CreateLookAt(light.Position, light.Position + Vector3.Right, Vector3.Up);
+
+                            LightViewProjection = LightView*LightProjection;
+
+                            light.LightViewProjectionPositiveX = LightViewProjection;
+                            break;
+                        }
+                        case CubeMapFace.PositiveY:
+                        {
+                            LightView = Matrix.CreateLookAt(light.Position, light.Position + Vector3.Up,
+                                Vector3.Backward);
+
+                            LightViewProjection = LightView*LightProjection;
+
+                            light.LightViewProjectionPositiveY = LightViewProjection;
+                            break;
+                        }
+                        case CubeMapFace.PositiveZ:
+                        {
+                            LightView = Matrix.CreateLookAt(light.Position, light.Position + Vector3.Forward, Vector3.Up);
+
+                            LightViewProjection = LightView*LightProjection;
+
+                            light.LightViewProjectionPositiveZ = LightViewProjection;
+
+                            break;
+                        }
+                    }
+
+                    if (_boundingFrustumShadow != null)
+                        _boundingFrustumShadow.Matrix = LightViewProjection;
+                    else
+                        _boundingFrustumShadow = new BoundingFrustum(LightViewProjection);
+
+                    meshMaterialLibrary.FrustumCulling(entities, _boundingFrustumShadow, true, light.Position);
+
+                    // Rendering!
+
+                    _graphicsDevice.SetRenderTarget(light.shadowMapCube, cubeMapFace);
+                    _graphicsDevice.Clear(ClearOptions.DepthBuffer, Color.White, 1, 0);
+
+                    meshMaterialLibrary.Draw(true, _graphicsDevice, LightViewProjection, true, light.HasChanged);
+                }
+            }
+            else
+            {
+                for (int i = 0; i < 6; i++)
+                {
+                    // render the scene to all cubemap faces
+                    cubeMapFace = (CubeMapFace)i;
+
+                    switch (cubeMapFace)
+                    {
+                        case CubeMapFace.NegativeX:
+                        {
+                            LightViewProjection = light.LightViewProjectionNegativeX;
+                            break;
+                        }
+                        case CubeMapFace.NegativeY:
+                        {
+                            LightViewProjection = light.LightViewProjectionNegativeY;
+                            break;
+                        }
+                        case CubeMapFace.NegativeZ:
+                        {
+                            LightViewProjection = light.LightViewProjectionNegativeZ;
+                            break;
+                        }
+                        case CubeMapFace.PositiveX:
+                        {
+                            LightViewProjection = light.LightViewProjectionPositiveX;
+                            break;
+                        }
+                        case CubeMapFace.PositiveY:
+                        {
+                            LightViewProjection = light.LightViewProjectionPositiveY;
+                            break;
+                        }
+                        case CubeMapFace.PositiveZ:
+                        {
+                            LightViewProjection = light.LightViewProjectionPositiveZ;
+
+                            break;
+                        }
+                    }
+
+                    if (_boundingFrustumShadow != null)
+                        _boundingFrustumShadow.Matrix = LightViewProjection;
+                    else
+                        _boundingFrustumShadow = new BoundingFrustum(LightViewProjection);
+
+                    bool hasAnyObjectMoved = meshMaterialLibrary.FrustumCulling(entities, _boundingFrustumShadow, false, light.Position);
+
+                    // Rendering!
+
+                    if (!hasAnyObjectMoved) continue;
+
+                    _graphicsDevice.SetRenderTarget(light.shadowMapCube, cubeMapFace);
+
+                    meshMaterialLibrary.Draw(shadow: true,
+                        graphicsDevice: _graphicsDevice,
+                        viewProjection: LightViewProjection,
+                        opaque: true,
+                        lightViewPointChanged: light.HasChanged,
+                        hasAnyObjectMoved: true);
+                }
+
+            //Culling!
+
+
+            }
+
+        }
+
+        #endregion
+
         #region draw
+
+        private void DrawEnvironmentMap(Camera camera)
+        {
+            if (!GameSettings.g_EnvironmentMapping) return;
+
+            _graphicsDevice.DepthStencilState = DepthStencilState.Default;
+            _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+            Shaders.deferredEnvironmentParameterInverseViewProjection.SetValue(_inverseViewProjection);
+
+           Shaders.deferredEnvironmentParameterCameraPosition.SetValue(camera.Position);
+
+            Shaders.deferredEnvironment.CurrentTechnique = GameSettings.g_SSR
+                ? Shaders.deferredEnvironment.Techniques["g_SSR"]
+                : Shaders.deferredEnvironment.Techniques["Classic"];
+            Shaders.deferredEnvironment.CurrentTechnique.Passes[0].Apply();
+            _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+        }
 
         /// <summary>
         /// Draw all light sources in a deferred Renderer!
         /// </summary>
         /// <param name="pointLights"></param>
         /// <param name="camera"></param>
-        private void DrawLights(List<PointLight> pointLights, Camera camera)
+        private void DrawLights(List<PointLight> pointLights, Vector3 cameraOrigin)
         {
             _graphicsDevice.SetRenderTargets(_renderTargetLightBinding);
 
-            DrawPointLights(pointLights, camera);
+            DrawPointLights(pointLights, cameraOrigin);
         }
 
         //Draw the pointlights
-        private void DrawPointLights( List<PointLight> pointLights,Camera camera)
+        private void DrawPointLights( List<PointLight> pointLights,Vector3 cameraOrigin)
         {
             _graphicsDevice.BlendState = _lightBlendState;
 
@@ -173,21 +494,21 @@ namespace EngineTest.Renderer
             if (viewProjectionHasChanged)
             {
                 Shaders.deferredPointLightParameterViewProjection.SetValue(_viewProjection);
-                Shaders.deferredPointLightParameterCameraPosition.SetValue(camera.Position);
+                Shaders.deferredPointLightParameterCameraPosition.SetValue(cameraOrigin);
                 Shaders.deferredPointLightParameterInverseViewProjection.SetValue(_inverseViewProjection);
             }
 
-            _graphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
+            _graphicsDevice.DepthStencilState = DepthStencilState.Default;
 
             for (int index = 0; index < pointLights.Count; index++)
             {
                 PointLight light = pointLights[index];
-                DrawPointLight(light, camera);
+                DrawPointLight(light, cameraOrigin);
             }
         }
 
         //Draw each individual Point light
-        private void DrawPointLight(PointLight light, Camera _camera)
+        private void DrawPointLight(PointLight light, Vector3 cameraOrigin)
         {
             //todo: Optimize the culling and do it with the HasChanged thing like the models!
             //first let's check if the light is even in bounds
@@ -208,7 +529,7 @@ namespace EngineTest.Renderer
             Shaders.deferredPointLightParameter_LightIntensity.SetValue(light.Intensity);
             //parameters for specular computations
 
-            float cameraToCenter = Vector3.Distance(_camera.Position, light.Position);
+            float cameraToCenter = Vector3.Distance(cameraOrigin, light.Position);
 
             bool inside = cameraToCenter < light.Radius*1.2f;
             Shaders.deferredPointLightParameter_Inside.SetValue(inside);
@@ -233,27 +554,37 @@ namespace EngineTest.Renderer
             }
         }
 
+        private void DrawMapToScreenToCube(RenderTarget2D map, RenderTargetCube target, CubeMapFace? face)
+        {
+
+            if (face != null) _graphicsDevice.SetRenderTarget(target, (CubeMapFace)face);
+           // _graphicsDevice.Clear(Color.CornflowerBlue);
+            _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.PointClamp);
+            _spriteBatch.Draw(map, new Rectangle(0, 0, map.Width, map.Height), Color.White);
+            _spriteBatch.End();
+        }
+
         private void DrawMapToScreenToFullScreen(RenderTarget2D map)
         {
             int height;
             int width;
-            if (Math.Abs(map.Width / (float)map.Height - _screenWidth / (float)_screenHeight) < 0.001)
-            //If same aspectration
+            if (Math.Abs(map.Width / (float)map.Height - GameSettings.g_ScreenWidth / (float)GameSettings.g_ScreenHeight) < 0.001)
+            //If same aspectratio
             {
-                height = _screenHeight;
-                width = _screenWidth;
+                height = GameSettings.g_ScreenHeight;
+                width = GameSettings.g_ScreenWidth;
             }
             else
             {
-                if (_screenHeight < _screenWidth)
+                if (GameSettings.g_ScreenHeight < GameSettings.g_ScreenWidth)
                 {
-                    height = _screenHeight;
-                    width = _screenHeight;
+                    height = GameSettings.g_ScreenHeight;
+                    width = GameSettings.g_ScreenHeight;
                 }
                 else
                 {
-                    height = _screenWidth;
-                    width = _screenWidth;
+                    height = GameSettings.g_ScreenWidth;
+                    width = GameSettings.g_ScreenWidth;
                 }
             }
             _graphicsDevice.SetRenderTarget(null);
@@ -269,7 +600,7 @@ namespace EngineTest.Renderer
             _graphicsDevice.SetRenderTargets(_renderTargetFinalBinding);
 
             //Skull depth
-            //_deferredCompose.Parameters["average_skull_depth"].SetValue(Vector3.Distance(_camera.Position , new Vector3(29, 0, -6.5f)));
+            //_deferredCompose.Parameters["average_skull_depth"].SetValue(Vector3.Distance(camera.Position , new Vector3(29, 0, -6.5f)));
 
 
             //combine!
@@ -292,11 +623,11 @@ namespace EngineTest.Renderer
             //current state should be
             //blendstate.opaque
             //defaultDepthStencilState
-            //renderTarget = albedo/normal/depth
+            //renderTarget = albedo/normal/depth_v
 
             _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
 
-            meshMaterialLibrary.Draw(false, _graphicsDevice, _view*_projection, true);
+            meshMaterialLibrary.Draw(false, _graphicsDevice, _viewProjection, true);
         }
 
         #endregion
@@ -310,6 +641,19 @@ namespace EngineTest.Renderer
             GameStats.MaterialDraws = 0;
             GameStats.MeshDraws = 0;
             GameStats.LightsDrawn = 0;
+            GameStats.shadowMaps = 0;
+            GameStats.activeShadowMaps = 0;
+        }
+
+
+        private void CheckRenderChanges()
+        {
+            //Check if supersampling has changed
+            if (_supersampling != GameSettings.g_supersampling)
+            {
+                _supersampling = GameSettings.g_supersampling;
+                SetUpRenderTargets(GameSettings.g_ScreenWidth, GameSettings.g_ScreenHeight);
+            }
         }
 
         /// <summary>
@@ -328,7 +672,7 @@ namespace EngineTest.Renderer
                 _view = Matrix.CreateLookAt(camera.Position, camera.Lookat, camera.Up);
 
                 _projection = Matrix.CreatePerspectiveFieldOfView(camera.FieldOfView,
-                    _graphicsDevice.Viewport.AspectRatio, 1, GameSettings.g_FarPlane);
+                    GameSettings.g_ScreenWidth / (float)GameSettings.g_ScreenHeight, 1, GameSettings.g_FarPlane);
 
                 Shaders.GBufferEffectParameter_View.SetValue(_view);
 
@@ -347,7 +691,7 @@ namespace EngineTest.Renderer
             }
 
             //We need to update whether or not entities are in our boundingFrustum and then cull them or not!
-            meshMaterialLibrary.MeshCulling(entities, _boundingFrustum, viewProjectionHasChanged);
+            meshMaterialLibrary.FrustumCulling(entities, _boundingFrustum, viewProjectionHasChanged, camera.Position);
 
         }
 
@@ -375,6 +719,12 @@ namespace EngineTest.Renderer
 
         #region RenderTargetControl
 
+
+        public void UpdateResolution()
+        {
+            SetUpRenderTargets(GameSettings.g_ScreenWidth, GameSettings.g_ScreenHeight);
+        }
+
         private void SetUpRenderTargets(int width, int height)
         {
             //Discard first
@@ -388,6 +738,7 @@ namespace EngineTest.Renderer
                 _renderTargetFinal.Dispose();
                 _renderTargetDiffuse.Dispose();
                 _renderTargetSpecular.Dispose();
+                _renderTargetSSReflection.Dispose();
             }
 
             //SKULL
@@ -399,21 +750,19 @@ namespace EngineTest.Renderer
 
             //DEFAULT
 
-            int ssmultiplier = 1;
+            float ssmultiplier = _supersampling;
 
-            if (GameSettings.g_supersample) ssmultiplier = 2;
-
-            int target_width = width * ssmultiplier;
-            int target_height = height * ssmultiplier;
+            int target_width = (int) (width * ssmultiplier);
+            int target_height = (int) (height * ssmultiplier);
 
             _renderTargetAlbedo = new RenderTarget2D(_graphicsDevice, target_width,
                 target_height, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
 
             _renderTargetNormal = new RenderTarget2D(_graphicsDevice, target_width,
-                target_height, false, SurfaceFormat.HalfVector4, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+                target_height, false, SurfaceFormat.HalfVector4, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
 
             _renderTargetDepth = new RenderTarget2D(_graphicsDevice, target_width,
-                target_height, false, SurfaceFormat.Single, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+                target_height, false, SurfaceFormat.Single, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
 
             _renderTargetSSReflection = new RenderTarget2D(_graphicsDevice, target_width,
                 target_height, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
@@ -430,11 +779,13 @@ namespace EngineTest.Renderer
             _renderTargetSpecular = new RenderTarget2D(_graphicsDevice, target_width,
                target_height, false, SurfaceFormat.HalfVector4, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
 
+            Shaders.deferredPointLightParameterResolution.SetValue(new Vector2(target_width, target_height));
+
             _renderTargetLightBinding[0] = new RenderTargetBinding(_renderTargetDiffuse);
             _renderTargetLightBinding[1] = new RenderTargetBinding(_renderTargetSpecular);
 
             _renderTargetFinal = new RenderTarget2D(_graphicsDevice, target_width,
-               target_height, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+               target_height, false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
 
             _renderTargetFinalBinding[0] = new RenderTargetBinding(_renderTargetFinal);
 
@@ -447,6 +798,10 @@ namespace EngineTest.Renderer
             Shaders.deferredPointLightParameter_DepthMap.SetValue(_renderTargetDepth);
             Shaders.deferredPointLightParameter_NormalMap.SetValue(_renderTargetNormal);
 
+            Shaders.deferredEnvironmentParameter_AlbedoMap.SetValue(_renderTargetAlbedo);
+            Shaders.deferredEnvironmentParameter_DepthMap.SetValue(_renderTargetDepth);
+            Shaders.deferredEnvironmentParameter_NormalMap.SetValue(_renderTargetNormal);
+
             Shaders.DeferredComposeEffectParameter_ColorMap.SetValue(_renderTargetAlbedo);
             Shaders.DeferredComposeEffectParameter_diffuseLightMap.SetValue(_renderTargetDiffuse);
             Shaders.DeferredComposeEffectParameter_specularLightMap.SetValue(_renderTargetSpecular);
@@ -454,5 +809,6 @@ namespace EngineTest.Renderer
         }
 
         #endregion
+
     }
 }

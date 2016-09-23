@@ -67,11 +67,12 @@
     <Compile Include="Recources\MaterialEffect.cs" />
     <Compile Include="Recources\Shaders.cs" />
     <Compile Include="Recources\SpotLight.cs" />
-    <Compile Include="Recources\PointLight.cs" />
-    <Compile Include="Renderer\Camera.cs" />
-    <Compile Include="Renderer\Helper\DebugScreen.cs" />
+    <Compile Include="Entities\PointLight.cs" />
+    <Compile Include="Entities\Camera.cs" />
+    <Compile Include="Main\DebugScreen.cs" />
+    <Compile Include="Renderer\Helper\FastRand.cs" />
     <Compile Include="Renderer\Helper\MeshMaterialLibrary.cs" />
-    <Compile Include="Renderer\QuadRenderer.cs" />
+    <Compile Include="Renderer\Helper\QuadRenderer.cs" />
     <Compile Include="Renderer\Renderer.cs" />
     <Compile Include="Renderer\Renderer_old.cs" />
   </ItemGroup>

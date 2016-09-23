@@ -56,6 +56,11 @@ namespace EngineTest.Entities
             library.Register(Material, Model, WorldTransform);
         }
 
+        public void Dispose(MeshMaterialLibrary library)
+        {
+            library.DeleteFromRegistry(this);
+        }
+
         protected BasicEntity()
         {
             //throw new NotImplementedException();
@@ -63,11 +68,12 @@ namespace EngineTest.Entities
 
         public virtual void ApplyTransformation()
         {
-            WorldTransform.Rotation = Matrix.CreateRotationX((float)AngleX) * Matrix.CreateRotationY((float)AngleY) *
+            Matrix Rotation = Matrix.CreateRotationX((float)AngleX) * Matrix.CreateRotationY((float)AngleY) *
                                Matrix.CreateRotationZ((float)AngleZ);
-            WorldTransform.Scale = Matrix.CreateScale(Scale);
-            WorldOldMatrix = WorldTransform.Scale * WorldTransform.Rotation * Matrix.CreateTranslation(Position);
+            Matrix ScaleMatrix = Matrix.CreateScale(Scale);
+            WorldOldMatrix = ScaleMatrix * Rotation * Matrix.CreateTranslation(Position);
 
+            WorldTransform.Scale = Scale;
             WorldTransform.World = WorldOldMatrix;
             
         }
@@ -84,8 +90,7 @@ namespace EngineTest.Entities
         public bool Rendered = true;
         public bool HasChanged = true;
 
-        public Matrix Rotation;
-        public Matrix Scale;
+        public float Scale;
 
         public TransformMatrix(Matrix world)
         {

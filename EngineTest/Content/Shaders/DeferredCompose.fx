@@ -122,7 +122,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
     
     if(useGauss)
     {
-        float skullColor = GaussianSampler(input.TexCoord, 3);
+        float4 skullColor = GaussianSampler(input.TexCoord, 3);
 
     //[branch]
         if (abs(materialType - 2) < 0.1f)
@@ -131,7 +131,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 
     //    float pixelsize2 = 2 * pixelsize;
     //    if (pixel.x % pixelsize2 <= pixelsize && pixel.y % pixelsize2 <= pixelsize)
-            diffuseContrib = float3(0, skullColor * 0.49, skullColor * 0.95f) * 0.06f;
+            diffuseContrib = float3(0, skullColor.x * 0.49, skullColor.x * 0.95f) * 0.06f;
         }
     }
     else

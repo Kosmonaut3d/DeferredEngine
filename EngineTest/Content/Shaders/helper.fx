@@ -1,5 +1,5 @@
 ﻿       
-float2 InverseResolution = (1.0f / 1280.0f, 1.0f / 800.0f);
+float2 InverseResolution = float2(1.0f / 1280.0f, 1.0f / 800.0f);
 
 #define SAMPLE_COUNT 9
 static float2 SampleOffsets[9] =
@@ -62,7 +62,7 @@ float3  decode(float3 n)
     return 2.0f * n.xyz - 1.0f;
 }
 
-float encodeMetalnessMattype(float metalness, float mattype)
+float encodeMetallicMattype(float metalness, float mattype)
 {
     return metalness * 0.1f * 0.5f + mattype * 0.1f;
 }

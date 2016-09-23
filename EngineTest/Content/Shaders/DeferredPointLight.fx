@@ -3,13 +3,13 @@ float4x4 ViewProjection;
 //color of the light 
 float3 lightColor;
 //position of the camera, for specular light
-float3 cameraPosition;
+float3 cameraPosition = float3(0,0,0);
 //this is used to compute the world-position
 float4x4 InvertViewProjection;
 //this is the position of the light
 float3 lightPosition = float3(0,0,0);
 //how far does this light reach
-float lightRadius;
+float lightRadius = 0;
 //control the brightness of the light
 float lightIntensity = 1.0f;
 
@@ -20,10 +20,12 @@ matrix LightViewProjectionNegativeY;
 matrix LightViewProjectionPositiveZ;
 matrix LightViewProjectionNegativeZ;
 
+float2 Resolution = float2(1280, 800);
+
 // diffuse color, and specularIntensity in the alpha channel
 Texture2D AlbedoMap;
 // normals, and specularPower in the alpha channel
-texture NormalMap;
+Texture2D NormalMap;
 
 bool inside = false;
 
@@ -31,7 +33,7 @@ bool inside = false;
        
 
 //depth
-texture DepthMap;
+Texture2D DepthMap;
 sampler colorSampler = sampler_state
 {
     Texture = (AlbedoMap);
@@ -81,7 +83,7 @@ struct VertexShaderOutput
 {
     float4 Position : POSITION0;
     float4 ScreenPosition : TEXCOORD0;
-    float3 viewDirection : TEXCOORD1;
+    //float3 viewDirection : TEXCOORD1;
 };
 
 struct PixelShaderOutput
@@ -94,7 +96,7 @@ struct PixelShaderInput
 {
     float4 Position : POSITION0;
     float2 TexCoord : TEXCOORD0;
-    float3 viewDirection : TEXCOORD1;
+    //float3 viewDirection : TEXCOORD1;
 };
 
 
@@ -111,7 +113,7 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
     //need t
     output.ScreenPosition = output.Position;
 
-    output.viewDirection = normalize(cameraPosition - worldPosition.xyz);
+    //output.viewDirection = normalize(cameraPosition - worldPosition.xyz);
     return output;
 }
 
@@ -144,7 +146,7 @@ PixelShaderInput BaseCalculations(VertexShaderOutput input)
     PixelShaderInput output;
     output.Position = position;
     output.TexCoord = texCoord;
-    output.viewDirection = input.viewDirection;
+    //output.viewDirection = input.viewDirection;
 
         /////////////////////////////////////
     //CULL?
@@ -172,8 +174,8 @@ float chebyshevUpperBound(float distance, float3 texCoord)
     float2 moments = 1 - shadowCubeMap.Sample(shadowCubeMapSampler, texCoord).rg;
 		
 		// Surface is fully lit. as the current fragment is before the light occluder
-    if (distance <= moments.x)
-        return 1.0;
+    //if (distance <= moments.x)
+    //    return 1.0;
 
 		// The fragment is either in shadow or penumbra. We now use chebyshev's upperBound to check
 		// How likely this pixel is to be lit (p_max)
@@ -188,60 +190,61 @@ float chebyshevUpperBound(float distance, float3 texCoord)
 
 PixelShaderOutput BasePixelShaderFunction(PixelShaderInput input) : COLOR0
 {
-    
     PixelShaderOutput output;
     
-    //get normal data from the NormalMap
-    float4 normalData = tex2D(normalSampler, input.TexCoord);
-    //tranform normal back into [-1,1] range
-    float3 normal = decode(normalData.xyz); //2.0f * normalData.xyz - 1.0f;    //could do mad
-    //get metalness
-    float roughness = normalData.a;
-    //get specular intensity from the AlbedoMap
-    float4 color = tex2D(colorSampler, input.TexCoord);
-
-    float metalness = decodeMetalness(color.a);
-    
-    float f0 = lerp(0.04f, color.g * 0.25 + 0.75, metalness);
-
     //surface-to-light vector
     float3 lightVector = lightPosition - input.Position.xyz;
 
     float lengthLight = length(lightVector);
 
     [branch]
-    if(lengthLight>lightRadius)
+    if (lengthLight > lightRadius)
     {
         clip(-1);
         return output;
     }
-    
-    //compute attenuation based on distance - linear attenuation
-    float attenuation = saturate(1.0f - lengthLight/ lightRadius);
-
-    //normalize light vector
-    lightVector /= lengthLight;
-
-    float3 cameraDirection = input.viewDirection; //normalize(cameraPosition - input.Position.xyz);
-    //compute diffuse light
-    float NdL = saturate(dot(normal, lightVector));
-
-    float3 diffuseLight = float3(0, 0, 0);
-
-    [branch]
-    if(metalness<0.99)
+    else
     {
-        diffuseLight = DiffuseOrenNayar(NdL, normal, -lightVector, cameraDirection, lightIntensity, lightColor, roughness); //NdL * lightColor.rgb;
+        int3 texCoordInt = int3(input.TexCoord * Resolution, 0);
+
+        //get normal data from the NormalMap
+        float4 normalData = NormalMap.Load(texCoordInt);
+        //tranform normal back into [-1,1] range
+        float3 normal = decode(normalData.xyz); //2.0f * normalData.xyz - 1.0f;    //could do mad
+        //get metalness
+        float roughness = normalData.a;
+        //get specular intensity from the AlbedoMap
+        float4 color = AlbedoMap.Load(texCoordInt);
+
+        float metalness = decodeMetalness(color.a);
+    
+        float f0 = lerp(0.04f, color.g * 0.25 + 0.75, metalness);
+
+        //compute attenuation based on distance - linear attenuation
+        float attenuation = saturate(1.0f - lengthLight / lightRadius);
+
+        //normalize light vector
+        lightVector /= lengthLight;
+
+        float3 cameraDirection = normalize(cameraPosition - input.Position.xyz); //input.viewDirection; //
+        //compute diffuse light
+        float NdL = saturate(dot(normal, lightVector));
+
+        float3 diffuseLight = float3(0, 0, 0);
+
+        [branch]
+        if (metalness < 0.99)
+        {
+            diffuseLight = DiffuseOrenNayar(NdL, normal, -lightVector, cameraDirection, lightIntensity, lightColor, roughness); //NdL * lightColor.rgb;
+        }
+        float3 specular = SpecularCookTorrance(NdL, normal, lightVector, cameraDirection, lightIntensity, lightColor, f0, roughness);
+    
+        //return attenuation * lightIntensity * float4(diffuseLight.rgb, specular);
+        output.Diffuse.rgb = (attenuation * diffuseLight * (1 - f0)) * 0.01f; //* (1 - f0)) * (f0 + 1) * (f0 + 1);
+        output.Specular.rgb = specular * attenuation * 0.01f;
+
+        return output;
     }
-    float3 specular = SpecularCookTorrance(NdL, normal, lightVector, cameraDirection, lightIntensity, lightColor, f0, roughness);
-      
-    //return attenuation * lightIntensity * float4(diffuseLight.rgb, specular);
-    output.Diffuse.rgb = (attenuation * diffuseLight * (1 - f0)) * 0.01f; //* (1 - f0)) * (f0 + 1) * (f0 + 1);
-    output.Specular.rgb = specular * attenuation * 0.01f;
-
-    return output;
-   //return float4(color.rgb * (attenuation * diffuseLight * (1 - f0)) * (f0 + 1) * (f0 + 1) *0.5f + specular*attenuation, 1);
-
 }
 
 PixelShaderOutput BasePixelShaderFunctionShadow(PixelShaderInput input) : COLOR0
@@ -279,7 +282,7 @@ PixelShaderOutput BasePixelShaderFunctionShadow(PixelShaderInput input) : COLOR0
     //normalize light vector
     lightVector /= lengthLight;
 
-    float3 cameraDirection = input.viewDirection; //normalize(cameraPosition - input.Position.xyz);
+    float3 cameraDirection = normalize(cameraPosition - input.Position.xyz); //input.viewDirection; //
     //compute diffuse light
     float NdL = saturate(dot(normal, lightVector));
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using EngineTest.Recources;
@@ -63,6 +64,11 @@ namespace EngineTest.Main
             _renderer.Draw(_logic.Camera, _logic.MeshMaterialLibrary, _logic.Entities, _logic.PointLights);
 
             _debug.Draw(gameTime);
+        }
+
+        public void UpdateResolution()
+        {
+            _renderer.UpdateResolution();
         }
     }
 }

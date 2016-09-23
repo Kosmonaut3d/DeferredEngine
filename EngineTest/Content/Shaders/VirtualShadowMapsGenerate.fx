@@ -5,9 +5,7 @@
 
 matrix  WorldViewProj;
 
-matrix Projection;
-
-bool transparent = false;
+static bool transparent = false;
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -50,7 +48,7 @@ float4 DrawBasic_PixelShader(DrawBasic_VSOut input) : SV_TARGET
     float dx = ddx(depth);
     float dy = ddy(depth);
 
-    depth -= 0.00002f * transparent;
+    //depth -= 0.00002f * transparent;
 
     depthsq += 0.25 * (dx * dx + dy * dy);
     return float4(1-depth, 1-depthsq, 0, 0);

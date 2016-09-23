@@ -15,6 +15,11 @@ namespace EngineTest.Recources
         public Color Color;
         public float Intensity;
 
+        public bool HasChanged = true;
+
+        public int ShadowResolution;
+        public bool StaticShadows;
+
         public RenderTargetCube shadowMapCube;
 
         public Matrix LightViewProjectionPositiveX;
@@ -28,7 +33,18 @@ namespace EngineTest.Recources
 
         public bool DrawShadow = false;
 
-        public PointLight(Vector3 position, float radius, Color color, float intensity, bool drawShadow)
+        /// <summary>
+        /// A point light is a light that shines in all directions
+        /// </summary>
+        /// <param name="position"></param>
+        /// <param name="radius"></param>
+        /// <param name="color"></param>
+        /// <param name="intensity"></param>
+        /// <param name="drawShadows">will render shadow maps</param>
+        /// <param name="shadowResolution">shadow map resolution per face. Optional</param>
+        /// <param name="staticShadow">if set to true the shadows will not update at all. Dynamic shadows in contrast update only when needed.</param>
+        /// <returns></returns>
+        public PointLight(Vector3 position, float radius, Color color, float intensity, bool drawShadow, int shadowResolution, bool staticShadow)
         {
             BoundingSphere = new BoundingSphere(position, radius);
             Position = position;
@@ -36,6 +52,9 @@ namespace EngineTest.Recources
             Color = color;
             Intensity = intensity;
             DrawShadow = drawShadow;
+
+            ShadowResolution = shadowResolution;
+            StaticShadows = staticShadow;
 
         }
 
@@ -46,6 +65,7 @@ namespace EngineTest.Recources
             {
                 _position = value;
                 BoundingSphere.Center = value;
+                HasChanged = true;
             }
         }
 
@@ -56,6 +76,7 @@ namespace EngineTest.Recources
             {
                 _radius = value;
                 BoundingSphere.Radius = value;
+                HasChanged = true;
             }
         }
 

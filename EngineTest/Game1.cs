@@ -1,4 +1,6 @@
-﻿using EngineTest.Main;
+﻿using System;
+using EngineTest.Main;
+using EngineTest.Recources;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -27,6 +29,32 @@ namespace EngineTest
             graphics.PreferredBackBufferHeight = 800;
 
             screenManager = new ScreenManager();
+
+
+            Window.ClientSizeChanged += ClientChangedWindowSize;
+
+            //_graphics.GraphicsDevice.DeviceLost += new EventHandler<EventArgs>(ClientLostDevice);
+
+            Window.AllowUserResizing = true;
+            Window.IsBorderless = false;
+        }
+
+        private void ClientChangedWindowSize(object sender, EventArgs e)
+        {
+            if (GraphicsDevice.Viewport.Width != Window.ClientBounds.Width ||
+                GraphicsDevice.Viewport.Height != Window.ClientBounds.Height)
+            {
+                if (Window.ClientBounds.Width == 0) return;
+                graphics.PreferredBackBufferWidth = Window.ClientBounds.Width;
+                graphics.PreferredBackBufferHeight = Window.ClientBounds.Height;
+                graphics.ApplyChanges();
+
+                GameSettings.g_ScreenWidth = Window.ClientBounds.Width;
+                GameSettings.g_ScreenHeight = Window.ClientBounds.Height;
+
+                screenManager.UpdateResolution();
+
+            }
         }
 
         /// <summary>
