@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using EngineTest.Main;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
@@ -12,7 +13,7 @@ namespace EngineTest
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
 
-        private Renderer.Renderer renderer;
+        private ScreenManager screenManager;
 
         public Game1()
         {
@@ -24,6 +25,8 @@ namespace EngineTest
 
             graphics.PreferredBackBufferWidth = 1280;
             graphics.PreferredBackBufferHeight = 800;
+
+            screenManager = new ScreenManager();
         }
 
         /// <summary>
@@ -34,7 +37,9 @@ namespace EngineTest
         /// </summary>
         protected override void Initialize()
         {
+            screenManager.Load(Content);
             // TODO: Add your initialization logic here
+            screenManager.Initialize(GraphicsDevice);
 
             base.Initialize();
         }
@@ -46,11 +51,7 @@ namespace EngineTest
         protected override void LoadContent()
         {
             // Create a new SpriteBatch, which can be used to draw textures.
-            spriteBatch = new SpriteBatch(GraphicsDevice);
-
-            renderer = new Renderer.Renderer(GraphicsDevice, Content);
-
-
+            
 
             // TODO: use this.Content to load your game content here
         }
@@ -62,6 +63,8 @@ namespace EngineTest
         protected override void UnloadContent()
         {
             // TODO: Unload any non ContentManager content here
+
+            screenManager.Unload(Content);
         }
 
         /// <summary>
@@ -75,7 +78,8 @@ namespace EngineTest
                 Exit();
 
             // TODO: Add your update logic here
-            renderer.Update(gameTime, Window);
+           
+            screenManager.Update(gameTime);
 
             base.Update(gameTime);
 
@@ -88,10 +92,7 @@ namespace EngineTest
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
-
-            renderer.Draw();
-
+            screenManager.Draw(gameTime);
             // TODO: Add your drawing code here
 
             base.Draw(gameTime);

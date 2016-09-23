@@ -6,7 +6,6 @@
 
 matrix  View;
 matrix  World;
-matrix  Projection;
 matrix  WorldViewProj;
 
 float4 FogColor = float4(1, 0.375, 0, 1);

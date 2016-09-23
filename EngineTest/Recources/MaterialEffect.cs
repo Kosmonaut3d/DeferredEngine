@@ -8,12 +8,16 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace EngineTest.Recources
 {
-    class MaterialEffect : Effect
+    public class MaterialEffect : Effect
     {
         private Texture2D _diffuse;
         private Texture2D _specular;
         private Texture2D _mask;
         private Texture2D _normal;
+
+        public bool IsTransparent = false;
+
+        public bool HasShadow = true;
 
         public bool HasDiffuse = false;
         public bool HasSpecular = false;
@@ -65,6 +69,13 @@ namespace EngineTest.Recources
                 _mask = value;
                 HasMask = true;
             }
+        }
+
+        public void Initialize(Color diffuseColor, float roughness, float metalness)
+        {
+            DiffuseColor = diffuseColor.ToVector3();
+            Roughness = roughness;
+            Metalness = metalness;
         }
 
         public MaterialEffect(Effect cloneSource) : base(cloneSource)

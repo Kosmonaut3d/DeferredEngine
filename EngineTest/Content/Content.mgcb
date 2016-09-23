@@ -51,12 +51,6 @@
 /processorParam:TextureFormat=Color
 /build:Sponza/Sponza.obj
 
-#begin LightingEffect.fx
-/importer:EffectImporter
-/processor:EffectProcessor
-/processorParam:DebugMode=Auto
-/build:LightingEffect.fx
-
 #begin ClearGBuffer.fx
 /importer:EffectImporter
 /processor:EffectProcessor
@@ -900,12 +894,6 @@
 /processorParam:TextureFormat=Color
 /build:Sponza/textures/background_ddn.tif
 
-#begin SSAO.fx
-/importer:EffectImporter
-/processor:EffectProcessor
-/processorParam:DebugMode=Auto
-/build:SSAO.fx
-
 #begin Sponza/textures/sponza_floor_a_ddn.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -917,4 +905,22 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:Sponza/textures/sponza_floor_a_ddn.png
+
+#begin Gbuffer.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Gbuffer.fx
+
+#begin SSReflectionEffect.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:SSReflectionEffect.fx
+
+#begin Fonts/defaultfont.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:TextureFormat=Compressed
+/build:Fonts/defaultfont.spritefont
 

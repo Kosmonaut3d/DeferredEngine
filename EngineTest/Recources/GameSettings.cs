@@ -8,21 +8,12 @@ namespace EngineTest.Recources
 {
     public static class GameSettings
     {
+        public static bool g_SSR = true;
+        public static float g_FarPlane = 500;
+        public static bool g_supersample = false;
+        public static int ShowDisplayInfo = 3;
 
-        public static float BloomRadius5 = 4.0f;
-        public static float BloomStrength5 = 2.0f;
-        public static float BloomRadius4 = 2.0f;
-        public static float BloomStrength4 = 1.0f;
-        public static float BloomRadius3 = 2.0f;
-        public static float BloomStrength3 = 1.0f;
-        public static float BloomRadius2 = 2.0f;
-        public static float BloomStrength2 = 1.0f;
-        public static float BloomRadius1 = 2.0f;
-        public static float BloomStrength1 = 0.5f;
-        public static float BloomThreshold = 0.8f;
-
-        public static float BloomStreakLength = 1;
-        public static bool BloomLuminance = false;
-        public static bool SSAO = true;
+        public static Renderer.Renderer.RenderModes g_RenderMode = Renderer.Renderer.RenderModes.Deferred;
+        public static bool g_CPU_Culling = true;
     }
 }

@@ -54,18 +54,26 @@
     <ApplicationIcon>Icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Entities\BasicEntity.cs" />
     <Compile Include="Game1.cs" />
+    <Compile Include="Main\Input.cs" />
+    <Compile Include="Main\MainLogic.cs" />
+    <Compile Include="Main\ScreenManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Recources\Art.cs" />
+    <Compile Include="Recources\Assets.cs" />
     <Compile Include="Recources\GameSettings.cs" />
+    <Compile Include="Recources\GameStats.cs" />
     <Compile Include="Recources\MaterialEffect.cs" />
     <Compile Include="Recources\Shaders.cs" />
     <Compile Include="Recources\SpotLight.cs" />
     <Compile Include="Recources\PointLight.cs" />
     <Compile Include="Renderer\Camera.cs" />
+    <Compile Include="Renderer\Helper\DebugScreen.cs" />
+    <Compile Include="Renderer\Helper\MeshMaterialLibrary.cs" />
     <Compile Include="Renderer\QuadRenderer.cs" />
     <Compile Include="Renderer\Renderer.cs" />
+    <Compile Include="Renderer\Renderer_old.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="MonoGame.Framework">

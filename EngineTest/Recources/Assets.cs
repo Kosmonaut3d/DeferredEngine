@@ -11,7 +11,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace EngineTest.Recources
 {
-        public class Art
+        public class Assets
         {
 
             List<Texture2D> SponzaTextures = new List<Texture2D>();
@@ -53,6 +53,7 @@ namespace EngineTest.Recources
             public Model SponzaModel { get; set; }
 
             public Model Sphere;
+            public MaterialEffect baseMaterial;
 
             public void Load(ContentManager content)
             {
@@ -108,6 +109,10 @@ namespace EngineTest.Recources
                     };
 
                 ProcessHelmets();
+
+
+                baseMaterial = new MaterialEffect(Shaders.ClearGBufferEffect);
+                baseMaterial.Initialize(Color.Red, 0.2f, 0);
             }
 
             private void ProcessHelmets()

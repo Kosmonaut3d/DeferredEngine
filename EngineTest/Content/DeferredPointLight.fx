@@ -1,11 +1,9 @@
 ﻿float4x4 World;
-float4x4 View;
-float4x4 Projection;
+float4x4 ViewProjection;
 //color of the light 
 float3 lightColor;
 //position of the camera, for specular light
 float3 cameraPosition;
-float3 cameraDirection;
 //this is used to compute the world-position
 float4x4 InvertViewProjection;
 //this is the position of the light
@@ -23,9 +21,9 @@ matrix LightViewProjectionPositiveZ;
 matrix LightViewProjectionNegativeZ;
 
 // diffuse color, and specularIntensity in the alpha channel
-Texture2D colorMap;
+Texture2D AlbedoMap;
 // normals, and specularPower in the alpha channel
-texture normalMap;
+texture NormalMap;
 
 bool inside = false;
 
@@ -33,10 +31,10 @@ bool inside = false;
        
 
 //depth
-texture depthMap;
+texture DepthMap;
 sampler colorSampler = sampler_state
 {
-    Texture = (colorMap);
+    Texture = (AlbedoMap);
     AddressU = CLAMP;
     AddressV = CLAMP;
     MagFilter = POINT;
@@ -45,7 +43,7 @@ sampler colorSampler = sampler_state
 };
 sampler depthSampler = sampler_state
 {
-    Texture = (depthMap);
+    Texture = (DepthMap);
     AddressU = CLAMP;
     AddressV = CLAMP;
     MagFilter = POINT;
@@ -54,7 +52,7 @@ sampler depthSampler = sampler_state
 };
 sampler normalSampler = sampler_state
 {
-    Texture = (normalMap);
+    Texture = (NormalMap);
     AddressU = CLAMP;
     AddressV = CLAMP;
     MagFilter = POINT;
@@ -109,8 +107,7 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
     VertexShaderOutput output;
     //processing geometry coordinates
     float4 worldPosition = mul(float4(input.Position.rgb, 1), World);
-    float4 viewPosition = mul(worldPosition, View);
-    output.Position = mul(viewPosition, Projection);
+    output.Position = mul(worldPosition, ViewProjection);
     //need t
     output.ScreenPosition = output.Position;
 
@@ -194,13 +191,13 @@ PixelShaderOutput BasePixelShaderFunction(PixelShaderInput input) : COLOR0
     
     PixelShaderOutput output;
     
-    //get normal data from the normalMap
+    //get normal data from the NormalMap
     float4 normalData = tex2D(normalSampler, input.TexCoord);
     //tranform normal back into [-1,1] range
     float3 normal = decode(normalData.xyz); //2.0f * normalData.xyz - 1.0f;    //could do mad
     //get metalness
     float roughness = normalData.a;
-    //get specular intensity from the colorMap
+    //get specular intensity from the AlbedoMap
     float4 color = tex2D(colorSampler, input.TexCoord);
 
     float metalness = decodeMetalness(color.a);
@@ -252,13 +249,13 @@ PixelShaderOutput BasePixelShaderFunctionShadow(PixelShaderInput input) : COLOR0
     
     PixelShaderOutput output;
     
-    //get normal data from the normalMap
+    //get normal data from the NormalMap
     float4 normalData = tex2D(normalSampler, input.TexCoord);
     //tranform normal back into [-1,1] range
     float3 normal = decode(normalData.xyz); //2.0f * normalData.xyz - 1.0f;    //could do mad
     //get metalness
     float roughness = normalData.a;
-    //get specular intensity from the colorMap
+    //get specular intensity from the AlbedoMap
     float4 color = tex2D(colorSampler, input.TexCoord);
 
     float metalness = decodeMetalness(color.a);
@@ -403,13 +400,13 @@ technique Shadowed
 //    //the texture coordinates need to be in [0,1]*[0,1]
 //    float2 texCoord = 0.5f * (float2(input.ScreenPosition.x, -input.ScreenPosition.y) + 1);
     
-//    //get normal data from the normalMap
+//    //get normal data from the NormalMap
 //    float4 normalData = tex2D(normalSampler, texCoord);
 //    //tranform normal back into [-1,1] range
 //    float3 normal = 2.0f * normalData.xyz - 1.0f; //could do mad
 //    //get specular power
 //    float f0 = normalData.a;
-//    //get specular intensity from the colorMap
+//    //get specular intensity from the AlbedoMap
 //    float4 color = tex2D(colorSampler, texCoord);
 
 //    float roughness = decodeMetalness(color.a);

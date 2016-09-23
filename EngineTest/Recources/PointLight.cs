@@ -10,8 +10,8 @@ namespace EngineTest.Recources
 {
     public class PointLight
     {
-        public Vector3 Position;
-        public float Radius;
+        private Vector3 _position;
+        public float _radius;
         public Color Color;
         public float Intensity;
 
@@ -24,16 +24,41 @@ namespace EngineTest.Recources
         public Matrix LightViewProjectionPositiveZ;
         public Matrix LightViewProjectionNegativeZ;
 
+        public BoundingSphere BoundingSphere;
+
         public bool DrawShadow = false;
 
         public PointLight(Vector3 position, float radius, Color color, float intensity, bool drawShadow)
         {
+            BoundingSphere = new BoundingSphere(position, radius);
             Position = position;
             Radius = radius;
             Color = color;
             Intensity = intensity;
             DrawShadow = drawShadow;
+
         }
+
+        public Vector3 Position
+        {
+            get { return _position;}
+            set
+            {
+                _position = value;
+                BoundingSphere.Center = value;
+            }
+        }
+
+        public float Radius
+        {
+            get { return _radius; }
+            set
+            {
+                _radius = value;
+                BoundingSphere.Radius = value;
+            }
+        }
+
 
         protected PointLight()
         {
