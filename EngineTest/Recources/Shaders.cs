@@ -20,6 +20,7 @@ namespace EngineTest.Recources
         public static EffectParameter GBufferEffectParameter_View;
 
         public static EffectParameter GBufferEffectParameter_Material_Metallic;
+        public static EffectParameter GBufferEffectParameter_Material_MetallicMap;
         public static EffectParameter GBufferEffectParameter_Material_DiffuseColor;
         public static EffectParameter GBufferEffectParameter_Material_Roughness;
         public static EffectParameter GBufferEffectParameter_Material_Mask;
@@ -119,6 +120,7 @@ namespace EngineTest.Recources
             GBufferEffectParameter_View = GBufferEffect.Parameters["View"];
 
             GBufferEffectParameter_Material_Metallic = GBufferEffect.Parameters["Metallic"];
+            GBufferEffectParameter_Material_MetallicMap = GBufferEffect.Parameters["MetallicMap"];
             GBufferEffectParameter_Material_DiffuseColor = GBufferEffect.Parameters["DiffuseColor"];
             GBufferEffectParameter_Material_Roughness = GBufferEffect.Parameters["Roughness"];
 

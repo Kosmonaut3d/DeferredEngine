@@ -451,7 +451,7 @@ namespace EngineTest.Renderer.Helper
                             Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
                             Shaders.GBufferEffectParameter_Material_NormalMap.SetValue(material.NormalMap);
                             Shaders.GBufferEffectParameter_Material_Specular.SetValue(material.RoughnessMap);
-                            Shaders.GBufferEffectParameter_Material_Metallic.SetValue(material.MetallicMap);
+                            Shaders.GBufferEffectParameter_Material_MetallicMap.SetValue(material.MetallicMap);
                             Shaders.GBufferEffect.CurrentTechnique =
                                 Shaders.GBufferEffectTechniques_DrawTextureSpecularNormalMetallic;
                         }

@@ -112,37 +112,42 @@ namespace EngineTest.Renderer
         //Main Draw!
         public void Draw(Camera camera, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities, List<PointLight> pointLights)
         {
-            //Reset the mesh count
-            
-            ResetStats();
+            //Reset the stat counter
+            ResetStats(); 
 
+            //Check if we changed some drastic stuff for which we need to reload some elements
             CheckRenderChanges();
 
+            //Render ShadowMaps
             DrawShadows(meshMaterialLibrary, entities, pointLights, camera);
 
+            //Render EnvironmentMaps
             if ((Input.WasKeyPressed(Keys.C)&&!DebugScreen.ConsoleOpen) || GameSettings.g_EnvironmentMappingEveryFrame || _renderTargetCubeMap == null)
             {
                 DrawCubeMap(camera.Position, meshMaterialLibrary, entities, pointLights);
                 camera.HasChanged = true;
             }
 
-
+            //Update our view projection matrices if the camera moved
             UpdateViewProjection(camera, meshMaterialLibrary, entities);
 
-            // DrawShadows
-
+            //Set up our deferred renderer
             SetUpGBuffer();
 
             DrawGBuffer(meshMaterialLibrary, entities);
 
+            //Light the scene
             DrawLights(pointLights, camera.Position);
 
             DrawEnvironmentMap(camera);
 
+            //Combine the buffers
             Compose();
 
+            //Show certain buffer stages depending on user input
             RenderMode();
 
+            //Just some object culling, setting up for the next frame
             meshMaterialLibrary.FrustumCullingFinalizeFrame(entities);
 
         }
