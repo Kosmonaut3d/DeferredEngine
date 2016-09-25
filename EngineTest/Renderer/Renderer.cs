@@ -841,6 +841,11 @@ namespace EngineTest.Renderer
 
             _renderTargetFinalBinding[0] = new RenderTargetBinding(_renderTargetFinal);
 
+            Shaders.SSReflectionEffectParameter_Resolution.SetValue(new Vector2(target_width, target_height));
+            Shaders.deferredPointLightParameterResolution.SetValue(new Vector2(target_width, target_height));
+
+            target_width /= 2;
+            target_height /= 2;
 
             _renderTargetScreenSpaceEffect = new RenderTarget2D(_graphicsDevice, target_width,
                 target_height, false, SurfaceFormat.HalfSingle, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
@@ -848,8 +853,6 @@ namespace EngineTest.Renderer
             _renderTargetScreenSpaceEffectBlur = new RenderTarget2D(_graphicsDevice, target_width,
                 target_height, false, SurfaceFormat.HalfSingle, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
 
-            Shaders.SSReflectionEffectParameter_Resolution.SetValue(new Vector2(target_width, target_height));
-            Shaders.deferredPointLightParameterResolution.SetValue(new Vector2(target_width, target_height));
             Shaders.ScreenSpaceEffectParameter_InverseResolution.SetValue(new Vector2(1.0f/target_width, 1.0f/target_height) * 2);
             UpdateRenderMapBindings();
         }

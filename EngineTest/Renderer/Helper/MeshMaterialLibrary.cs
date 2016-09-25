@@ -307,8 +307,8 @@ namespace EngineTest.Renderer.Helper
                                     if (meshLib.Rendered[j])
                                     {
                                         discardFrame = false;
+                                        break;
                                     }
-                                    break;
                                 }
 
                                 if (!discardFrame) break;

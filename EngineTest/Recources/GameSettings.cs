@@ -26,13 +26,13 @@ namespace EngineTest.Recources
         public static int g_ScreenWidth = 1280;
         public static int g_ScreenHeight = 800;
 
-        private static float _ssao_falloffmin = 0.001f;
-        private static float _ssao_falloffmax = 0.002f;
+        private static float _ssao_falloffmin = 0.0001f;
+        private static float _ssao_falloffmax = 0.001f;
         private static int _ssao_samples = 8;
-        private static float _ssao_sampleradius = 0.08f;
-        private static float _ssao_strength = 10;
+        private static float _ssao_sampleradius = 0.015f;
+        private static float _ssao_strength = 80;
         public static bool ssao_Blur = true;
-        private static bool _ssao_active = false;
+        private static bool _ssao_active = true;
 
         // Screen Space Ambient Occlusion
 
