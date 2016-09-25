@@ -235,7 +235,7 @@ PixelShaderOutput BasePixelShaderFunction(PixelShaderInput input) : COLOR0
         [branch]
         if (metalness < 0.99)
         {
-            diffuseLight = DiffuseOrenNayar(NdL, normal, -lightVector, cameraDirection, lightIntensity, lightColor, roughness); //NdL * lightColor.rgb;
+            diffuseLight = DiffuseOrenNayar(NdL, normal, lightVector, cameraDirection, lightIntensity, lightColor, roughness); //NdL * lightColor.rgb;
         }
         float3 specular = SpecularCookTorrance(NdL, normal, lightVector, cameraDirection, lightIntensity, lightColor, f0, roughness);
     
@@ -286,14 +286,6 @@ PixelShaderOutput BasePixelShaderFunctionShadow(PixelShaderInput input) : COLOR0
     //compute diffuse light
     float NdL = saturate(dot(normal, lightVector));
 
-    float3 diffuseLight = float3(0, 0, 0);
-
-    [branch]
-    if (metalness < 0.99)
-    {
-        diffuseLight = DiffuseOrenNayar(NdL, normal, -lightVector, cameraDirection, lightIntensity, lightColor, roughness); //NdL * lightColor.rgb;
-    }
-    float3 specular = SpecularCookTorrance(NdL, normal, lightVector, cameraDirection, lightIntensity, lightColor, f0, roughness);
     //take into account attenuation and lightIntensity.
         
     //float zw = depthSample;
@@ -338,6 +330,22 @@ PixelShaderOutput BasePixelShaderFunctionShadow(PixelShaderInput input) : COLOR0
     //float shadowDepth = 1-shadowCubeMap.Sample(shadowCubeMapSampler, -lightVector).g; // chebyshevUpperBound(distanceToLightNonLinear, -lightVector);
 
     float shadowVSM = chebyshevUpperBound(depthInLS, lightVector);
+       
+    float3 diffuseLight = float3(0, 0, 0);
+    float3 specular = float3(0, 0, 0);
+         
+    lightVector.z = -lightVector.z;
+
+    [branch]
+    if (shadowVSM > 0.01f && lengthLight < lightRadius)
+    {
+    [branch]
+        if (metalness < 0.99)
+        {
+            diffuseLight = DiffuseOrenNayar(NdL, normal, -lightVector, cameraDirection, lightIntensity, lightColor, roughness); //NdL * lightColor.rgb;
+        }
+        specular = SpecularCookTorrance(NdL, normal, -lightVector, cameraDirection, lightIntensity, lightColor, f0, roughness);
+    }
 
     //return attenuation * lightIntensity * float4(diffuseLight.rgb, specular);
     output.Diffuse.rgb = (attenuation * diffuseLight * (1 - f0)) * 0.01f * shadowVSM; //* (1 - f0)) * (f0 + 1) * (f0 + 1);

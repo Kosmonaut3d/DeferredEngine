@@ -65,7 +65,7 @@ namespace EngineTest
         /// </summary>
         protected override void Initialize()
         {
-            screenManager.Load(Content);
+            screenManager.Load(Content, GraphicsDevice);
             // TODO: Add your initialization logic here
             screenManager.Initialize(GraphicsDevice);
 

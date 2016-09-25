@@ -57,18 +57,18 @@ namespace EngineTest.Main
 
             AddEntity(_assets.HelmetModel, new Vector3(10, 0, -10), -Math.PI / 2, 0, -Math.PI / 2, 1);
 
-            AddEntity(_assets.Stormtrooper, _assets.StormtrooperMaterialEffect, new Vector3(20, 10, 1), -Math.PI/2, 0, 0,
-                1);
-
             shadowLight = AddPointLight(position: new Vector3(2, 2, -20), radius: 50, color: Color.Wheat, intensity: 20, castShadows: true);
 
             AddPointLight(position: new Vector3(-20, 0, -20), radius: 100, color: Color.White, intensity: 20, castShadows: true, shadowResolution: 1024, staticShadow: true);
 
-            for (int i = 0; i < 10; i++)
-            {
-                AddPointLight(new Vector3(FastRand.NextSingle() * 250 - 125, FastRand.NextSingle() * 40 - 20, FastRand.NextSingle() * 10 - 13), 40, new Color(FastRand.NextInteger(255), FastRand.NextInteger(255), FastRand.NextInteger(255)), 20, true);
-            }
-            //AddPointLight(position: new Vector3(+20, -10, -20), radius: 50, color: Color.Orange, intensity: 20, castShadows: true);
+            //AddPointLight(position: new Vector3(-20, 0, -100), radius: 200, color: Color.White, intensity: 20, castShadows: true, shadowResolution: 1024, staticShadow: true);
+
+
+            //for (int i = 0; i < 10; i++)
+            //{
+            //    AddPointLight(new Vector3(FastRand.NextSingle() * 250 - 125, FastRand.NextSingle() * 40 - 20, FastRand.NextSingle() * 10 - 13), 40, new Color(FastRand.NextInteger(255), FastRand.NextInteger(255), FastRand.NextInteger(255)), 20, true);
+            //}
+            AddPointLight(position: new Vector3(+20, -10, -20), radius: 50, color: Color.Orange, intensity: 20, castShadows: true);
         
         }
 
@@ -149,7 +149,7 @@ namespace EngineTest.Main
 
             if (Input.keyboardState.IsKeyDown(Keys.L))
             {
-                AddPointLight(new Vector3(FastRand.NextSingle() * 250 - 125, FastRand.NextSingle() * 50 - 25, FastRand.NextSingle() * 10 - 3), 30, new Color(FastRand.NextInteger(255), FastRand.NextInteger(255), FastRand.NextInteger(255)), 4, false);
+                AddPointLight(new Vector3(FastRand.NextSingle() * 250 - 125, FastRand.NextSingle() * 50 - 25, FastRand.NextSingle() * 10 - 3), 30, new Color(FastRand.NextInteger(255), FastRand.NextInteger(255), FastRand.NextInteger(255)), 10, false);
 
             }
 
@@ -213,7 +213,7 @@ namespace EngineTest.Main
                         GameSettings.g_RenderMode = Renderer.Renderer.RenderModes.Specular;
                         break;
                     case 6:
-                        GameSettings.g_RenderMode = Renderer.Renderer.RenderModes.Skull;
+                        GameSettings.g_RenderMode = Renderer.Renderer.RenderModes.SSAO;
                         break;
                     case 7:
                         GameSettings.g_RenderMode = Renderer.Renderer.RenderModes.SSR;

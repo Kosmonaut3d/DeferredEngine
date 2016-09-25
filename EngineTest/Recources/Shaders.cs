@@ -10,6 +10,28 @@ namespace EngineTest.Recources
 {
     public static class Shaders
     {
+        //Screen Space Effect
+
+        public static Effect ScreenSpaceEffect;
+        public static EffectParameter ScreenSpaceEffectParameter_SSAOMap;
+        public static EffectParameter ScreenSpaceEffectParameter_NormalMap;
+        public static EffectParameter ScreenSpaceEffectParameter_DepthMap;
+        public static EffectParameter ScreenSpaceEffectParameter_CameraPosition;
+        public static EffectParameter ScreenSpaceEffectParameter_InverseViewProjection;
+        public static EffectParameter ScreenSpaceEffectParameter_Projection;
+        public static EffectParameter ScreenSpaceEffectParameter_ViewProjection;
+
+        public static EffectParameter ScreenSpaceEffect_FalloffMin;
+        public static EffectParameter ScreenSpaceEffect_FalloffMax;
+        public static EffectParameter ScreenSpaceEffect_Samples;
+        public static EffectParameter ScreenSpaceEffect_Strength;
+        public static EffectParameter ScreenSpaceEffect_SampleRadius;
+        public static EffectParameter ScreenSpaceEffectParameter_InverseResolution;
+
+        public static EffectTechnique ScreenSpaceEffectTechnique_SSAO;
+        public static EffectTechnique ScreenSpaceEffectTechnique_BlurHorizontal;
+        public static EffectTechnique ScreenSpaceEffectTechnique_BlurVertical;
+
         //ClearGBuffer
         public static Effect ClearGBufferEffect;
 
@@ -47,6 +69,7 @@ namespace EngineTest.Recources
         public static EffectParameter DeferredComposeEffectParameter_diffuseLightMap;
         public static EffectParameter DeferredComposeEffectParameter_specularLightMap;
         public static EffectParameter DeferredComposeEffectParameter_skullMap;
+        public static EffectParameter DeferredComposeEffectParameter_SSAOMap;
 
         //Deferred Light
         public static Effect deferredSpotLight;
@@ -110,6 +133,28 @@ namespace EngineTest.Recources
 
         public static void Load(ContentManager content)
         {
+            //Screen Space Effect
+            ScreenSpaceEffect = content.Load<Effect>("Shaders/ScreenSpaceEffect");
+
+            ScreenSpaceEffectParameter_SSAOMap = ScreenSpaceEffect.Parameters["SSAOMap"];
+            ScreenSpaceEffectParameter_NormalMap = ScreenSpaceEffect.Parameters["NormalMap"];
+            ScreenSpaceEffectParameter_DepthMap = ScreenSpaceEffect.Parameters["DepthMap"];
+            ScreenSpaceEffectParameter_CameraPosition = ScreenSpaceEffect.Parameters["CameraPosition"];
+            ScreenSpaceEffectParameter_InverseViewProjection = ScreenSpaceEffect.Parameters["InverseViewProjection"];
+            ScreenSpaceEffectParameter_Projection = ScreenSpaceEffect.Parameters["Projection"];
+            ScreenSpaceEffectParameter_ViewProjection = ScreenSpaceEffect.Parameters["ViewProjection"];
+
+            ScreenSpaceEffect_FalloffMin = ScreenSpaceEffect.Parameters["FalloffMin"];
+            ScreenSpaceEffect_FalloffMax = ScreenSpaceEffect.Parameters["FalloffMax"];
+            ScreenSpaceEffect_Samples = ScreenSpaceEffect.Parameters["Samples"];
+            ScreenSpaceEffect_Strength = ScreenSpaceEffect.Parameters["Strength"];
+            ScreenSpaceEffect_SampleRadius = ScreenSpaceEffect.Parameters["SampleRadius"];
+            ScreenSpaceEffectParameter_InverseResolution = ScreenSpaceEffect.Parameters["InverseResolution"];
+
+            ScreenSpaceEffectTechnique_SSAO = ScreenSpaceEffect.Techniques["SSAO"];
+            ScreenSpaceEffectTechnique_BlurHorizontal = ScreenSpaceEffect.Techniques["BilateralHorizontal"];
+            ScreenSpaceEffectTechnique_BlurVertical = ScreenSpaceEffect.Techniques["BilateralVertical"];
+
             ClearGBufferEffect = content.Load<Effect>("Shaders/ClearGBuffer");
 
             //Gbuffer
@@ -153,6 +198,8 @@ namespace EngineTest.Recources
             DeferredComposeEffectParameter_diffuseLightMap = DeferredCompose.Parameters["diffuseLightMap"];
             DeferredComposeEffectParameter_specularLightMap = DeferredCompose.Parameters["specularLightMap"];
             DeferredComposeEffectParameter_skullMap = DeferredCompose.Parameters["skull"];
+            DeferredComposeEffectParameter_SSAOMap = DeferredCompose.Parameters["SSAOMap"];
+
 
             //DeferredLights
 

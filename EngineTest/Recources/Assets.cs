@@ -45,6 +45,8 @@ namespace EngineTest.Recources
 
             private Texture2D sponza_curtain_metallic;
 
+            public static Texture2D BaseTex;
+
             public Model SkullModel { get; set; }
 
             public Model HelmetModel { get; set; }
@@ -53,16 +55,16 @@ namespace EngineTest.Recources
 
             public Model SponzaModel { get; set; }
 
-            public Model Stormtrooper;
-            public MaterialEffect StormtrooperMaterialEffect;
-
             public Model Sphere;
             public MaterialEffect baseMaterial;
             public MaterialEffect goldMaterial;
             public MaterialEffect silverMaterial;
 
-            public void Load(ContentManager content)
+            public void Load(ContentManager content, GraphicsDevice graphicsDevice)
             {
+                BaseTex = new Texture2D(graphicsDevice, 1, 1);
+                BaseTex.SetData(new Color[] { Color.White });
+
                 DragonUvSmoothModel = content.Load<Model>("dragon_uv_smooth");
 
                 SponzaModel = content.Load<Model>("Sponza/Sponza");
@@ -107,15 +109,6 @@ namespace EngineTest.Recources
                 sponza_curtain_metallic = content.Load<Texture2D>("Sponza/textures/sponza_curtain_metallic");
 
                 Sphere = content.Load<Model>("sphere");
-
-                Stormtrooper = content.Load<Model>("stormtrooper");
-
-                StormtrooperMaterialEffect = CreateMaterial(Color.AliceBlue, 0, 0,
-                    albedoMap: content.Load<Texture2D>("Art/stormtrooper_albedo"),
-                    normalMap: content.Load<Texture2D>("Art/stormtrooper_normal"),
-                    roughnessMap: content.Load<Texture2D>("Art/stormtrooper_roughness"),
-                    metallicMap: content.Load<Texture2D>("Art/stormtrooper_metalness"));
-
 
                 ProcessSponza();
 

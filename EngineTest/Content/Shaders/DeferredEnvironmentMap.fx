@@ -75,6 +75,7 @@ struct VertexShaderOutput
 {
     float4 Position : POSITION0;
     float2 TexCoord : TEXCOORD0;
+    float3 viewDir : TEXCOORD1;
 };
 
 struct PixelShaderOutput
@@ -94,6 +95,7 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
     output.Position = float4(input.Position, 1);
     //align texture coordinates
     output.TexCoord = input.TexCoord;
+    output.viewDir = normalize(mul(output.Position, InvertViewProjection).xyz);
     return output;
 
 }
@@ -117,6 +119,9 @@ float GetNormalVariance(float2 texCoord, float3 baseNormal, float offset)
 
 PixelShaderOutput PixelShaderFunctionSSR(VertexShaderOutput input) : COLOR0
 {
+
+    /////THIS IS THE OLD WAY, I NOW CALCULATE THE VIEW RAY FROM THE VERTEX SHADER!!! ///////////////
+
     //obtain screen position
     float4 position;
     position.x = input.TexCoord.x * 2.0f - 1.0f;
@@ -205,11 +210,6 @@ PixelShaderOutput PixelShaderFunctionSSR(VertexShaderOutput input) : COLOR0
 
 PixelShaderOutput PixelShaderFunctionClassic(VertexShaderOutput input)
 {
-    //obtain screen position
-    float4 position;
-    position.x = input.TexCoord.x * 2.0f - 1.0f;
-    position.y = -(input.TexCoord.y * 2.0f - 1.0f);
-
     float2 texCoord = float2(input.TexCoord);
     
     //get normal data from the NormalMap
@@ -239,18 +239,8 @@ PixelShaderOutput PixelShaderFunctionClassic(VertexShaderOutput input)
         matMultiplier = 2;
     }
 
-    float depthVal = 1 - tex2D(depthSampler, texCoord).r;
-    ////compute screen-space position
+    float3 incident = normalize(input.viewDir);
 
-    position.z = depthVal;
-    position.w = 1.0f;
-    //transform to world space
-    position = mul(position, InvertViewProjection);
-    position /= position.w;
-    //surface-to-light vector
-
-    
-    float3 incident = -cameraPosition + position.xyz;
     float3 reflectionVector = reflect(incident, normal);
 
     float VdotH = saturate(dot(normal, incident));

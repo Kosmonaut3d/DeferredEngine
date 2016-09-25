@@ -13,6 +13,10 @@ bool useGauss = false;
 
 float exposure = 20;
 
+Texture2D SSAOMap;
+
+bool useSSAO = true;
+
 sampler colorSampler = sampler_state
 {
     Texture = (colorMap);
@@ -44,9 +48,8 @@ sampler specularLightSampler = sampler_state
 };
 
 Texture2D skull;
-sampler skullSampler = sampler_state
+sampler linearSampler = sampler_state
 {
-    Texture = (skullMap);
     AddressU = CLAMP;
     AddressV = CLAMP;
     MagFilter = LINEAR;
@@ -92,7 +95,7 @@ float4 GaussianSampler(float2 TexCoord, float offset)
     float4 finalColor = float4(0, 0, 0, 0);
     for (int i = 0; i < SAMPLE_COUNT; i++)
     {
-        finalColor += skull.Sample(skullSampler, TexCoord.xy +
+        finalColor += skull.Sample(linearSampler, TexCoord.xy +
                     offset * SampleOffsets[i] * InverseResolution) * SampleWeights[i];
     }
    // finalColor = colorMap.Sample(colorSampler, TexCoord.xy);
@@ -136,7 +139,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
     }
     else
     {
-        float skullColor = skull.Sample(skullSampler, skullTexCoord).r;
+        float skullColor = skull.Sample(linearSampler, skullTexCoord).r;
         if (abs(materialType - 2) < 0.1f)
         {
         float2 pixel = trunc(input.TexCoord * Resolution);
@@ -148,6 +151,12 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
         }
     }
 
+    //SSAO
+    float ssaoContribution = 1;
+    if(useSSAO)
+    {
+        ssaoContribution = SSAOMap.Sample(linearSampler, input.TexCoord).r;
+    }
 
     float f0 = lerp(0.04f, diffuseColor.g * 0.25 + 0.75, metalness);
     
@@ -160,7 +169,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 
     float3 finalValue = lerp(plasticFinal, metalFinal, metalness) + diffuseContrib;
 
-    return float4(finalValue, 1) * exposure;
+    return float4(finalValue * ssaoContribution, 1) * exposure;
 }
 
 

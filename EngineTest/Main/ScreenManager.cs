@@ -37,7 +37,7 @@ namespace EngineTest.Main
         }
 
         //Load content
-        public void Load(ContentManager content)
+        public void Load(ContentManager content, GraphicsDevice graphicsDevice)
         {
             _renderer = new Renderer.Renderer();
             _logic = new MainLogic();
@@ -45,7 +45,7 @@ namespace EngineTest.Main
             _debug = new DebugScreen();
 
             Shaders.Load(content);
-            _assets.Load(content);
+            _assets.Load(content, graphicsDevice);
             _renderer.Load(content);
             _logic.Load(content);
             _debug.LoadContent(content);

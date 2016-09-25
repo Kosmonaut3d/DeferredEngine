@@ -243,6 +243,8 @@ namespace EngineTest.Renderer.Helper
                     {
                         ins = ' ';
                     }
+                    _spriteBatch.Draw(Assets.BaseTex, new Rectangle(10, 105, 500, 15 * _consoleStringSuggestion.Count + 15), Color.Black);
+
                     _spriteBatch.DrawString(_sprFont,
                         "CONSOLE: " + _consoleString + ins,
                         new Vector2(10.0f, 105.0f), consoleColor);
@@ -254,6 +256,8 @@ namespace EngineTest.Renderer.Helper
                         _spriteBatch.DrawString(_sprFont, suggestion,
                             new Vector2(10.0f + strLength.X, 105.0f + strLength.Y * index), consoleColor);
                     }
+
+                    
                 }
 
 
@@ -291,7 +295,7 @@ namespace EngineTest.Renderer.Helper
 
                 long totalmemory = GC.GetTotalMemory(false);
                 if (_maxGcMemory < totalmemory) _maxGcMemory = totalmemory;
-                _spriteBatch.DrawString(_sprFont, GameSettings.g_ScreenWidth +" x " + GameSettings.g_ScreenHeight + " | Memory (GC): " + totalmemory / 1024 + " ... " + _maxGcMemory / 1024, new Vector2(10, 25),
+                _spriteBatch.DrawString(_sprFont, GameSettings.g_ScreenWidth +" x " + GameSettings.g_ScreenHeight + " " + GameSettings.g_RenderMode.ToString() + " | Memory (GC): " + totalmemory / 1024 + " ... " + _maxGcMemory / 1024, new Vector2(10, 25),
                     Color.White);
 
                 // HELPERS

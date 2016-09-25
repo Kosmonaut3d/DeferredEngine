@@ -128,7 +128,7 @@ namespace EngineTest.Renderer
             _spriteBatch = new SpriteBatch(graphicsDevice);
             _camera = new Camera(new Vector3(0, 0, -10), new Vector3(1, 0, -10));
             _assets = new Assets();
-            _assets.Load(content);
+            _assets.Load(content, graphicsDevice);
 
             _screenHeight = _graphicsDevice.PresentationParameters.BackBufferHeight;
             _screenWidth = _graphicsDevice.PresentationParameters.BackBufferWidth;
