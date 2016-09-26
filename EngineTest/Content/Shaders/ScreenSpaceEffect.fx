@@ -86,6 +86,24 @@ float localDepth(float lindepth)
     return (Projection._43 / lindepth) + Projection._33;
 }
 
+float zfar = 500;
+float znear = 1;
+
+float linearizeDepth2(float z)
+{
+    float zfar_2 = zfar / (zfar - znear);
+
+    float z0 = z * zfar_2 - znear * zfar_2;
+
+    float w0 = z;
+
+    float native_z = z0 / w0;
+
+    float linZ = (znear * zfar_2 / (zfar_2 - native_z));
+
+    return linZ;
+}
+
 float3 randomNormal(float2 tex)
 {
     float noiseX = (frac(sin(dot(tex, float2(15.8989f, 76.132f) * 1.0f)) * 46336.23745f));
@@ -136,6 +154,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : SV_Target
 
     float radius = SampleRadius * (1-depthVal);
 
+    [unroll]
     for (uint i = 0; i < Samples; i++)
     {
         float3 offset = reflect(sampleSphere[i], randNor);
@@ -158,7 +177,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : SV_Target
 
         float occlusion = depthDiff * (1-depthVal);
 
-        float falloff = 1 - saturate(depthDiff * (1-depthVal) - FalloffMin) / (FalloffMax-FalloffMin);
+        float falloff = 1 - saturate(depthDiff  *(1-depthVal) - FalloffMin) / (FalloffMax-FalloffMin);
         
         occlusion *= falloff;
 

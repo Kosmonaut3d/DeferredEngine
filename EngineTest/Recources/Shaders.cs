@@ -10,6 +10,15 @@ namespace EngineTest.Recources
 {
     public static class Shaders
     {
+        //Second Screen Space Effect
+
+        public static Effect ScreenSpaceEffect2;
+        public static EffectParameter ScreenSpaceEffect2Parameter_DepthMap;
+        public static EffectParameter ScreenSpaceEffect2Parameter_TargetMap;
+        public static EffectParameter ScreenSpaceEffect2Parameter_NormalMap;
+        public static EffectParameter ScreenSpaceEffect2Parameter_ViewProjection;
+        public static EffectParameter ScreenSpaceEffect2Parameter_InverseViewProjection;
+
         //Screen Space Effect
 
         public static Effect ScreenSpaceEffect;
@@ -133,6 +142,15 @@ namespace EngineTest.Recources
 
         public static void Load(ContentManager content)
         {
+            //Screen Space Effect 2
+            ScreenSpaceEffect2 = content.Load<Effect>("Shaders/ScreenSpaceEffect2");
+
+            ScreenSpaceEffect2Parameter_DepthMap = ScreenSpaceEffect2.Parameters["DepthMap"];
+            ScreenSpaceEffect2Parameter_NormalMap = ScreenSpaceEffect2.Parameters["NormalMap"];
+            ScreenSpaceEffect2Parameter_TargetMap = ScreenSpaceEffect2.Parameters["TargetMap"];
+            ScreenSpaceEffect2Parameter_ViewProjection = ScreenSpaceEffect2.Parameters["ViewProjection"];
+            ScreenSpaceEffect2Parameter_InverseViewProjection = ScreenSpaceEffect2.Parameters["InverseViewProjection"];
+
             //Screen Space Effect
             ScreenSpaceEffect = content.Load<Effect>("Shaders/ScreenSpaceEffect");
 

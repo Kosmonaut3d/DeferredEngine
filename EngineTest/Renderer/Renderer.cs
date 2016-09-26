@@ -57,6 +57,9 @@ namespace EngineTest.Renderer
         private RenderTarget2D _renderTargetFinal;
         private RenderTargetBinding[] _renderTargetFinalBinding = new RenderTargetBinding[1];
 
+
+        private RenderTarget2D _renderTargetScreenSpaceEffect2;
+
         private RenderTarget2D _renderTargetSSReflection;
 
         private RenderTarget2D _renderTargetScreenSpaceEffect;
@@ -148,6 +151,8 @@ namespace EngineTest.Renderer
 
             //Show certain buffer stages depending on user input
             RenderMode();
+
+            //DrawScreenSpaceEffect2(camera);
 
             //Just some object culling, setting up for the next frame
             meshMaterialLibrary.FrustumCullingFinalizeFrame(entities);
@@ -289,8 +294,6 @@ namespace EngineTest.Renderer
             Shaders.ScreenSpaceEffect.CurrentTechnique.Passes[0].Apply();
             _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
 
-            //DrawMapToScreenToFullScreen(_renderTargetScreenSpaceEffect);
-
             //BLUR
 
             if (!GameSettings.ssao_Blur) return;
@@ -311,9 +314,33 @@ namespace EngineTest.Renderer
 
             _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
 
+            //need bilateral upsample
         }
 
-#endregion
+        private void DrawScreenSpaceEffect2(Camera camera)
+        {
+            //Another way to make SSR, not good yet
+
+            _graphicsDevice.SetRenderTarget(_renderTargetScreenSpaceEffect2);
+
+            _graphicsDevice.DepthStencilState = DepthStencilState.Default;
+            _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+            
+            Shaders.ScreenSpaceEffect2Parameter_InverseViewProjection.SetValue(_inverseViewProjection);
+            //Shaders.ScreenSpaceEffect2Parameter_Projection.SetValue(_projection);
+            Shaders.ScreenSpaceEffect2Parameter_ViewProjection.SetValue(_viewProjection);
+            //Shaders.ScreenSpaceEffectParameter_CameraPosition.SetValue(camera.Position);
+
+            //Shaders.ScreenSpaceEffect.CurrentTechnique = Shaders.ScreenSpaceEffectTechnique_SSAO;
+            Shaders.ScreenSpaceEffect2.CurrentTechnique.Passes[0].Apply();
+            _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+
+            DrawMapToScreenToFullScreen(_renderTargetScreenSpaceEffect2);
+
+
+        }
+
+        #endregion
 
         #region Shadow Mapping
 
@@ -844,11 +871,14 @@ namespace EngineTest.Renderer
             Shaders.SSReflectionEffectParameter_Resolution.SetValue(new Vector2(target_width, target_height));
             Shaders.deferredPointLightParameterResolution.SetValue(new Vector2(target_width, target_height));
 
+            _renderTargetScreenSpaceEffect2 = new RenderTarget2D(_graphicsDevice, target_width,
+                target_height, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+
             target_width /= 2;
             target_height /= 2;
 
             _renderTargetScreenSpaceEffect = new RenderTarget2D(_graphicsDevice, target_width,
-                target_height, false, SurfaceFormat.HalfSingle, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+                target_height, false, SurfaceFormat.HalfSingle, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
 
             _renderTargetScreenSpaceEffectBlur = new RenderTarget2D(_graphicsDevice, target_width,
                 target_height, false, SurfaceFormat.HalfSingle, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
@@ -875,6 +905,10 @@ namespace EngineTest.Renderer
             Shaders.ScreenSpaceEffectParameter_NormalMap.SetValue(_renderTargetNormal);
             Shaders.ScreenSpaceEffectParameter_DepthMap.SetValue(_renderTargetDepth);
             Shaders.ScreenSpaceEffectParameter_SSAOMap.SetValue(_renderTargetScreenSpaceEffect);
+
+            Shaders.ScreenSpaceEffect2Parameter_DepthMap.SetValue(_renderTargetDepth);
+            Shaders.ScreenSpaceEffect2Parameter_NormalMap.SetValue(_renderTargetNormal);
+            Shaders.ScreenSpaceEffect2Parameter_TargetMap.SetValue(_renderTargetFinal);
         }
 
         #endregion

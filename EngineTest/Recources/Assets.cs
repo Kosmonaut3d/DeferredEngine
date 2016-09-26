@@ -34,6 +34,7 @@ namespace EngineTest.Recources
             private Texture2D sponza_details_spec;
             private Texture2D sponza_flagpole_spec;
             private Texture2D sponza_floor_a_spec;
+            //private Texture2D sponza_floor_a_ddn;
             private Texture2D sponza_thorn_ddn;
             private Texture2D sponza_thorn_mask;
             private Texture2D sponza_thorn_spec;
@@ -95,8 +96,10 @@ namespace EngineTest.Recources
 
                 SponzaTextures.Add(sponza_details_spec = content.Load<Texture2D>("Sponza/textures/sponza_details_spec"));
                 SponzaTextures.Add(sponza_flagpole_spec = content.Load<Texture2D>("Sponza/textures/sponza_flagpole_spec"));
+
                 SponzaTextures.Add(sponza_floor_a_spec = content.Load<Texture2D>("Sponza/textures/sponza_floor_a_spec"));
-                SponzaTextures.Add(sponza_floor_a_spec = content.Load<Texture2D>("Sponza/textures/sponza_floor_a_ddn"));
+                //SponzaTextures.Add(sponza_floor_a_ddn = content.Load<Texture2D>("Sponza/textures/sponza_floor_a_ddn"));
+
                 SponzaTextures.Add(sponza_thorn_ddn = content.Load<Texture2D>("Sponza/textures/sponza_thorn_ddn"));
                 SponzaTextures.Add(sponza_thorn_mask = content.Load<Texture2D>("Sponza/textures/sponza_thorn_mask"));
                 SponzaTextures.Add(sponza_thorn_spec = content.Load<Texture2D>("Sponza/textures/sponza_thorn_spec"));
