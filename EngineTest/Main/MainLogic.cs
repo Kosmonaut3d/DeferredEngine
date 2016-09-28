@@ -51,15 +51,17 @@ namespace EngineTest.Main
 
             //Entities
 
-            drake = AddEntity(_assets.DragonUvSmoothModel, _assets.goldMaterial, new Vector3(40, -10, 1), -Math.PI/2, 0, 0, 10);
+            drake = AddEntity(_assets.DragonUvSmoothModel, _assets.emissiveMaterial, new Vector3(40, -10, 1), -Math.PI/2, 0, 0, 10);
+
+            AddEntity(_assets.DragonUvSmoothModel, _assets.silverMaterial, new Vector3(30, 10, 1), -Math.PI / 2, 0, 0, 10);
 
             AddEntity(_assets.SponzaModel, Vector3.Zero, -Math.PI/2, 0, 0, 0.1f);
 
-            AddEntity(_assets.HelmetModel, new Vector3(10, 0, -10), -Math.PI / 2, 0, -Math.PI / 2, 1);
+            //AddEntity(_assets.HelmetModel, new Vector3(10, 0, -10), -Math.PI / 2, 0, -Math.PI / 2, 1);
 
-            shadowLight = AddPointLight(position: new Vector3(2, 2, -20), radius: 50, color: Color.Wheat, intensity: 20, castShadows: true);
+            //shadowLight = AddPointLight(position: new Vector3(2, 2, -20), radius: 50, color: Color.Wheat, intensity: 20, castShadows: true);
 
-            AddPointLight(position: new Vector3(-20, 0, -20), radius: 100, color: Color.White, intensity: 20, castShadows: true, shadowResolution: 1024, staticShadow: true);
+            //AddPointLight(position: new Vector3(-20, 0, -20), radius: 100, color: Color.White, intensity: 20, castShadows: true, shadowResolution: 1024, staticShadow: true);
 
             //AddPointLight(position: new Vector3(-20, 0, -100), radius: 200, color: Color.White, intensity: 20, castShadows: true, shadowResolution: 1024, staticShadow: true);
 
@@ -68,7 +70,7 @@ namespace EngineTest.Main
             //{
             //    AddPointLight(new Vector3(FastRand.NextSingle() * 250 - 125, FastRand.NextSingle() * 40 - 20, FastRand.NextSingle() * 10 - 13), 40, new Color(FastRand.NextInteger(255), FastRand.NextInteger(255), FastRand.NextInteger(255)), 20, true);
             //}
-            AddPointLight(position: new Vector3(+20, -10, -20), radius: 50, color: Color.Orange, intensity: 20, castShadows: true);
+            //AddPointLight(position: new Vector3(+20, -10, -20), radius: 50, color: Color.Orange, intensity: 20, castShadows: true);
         
         }
 
@@ -133,6 +135,8 @@ namespace EngineTest.Main
         public void Update(GameTime gameTime)
         {
             Input.Update(gameTime, Camera);
+            
+            float delta = (float) (gameTime.ElapsedGameTime.TotalMilliseconds*60/1000);
 
             //Make the lights move up and down
             //for (var i = 2; i < PointLights.Count; i++)
@@ -141,11 +145,12 @@ namespace EngineTest.Main
             //    point.Position = new Vector3(point.Position.X, point.Position.Y, (float)(Math.Sin(gameTime.TotalGameTime.TotalSeconds * 0.8f + i) * 10 - 13));
             //}
 
+            drake.AngleZ += 0.02f*delta;
+
             //KeyInputs for specific tasks
 
             if (DebugScreen.ConsoleOpen) return;
 
-            float delta = (float) (gameTime.ElapsedGameTime.TotalMilliseconds*60/1000);
 
             if (Input.keyboardState.IsKeyDown(Keys.L))
             {

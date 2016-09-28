@@ -59,6 +59,8 @@ namespace EngineTest.Recources
             public Model Sphere;
             public MaterialEffect baseMaterial;
             public MaterialEffect goldMaterial;
+            public MaterialEffect emissiveMaterial;
+            public MaterialEffect emissiveMaterial2;
             public MaterialEffect silverMaterial;
 
             public void Load(ContentManager content, GraphicsDevice graphicsDevice)
@@ -126,6 +128,10 @@ namespace EngineTest.Recources
 
                 baseMaterial = CreateMaterial(Color.Red, 0.3f, 0);
 
+                emissiveMaterial = CreateMaterial(Color.LightGreen, 0.2f, 1, null, null, null, null, null, 3, 0.5f);
+
+                emissiveMaterial2 = CreateMaterial(Color.Gold, 0.2f, 1, null, null, null, null, null, 3, 2);
+
                 goldMaterial = CreateMaterial(Color.Gold, 0.2f, 1);
 
                 silverMaterial = CreateMaterial(Color.Silver, 0.05f, 1);
@@ -144,10 +150,10 @@ namespace EngineTest.Recources
             /// <param name="metallicMap"></param>
             /// <param name="mask"></param>
             /// <returns></returns>
-            private MaterialEffect CreateMaterial(Color color, float roughness, float metallic, Texture2D albedoMap = null, Texture2D normalMap = null, Texture2D roughnessMap = null, Texture2D metallicMap = null, Texture2D mask = null, int type = 0)
+            private MaterialEffect CreateMaterial(Color color, float roughness, float metallic, Texture2D albedoMap = null, Texture2D normalMap = null, Texture2D roughnessMap = null, Texture2D metallicMap = null, Texture2D mask = null, int type = 0, float emissiveStrength = 0)
             {
                 MaterialEffect mat = new MaterialEffect(Shaders.ClearGBufferEffect);
-                mat.Initialize(color, roughness, metallic, albedoMap, normalMap, roughnessMap, metallicMap, mask, type);
+                mat.Initialize(color, roughness, metallic, albedoMap, normalMap, roughnessMap, metallicMap, mask, type, emissiveStrength);
                 return mat;
             }
 

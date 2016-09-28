@@ -10,6 +10,29 @@ namespace EngineTest.Recources
 {
     public static class Shaders
     {
+
+        //Emissive
+
+        public static Effect EmissiveEffect;
+        public static EffectParameter EmissiveEffectParameter_ViewProj;
+        public static EffectParameter EmissiveEffectParameter_WorldViewProj;
+        public static EffectParameter EmissiveEffectParameter_InvertViewProj;
+        public static EffectParameter EmissiveEffectParameter_World;
+        public static EffectParameter EmissiveEffectParameter_Origin;
+        public static EffectParameter EmissiveEffectParameter_Size;
+        public static EffectParameter EmissiveEffectParameter_EmissiveColor;
+        public static EffectParameter EmissiveEffectParameter_EmissiveStrength;
+        public static EffectParameter EmissiveEffectParameter_CameraPosition;
+
+        public static EffectParameter EmissiveEffectParameter_Resolution;
+
+        public static EffectParameter EmissiveEffectParameter_DepthMap;
+        public static EffectParameter EmissiveEffectParameter_EmissiveMap;
+        public static EffectParameter EmissiveEffectParameter_NormalMap;
+
+        public static EffectTechnique EmissiveEffectTechnique_DrawEmissiveBuffer;
+        public static EffectTechnique EmissiveEffectTechnique_DrawEmissiveDiffuseEffect;
+        public static EffectTechnique EmissiveEffectTechnique_DrawEmissiveSpecularEffect;
         //Second Screen Space Effect
 
         public static Effect ScreenSpaceEffect2;
@@ -142,6 +165,25 @@ namespace EngineTest.Recources
 
         public static void Load(ContentManager content)
         {
+            //Emissive Effect
+            EmissiveEffect = content.Load<Effect>("Shaders/Emissive/EmissiveDraw");
+            EmissiveEffectParameter_World = EmissiveEffect.Parameters["World"];
+            EmissiveEffectParameter_ViewProj = EmissiveEffect.Parameters["ViewProjection"];
+            EmissiveEffectParameter_WorldViewProj = EmissiveEffect.Parameters["WorldViewProj"];
+            EmissiveEffectParameter_InvertViewProj = EmissiveEffect.Parameters["InvertViewProjection"];
+            EmissiveEffectParameter_Origin = EmissiveEffect.Parameters["Origin"];
+            EmissiveEffectParameter_CameraPosition = EmissiveEffect.Parameters["CameraPosition"];
+            EmissiveEffectParameter_Size = EmissiveEffect.Parameters["Size"];
+            EmissiveEffectParameter_NormalMap = EmissiveEffect.Parameters["NormalMap"];
+            EmissiveEffectParameter_DepthMap = EmissiveEffect.Parameters["DepthMap"];
+            EmissiveEffectParameter_EmissiveMap = EmissiveEffect.Parameters["EmissiveMap"];
+            EmissiveEffectParameter_Resolution = EmissiveEffect.Parameters["Resolution"];
+            EmissiveEffectParameter_EmissiveColor = EmissiveEffect.Parameters["EmissiveColor"];
+            EmissiveEffectParameter_EmissiveStrength = EmissiveEffect.Parameters["EmissiveStrength"];
+
+            EmissiveEffectTechnique_DrawEmissiveBuffer = EmissiveEffect.Techniques["DrawEmissiveBuffer"];
+            EmissiveEffectTechnique_DrawEmissiveSpecularEffect = EmissiveEffect.Techniques["DrawEmissiveSpecularEffect"];
+            EmissiveEffectTechnique_DrawEmissiveDiffuseEffect = EmissiveEffect.Techniques["DrawEmissiveDiffuseEffect"];
             //Screen Space Effect 2
             ScreenSpaceEffect2 = content.Load<Effect>("Shaders/ScreenSpaceEffect2");
 

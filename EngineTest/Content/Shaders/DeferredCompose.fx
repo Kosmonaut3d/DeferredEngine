@@ -151,6 +151,11 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
         }
     }
 
+    if (abs(materialType - 3) < 0.1f)
+    {
+        return diffuseColor;
+    }
+        
     //SSAO
     float ssaoContribution = 1;
     if(useSSAO)

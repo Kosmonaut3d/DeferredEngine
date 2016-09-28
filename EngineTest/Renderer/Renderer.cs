@@ -66,6 +66,8 @@ namespace EngineTest.Renderer
 
         private RenderTarget2D _renderTargetScreenSpaceEffectBlur;
 
+        private RenderTarget2D _renderTargetEmissive;
+
         //Cubemap
         private RenderTargetCube _renderTargetCubeMap;
 
@@ -143,6 +145,7 @@ namespace EngineTest.Renderer
 
             DrawEnvironmentMap(camera);
 
+            DrawEmissiveEffect(entities, camera);
             //Custom Effect
             DrawScreenSpaceEffect(camera);
 
@@ -151,8 +154,8 @@ namespace EngineTest.Renderer
 
             //Show certain buffer stages depending on user input
             RenderMode();
-
             //DrawScreenSpaceEffect2(camera);
+
 
             //Just some object culling, setting up for the next frame
             meshMaterialLibrary.FrustumCullingFinalizeFrame(entities);
@@ -267,6 +270,9 @@ namespace EngineTest.Renderer
                 case RenderModes.SSAO:
                     DrawMapToScreenToFullScreen(_renderTargetScreenSpaceEffect);
                     break;
+                case RenderModes.SSR:
+                    DrawMapToScreenToFullScreen(_renderTargetSSReflection);
+                    break;
                 default:
                     DrawMapToScreenToFullScreen(_renderTargetFinal);
                     break;
@@ -338,6 +344,168 @@ namespace EngineTest.Renderer
             DrawMapToScreenToFullScreen(_renderTargetScreenSpaceEffect2);
 
 
+        }
+
+        private void DrawEmissiveEffect(List<BasicEntity> entities, Camera camera)
+        {
+            
+
+            bool renderedonce = false;
+
+            //Draw all the affected models
+
+            for (int index1 = 0; index1 < entities.Count; index1++)
+            {
+                BasicEntity entity = entities[index1];
+
+                if (entity.Material == null) continue;
+
+                if (entity.Material.MaterialType != 3)
+                    continue;
+
+                if (!renderedonce)
+                {
+                    _graphicsDevice.DepthStencilState = DepthStencilState.Default;
+                    _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+
+                    Shaders.EmissiveEffectParameter_InvertViewProj.SetValue(_inverseViewProjection);
+                    Shaders.EmissiveEffectParameter_ViewProj.SetValue(_viewProjection);
+                    Shaders.EmissiveEffectParameter_CameraPosition.SetValue(camera.Position);
+                    _graphicsDevice.BlendState = BlendState.Opaque;
+
+                    renderedonce = true;
+                }
+
+                _graphicsDevice.SetRenderTarget(_renderTargetEmissive);
+
+                _graphicsDevice.Clear(Color.TransparentBlack);
+
+                Model model = entity.Model;
+
+                Matrix world = entity.WorldTransform.World;
+
+                Shaders.EmissiveEffectParameter_Origin.SetValue(entity.Position);
+
+                Shaders.EmissiveEffectParameter_EmissiveColor.SetValue(entity.Material.DiffuseColor);
+                Shaders.EmissiveEffectParameter_EmissiveStrength.SetValue(entity.Material.EmissiveStrength);
+
+                float size = model.Meshes[0].BoundingSphere.Radius* 3 * entity.WorldTransform.Scale;
+
+                Shaders.EmissiveEffectParameter_Size.SetValue(size);
+
+                Shaders.EmissiveEffect.CurrentTechnique = Shaders.EmissiveEffectTechnique_DrawEmissiveBuffer;
+
+                //Draw all basic entities with our emissive draw shader.
+                for (int index = 0; index < model.Meshes.Count; index++)
+                {
+                    ModelMesh mesh = model.Meshes[index];
+
+                    for (int i = 0; i < mesh.MeshParts.Count; i++)
+                    {
+                        ModelMeshPart meshpart = mesh.MeshParts[i];
+
+
+                        Shaders.EmissiveEffectParameter_WorldViewProj.SetValue(world*_view*_projection);
+                        Shaders.EmissiveEffectParameter_World.SetValue(world);
+
+                        Shaders.EmissiveEffect.CurrentTechnique.Passes[0].Apply();
+
+                        _graphicsDevice.SetVertexBuffer(meshpart.VertexBuffer);
+                        _graphicsDevice.Indices = (meshpart.IndexBuffer);
+                        int primitiveCount = meshpart.PrimitiveCount;
+                        int vertexOffset = meshpart.VertexOffset;
+                        int vCount = meshpart.NumVertices;
+                        int startIndex = meshpart.StartIndex;
+
+                        _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset, startIndex,
+                            primitiveCount);
+                    }
+                }
+
+
+
+                _graphicsDevice.SetRenderTarget(_renderTargetDiffuse);
+
+                _graphicsDevice.BlendState = _lightBlendState;
+
+                float cameraToCenter = Vector3.Distance(camera.Position, entity.Position);
+                bool inside = cameraToCenter < size * 1.2f;
+
+                _graphicsDevice.RasterizerState = RasterizerState.CullClockwise;//inside ? RasterizerState.CullClockwise : RasterizerState.CullCounterClockwise;
+
+                Shaders.EmissiveEffect.CurrentTechnique = Shaders.EmissiveEffectTechnique_DrawEmissiveDiffuseEffect;
+
+                Matrix sphereWorldMatrix = Matrix.CreateScale(size*1.2f)*Matrix.CreateTranslation(entity.Position);
+
+                Shaders.EmissiveEffectParameter_WorldViewProj.SetValue(sphereWorldMatrix * _viewProjection);
+
+                foreach (ModelMesh mesh in _assets.Sphere.Meshes)
+                {
+                    foreach (ModelMeshPart meshpart in mesh.MeshParts)
+                    {
+                        _graphicsDevice.SetVertexBuffer(meshpart.VertexBuffer);
+                        _graphicsDevice.Indices = (meshpart.IndexBuffer);
+                        int primitiveCount = meshpart.PrimitiveCount;
+                        int vertexOffset = meshpart.VertexOffset;
+                        int startIndex = meshpart.StartIndex;
+
+                        Shaders.EmissiveEffect.CurrentTechnique.Passes[0].Apply();
+
+                        _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset, startIndex, primitiveCount);
+                    }
+                }
+
+                _graphicsDevice.SetRenderTarget(_renderTargetSpecular);
+
+                Shaders.EmissiveEffect.CurrentTechnique = Shaders.EmissiveEffectTechnique_DrawEmissiveSpecularEffect;
+
+                foreach (ModelMesh mesh in _assets.Sphere.Meshes)
+                {
+                    foreach (ModelMeshPart meshpart in mesh.MeshParts)
+                    {
+                        _graphicsDevice.SetVertexBuffer(meshpart.VertexBuffer);
+                        _graphicsDevice.Indices = (meshpart.IndexBuffer);
+                        int primitiveCount = meshpart.PrimitiveCount;
+                        int vertexOffset = meshpart.VertexOffset;
+                        int startIndex = meshpart.StartIndex;
+
+                        Shaders.EmissiveEffect.CurrentTechnique.Passes[0].Apply();
+
+                        _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset, startIndex, primitiveCount);
+                    }
+                }
+
+            }
+
+            if (renderedonce && false)
+            {
+                _graphicsDevice.BlendState = BlendState.Opaque;
+                _graphicsDevice.DepthStencilState = DepthStencilState.Default;
+                _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+
+                _graphicsDevice.SetRenderTarget(_renderTargetSSReflection);
+
+                Shaders.ScreenSpaceEffectParameter_SSAOMap.SetValue(_renderTargetDiffuse);
+                Shaders.ScreenSpaceEffect.CurrentTechnique = Shaders.ScreenSpaceEffectTechnique_BlurVertical;
+                Shaders.ScreenSpaceEffect.CurrentTechnique.Passes[0].Apply();
+
+                _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+
+                _graphicsDevice.SetRenderTarget(_renderTargetDiffuse);
+
+                Shaders.ScreenSpaceEffectParameter_SSAOMap.SetValue(_renderTargetSSReflection);
+                Shaders.ScreenSpaceEffect.CurrentTechnique = Shaders.ScreenSpaceEffectTechnique_BlurHorizontal;
+                Shaders.ScreenSpaceEffect.CurrentTechnique.Passes[0].Apply();
+
+                _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+            }
+
+            //_graphicsDevice.SetRenderTarget(null);
+            //_spriteBatch.Begin(0, BlendState.Additive, SamplerState.AnisotropicClamp);
+            //_spriteBatch.Draw(_renderTargetFinal, new Rectangle(0, 0, GameSettings.g_ScreenWidth, GameSettings.g_ScreenHeight), Color.White);
+            //_spriteBatch.End();
+
+            //DrawMapToScreenToFullScreen(_renderTargetSSReflection);
         }
 
         #endregion
@@ -568,7 +736,7 @@ namespace EngineTest.Renderer
         private void DrawLights(List<PointLight> pointLights, Vector3 cameraOrigin)
         {
             _graphicsDevice.SetRenderTargets(_renderTargetLightBinding);
-
+            _graphicsDevice.Clear(Color.TransparentBlack);
             DrawPointLights(pointLights, cameraOrigin);
         }
 
@@ -828,6 +996,8 @@ namespace EngineTest.Renderer
 
                 _renderTargetScreenSpaceEffect.Dispose();
                 _renderTargetScreenSpaceEffectBlur.Dispose();
+
+                _renderTargetEmissive.Dispose();
             }
 
 
@@ -848,14 +1018,14 @@ namespace EngineTest.Renderer
                 target_height, false, SurfaceFormat.Single, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
 
             _renderTargetSSReflection = new RenderTarget2D(_graphicsDevice, target_width,
-                target_height, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+                target_height, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.PreserveContents);
 
             _renderTargetBinding[0] = new RenderTargetBinding(_renderTargetAlbedo);
             _renderTargetBinding[1] = new RenderTargetBinding(_renderTargetNormal);
             _renderTargetBinding[2] = new RenderTargetBinding(_renderTargetDepth);
 
             _renderTargetDiffuse = new RenderTarget2D(_graphicsDevice, target_width,
-               target_height, false, SurfaceFormat.HalfVector4, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
+               target_height, false, SurfaceFormat.HalfVector4, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
 
             _renderTargetSpecular = new RenderTarget2D(_graphicsDevice, target_width,
                target_height, false, SurfaceFormat.HalfVector4, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
@@ -870,6 +1040,10 @@ namespace EngineTest.Renderer
 
             Shaders.SSReflectionEffectParameter_Resolution.SetValue(new Vector2(target_width, target_height));
             Shaders.deferredPointLightParameterResolution.SetValue(new Vector2(target_width, target_height));
+            Shaders.EmissiveEffectParameter_Resolution.SetValue(new Vector2(target_width, target_height));
+
+            _renderTargetEmissive = new RenderTarget2D(_graphicsDevice, target_width,
+                target_height, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
 
             _renderTargetScreenSpaceEffect2 = new RenderTarget2D(_graphicsDevice, target_width,
                 target_height, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
@@ -909,6 +1083,10 @@ namespace EngineTest.Renderer
             Shaders.ScreenSpaceEffect2Parameter_DepthMap.SetValue(_renderTargetDepth);
             Shaders.ScreenSpaceEffect2Parameter_NormalMap.SetValue(_renderTargetNormal);
             Shaders.ScreenSpaceEffect2Parameter_TargetMap.SetValue(_renderTargetFinal);
+
+            Shaders.EmissiveEffectParameter_DepthMap.SetValue(_renderTargetDepth);
+            Shaders.EmissiveEffectParameter_EmissiveMap.SetValue(_renderTargetEmissive);
+            Shaders.EmissiveEffectParameter_NormalMap.SetValue(_renderTargetNormal);
         }
 
         #endregion

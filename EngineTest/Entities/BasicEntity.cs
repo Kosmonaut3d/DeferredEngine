@@ -29,10 +29,46 @@ namespace EngineTest.Entities
                 _position = value;
             }
         }
+        private double _angleZ;
+        private double _angleX; //forward
+        private double _angleY;
 
-        public double AngleZ;
-        public double AngleX; //forward
-        public double AngleY;
+        public double AngleZ
+        {
+            get
+            {
+                return _angleZ;
+            }
+            set
+            {
+                WorldTransform.HasChanged = true;
+                _angleZ = value;
+            }
+        }
+        public double AngleX
+        {
+            get
+            {
+                return _angleX;
+            }
+            set
+            {
+                WorldTransform.HasChanged = true;
+                _angleX = value;
+            }
+        } //forward
+        public double AngleY
+        {
+            get
+            {
+                return _angleY;
+            }
+            set
+            {
+                WorldTransform.HasChanged = true;
+                _angleY = value;
+            }
+        }
 
         public TransformMatrix WorldTransform = new TransformMatrix(Matrix.Identity);
         public Matrix RotationMatrix;

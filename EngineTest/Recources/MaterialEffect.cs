@@ -34,6 +34,7 @@ namespace EngineTest.Recources
         public float Roughness = 0.5f;
 
         public float Metallic = 0;
+        public float EmissiveStrength = 0;
 
 
         public Texture2D AlbedoMap
@@ -91,7 +92,7 @@ namespace EngineTest.Recources
             }
         }
 
-        public void Initialize(Color diffuseColor, float roughness, float metalness, Texture2D albedoMap = null, Texture2D normalMap = null, Texture2D roughnessMap = null, Texture2D metallicMap = null, Texture2D mask = null, int type = 0)
+        public void Initialize(Color diffuseColor, float roughness, float metalness, Texture2D albedoMap = null, Texture2D normalMap = null, Texture2D roughnessMap = null, Texture2D metallicMap = null, Texture2D mask = null, int type = 0, float emissiveStrength = 0)
         {
             DiffuseColor = diffuseColor.ToVector3();
             Roughness = roughness;
@@ -103,6 +104,12 @@ namespace EngineTest.Recources
             MetallicMap = metallicMap;
             Mask = mask;
             MaterialType = type;
+
+            if (emissiveStrength > 0)
+            {
+                MaterialType = 3;
+                EmissiveStrength = emissiveStrength;
+            }
         }
 
         public MaterialEffect(Effect cloneSource) : base(cloneSource)
