@@ -20,6 +20,8 @@ float EmissiveStrength = 1;
 
 float3 EmissiveColor = float3(1, 1, 1);
 
+float Time = 1;
+
 Texture2D EmissiveMap;
 Texture2D DepthMap;
 Texture2D NormalMap;
@@ -133,6 +135,7 @@ VertexShaderOutputSpecular DrawEffectSpecular_VertexShader(VertexShaderInput inp
 
 float3 randomNormal(float2 tex)
 {
+    tex *= Time;
     float noiseX = (frac(sin(dot(tex, float2(15.8989f, 76.132f) * 1.0f)) * 46336.23745f));
     float noiseY = (frac(sin(dot(tex, float2(11.9899f, 62.223f) * 2.0f)) * 34748.34744f));
     float noiseZ = (frac(sin(dot(tex, float2(13.3238f, 63.122f) * 3.0f)) * 59998.47362f));

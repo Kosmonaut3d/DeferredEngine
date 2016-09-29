@@ -116,7 +116,7 @@ namespace EngineTest.Renderer
 
         
         //Main Draw!
-        public void Draw(Camera camera, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities, List<PointLight> pointLights)
+        public void Draw(Camera camera, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities, List<PointLight> pointLights, GameTime gameTime)
         {
             //Reset the stat counter
             ResetStats(); 
@@ -149,7 +149,7 @@ namespace EngineTest.Renderer
 
             DrawEnvironmentMap(camera);
 
-            DrawEmissiveEffect(entities, camera, meshMaterialLibrary);
+            DrawEmissiveEffect(entities, camera, meshMaterialLibrary, gameTime);
             //Custom Effect
             DrawScreenSpaceEffect(camera);
 
@@ -353,9 +353,11 @@ namespace EngineTest.Renderer
 
         }
 
-        private void DrawEmissiveEffect(List<BasicEntity> entities, Camera camera, MeshMaterialLibrary meshMatLib)
+        private void DrawEmissiveEffect(List<BasicEntity> entities, Camera camera, MeshMaterialLibrary meshMatLib, GameTime gameTime)
         {
-            meshMatLib.DrawEmissive(_graphicsDevice, camera, _viewProjection, _inverseViewProjection, _renderTargetEmissive, _renderTargetDiffuse, _renderTargetSpecular, _lightBlendState, _assets.Sphere.Meshes);
+            
+
+            meshMatLib.DrawEmissive(_graphicsDevice, camera, _viewProjection, _inverseViewProjection, _renderTargetEmissive, _renderTargetDiffuse, _renderTargetSpecular, _lightBlendState, _assets.Sphere.Meshes, gameTime);
 
             return;
             if (!GameSettings.g_EmissiveDraw) return;

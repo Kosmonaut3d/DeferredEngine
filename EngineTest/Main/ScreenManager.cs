@@ -61,7 +61,7 @@ namespace EngineTest.Main
         /// </summary>
         public void Draw(GameTime gameTime)
         {
-            _renderer.Draw(_logic.Camera, _logic.MeshMaterialLibrary, _logic.Entities, _logic.PointLights);
+            _renderer.Draw(_logic.Camera, _logic.MeshMaterialLibrary, _logic.Entities, _logic.PointLights, gameTime);
 
             _debug.Draw(gameTime);
         }

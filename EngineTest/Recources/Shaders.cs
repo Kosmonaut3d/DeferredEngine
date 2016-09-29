@@ -28,6 +28,7 @@ namespace EngineTest.Recources
         public static EffectParameter EmissiveEffectParameter_EmissiveColor;
         public static EffectParameter EmissiveEffectParameter_EmissiveStrength;
         public static EffectParameter EmissiveEffectParameter_CameraPosition;
+        public static EffectParameter EmissiveEffectParameter_Time;
 
         public static EffectParameter EmissiveEffectParameter_Resolution;
 
@@ -190,6 +191,7 @@ namespace EngineTest.Recources
             EmissiveEffectParameter_Resolution = EmissiveEffect.Parameters["Resolution"];
             EmissiveEffectParameter_EmissiveColor = EmissiveEffect.Parameters["EmissiveColor"];
             EmissiveEffectParameter_EmissiveStrength = EmissiveEffect.Parameters["EmissiveStrength"];
+            EmissiveEffectParameter_Time = EmissiveEffect.Parameters["Time"];
 
             EmissiveEffectTechnique_DrawEmissiveBuffer = EmissiveEffect.Techniques["DrawEmissiveBuffer"];
             EmissiveEffectTechnique_DrawEmissiveSpecularEffect = EmissiveEffect.Techniques["DrawEmissiveSpecularEffect"];

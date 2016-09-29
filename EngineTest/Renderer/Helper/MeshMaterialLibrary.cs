@@ -580,7 +580,7 @@ namespace EngineTest.Renderer.Helper
         }
 
         //I don't want to fill up the main Draw as much! Not used right  now
-        public void DrawEmissive(GraphicsDevice graphicsDevice, Camera camera, Matrix viewProjection, Matrix inverseViewProjection, RenderTarget2D renderTargetEmissive, RenderTarget2D _renderTargetDiffuse, RenderTarget2D _renderTargetSpecular, BlendState _lightBlendState, IEnumerable<ModelMesh> sphereModel)
+        public void DrawEmissive(GraphicsDevice graphicsDevice, Camera camera, Matrix viewProjection, Matrix inverseViewProjection, RenderTarget2D renderTargetEmissive, RenderTarget2D _renderTargetDiffuse, RenderTarget2D _renderTargetSpecular, BlendState _lightBlendState, IEnumerable<ModelMesh> sphereModel, GameTime gameTime)
         {
             bool setupRender = false;
 
@@ -635,6 +635,9 @@ namespace EngineTest.Renderer.Helper
                     Shaders.EmissiveEffectParameter_InvertViewProj.SetValue(inverseViewProjection);
                     Shaders.EmissiveEffectParameter_ViewProj.SetValue(viewProjection);
                     Shaders.EmissiveEffectParameter_CameraPosition.SetValue(camera.Position);
+
+                    if(GameSettings.g_EmissiveNoise)
+                    Shaders.EmissiveEffectParameter_Time.SetValue((float) gameTime.TotalGameTime.TotalMilliseconds);
                     setupRender = true;
                 }
 
