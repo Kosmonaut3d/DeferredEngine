@@ -60,17 +60,19 @@ namespace EngineTest.Main
 
             AddEntity(_assets.DragonUvSmoothModel, _assets.silverMaterial, new Vector3(30, 10, 1), -Math.PI / 2, 0, 0, 10);
             AddEntity(_assets.SponzaModel, Vector3.Zero, -Math.PI/2, 0, 0, 0.1f);
-            AddEntity(_assets.HelmetModel, new Vector3(10, 0, -10), -Math.PI / 2, 0, -Math.PI / 2, 1);
+
+
+            AddEntity(_assets.HelmetModel, new Vector3(70, 0, -10), -Math.PI / 2, 0, -Math.PI / 2, 1);
 
             //Hologram skulls
-            AddEntity(_assets.SkullModel, _assets.hologramMaterial, new Vector3(9, 0, -6.5f), -Math.PI / 2, 0, Math.PI / 2 + 0.3f, 0.9f);
-            AddEntity(_assets.SkullModel, _assets.hologramMaterial, new Vector3(9, 8.5f, -6.5f), -Math.PI / 2, 0, Math.PI / 2 + 0.3f, 0.8f);
+            AddEntity(_assets.SkullModel, _assets.hologramMaterial, new Vector3(69, 0, -6.5f), -Math.PI / 2, 0, Math.PI / 2 + 0.3f, 0.9f);
+            AddEntity(_assets.SkullModel, _assets.hologramMaterial, new Vector3(69, 8.5f, -6.5f), -Math.PI / 2, 0, Math.PI / 2 + 0.3f, 0.8f);
 
             //Lights
             //shadowLight is moveable with arrow keys
-            shadowLight = AddPointLight(position: new Vector3(-20, 2, -20), radius: 50, color: Color.Wheat, intensity: 20, castShadows: true);
+            shadowLight = AddPointLight(position: new Vector3(-80, 2, -20), radius: 50, color: Color.Wheat, intensity: 20, castShadows: true);
 
-            AddPointLight(position: new Vector3(-20, 0, -20), radius: 100, color: Color.White, intensity: 10, castShadows: true, shadowResolution: 1024, staticShadow: true);
+            //AddPointLight(position: new Vector3(-20, 0, -20), radius: 100, color: Color.White, intensity: 10, castShadows: true, shadowResolution: 1024, staticShadow: true);
 
             //AddPointLight(position: new Vector3(-20, 0, -100), radius: 200, color: Color.White, intensity: 20, castShadows: true, shadowResolution: 1024, staticShadow: true);
 
@@ -154,7 +156,7 @@ namespace EngineTest.Main
             //    point.Position = new Vector3(point.Position.X, point.Position.Y, (float)(Math.Sin(gameTime.TotalGameTime.TotalSeconds * 0.8f + i) * 10 - 13));
             //}
 
-            //drake.AngleZ += 0.02f*delta;
+            drake.AngleZ += 0.02f*delta;
 
             //KeyInputs for specific tasks
 

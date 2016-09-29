@@ -285,7 +285,7 @@ float4 DrawEffectSpecular_PixelShader(VertexShaderOutputSpecular input) : SV_Tar
                 
                 //note that a new vectorDirection should be used here.
                     float normalfactor = saturate(dot(normal, foundVectorDirection / vectorLength));
-
+                    //float normalfactor = saturate(dot(normal, vectorDirection));
                     float normalfactor2 = -(normalfactor - 1) * (normalfactor - 1) + 1;
 
                     emissiveContribution += dist * normalfactor2;
@@ -297,12 +297,12 @@ float4 DrawEffectSpecular_PixelShader(VertexShaderOutputSpecular input) : SV_Tar
 
     }
 
-    emissiveContribution /= Samples * 8;
+    emissiveContribution /= Samples;
 
     //////////////////////////////////////
 
 
-    return float4(EmissiveColor * emissiveContribution * EmissiveStrength, 1);
+    return float4(EmissiveColor * emissiveContribution * EmissiveStrength * 0.05f, 1);
 
 }
 
@@ -444,7 +444,7 @@ float4 DrawEffectDiffuse_PixelShader(VertexShaderOutput input) : SV_Target
 
                     float normalfactor2 = -(normalfactor - 1) * (normalfactor - 1) + 1;
 
-                    emissiveContribution += dist * normalfactor2;
+                    emissiveContribution += dist * normalfactor;
 
                     break;
                 }
@@ -453,12 +453,12 @@ float4 DrawEffectDiffuse_PixelShader(VertexShaderOutput input) : SV_Target
 
     }
 
-    emissiveContribution /= Samples * 4;
+    emissiveContribution /= Samples; //* 4.0f;
 
     //////////////////////////////////////
 
 
-    return float4(EmissiveColor * emissiveContribution * EmissiveStrength , 1);
+    return float4(EmissiveColor * emissiveContribution * EmissiveStrength * 0.05f, 1);
 
 }
 

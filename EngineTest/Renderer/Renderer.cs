@@ -442,8 +442,8 @@ namespace EngineTest.Renderer
 
                 _graphicsDevice.BlendState = _lightBlendState;
 
-                float cameraToCenter = Vector3.Distance(camera.Position, entity.Position);
-                bool inside = cameraToCenter < size * 1.2f;
+                //float cameraToCenter = Vector3.Distance(camera.Position, entity.Position);
+                //bool inside = cameraToCenter < size * 1.2f;
 
                 _graphicsDevice.RasterizerState = RasterizerState.CullClockwise;//inside ? RasterizerState.CullClockwise : RasterizerState.CullCounterClockwise;
 

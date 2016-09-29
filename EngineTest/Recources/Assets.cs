@@ -136,7 +136,7 @@ namespace EngineTest.Recources
 
                 hologramMaterial = CreateMaterial(Color.White, 0.2f, 1, null, null, null, null, null, MaterialEffect.MaterialTypes.Hologram, 1);
 
-                emissiveMaterial = CreateMaterial(Color.White, 0.2f, 1, null, null, null, null, null, MaterialEffect.MaterialTypes.Emissive, 1);
+                emissiveMaterial = CreateMaterial(Color.Gold, 0.2f, 1, null, null, null, null, null, MaterialEffect.MaterialTypes.Emissive, 1);
 
                 emissiveMaterial2 = CreateMaterial(Color.LimeGreen, 0.2f, 1, null, null, null, null, null, MaterialEffect.MaterialTypes.Emissive, 0.2f);
 
