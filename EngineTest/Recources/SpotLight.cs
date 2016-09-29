@@ -28,15 +28,17 @@ namespace EngineTest.Recources
 
         public override void ApplyShader()
         {
-            if (RenderTargetShadowMap != null)
-            {
-                Shaders.deferredSpotLightParameterShadowMap.SetValue(RenderTargetShadowMap);
-                Shaders.deferredSpotLightShadowed.Passes[0].Apply();
-            }
-            else
-            {
-                Shaders.deferredSpotLightUnshadowed.Passes[0].Apply();
-            }
+            throw new NotImplementedException();
+
+            //if (RenderTargetShadowMap != null)
+            //{
+            //    Shaders.deferredSpotLightParameterShadowMap.SetValue(RenderTargetShadowMap);
+            //    Shaders.deferredSpotLightShadowed.Passes[0].Apply();
+            //}
+            //else
+            //{
+            //    Shaders.deferredSpotLightUnshadowed.Passes[0].Apply();
+            //}
         }
     }
 }

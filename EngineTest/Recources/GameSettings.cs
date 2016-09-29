@@ -26,6 +26,10 @@ namespace EngineTest.Recources
         public static int g_ScreenWidth = 1280;
         public static int g_ScreenHeight = 800;
 
+        public static bool g_EmissiveDraw = true;
+        public static bool g_EmissiveDrawDiffuse = true;
+        public static bool g_EmissiveDrawSpecular = true;
+
         private static float _ssao_falloffmin = 0.0001f;
         private static float _ssao_falloffmax = 0.001f;
         private static int _ssao_samples = 8;
@@ -33,6 +37,20 @@ namespace EngineTest.Recources
         private static float _ssao_strength = 80;
         public static bool ssao_Blur = true;
         private static bool _ssao_active = true;
+
+        // Hologram
+        private static bool _g_hologramUseGauss = true;
+        public static bool g_HologramUseGauss
+        {
+            get { return _g_hologramUseGauss;}
+            set
+            {
+                _g_hologramUseGauss = value;
+                Shaders.DeferredCompose.Parameters["useGauss"].SetValue(value);
+            }
+        }
+
+        public static bool g_HologramDraw = true;
 
         // Screen Space Ambient Occlusion
 

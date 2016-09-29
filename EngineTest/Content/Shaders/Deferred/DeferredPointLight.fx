@@ -188,7 +188,7 @@ float chebyshevUpperBound(float distance, float3 texCoord)
     return p_max;
 }
 
-PixelShaderOutput BasePixelShaderFunction(PixelShaderInput input) : COLOR0
+PixelShaderOutput BasePixelShaderFunction(PixelShaderInput input)
 {
     PixelShaderOutput output;
     
@@ -247,7 +247,7 @@ PixelShaderOutput BasePixelShaderFunction(PixelShaderInput input) : COLOR0
     }
 }
 
-PixelShaderOutput BasePixelShaderFunctionShadow(PixelShaderInput input) : COLOR0
+PixelShaderOutput BasePixelShaderFunctionShadow(PixelShaderInput input)
 {
     
     PixelShaderOutput output;
@@ -356,7 +356,7 @@ PixelShaderOutput BasePixelShaderFunctionShadow(PixelShaderInput input) : COLOR0
 
 }
 
-PixelShaderOutput PixelShaderFunction(VertexShaderOutput input) : COLOR0
+PixelShaderOutput PixelShaderFunction(VertexShaderOutput input) : SV_TARGET
 {
     PixelShaderInput p_input = BaseCalculations(input);
  
@@ -368,7 +368,7 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input) : COLOR0
 }
 
 
-PixelShaderOutput PixelShaderFunctionShadowed(VertexShaderOutput input) : COLOR0
+PixelShaderOutput PixelShaderFunctionShadowed(VertexShaderOutput input) : SV_TARGET
 {
     PixelShaderInput p_input = BaseCalculations(input);
 

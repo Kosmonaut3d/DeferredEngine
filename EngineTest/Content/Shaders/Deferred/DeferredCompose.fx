@@ -6,8 +6,8 @@ Texture2D specularLightMap;
 
 static float2 Resolution = float2(1280, 800);
 
-float average_skull_depth = 10;
-bool useGauss = false;
+float average_hologram_depth = 10;
+bool useGauss = true;
 
 #include "helper.fx"
 
@@ -47,7 +47,7 @@ sampler specularLightSampler = sampler_state
     Mipfilter = POINT;
 };
 
-Texture2D skull;
+Texture2D HologramMap;
 sampler linearSampler = sampler_state
 {
     AddressU = CLAMP;
@@ -95,7 +95,7 @@ float4 GaussianSampler(float2 TexCoord, float offset)
     float4 finalColor = float4(0, 0, 0, 0);
     for (int i = 0; i < SAMPLE_COUNT; i++)
     {
-        finalColor += skull.Sample(linearSampler, TexCoord.xy +
+        finalColor += HologramMap.Sample(linearSampler, TexCoord.xy +
                     offset * SampleOffsets[i] * InverseResolution) * SampleWeights[i];
     }
    // finalColor = colorMap.Sample(colorSampler, TexCoord.xy);
@@ -111,7 +111,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 
     float pixelsize = pixelsize_intended;
     
-    float2 skullTexCoord = trunc(input.TexCoord * Resolution / pixelsize / 2) / Resolution * pixelsize * 2;
+    float2 hologramTexCoord = trunc(input.TexCoord * Resolution / pixelsize / 2) / Resolution * pixelsize * 2;
        
     
 
@@ -125,7 +125,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
     
     if(useGauss)
     {
-        float4 skullColor = GaussianSampler(input.TexCoord, 3);
+        float4 hologramColor = GaussianSampler(input.TexCoord, 3);
 
     //[branch]
         if (abs(materialType - 2) < 0.1f)
@@ -134,19 +134,19 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 
     //    float pixelsize2 = 2 * pixelsize;
     //    if (pixel.x % pixelsize2 <= pixelsize && pixel.y % pixelsize2 <= pixelsize)
-            diffuseContrib = float3(0, skullColor.x * 0.49, skullColor.x * 0.95f) * 0.06f ;
+            diffuseContrib = float3(0, hologramColor.x * 0.49, hologramColor.x * 0.95f) * 0.06f ;
         }
     }
     else
     {
-        float skullColor = skull.Sample(linearSampler, skullTexCoord).r;
+        float hologramColor = HologramMap.Sample(linearSampler, hologramTexCoord).r;
         if (abs(materialType - 2) < 0.1f)
         {
         float2 pixel = trunc(input.TexCoord * Resolution);
 
         float pixelsize2 = 2 * pixelsize;
         if (pixel.x % pixelsize2 <= pixelsize && pixel.y % pixelsize2 <= pixelsize)
-                diffuseContrib = float3(0, skullColor * 0.49, skullColor * 0.95f) * 0.06f + float3(0.5f, 0.2f, 0.2f);
+                diffuseContrib = float3(0, hologramColor * 0.49, hologramColor * 0.95f) * 0.06f;
 
         }
     }

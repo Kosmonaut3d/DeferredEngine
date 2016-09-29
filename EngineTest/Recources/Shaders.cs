@@ -10,6 +10,11 @@ namespace EngineTest.Recources
 {
     public static class Shaders
     {
+        //Hologram
+
+        public static Effect HologramEffect;
+        public static EffectParameter HologramEffectParameter_WorldViewProj;
+        public static EffectParameter HologramEffectParameter_World;
 
         //Emissive
 
@@ -100,14 +105,14 @@ namespace EngineTest.Recources
         public static EffectParameter DeferredComposeEffectParameter_ColorMap;
         public static EffectParameter DeferredComposeEffectParameter_diffuseLightMap;
         public static EffectParameter DeferredComposeEffectParameter_specularLightMap;
-        public static EffectParameter DeferredComposeEffectParameter_skullMap;
+        public static EffectParameter DeferredComposeEffectParameter_HologramMap;
         public static EffectParameter DeferredComposeEffectParameter_SSAOMap;
 
         //Deferred Light
-        public static Effect deferredSpotLight;
-        public static EffectTechnique deferredSpotLightUnshadowed;
-        public static EffectTechnique deferredSpotLightShadowed;
-        public static EffectParameter deferredSpotLightParameterShadowMap;
+        //public static Effect deferredSpotLight;
+        //public static EffectTechnique deferredSpotLightUnshadowed;
+        //public static EffectTechnique deferredSpotLightShadowed;
+        //public static EffectParameter deferredSpotLightParameterShadowMap;
 
         public static Effect deferredPointLight;
         public static EffectTechnique deferredPointLightUnshadowed;
@@ -153,18 +158,23 @@ namespace EngineTest.Recources
 
         //SSR
 
-        public static Effect SSReflectionEffect;
-        public static EffectParameter SSReflectionEffectParameter_CameraPosition;
-        public static EffectParameter SSReflectionEffectParameter_InvertViewProjection;
-        public static EffectParameter SSReflectionEffectParameter_Projection;
-        public static EffectParameter SSReflectionEffectParameter_ViewProjection;
-        public static EffectParameter SSReflectionEffectParameter_DepthMap;
-        public static EffectParameter SSReflectionEffectParameter_NormalMap;
-        public static EffectParameter SSReflectionEffectParameter_AlbedoMap;
-        public static EffectParameter SSReflectionEffectParameter_Resolution;
+        //public static Effect SSReflectionEffect;
+        //public static EffectParameter SSReflectionEffectParameter_CameraPosition;
+        //public static EffectParameter SSReflectionEffectParameter_InvertViewProjection;
+        //public static EffectParameter SSReflectionEffectParameter_Projection;
+        //public static EffectParameter SSReflectionEffectParameter_ViewProjection;
+        //public static EffectParameter SSReflectionEffectParameter_DepthMap;
+        //public static EffectParameter SSReflectionEffectParameter_NormalMap;
+        //public static EffectParameter SSReflectionEffectParameter_AlbedoMap;
+        //public static EffectParameter SSReflectionEffectParameter_Resolution;
 
         public static void Load(ContentManager content)
         {
+            //Hologram Effect
+            HologramEffect = content.Load<Effect>("Shaders/Hologram/HologramEffect");
+            HologramEffectParameter_World = HologramEffect.Parameters["World"];
+            HologramEffectParameter_WorldViewProj = HologramEffect.Parameters["WorldViewProj"];
+
             //Emissive Effect
             EmissiveEffect = content.Load<Effect>("Shaders/Emissive/EmissiveDraw");
             EmissiveEffectParameter_World = EmissiveEffect.Parameters["World"];
@@ -185,7 +195,7 @@ namespace EngineTest.Recources
             EmissiveEffectTechnique_DrawEmissiveSpecularEffect = EmissiveEffect.Techniques["DrawEmissiveSpecularEffect"];
             EmissiveEffectTechnique_DrawEmissiveDiffuseEffect = EmissiveEffect.Techniques["DrawEmissiveDiffuseEffect"];
             //Screen Space Effect 2
-            ScreenSpaceEffect2 = content.Load<Effect>("Shaders/ScreenSpaceEffect2");
+            ScreenSpaceEffect2 = content.Load<Effect>("Shaders/ScreenSpace/ScreenSpaceEffect2");
 
             ScreenSpaceEffect2Parameter_DepthMap = ScreenSpaceEffect2.Parameters["DepthMap"];
             ScreenSpaceEffect2Parameter_NormalMap = ScreenSpaceEffect2.Parameters["NormalMap"];
@@ -194,7 +204,7 @@ namespace EngineTest.Recources
             ScreenSpaceEffect2Parameter_InverseViewProjection = ScreenSpaceEffect2.Parameters["InverseViewProjection"];
 
             //Screen Space Effect
-            ScreenSpaceEffect = content.Load<Effect>("Shaders/ScreenSpaceEffect");
+            ScreenSpaceEffect = content.Load<Effect>("Shaders/ScreenSpace/ScreenSpaceEffect");
 
             ScreenSpaceEffectParameter_SSAOMap = ScreenSpaceEffect.Parameters["SSAOMap"];
             ScreenSpaceEffectParameter_NormalMap = ScreenSpaceEffect.Parameters["NormalMap"];
@@ -215,10 +225,10 @@ namespace EngineTest.Recources
             ScreenSpaceEffectTechnique_BlurHorizontal = ScreenSpaceEffect.Techniques["BilateralHorizontal"];
             ScreenSpaceEffectTechnique_BlurVertical = ScreenSpaceEffect.Techniques["BilateralVertical"];
 
-            ClearGBufferEffect = content.Load<Effect>("Shaders/ClearGBuffer");
+            ClearGBufferEffect = content.Load<Effect>("Shaders/GbufferSetup/ClearGBuffer");
 
             //Gbuffer
-            GBufferEffect = content.Load<Effect>("Shaders/GBuffer");
+            GBufferEffect = content.Load<Effect>("Shaders/GbufferSetup/GBuffer");
 
             GBufferEffectParameter_World = GBufferEffect.Parameters["World"];
             GBufferEffectParameter_WorldViewProj = GBufferEffect.Parameters["WorldViewProj"];
@@ -252,26 +262,26 @@ namespace EngineTest.Recources
 
             //DeferredCompose
 
-            DeferredCompose = content.Load<Effect>("Shaders/DeferredCompose");
+            DeferredCompose = content.Load<Effect>("Shaders/Deferred/DeferredCompose");
 
             DeferredComposeEffectParameter_ColorMap = DeferredCompose.Parameters["colorMap"];
             DeferredComposeEffectParameter_diffuseLightMap = DeferredCompose.Parameters["diffuseLightMap"];
             DeferredComposeEffectParameter_specularLightMap = DeferredCompose.Parameters["specularLightMap"];
-            DeferredComposeEffectParameter_skullMap = DeferredCompose.Parameters["skull"];
+            DeferredComposeEffectParameter_HologramMap = DeferredCompose.Parameters["HologramMap"];
             DeferredComposeEffectParameter_SSAOMap = DeferredCompose.Parameters["SSAOMap"];
 
 
-            //DeferredLights
+            ////DeferredLights
 
-            deferredSpotLight = content.Load<Effect>("Shaders/DeferredSpotLight");
+            //deferredSpotLight = content.Load<Effect>("Shaders/Deferred/DeferredSpotLight");
 
-            deferredSpotLightUnshadowed = deferredSpotLight.Techniques["Unshadowed"];
-            deferredSpotLightShadowed = deferredSpotLight.Techniques["Shadowed"];
+            //deferredSpotLightUnshadowed = deferredSpotLight.Techniques["Unshadowed"];
+            //deferredSpotLightShadowed = deferredSpotLight.Techniques["Shadowed"];
 
-            deferredSpotLightParameterShadowMap = deferredSpotLight.Parameters["shadowMap"];
+            //deferredSpotLightParameterShadowMap = deferredSpotLight.Parameters["shadowMap"];
 
             //PL
-            deferredPointLight = content.Load<Effect>("Shaders/DeferredPointLight");
+            deferredPointLight = content.Load<Effect>("Shaders/Deferred/DeferredPointLight");
 
             deferredPointLightUnshadowed = deferredPointLight.Techniques["Unshadowed"];
             deferredPointLightShadowed = deferredPointLight.Techniques["Shadowed"];
@@ -303,7 +313,7 @@ namespace EngineTest.Recources
             deferredPointLightParameter_DepthMap = deferredPointLight.Parameters["DepthMap"];
 
             //Environment
-            deferredEnvironment = content.Load<Effect>("Shaders/DeferredEnvironmentMap");
+            deferredEnvironment = content.Load<Effect>("Shaders/Deferred/DeferredEnvironmentMap");
             deferredEnvironmentParameter_AlbedoMap = deferredEnvironment.Parameters["AlbedoMap"];
             deferredEnvironmentParameter_NormalMap = deferredEnvironment.Parameters["NormalMap"];
             deferredEnvironmentParameter_DepthMap = deferredEnvironment.Parameters["DepthMap"];
@@ -313,22 +323,22 @@ namespace EngineTest.Recources
 
             //VSM
 
-            virtualShadowMappingEffect = content.Load<Effect>("Shaders/VirtualShadowMapsGenerate");
+            virtualShadowMappingEffect = content.Load<Effect>("Shaders/Shadow/VirtualShadowMapsGenerate");
             virtualShadowMappingEffectParameter_WorldViewProj = virtualShadowMappingEffect.Parameters["WorldViewProj"];
 
             //SSReflections
-            SSReflectionEffect = content.Load<Effect>("Shaders/SSReflectionEffect");
+            //SSReflectionEffect = content.Load<Effect>("Shaders/SSReflectionEffect");
 
-            SSReflectionEffectParameter_InvertViewProjection = SSReflectionEffect.Parameters["InvertViewProjection"];
-            SSReflectionEffectParameter_ViewProjection = SSReflectionEffect.Parameters["ViewProjection"];
-            SSReflectionEffectParameter_Projection = SSReflectionEffect.Parameters["Projection"];
-            SSReflectionEffectParameter_CameraPosition = SSReflectionEffect.Parameters["cameraPosition"];
+            //SSReflectionEffectParameter_InvertViewProjection = SSReflectionEffect.Parameters["InvertViewProjection"];
+            //SSReflectionEffectParameter_ViewProjection = SSReflectionEffect.Parameters["ViewProjection"];
+            //SSReflectionEffectParameter_Projection = SSReflectionEffect.Parameters["Projection"];
+            //SSReflectionEffectParameter_CameraPosition = SSReflectionEffect.Parameters["cameraPosition"];
 
-            SSReflectionEffectParameter_DepthMap = SSReflectionEffect.Parameters["depthMap"];
-            SSReflectionEffectParameter_NormalMap = SSReflectionEffect.Parameters["normalMap"];
-            SSReflectionEffectParameter_AlbedoMap = SSReflectionEffect.Parameters["albedoMap"];
+            //SSReflectionEffectParameter_DepthMap = SSReflectionEffect.Parameters["depthMap"];
+            //SSReflectionEffectParameter_NormalMap = SSReflectionEffect.Parameters["normalMap"];
+            //SSReflectionEffectParameter_AlbedoMap = SSReflectionEffect.Parameters["albedoMap"];
 
-            SSReflectionEffectParameter_Resolution = SSReflectionEffect.Parameters["resolution"];
+            //SSReflectionEffectParameter_Resolution = SSReflectionEffect.Parameters["resolution"];
         }
     }
 }

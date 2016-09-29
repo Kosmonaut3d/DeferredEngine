@@ -7,9 +7,7 @@
 matrix  World;
 matrix  WorldViewProj;
 
-#include "helper.fx"
-
-bool shade = true;
+//bool shade = true;
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -45,9 +43,9 @@ float4 DrawBasic_PixelShader(DrawBasic_VSOut input) : SV_TARGET
 {
     float color = 1;
 
-    [branch]
-    if(shade)
-        color = saturate(dot(input.Normal, float3(-1, 0, 1)));
+    //[branch]
+    //if(shade)
+    color = saturate(dot(input.Normal, float3(-1, 0, 1)));
 
     //float color = 0.5f*saturate(dot(input.Normal, normalize(float3(-1, 0.5, 1))));
     //color += 0.5f*saturate(dot(input.Normal, normalize(float3(-1, -0.5, 1))));

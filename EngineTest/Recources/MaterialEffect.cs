@@ -27,7 +27,6 @@ namespace EngineTest.Recources
         public bool HasNormal = false;
         public bool HasMetallic = false;
 
-        public int MaterialType = 0;
 
         public Vector3 DiffuseColor;
 
@@ -91,8 +90,33 @@ namespace EngineTest.Recources
                 HasMask = true;
             }
         }
+        
+        private MaterialTypes _type = MaterialTypes.Basic;
+        public int materialTypeNumber = 0;
 
-        public void Initialize(Color diffuseColor, float roughness, float metalness, Texture2D albedoMap = null, Texture2D normalMap = null, Texture2D roughnessMap = null, Texture2D metallicMap = null, Texture2D mask = null, int type = 0, float emissiveStrength = 0)
+        public enum MaterialTypes
+        {
+            Basic,
+            Emissive,
+            Hologram,
+            ReceiveHologram
+        }
+
+        public MaterialTypes Type
+        {
+            get { return _type; }
+            set
+            {
+                _type = value;
+                materialTypeNumber = 0;
+                if (value == MaterialTypes.ReceiveHologram)
+                    materialTypeNumber = 2;
+                else if (value == MaterialTypes.Emissive)
+                    materialTypeNumber = 3;
+            }
+        }
+
+        public void Initialize(Color diffuseColor, float roughness, float metalness, Texture2D albedoMap = null, Texture2D normalMap = null, Texture2D roughnessMap = null, Texture2D metallicMap = null, Texture2D mask = null, MaterialTypes type = MaterialTypes.Basic, float emissiveStrength = 0)
         {
             DiffuseColor = diffuseColor.ToVector3();
             Roughness = roughness;
@@ -103,11 +127,11 @@ namespace EngineTest.Recources
             RoughnessMap = roughnessMap;
             MetallicMap = metallicMap;
             Mask = mask;
-            MaterialType = type;
+            Type = type;
 
             if (emissiveStrength > 0)
             {
-                MaterialType = 3;
+                //Type = MaterialTypes.Emissive;
                 EmissiveStrength = emissiveStrength;
             }
         }
@@ -145,7 +169,7 @@ namespace EngineTest.Recources
 
             if (AlbedoMap != b.AlbedoMap) return false;
 
-            if (MaterialType != b.MaterialType) return false;
+            if (Type != b.Type) return false;
 
             if (Math.Abs(Roughness - b.Roughness) > 0.01f) return false;
 

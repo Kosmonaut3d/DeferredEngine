@@ -120,7 +120,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : SV_Target
            
     float oldZ = 0;
 
-    int samples = 20;
+    uint samples = 20;
     [unroll]
     for (uint i = 0; i < samples; i++)
     {

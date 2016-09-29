@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
@@ -34,7 +35,7 @@ namespace EngineTest.Recources
             private Texture2D sponza_details_spec;
             private Texture2D sponza_flagpole_spec;
             private Texture2D sponza_floor_a_spec;
-            //private Texture2D sponza_floor_a_ddn;
+            private Texture2D sponza_floor_a_ddn;
             private Texture2D sponza_thorn_ddn;
             private Texture2D sponza_thorn_mask;
             private Texture2D sponza_thorn_spec;
@@ -56,12 +57,15 @@ namespace EngineTest.Recources
 
             public Model SponzaModel { get; set; }
 
+            public Model TestTubes { get; set; }
+
             public Model Sphere;
             public MaterialEffect baseMaterial;
             public MaterialEffect goldMaterial;
             public MaterialEffect emissiveMaterial;
             public MaterialEffect emissiveMaterial2;
             public MaterialEffect silverMaterial;
+            public MaterialEffect hologramMaterial;
 
             public void Load(ContentManager content, GraphicsDevice graphicsDevice)
             {
@@ -100,7 +104,7 @@ namespace EngineTest.Recources
                 SponzaTextures.Add(sponza_flagpole_spec = content.Load<Texture2D>("Sponza/textures/sponza_flagpole_spec"));
 
                 SponzaTextures.Add(sponza_floor_a_spec = content.Load<Texture2D>("Sponza/textures/sponza_floor_a_spec"));
-                //SponzaTextures.Add(sponza_floor_a_ddn = content.Load<Texture2D>("Sponza/textures/sponza_floor_a_ddn"));
+                SponzaTextures.Add(sponza_floor_a_ddn = content.Load<Texture2D>("Sponza/textures/sponza_floor_a_ddn"));
 
                 SponzaTextures.Add(sponza_thorn_ddn = content.Load<Texture2D>("Sponza/textures/sponza_thorn_ddn"));
                 SponzaTextures.Add(sponza_thorn_mask = content.Load<Texture2D>("Sponza/textures/sponza_thorn_mask"));
@@ -123,34 +127,39 @@ namespace EngineTest.Recources
                         DiffuseColor = Color.MonoGameOrange.ToVector3()
                     };
 
+                TestTubes = content.Load<Model>("Art/test/tubes");
+
                 ProcessHelmets();
 
 
                 baseMaterial = CreateMaterial(Color.Red, 0.3f, 0);
 
-                emissiveMaterial = CreateMaterial(Color.LightGreen, 0.2f, 1, null, null, null, null, null, 3, 0.5f);
+                hologramMaterial = CreateMaterial(Color.White, 0.2f, 1, null, null, null, null, null, MaterialEffect.MaterialTypes.Hologram, 1);
 
-                emissiveMaterial2 = CreateMaterial(Color.Gold, 0.2f, 1, null, null, null, null, null, 3, 2);
+                emissiveMaterial = CreateMaterial(Color.White, 0.2f, 1, null, null, null, null, null, MaterialEffect.MaterialTypes.Emissive, 1);
+
+                emissiveMaterial2 = CreateMaterial(Color.LimeGreen, 0.2f, 1, null, null, null, null, null, MaterialEffect.MaterialTypes.Emissive, 0.2f);
 
                 goldMaterial = CreateMaterial(Color.Gold, 0.2f, 1);
 
                 silverMaterial = CreateMaterial(Color.Silver, 0.05f, 1);
             }
 
-           
             /// <summary>
             /// Create custom materials, you can add certain maps like Albedo, normal, etc. if you like.
             /// </summary>
             /// <param name="color"></param>
-            /// <param name="roughness">can be overwritten by a roughnessMap</param>
-            /// <param name="metallic">can be overwritten by a metallicMap</param>
+            /// <param name="roughness"></param>
+            /// <param name="metallic"></param>
             /// <param name="albedoMap"></param>
             /// <param name="normalMap"></param>
             /// <param name="roughnessMap"></param>
             /// <param name="metallicMap"></param>
             /// <param name="mask"></param>
+            /// <param name="type">2: hologram, 3:emissive</param>
+            /// <param name="emissiveStrength"></param>
             /// <returns></returns>
-            private MaterialEffect CreateMaterial(Color color, float roughness, float metallic, Texture2D albedoMap = null, Texture2D normalMap = null, Texture2D roughnessMap = null, Texture2D metallicMap = null, Texture2D mask = null, int type = 0, float emissiveStrength = 0)
+            private MaterialEffect CreateMaterial(Color color, float roughness, float metallic, Texture2D albedoMap = null, Texture2D normalMap = null, Texture2D roughnessMap = null, Texture2D metallicMap = null, Texture2D mask = null, MaterialEffect.MaterialTypes type = 0, float emissiveStrength = 0)
             {
                 MaterialEffect mat = new MaterialEffect(Shaders.ClearGBufferEffect);
                 mat.Initialize(color, roughness, metallic, albedoMap, normalMap, roughnessMap, metallicMap, mask, type, emissiveStrength);
@@ -173,20 +182,19 @@ namespace EngineTest.Recources
                         if (mesh.Name == "Helmet1_Interior")
                         {
                             matEffect.DiffuseColor = Color.White.ToVector3();
-                            matEffect.MaterialType = 3;
                         }
 
                         if (i == 5)
                         {
                             matEffect.DiffuseColor = new Color(0, 0.49f, 0.95f).ToVector3();
-                            matEffect.MaterialType = 2;
+                            matEffect.Type = MaterialEffect.MaterialTypes.Hologram;
                         }
 
                         if (i == 0)
                         {
                             matEffect.DiffuseColor = Color.Black.ToVector3();
                             matEffect.Roughness = 0.1f;
-                            matEffect.MaterialType = 2;
+                            matEffect.Type = MaterialEffect.MaterialTypes.ReceiveHologram;
                         }
 
                         if (i == 1)
@@ -194,9 +202,9 @@ namespace EngineTest.Recources
 
                         if (i == 2)
                         {
-                            matEffect.DiffuseColor = Color.Black.ToVector3();
+                            matEffect.DiffuseColor = Color.Silver.ToVector3();
+                            matEffect.Metallic = 1;
                             matEffect.Roughness = 0.1f;
-                            matEffect.MaterialType = 4;
                         }
 
                         //Helmet color - should be gold!
@@ -205,14 +213,13 @@ namespace EngineTest.Recources
                             matEffect.DiffuseColor = new Color(255,255,155).ToVector3()*0.5f;
                             matEffect.Roughness = 0.3f;
                             matEffect.Metallic = 0.8f;
-                            matEffect.MaterialType = 3;
                         }
 
                         if (i == 13)
                         {
                             matEffect.DiffuseColor = Color.Black.ToVector3();
                             matEffect.Roughness = 0.05f;
-                            matEffect.MaterialType = 2;
+                            matEffect.Type = MaterialEffect.MaterialTypes.ReceiveHologram;
                         }
 
                         meshPart.Effect = matEffect;
@@ -253,6 +260,13 @@ namespace EngineTest.Recources
                                 matEffect.Roughness = 0.1f;
                                 matEffect.Metallic = 0.5f;
                             }
+
+                            //if(compare.Contains("vase_hanging"))
+                            //{
+                            //    matEffect.EmissiveStrength = 2;
+                            //    matEffect.DiffuseColor = Color.Gold.ToVector3();
+                                
+                            //}
 
                             if (compare.Contains("chain"))
                             {

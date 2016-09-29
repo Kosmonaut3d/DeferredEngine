@@ -138,8 +138,8 @@ namespace EngineTest.Renderer
             _virtualShadowMapGenerate = content.Load<Effect>("Shaders/VirtualShadowMapsGenerate");
             _deferredLight = content.Load<Effect>("Shaders/DeferredPointLight");
 
-            _deferredSpotLight = Shaders.deferredSpotLight;
-            _deferredEnvironment = content.Load<Effect>("Shaders/DeferredEnvironmentMap");
+            //_deferredSpotLight = Shaders.deferredSpotLight;
+            //_deferredEnvironment = content.Load<Effect>("Shaders/DeferredEnvironmentMap");
 
             _deferredCompose = content.Load<Effect>("Shaders/DeferredCompose");
             _glass = content.Load<Effect>("Shaders/Glass");
@@ -947,7 +947,7 @@ namespace EngineTest.Renderer
             //                    _lightingEffect.Parameters["DiffuseColor"].SetValue(effect.DiffuseColor);
             //                }
 
-            //                _lightingEffect.Parameters["MaterialType"].SetValue(effect.MaterialType);
+            //                _lightingEffect.Parameters["MaterialType"].SetValue(effect.Type);
 
 
             //            }
@@ -1016,7 +1016,7 @@ namespace EngineTest.Renderer
                     if (meshpart.Effect is MaterialEffect)
                     {
                         _skullEffect.Parameters["shade"].SetValue(false);
-                        if ((meshpart.Effect as MaterialEffect).MaterialType != 10)
+                        if ((meshpart.Effect as MaterialEffect).materialTypeNumber != 10)
                             continue;
                     }
                     else

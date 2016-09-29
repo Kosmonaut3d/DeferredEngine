@@ -269,14 +269,22 @@ namespace EngineTest.Renderer.Helper
 
         }
 
-        public void Draw(bool shadow, GraphicsDevice graphicsDevice, Matrix viewProjection, bool opaque, bool lightViewPointChanged = false, bool hasAnyObjectMoved = false)
+        public enum RenderType
         {
-            if (opaque)
+            opaque,
+            alpha,
+            shadow,
+            hologram
+        };
+
+        public void Draw(RenderType renderType, GraphicsDevice graphicsDevice, Matrix viewProjection, bool lightViewPointChanged = false, bool hasAnyObjectMoved = false)
+        {
+            if (renderType == RenderType.opaque || renderType == RenderType.shadow || renderType == RenderType.hologram)
             {
                 graphicsDevice.BlendState = BlendState.Opaque;
                 graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
             }
-            else
+            else //if (renderType == RenderType.alpha)
             {
                 graphicsDevice.BlendState = BlendState.NonPremultiplied;
                 graphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
@@ -321,11 +329,10 @@ namespace EngineTest.Renderer.Helper
 
                 if (discardFrame) return;
 
-                if(shadow)
                 graphicsDevice.Clear(new Color(0.51f, 0.501f, 0, 0)); 
             }
 
-            if (shadow) GameStats.activeShadowMaps++;
+            if (renderType == RenderType.shadow) GameStats.activeShadowMaps++;
 
             for (int index1 = 0; index1 < Index; index1++)
             {
@@ -368,12 +375,18 @@ namespace EngineTest.Renderer.Helper
                 MaterialEffect material = /*GameSettings.DebugDrawUntextured==2 ? Art.DefaultMaterial :*/ matLib.GetMaterial();
 
                 //Check if alpha or opaque!
-                if (opaque && material.IsTransparent) continue;
-                if (!opaque && !material.IsTransparent) continue;
+                if (renderType==RenderType.opaque && material.IsTransparent) continue;
+                if (renderType==RenderType.alpha && !material.IsTransparent) continue;
+
+                if (renderType == RenderType.hologram && material.Type != MaterialEffect.MaterialTypes.Hologram)
+                    continue;
+
+                if (renderType != RenderType.hologram && material.Type == MaterialEffect.MaterialTypes.Hologram)
+                    continue;
 
                 Effect shader;
                 //Set the appropriate Shader for the material
-                if (shadow)
+                if (renderType == RenderType.shadow)
                 {
                     if (material.HasShadow)
                     {
@@ -384,27 +397,19 @@ namespace EngineTest.Renderer.Helper
                 }
                 else
                 {
-                    shader = Shaders.GBufferEffect;
+                    if (renderType == RenderType.hologram)
+                        shader = Shaders.HologramEffect;
+                    else
+                    {
+                        shader = Shaders.GBufferEffect;
+                    }
                 }
 
                 GameStats.MaterialDraws ++;
 
                 //todo: We only need textures for non shadow mapping, right? Not quite actually, for alpha textures we need materials
-                if (!shadow)
+                if (renderType == RenderType.opaque || renderType == RenderType.alpha)
                 {
-                    //Set up the right GBuffer shader!
-
-                    //if (material.HasDiffuse)
-                    //{
-                    //    Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
-                    //    Shaders.GBufferEffect.CurrentTechnique = Shaders.GBufferEffect.Techniques["DrawTexture"];
-                    //}
-                    //else
-                    //{
-                    //    Shaders.GBufferEffectParameter_Material_DiffuseColor.SetValue(material.DiffuseColor);
-                    //    Shaders.GBufferEffect.CurrentTechnique = Shaders.GBufferEffect.Techniques["DrawBasic"]; 
-                    //}
-
                     if (material.HasMask) //Has diffuse for sure then
                     {
                         if (material.HasNormal && material.HasRoughness)
@@ -442,8 +447,6 @@ namespace EngineTest.Renderer.Helper
                                 Shaders.GBufferEffectTechniques_DrawTextureSpecularMask;
                         }
                     }
-
-
                     else
                     {
                         if (material.HasNormal && material.HasRoughness && material.HasDiffuse && material.HasMetallic)
@@ -492,11 +495,21 @@ namespace EngineTest.Renderer.Helper
                     }
 
 
-                    if(!material.HasDiffuse) Shaders.GBufferEffectParameter_Material_DiffuseColor.SetValue(material.DiffuseColor);
+                    if (!material.HasDiffuse)
+                    {
+                        if (material.EmissiveStrength > 0)
+                        {
+                            Shaders.GBufferEffectParameter_Material_DiffuseColor.SetValue(material.DiffuseColor * Math.Max(material.EmissiveStrength,1));
+                        }
+                        else
+                        {
+                            Shaders.GBufferEffectParameter_Material_DiffuseColor.SetValue(material.DiffuseColor);
+                        }
+                    }
 
                     if (!material.HasRoughness) Shaders.GBufferEffectParameter_Material_Roughness.SetValue(material.Roughness);
                     Shaders.GBufferEffectParameter_Material_Metallic.SetValue(material.Metallic);
-                    Shaders.GBufferEffectParameter_Material_MaterialType.SetValue(material.MaterialType);
+                    Shaders.GBufferEffectParameter_Material_MaterialType.SetValue(material.materialTypeNumber);
                 }
                 else
                 {
@@ -527,14 +540,19 @@ namespace EngineTest.Renderer.Helper
 
 
                         Matrix localWorldMatrix = meshLib.GetWorldMatrices()[index].World;
-                        if (!shadow)
+                        if (renderType == RenderType.opaque || renderType == RenderType.alpha)
                         {
                             Shaders.GBufferEffectParameter_World.SetValue(localWorldMatrix);
                             Shaders.GBufferEffectParameter_WorldViewProj.SetValue(localWorldMatrix * viewProjection);
                         }
-                        else
+                        else if(renderType == RenderType.shadow)
                         {
                            Shaders.virtualShadowMappingEffectParameter_WorldViewProj.SetValue(localWorldMatrix * viewProjection);
+                        }
+                        else if (renderType == RenderType.hologram)
+                        {
+                            Shaders.HologramEffectParameter_World.SetValue(localWorldMatrix);
+                            Shaders.HologramEffectParameter_WorldViewProj.SetValue(localWorldMatrix * viewProjection);
                         }
 
                         shader.CurrentTechnique.Passes[0].Apply();
@@ -559,9 +577,187 @@ namespace EngineTest.Renderer.Helper
             
         }
 
+        //I don't want to fill up the main Draw as much! Not used right  now
+        public void DrawEmissive(GraphicsDevice graphicsDevice, Camera camera, Matrix viewProjection, Matrix inverseViewProjection, RenderTarget2D renderTargetEmissive, RenderTarget2D _renderTargetDiffuse, RenderTarget2D _renderTargetSpecular, BlendState _lightBlendState, IEnumerable<ModelMesh> sphereModel)
+        {
+            bool setupRender = false;
+
+            for (int index1 = 0; index1 < Index; index1++)
+            {
+                MaterialLibrary matLib = MaterialLib[index1];
+
+                if (matLib.Index < 1) continue;
+
+                //if none of this materialtype is drawn continue too!
+                bool isUsed = false;
+
+                for (int i = 0; i < matLib.Index; i++)
+                {
+                    MeshLibrary meshLib = matLib.GetMeshLibrary()[i];
+                    for (int index = 0; index < meshLib.Index; index++)
+                    {
+                        //If it's set to "not rendered" skip
+                        for (int j = 0; j < meshLib.Rendered.Length; j++)
+                        {
+                            if (meshLib.Rendered[j] == true)
+                            {
+                                isUsed = true;
+                                //if (meshLib.GetWorldMatrices()[j].HasChanged)
+                                //    hasAnyObjectMoved = true;
+                            }
+
+                            if (isUsed)// && hasAnyObjectMoved)
+                                break;
+
+                        }
+
+                        if (isUsed)// && hasAnyObjectMoved)
+                            break;
+                    }
+                }
+
+                if (!isUsed) continue;
+
+                //Count the draws of different materials!
+
+                MaterialEffect material = /*GameSettings.DebugDrawUntextured==2 ? Art.DefaultMaterial :*/ matLib.GetMaterial();
+
+                //If the material is not emissive then skip
+                if (material.EmissiveStrength <= 0) continue;
+
+                //Set up our graphics device
+                if (!setupRender)
+                {
+                    graphicsDevice.DepthStencilState = DepthStencilState.Default;
+
+                    Shaders.EmissiveEffectParameter_InvertViewProj.SetValue(inverseViewProjection);
+                    Shaders.EmissiveEffectParameter_ViewProj.SetValue(viewProjection);
+                    Shaders.EmissiveEffectParameter_CameraPosition.SetValue(camera.Position);
+                    setupRender = true;
+                }
+
+                GameStats.MaterialDraws++;
+
+                graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+                graphicsDevice.BlendState = BlendState.Opaque;
+
+                Shaders.EmissiveEffectParameter_EmissiveColor.SetValue(material.DiffuseColor);
+                Shaders.EmissiveEffectParameter_EmissiveStrength.SetValue(material.EmissiveStrength);
+
+                for (int i = 0; i < matLib.Index; i++)
+                {
+                    MeshLibrary meshLib = matLib.GetMeshLibrary()[i];
+
+                    //Initialize the mesh VB and IB
+                    graphicsDevice.SetVertexBuffer(meshLib.GetMesh().VertexBuffer);
+                    graphicsDevice.Indices = (meshLib.GetMesh().IndexBuffer);
+                    int primitiveCount = meshLib.GetMesh().PrimitiveCount;
+                    int vertexOffset = meshLib.GetMesh().VertexOffset;
+                    //int vCount = meshLib.GetMesh().NumVertices;
+                    int startIndex = meshLib.GetMesh().StartIndex;
+
+                    //Now draw the local meshes!
+                    for (int index = 0; index < meshLib.Index; index++)
+                    {
+                        //If it's set to "not rendered" skip
+                        //if (!meshLib.GetWorldMatrices()[index].Rendered) continue;
+                        if (!meshLib.Rendered[index]) continue;
+
+                        GameStats.MeshDraws++;
+
+                        graphicsDevice.SetRenderTarget(renderTargetEmissive);
+
+                        graphicsDevice.Clear(Color.TransparentBlack);
+
+
+                        Shaders.EmissiveEffectParameter_Origin.SetValue(meshLib.GetBoundingCenterWorld(index));
+
+
+                        //float size = model.Meshes[0].BoundingSphere.Radius * 3 * entity.WorldTransform.Scale;
+
+                        float size = meshLib.MeshBoundingSphere.Radius*meshLib.GetWorldMatrices()[index].Scale * 3;
+
+                        Shaders.EmissiveEffectParameter_Size.SetValue(size);
+
+                        Shaders.EmissiveEffect.CurrentTechnique = Shaders.EmissiveEffectTechnique_DrawEmissiveBuffer;
+
+
+                        Matrix localWorldMatrix = meshLib.GetWorldMatrices()[index].World;
+                       
+                        Shaders.EmissiveEffectParameter_WorldViewProj.SetValue(localWorldMatrix * viewProjection);
+
+                        Shaders.EmissiveEffect.CurrentTechnique.Passes[0].Apply();
+
+                        try
+                        {
+                            graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset, startIndex, primitiveCount);
+                        }
+                        catch (Exception)
+                        {
+                            // do nothing
+                        }
+
+
+
+                        graphicsDevice.SetRenderTarget(_renderTargetDiffuse);
+
+                        graphicsDevice.BlendState = _lightBlendState;
+
+                        graphicsDevice.RasterizerState = RasterizerState.CullClockwise;//inside ? RasterizerState.CullClockwise : RasterizerState.CullCounterClockwise;
+
+                        Shaders.EmissiveEffect.CurrentTechnique = Shaders.EmissiveEffectTechnique_DrawEmissiveDiffuseEffect;
+
+                        Matrix sphereWorldMatrix = Matrix.CreateScale(size*1.2f)*
+                                                   Matrix.CreateTranslation(meshLib.GetBoundingCenterWorld(index));
+
+                        Shaders.EmissiveEffectParameter_WorldViewProj.SetValue(sphereWorldMatrix * viewProjection);
+
+                        foreach (ModelMesh mesh in sphereModel)
+                        {
+                            foreach (ModelMeshPart meshpart in mesh.MeshParts)
+                            {
+                                graphicsDevice.SetVertexBuffer(meshpart.VertexBuffer);
+                                graphicsDevice.Indices = (meshpart.IndexBuffer);
+                                primitiveCount = meshpart.PrimitiveCount;
+                                vertexOffset = meshpart.VertexOffset;
+                                startIndex = meshpart.StartIndex;
+
+                                Shaders.EmissiveEffect.CurrentTechnique.Passes[0].Apply();
+
+                                graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset, startIndex, primitiveCount);
+                            }
+                        }
+
+                        graphicsDevice.SetRenderTarget(_renderTargetSpecular);
+
+                        Shaders.EmissiveEffect.CurrentTechnique = Shaders.EmissiveEffectTechnique_DrawEmissiveSpecularEffect;
+
+                        foreach (ModelMesh mesh in sphereModel)
+                        {
+                            foreach (ModelMeshPart meshpart in mesh.MeshParts)
+                            {
+                                graphicsDevice.SetVertexBuffer(meshpart.VertexBuffer);
+                                graphicsDevice.Indices = (meshpart.IndexBuffer);
+                                primitiveCount = meshpart.PrimitiveCount;
+                                vertexOffset = meshpart.VertexOffset;
+                                startIndex = meshpart.StartIndex;
+
+                                Shaders.EmissiveEffect.CurrentTechnique.Passes[0].Apply();
+
+                                graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset, startIndex, primitiveCount);
+                            }
+                        }
+                    }
+
+                }
+
+            }
+        }
+
     				
 
     }
+
 
     /// <summary>
     /// Library which has a list of meshlibraries that correspond to a material.
@@ -694,6 +890,11 @@ namespace EngineTest.Renderer.Helper
         public TransformMatrix[] GetWorldMatrices()
         {
             return _worldMatrices;
+        }
+
+        public Vector3 GetBoundingCenterWorld(int index)
+        {
+            return _worldBoundingCenters[index];
         }
 
         //IF a submesh belongs to an entity that has moved we need to update the BoundingBoxWorld Position!
