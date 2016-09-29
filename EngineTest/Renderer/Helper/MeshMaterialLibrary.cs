@@ -498,13 +498,15 @@ namespace EngineTest.Renderer.Helper
                     if (!material.HasDiffuse)
                     {
                         if (material.EmissiveStrength > 0)
-                        {
-                            Shaders.GBufferEffectParameter_Material_DiffuseColor.SetValue(material.DiffuseColor * Math.Max(material.EmissiveStrength,1));
-                        }
-                        else
-                        {
-                            Shaders.GBufferEffectParameter_Material_DiffuseColor.SetValue(material.DiffuseColor);
-                        }
+                        //{
+                        Shaders.GBufferEffectParameter_Material_DiffuseColor.SetValue(material.DiffuseColor*
+                                                                                      material.EmissiveStrength);
+                            //* Math.Max(material.EmissiveStrength,1));
+                        //}
+                        //else
+                        //{
+                        //    Shaders.GBufferEffectParameter_Material_DiffuseColor.SetValue(material.DiffuseColor);
+                        //}
                     }
 
                     if (!material.HasRoughness) Shaders.GBufferEffectParameter_Material_Roughness.SetValue(material.Roughness);
@@ -623,7 +625,7 @@ namespace EngineTest.Renderer.Helper
                 MaterialEffect material = /*GameSettings.DebugDrawUntextured==2 ? Art.DefaultMaterial :*/ matLib.GetMaterial();
 
                 //If the material is not emissive then skip
-                if (material.EmissiveStrength <= 0) continue;
+                if (material.EmissiveStrength <= 0 || material.Type != MaterialEffect.MaterialTypes.Emissive) continue;
 
                 //Set up our graphics device
                 if (!setupRender)
@@ -669,8 +671,9 @@ namespace EngineTest.Renderer.Helper
 
                         graphicsDevice.Clear(Color.TransparentBlack);
 
+                        Vector3 origin = meshLib.GetBoundingCenterWorld(index);//meshLib.GetWorldMatrices()[index].World.Translation;
 
-                        Shaders.EmissiveEffectParameter_Origin.SetValue(meshLib.GetBoundingCenterWorld(index));
+                        Shaders.EmissiveEffectParameter_Origin.SetValue(origin);//meshLib.GetBoundingCenterWorld(index));
 
 
                         //float size = model.Meshes[0].BoundingSphere.Radius * 3 * entity.WorldTransform.Scale;
@@ -685,6 +688,8 @@ namespace EngineTest.Renderer.Helper
                         Matrix localWorldMatrix = meshLib.GetWorldMatrices()[index].World;
                        
                         Shaders.EmissiveEffectParameter_WorldViewProj.SetValue(localWorldMatrix * viewProjection);
+
+                        Shaders.EmissiveEffectParameter_World.SetValue(localWorldMatrix);
 
                         Shaders.EmissiveEffect.CurrentTechnique.Passes[0].Apply();
 

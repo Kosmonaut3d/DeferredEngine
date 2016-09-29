@@ -138,7 +138,7 @@ namespace EngineTest.Recources
 
                 emissiveMaterial = CreateMaterial(Color.Gold, 0.2f, 1, null, null, null, null, null, MaterialEffect.MaterialTypes.Emissive, 1);
 
-                emissiveMaterial2 = CreateMaterial(Color.LimeGreen, 0.2f, 1, null, null, null, null, null, MaterialEffect.MaterialTypes.Emissive, 0.2f);
+                emissiveMaterial2 = CreateMaterial(Color.LimeGreen, 0.2f, 1, null, null, null, null, null, MaterialEffect.MaterialTypes.Emissive, 0.8f);
 
                 goldMaterial = CreateMaterial(Color.Gold, 0.2f, 1);
 
@@ -165,7 +165,7 @@ namespace EngineTest.Recources
                 mat.Initialize(color, roughness, metallic, albedoMap, normalMap, roughnessMap, metallicMap, mask, type, emissiveStrength);
                 return mat;
             }
-
+            
             /// <summary>
             /// The helmets have many submaterials and I want specific values for each one of them!
             /// </summary>
@@ -263,6 +263,15 @@ namespace EngineTest.Recources
                                 matEffect.Metallic = 0.5f;
                             }
 
+                            if (compare.Contains("vase_round"))
+                            {
+                                matEffect.EmissiveStrength = 1;
+                                matEffect.Type = MaterialEffect.MaterialTypes.Emissive;
+                                matEffect.DiffuseColor = Color.Aquamarine.ToVector3();
+
+                                matEffect.AlbedoMap = null;
+                                matEffect.HasDiffuse = false;
+                            }
 
                             if (compare.Contains("chain"))
                             {

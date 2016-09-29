@@ -215,6 +215,8 @@ float4 DrawEffectSpecular_PixelShader(VertexShaderOutputSpecular input) : SV_Tar
 
     float emissiveContribution = 0;
 
+    //return float4(EmissiveColor*0.2f, 1);
+
     [unroll]
     //[branch]
     for (uint i = 0; i < Samples; i++)
@@ -288,7 +290,7 @@ float4 DrawEffectSpecular_PixelShader(VertexShaderOutputSpecular input) : SV_Tar
                     //float normalfactor = saturate(dot(normal, vectorDirection));
                     float normalfactor2 = -(normalfactor - 1) * (normalfactor - 1) + 1;
 
-                    emissiveContribution += dist * normalfactor2;
+                    emissiveContribution += dist*dist * normalfactor2;
 
                     break;
                 }

@@ -355,8 +355,9 @@ namespace EngineTest.Renderer
 
         private void DrawEmissiveEffect(List<BasicEntity> entities, Camera camera, MeshMaterialLibrary meshMatLib)
         {
-            //meshMatLib.DrawEmissive(_graphicsDevice, camera, _viewProjection, _inverseViewProjection, _renderTargetEmissive, _renderTargetDiffuse, _renderTargetSpecular, _lightBlendState, _assets.Sphere.Meshes);
+            meshMatLib.DrawEmissive(_graphicsDevice, camera, _viewProjection, _inverseViewProjection, _renderTargetEmissive, _renderTargetDiffuse, _renderTargetSpecular, _lightBlendState, _assets.Sphere.Meshes);
 
+            return;
             if (!GameSettings.g_EmissiveDraw) return;
 
             //return;
@@ -403,7 +404,7 @@ namespace EngineTest.Renderer
                 Shaders.EmissiveEffectParameter_EmissiveColor.SetValue(entity.Material.DiffuseColor);
                 Shaders.EmissiveEffectParameter_EmissiveStrength.SetValue(entity.Material.EmissiveStrength);
 
-                float size = model.Meshes[0].BoundingSphere.Radius* 3 * entity.WorldTransform.Scale * (entity.Material.EmissiveStrength+1);
+                float size = model.Meshes[0].BoundingSphere.Radius*1.5f*entity.WorldTransform.Scale * 2; //* (entity.Material.EmissiveStrength+1);
 
                 Shaders.EmissiveEffectParameter_Size.SetValue(size);
 
