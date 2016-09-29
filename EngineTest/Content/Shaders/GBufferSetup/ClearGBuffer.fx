@@ -25,7 +25,7 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input)
     output.Color = 0.0f;
     output.Color.a = 0.0f;
     //when transforming 0.5f into [-1,1], we will get 0.0f
-    output.Normal.rgb = 0.5f;
+    output.Normal.rgb = 0.0f;
     //no specular power
     output.Normal.a = 0.0f;
     //max depth

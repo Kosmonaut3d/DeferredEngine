@@ -119,7 +119,7 @@ float GetNormalVariance(float2 texCoord, float3 baseNormal, float offset)
 
 PixelShaderOutput PixelShaderFunctionSSR(VertexShaderOutput input) : COLOR0
 {
-
+    PixelShaderOutput output;
     /////THIS IS THE OLD WAY, I NOW CALCULATE THE VIEW RAY FROM THE VERTEX SHADER!!! ///////////////
 
     //obtain screen position
@@ -200,7 +200,6 @@ PixelShaderOutput PixelShaderFunctionSSR(VertexShaderOutput input) : COLOR0
     //}
     
 
-    PixelShaderOutput output;
 
     output.Diffuse = float4(DiffuseReflectColor.xyz, 0) * 0.01;
     output.Specular = float4(ReflectColor.xyz, 0) * 0.02;
@@ -210,12 +209,21 @@ PixelShaderOutput PixelShaderFunctionSSR(VertexShaderOutput input) : COLOR0
 
 PixelShaderOutput PixelShaderFunctionClassic(VertexShaderOutput input)
 {
+    PixelShaderOutput output;
     float2 texCoord = float2(input.TexCoord);
     
     //get normal data from the NormalMap
     float4 normalData = tex2D(normalSampler, texCoord);
     //tranform normal back into [-1,1] range
     float3 normal = decode(normalData.xyz); //2.0f * normalData.xyz - 1.0f;    //could do mad
+
+    //If x and y
+    if (normalData.x + normalData.y <= 0.001f) //Out of range
+    {
+            output.Diffuse = float4(0, 0, 0, 0);
+            output.Specular = float4(0, 0, 0, 0);
+            return output;
+    }
     //get metalness
     float roughness = normalData.a;
     //get specular intensity from the AlbedoMap
@@ -262,8 +270,6 @@ PixelShaderOutput PixelShaderFunctionClassic(VertexShaderOutput input)
 
     float4 DiffuseReflectColor = ReflectionCubeMap.SampleLevel(ReflectionCubeMapSampler, reflectionVector, 9) * fresnel; //* NdotC * NdotC * NdotC;
 
-
-    PixelShaderOutput output;
 
     output.Diffuse = float4(DiffuseReflectColor.xyz, 0) * 0.01;
     output.Specular = float4(ReflectColor.xyz, 0) * 0.02;
