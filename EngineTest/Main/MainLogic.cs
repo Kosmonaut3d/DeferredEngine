@@ -52,7 +52,7 @@ namespace EngineTest.Main
             //Entities
 
             //Emissive Entities
-           // AddEntity(_assets.TestTubes, _assets.emissiveMaterial2, new Vector3(0, 0, -40), -Math.PI, -Math.PI/2, 0, 1.8f);
+            AddEntity(_assets.TestTubes, _assets.emissiveMaterial2, new Vector3(0, 0, -40), -Math.PI, -Math.PI/2, 0, 1.8f);
 
             //Dragon model which is movable with NUMPAD 2,3,6,8
             drake = AddEntity(_assets.DragonUvSmoothModel, _assets.emissiveMaterial, new Vector3(40, -10, 0), -Math.PI/2, 0, 0, 10);

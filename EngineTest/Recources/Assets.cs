@@ -229,6 +229,7 @@ namespace EngineTest.Recources
                 }
             }
 
+            //Assign specific materials to submeshes
             private void ProcessSponza()
             {
                
@@ -263,15 +264,17 @@ namespace EngineTest.Recources
                                 matEffect.Metallic = 0.5f;
                             }
 
-                            if (compare.Contains("vase_round"))
-                            {
-                                matEffect.EmissiveStrength = 1;
-                                matEffect.Type = MaterialEffect.MaterialTypes.Emissive;
-                                matEffect.DiffuseColor = Color.Aquamarine.ToVector3();
+                            //Make the vases emissive!
 
-                                matEffect.AlbedoMap = null;
-                                matEffect.HasDiffuse = false;
-                            }
+                            //if (compare.Contains("vase_round"))
+                            //{
+                            //    matEffect.EmissiveStrength = 1;
+                            //    matEffect.Type = MaterialEffect.MaterialTypes.Emissive;
+                            //    matEffect.DiffuseColor = Color.Aquamarine.ToVector3();
+
+                            //    matEffect.AlbedoMap = null;
+                            //    matEffect.HasDiffuse = false;
+                            //}
 
                             if (compare.Contains("chain"))
                             {
