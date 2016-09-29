@@ -99,7 +99,7 @@ namespace EngineTest.Recources
             Basic,
             Emissive,
             Hologram,
-            ReceiveHologram
+            ProjectHologram
         }
 
         public MaterialTypes Type
@@ -109,7 +109,7 @@ namespace EngineTest.Recources
             {
                 _type = value;
                 materialTypeNumber = 0;
-                if (value == MaterialTypes.ReceiveHologram)
+                if (value == MaterialTypes.ProjectHologram)
                     materialTypeNumber = 2;
                 else if (value == MaterialTypes.Emissive)
                     materialTypeNumber = 3;

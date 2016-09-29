@@ -166,7 +166,9 @@ namespace EngineTest.Recources
                 return mat;
             }
 
-
+            /// <summary>
+            /// The helmets have many submaterials and I want specific values for each one of them!
+            /// </summary>
             private void ProcessHelmets()
             {
                 for (int i = 0; i < HelmetModel.Meshes.Count; i++)
@@ -194,7 +196,7 @@ namespace EngineTest.Recources
                         {
                             matEffect.DiffuseColor = Color.Black.ToVector3();
                             matEffect.Roughness = 0.1f;
-                            matEffect.Type = MaterialEffect.MaterialTypes.ReceiveHologram;
+                            matEffect.Type = MaterialEffect.MaterialTypes.ProjectHologram;
                         }
 
                         if (i == 1)
@@ -219,7 +221,7 @@ namespace EngineTest.Recources
                         {
                             matEffect.DiffuseColor = Color.Black.ToVector3();
                             matEffect.Roughness = 0.05f;
-                            matEffect.Type = MaterialEffect.MaterialTypes.ReceiveHologram;
+                            matEffect.Type = MaterialEffect.MaterialTypes.ProjectHologram;
                         }
 
                         meshPart.Effect = matEffect;
@@ -261,12 +263,6 @@ namespace EngineTest.Recources
                                 matEffect.Metallic = 0.5f;
                             }
 
-                            //if(compare.Contains("vase_hanging"))
-                            //{
-                            //    matEffect.EmissiveStrength = 2;
-                            //    matEffect.DiffuseColor = Color.Gold.ToVector3();
-                                
-                            //}
 
                             if (compare.Contains("chain"))
                             {

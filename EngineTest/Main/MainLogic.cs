@@ -51,22 +51,26 @@ namespace EngineTest.Main
 
             //Entities
 
+            //Emissive Entities
             //AddEntity(_assets.TestTubes, _assets.emissiveMaterial2, new Vector3(0, 0, -40), -Math.PI, -Math.PI/2, 0, 1.8f);
 
+            //Dragon model which is movable with NUMPAD 2,3,6,8
             drake = AddEntity(_assets.DragonUvSmoothModel, _assets.emissiveMaterial, new Vector3(40, -10, 0), -Math.PI/2, 0, 0, 10);
 
+
             AddEntity(_assets.DragonUvSmoothModel, _assets.silverMaterial, new Vector3(30, 10, 1), -Math.PI / 2, 0, 0, 10);
-
             AddEntity(_assets.SponzaModel, Vector3.Zero, -Math.PI/2, 0, 0, 0.1f);
-
             AddEntity(_assets.HelmetModel, new Vector3(10, 0, -10), -Math.PI / 2, 0, -Math.PI / 2, 1);
 
+            //Hologram skulls
             AddEntity(_assets.SkullModel, _assets.hologramMaterial, new Vector3(9, 0, -6.5f), -Math.PI / 2, 0, Math.PI / 2 + 0.3f, 0.9f);
             AddEntity(_assets.SkullModel, _assets.hologramMaterial, new Vector3(9, 8.5f, -6.5f), -Math.PI / 2, 0, Math.PI / 2 + 0.3f, 0.8f);
 
-            shadowLight = AddPointLight(position: new Vector3(2, 2, -20), radius: 50, color: Color.Wheat, intensity: 20, castShadows: true);
+            //Lights
+            //shadowLight is moveable with arrow keys
+            shadowLight = AddPointLight(position: new Vector3(-20, 2, -20), radius: 50, color: Color.Wheat, intensity: 20, castShadows: true);
 
-            AddPointLight(position: new Vector3(-20, 0, -20), radius: 100, color: Color.White, intensity: 20, castShadows: true, shadowResolution: 1024, staticShadow: true);
+            AddPointLight(position: new Vector3(-20, 0, -20), radius: 100, color: Color.White, intensity: 10, castShadows: true, shadowResolution: 1024, staticShadow: true);
 
             //AddPointLight(position: new Vector3(-20, 0, -100), radius: 200, color: Color.White, intensity: 20, castShadows: true, shadowResolution: 1024, staticShadow: true);
 
