@@ -17,6 +17,8 @@ namespace EngineTest
 
         private ScreenManager screenManager;
 
+        private bool isActive = true;
+
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
@@ -37,6 +39,19 @@ namespace EngineTest
 
             Window.AllowUserResizing = true;
             Window.IsBorderless = false;
+
+            Activated += IsActivated;
+            Deactivated += IsDeactivated;
+        }
+
+        private void IsActivated(object sender, EventArgs e)
+        {
+            isActive = true;
+        }
+
+        private void IsDeactivated(object sender, EventArgs e)
+        {
+            isActive = false;
         }
 
         private void ClientChangedWindowSize(object sender, EventArgs e)
@@ -102,11 +117,13 @@ namespace EngineTest
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
+            if (!isActive) return;
+
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
             // TODO: Add your update logic here
-           
+
             screenManager.Update(gameTime);
 
             base.Update(gameTime);
@@ -120,6 +137,8 @@ namespace EngineTest
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
+            if (!isActive) return;
+
             screenManager.Draw(gameTime);
             // TODO: Add your drawing code here
 

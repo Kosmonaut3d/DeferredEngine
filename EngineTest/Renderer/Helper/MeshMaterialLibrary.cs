@@ -497,15 +497,15 @@ namespace EngineTest.Renderer.Helper
 
                     if (!material.HasDiffuse)
                     {
-                        if (material.EmissiveStrength > 0)
+                        if (material.Type==MaterialEffect.MaterialTypes.Emissive && material.EmissiveStrength > 0)
                         //{
                         Shaders.GBufferEffectParameter_Material_DiffuseColor.SetValue(material.DiffuseColor*
                                                                                       material.EmissiveStrength);
                             //* Math.Max(material.EmissiveStrength,1));
                         //}
-                        //else
+                        else
                         //{
-                        //    Shaders.GBufferEffectParameter_Material_DiffuseColor.SetValue(material.DiffuseColor);
+                            Shaders.GBufferEffectParameter_Material_DiffuseColor.SetValue(material.DiffuseColor);
                         //}
                     }
 
@@ -707,52 +707,62 @@ namespace EngineTest.Renderer.Helper
 
 
 
-                        graphicsDevice.SetRenderTarget(_renderTargetDiffuse);
-
                         graphicsDevice.BlendState = _lightBlendState;
 
                         graphicsDevice.RasterizerState = RasterizerState.CullClockwise;//inside ? RasterizerState.CullClockwise : RasterizerState.CullCounterClockwise;
-
-                        Shaders.EmissiveEffect.CurrentTechnique = Shaders.EmissiveEffectTechnique_DrawEmissiveDiffuseEffect;
 
                         Matrix sphereWorldMatrix = Matrix.CreateScale(size*1.2f)*
                                                    Matrix.CreateTranslation(meshLib.GetBoundingCenterWorld(index));
 
                         Shaders.EmissiveEffectParameter_WorldViewProj.SetValue(sphereWorldMatrix * viewProjection);
 
-                        foreach (ModelMesh mesh in sphereModel)
+                        if (GameSettings.g_EmissiveDrawDiffuse)
                         {
-                            foreach (ModelMeshPart meshpart in mesh.MeshParts)
+                            graphicsDevice.SetRenderTarget(_renderTargetDiffuse);
+
+                            Shaders.EmissiveEffect.CurrentTechnique = Shaders.EmissiveEffectTechnique_DrawEmissiveDiffuseEffect;
+
+                            foreach (ModelMesh mesh in sphereModel)
                             {
-                                graphicsDevice.SetVertexBuffer(meshpart.VertexBuffer);
-                                graphicsDevice.Indices = (meshpart.IndexBuffer);
-                                primitiveCount = meshpart.PrimitiveCount;
-                                vertexOffset = meshpart.VertexOffset;
-                                startIndex = meshpart.StartIndex;
+                                foreach (ModelMeshPart meshpart in mesh.MeshParts)
+                                {
+                                    graphicsDevice.SetVertexBuffer(meshpart.VertexBuffer);
+                                    graphicsDevice.Indices = (meshpart.IndexBuffer);
+                                    primitiveCount = meshpart.PrimitiveCount;
+                                    vertexOffset = meshpart.VertexOffset;
+                                    startIndex = meshpart.StartIndex;
 
-                                Shaders.EmissiveEffect.CurrentTechnique.Passes[0].Apply();
+                                    Shaders.EmissiveEffect.CurrentTechnique.Passes[0].Apply();
 
-                                graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset, startIndex, primitiveCount);
+                                    graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset,
+                                        startIndex, primitiveCount);
+                                }
                             }
+
                         }
 
-                        graphicsDevice.SetRenderTarget(_renderTargetSpecular);
-
-                        Shaders.EmissiveEffect.CurrentTechnique = Shaders.EmissiveEffectTechnique_DrawEmissiveSpecularEffect;
-
-                        foreach (ModelMesh mesh in sphereModel)
+                        if (GameSettings.g_EmissiveDrawSpecular)
                         {
-                            foreach (ModelMeshPart meshpart in mesh.MeshParts)
+                            graphicsDevice.SetRenderTarget(_renderTargetSpecular);
+
+                            Shaders.EmissiveEffect.CurrentTechnique =
+                                Shaders.EmissiveEffectTechnique_DrawEmissiveSpecularEffect;
+
+                            foreach (ModelMesh mesh in sphereModel)
                             {
-                                graphicsDevice.SetVertexBuffer(meshpart.VertexBuffer);
-                                graphicsDevice.Indices = (meshpart.IndexBuffer);
-                                primitiveCount = meshpart.PrimitiveCount;
-                                vertexOffset = meshpart.VertexOffset;
-                                startIndex = meshpart.StartIndex;
+                                foreach (ModelMeshPart meshpart in mesh.MeshParts)
+                                {
+                                    graphicsDevice.SetVertexBuffer(meshpart.VertexBuffer);
+                                    graphicsDevice.Indices = (meshpart.IndexBuffer);
+                                    primitiveCount = meshpart.PrimitiveCount;
+                                    vertexOffset = meshpart.VertexOffset;
+                                    startIndex = meshpart.StartIndex;
 
-                                Shaders.EmissiveEffect.CurrentTechnique.Passes[0].Apply();
+                                    Shaders.EmissiveEffect.CurrentTechnique.Passes[0].Apply();
 
-                                graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset, startIndex, primitiveCount);
+                                    graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset,
+                                        startIndex, primitiveCount);
+                                }
                             }
                         }
                     }

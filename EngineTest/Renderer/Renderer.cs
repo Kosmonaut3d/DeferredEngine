@@ -355,12 +355,10 @@ namespace EngineTest.Renderer
 
         private void DrawEmissiveEffect(List<BasicEntity> entities, Camera camera, MeshMaterialLibrary meshMatLib, GameTime gameTime)
         {
-            
-
+            if (!GameSettings.g_EmissiveDraw) return;
             meshMatLib.DrawEmissive(_graphicsDevice, camera, _viewProjection, _inverseViewProjection, _renderTargetEmissive, _renderTargetDiffuse, _renderTargetSpecular, _lightBlendState, _assets.Sphere.Meshes, gameTime);
 
             return;
-            if (!GameSettings.g_EmissiveDraw) return;
 
             //return;
             bool renderedonce = false;

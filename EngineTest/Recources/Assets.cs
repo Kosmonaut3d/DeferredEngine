@@ -236,10 +236,7 @@ namespace EngineTest.Recources
 
                 foreach (ModelMesh mesh in SponzaModel.Meshes)
                 {
-                    if (mesh.Name == "g sponza_04")
-                    {
-                        mesh.BoundingSphere = new BoundingSphere(new Vector3(-100000,0,0),0 );
-                    }
+                    
 
                     foreach (ModelMeshPart meshPart in mesh.MeshParts)
                     {
@@ -247,6 +244,15 @@ namespace EngineTest.Recources
 
                         BasicEffect oEffect = meshPart.Effect as BasicEffect;
 
+                        //I want to remove this mesh
+                        if (mesh.Name == "g sponza_04")
+                        {
+                            //Put the boudning sphere into space?
+                            mesh.BoundingSphere = new BoundingSphere(new Vector3(-100000, 0, 0), 0);
+
+                            //Make it transparent
+                            matEffect.IsTransparent = true;
+                        }
 
                         matEffect.DiffuseColor = oEffect.DiffuseColor;
 
