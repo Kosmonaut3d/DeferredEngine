@@ -25,6 +25,9 @@ float CLIP_VALUE = 0.99;
 
 float4 DiffuseColor = float4(0.8f, 0.8f, 0.8f, 1);
 
+//Temporal Antialiasing
+float2 TemporalDisplacement = float2(0, 0);
+
 Texture2D<float4> Texture : register(t0); 
 sampler TextureSampler : register(s0)
 {
@@ -112,7 +115,7 @@ struct PixelShaderOutputVSM
 DrawBasic_VSOut DrawBasic_VertexShader(DrawBasic_VSIn input)
 {
     DrawBasic_VSOut Output;
-    Output.Position = mul(input.Position, WorldViewProj);
+    Output.Position = mul(input.Position, WorldViewProj) + float4(TemporalDisplacement,0,0);
     Output.Normal = mul(float4(input.Normal, 0), World).xyz;
     Output.TexCoord = input.TexCoord;
     Output.Depth = float2(Output.Position.z, Output.Position.w);
@@ -122,7 +125,7 @@ DrawBasic_VSOut DrawBasic_VertexShader(DrawBasic_VSIn input)
 DrawNormals_VSOut DrawNormals_VertexShader(DrawNormals_VSIn input)
 {
     DrawNormals_VSOut Output;
-    Output.Position = mul(input.Position, WorldViewProj);
+    Output.Position = mul(input.Position, WorldViewProj) + float4(TemporalDisplacement, 0, 0);
     Output.WorldToTangentSpace[0] = mul(normalize(float4(input.Tangent, 0)), World).xyz;
     Output.WorldToTangentSpace[1] = mul(normalize(float4(input.Binormal, 0)), World).xyz;
     Output.WorldToTangentSpace[2] = mul(normalize(float4(input.Normal, 0)), World).xyz;

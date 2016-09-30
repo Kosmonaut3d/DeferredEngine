@@ -10,6 +10,14 @@ namespace EngineTest.Recources
 {
     public static class Shaders
     {
+        //Temporal AntiAliasing
+
+        public static Effect TemporalAntiAliasingEffect;
+
+        public static EffectParameter TemporalAntiAliasingEffect_DepthMap;
+        public static EffectParameter TemporalAntiAliasingEffect_AccumulationMap;
+        public static EffectParameter TemporalAntiAliasingEffect_CurrentToPrevious;
+
         //Hologram
 
         public static Effect HologramEffect;
@@ -75,6 +83,7 @@ namespace EngineTest.Recources
 
         //GBuffer
         public static Effect GBufferEffect;
+
         public static EffectParameter GBufferEffectParameter_World;
         public static EffectParameter GBufferEffectParameter_WorldViewProj;
         public static EffectParameter GBufferEffectParameter_View;
@@ -171,6 +180,14 @@ namespace EngineTest.Recources
 
         public static void Load(ContentManager content)
         {
+            //TAA
+
+            TemporalAntiAliasingEffect = content.Load<Effect>("Shaders/TemporalAntiAliasing/TemporalAntiAliasing");
+
+            TemporalAntiAliasingEffect_AccumulationMap = TemporalAntiAliasingEffect.Parameters["AccumulationMap"];
+            TemporalAntiAliasingEffect_DepthMap = TemporalAntiAliasingEffect.Parameters["DepthMap"];
+            TemporalAntiAliasingEffect_CurrentToPrevious = TemporalAntiAliasingEffect.Parameters["CurrentToPrevious"];
+
             //Hologram Effect
             HologramEffect = content.Load<Effect>("Shaders/Hologram/HologramEffect");
             HologramEffectParameter_World = HologramEffect.Parameters["World"];

@@ -156,9 +156,9 @@ namespace EngineTest.Main
             //    point.Position = new Vector3(point.Position.X, point.Position.Y, (float)(Math.Sin(gameTime.TotalGameTime.TotalSeconds * 0.8f + i) * 10 - 13));
             //}
 
-            drake.AngleZ += 0.02f*delta;
+            //drake.AngleZ += 0.02f*delta;
 
-            _assets.emissiveMaterial2.EmissiveStrength = (float) (Math.Sin(gameTime.TotalGameTime.TotalSeconds*2)+1);
+            //_assets.emissiveMaterial2.EmissiveStrength = (float) (Math.Sin(gameTime.TotalGameTime.TotalSeconds*2)+1);
 
             //KeyInputs for specific tasks
 

@@ -53,6 +53,9 @@ namespace EngineTest.Recources
 
         public static bool g_HologramDraw = true;
 
+        public static bool g_TemporalAntiAliasing = true;
+        public static int g_TemporalAntiAliasingJitterMode = 0;
+
         // Screen Space Ambient Occlusion
 
         public static bool ssao_Active

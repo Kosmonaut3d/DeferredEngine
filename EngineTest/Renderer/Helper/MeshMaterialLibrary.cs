@@ -637,7 +637,7 @@ namespace EngineTest.Renderer.Helper
                     Shaders.EmissiveEffectParameter_CameraPosition.SetValue(camera.Position);
 
                     if(GameSettings.g_EmissiveNoise)
-                    Shaders.EmissiveEffectParameter_Time.SetValue((float) gameTime.TotalGameTime.TotalMilliseconds);
+                    Shaders.EmissiveEffectParameter_Time.SetValue((float) gameTime.TotalGameTime.TotalMilliseconds % 10000);
                     setupRender = true;
                 }
 

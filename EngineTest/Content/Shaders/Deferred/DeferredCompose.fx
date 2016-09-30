@@ -178,7 +178,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 }
 
 
-technique Technique1
+technique Technique1                                         
 {
     pass Pass1
     {
