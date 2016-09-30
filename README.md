@@ -28,6 +28,7 @@ How to manipulate the scene
 - See the Main / MainLogic.cs for details. Manipulate and add scene objects in Initialize() and Update();
 
 Notes:
+
 This solution provides a basic 3d deferred rendering engine implemented in Monogame. You will need to have Monogame (3.6.0187) installed and Visual Studio 2013+ to compile.
 
 The sample scene contains the Sponza Atrium (from Crytek), the Stanford Dragon (http://www.cc.gatech.edu/projects/large_models/) and Daft Punk Helmets (by Anders Lejczak - http://www.colacola.se/expo_daft.htm)
