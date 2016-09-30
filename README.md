@@ -2,6 +2,8 @@
 
 by https://twitter.com/kosmonautgames
 
+Feedback -> http://community.monogame.net/t/deferred-engine-playground-download/8180
+
 ![Alt text](http://i.imgur.com/vcGEtr0.png "emissive materials")
 
 
