@@ -6,6 +6,9 @@ This solution provides a basic 3d deferred rendering engine implemented in Monog
 
 The sample scene contains the Sponza Atrium (from Crytek) and Daft Punk Helmets (by Anders Lejczak - http://www.colacola.se/expo_daft.htm).
 
+![Alt text](http://i.imgur.com/vcGEtr0.png "emissive materials")
+
+
 Features:
 - g-buffer creation with support for physically based materials ( albedo, normal, roughness, metallic)
 - Cook-Torrance specular shading and Oren-Nayar diffuse shading for point lights
