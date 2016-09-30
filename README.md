@@ -8,7 +8,7 @@ Feedback -> http://community.monogame.net/t/deferred-engine-playground-download/
 
 
 Features:
-- g-buffer creation with support for physically based materials ( albedo, normal, roughness, metallic)
+- G-buffer creation with support for physically based materials ( albedo, normal, roughness, metallic, mask)
 - Cook-Torrance specular shading and Oren-Nayar diffuse shading for point lights
 - light and mesh frustum culling
 - deferred point lights and environment mapping
