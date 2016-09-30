@@ -33,5 +33,7 @@ Notes:
 
 This solution provides a basic 3d deferred rendering engine implemented in Monogame. You will need to have Monogame (3.6.0187) installed and Visual Studio 2013+ to compile.
 
+This is not intended to be an engine used for custom programs / games, but rather a playground which makes it easy to understand and implement custom shaders.
+
 The sample scene contains the Sponza Atrium (from Crytek), the Stanford Dragon (http://www.cc.gatech.edu/projects/large_models/) and Daft Punk Helmets (by Anders Lejczak - http://www.colacola.se/expo_daft.htm)
 
