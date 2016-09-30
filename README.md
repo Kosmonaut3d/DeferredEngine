@@ -4,7 +4,7 @@ by https://twitter.com/kosmonautgames
 
 This solution provides a basic 3d deferred rendering engine implemented in Monogame. You will need to have Monogame (3.6.0187) installed and Visual Studio 2013+ to compile.
 
-The sample scene contains the Sponza Atrium (from Crytek) and Daft Punk Helmets (by Anders Lejczak - http://www.colacola.se/expo_daft.htm).
+The sample scene contains the Sponza Atrium (from Crytek), the Stanford Dragon (http://www.cc.gatech.edu/projects/large_models/) and Daft Punk Helmets (by Anders Lejczak - http://www.colacola.se/expo_daft.htm)
 
 ![Alt text](http://i.imgur.com/vcGEtr0.png "emissive materials")
 
