@@ -25,6 +25,6 @@ Controls:
 - F1 : Cycle through render targets (albedo, normals, depth etc.)
 
 
-How to change scene placement
+How to manipulate the scene
 - See the Main / MainLogic.cs for details. Manipulate and add scene objects in Initialize() and Update();
 
