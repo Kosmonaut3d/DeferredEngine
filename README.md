@@ -11,7 +11,7 @@ Features:
 - Cook-Torrance specular shading and Oren-Nayar diffuse shading for point lights
 - light and mesh frustum culling
 - deferred point lights and environment mapping
-- dynamically updating point light shadows
+- dynamically updating point light shadows depending on scene changes
 - screen space ambient occlusion
 - EXPERIMENTAL: screen space emissive materials
 - EXPERIMENTAL: screen space reflections
