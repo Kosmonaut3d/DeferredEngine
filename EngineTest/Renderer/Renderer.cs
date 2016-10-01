@@ -105,7 +105,7 @@ namespace EngineTest.Renderer
         }
 
         //Update per frame
-        public void Update(GameTime gameTime)
+        public void Update(GameTime gameTime, bool isActive)
         {
 
         }
@@ -408,150 +408,17 @@ namespace EngineTest.Renderer
         private void DrawEmissiveEffect(List<BasicEntity> entities, Camera camera, MeshMaterialLibrary meshMatLib, GameTime gameTime)
         {
             if (!GameSettings.g_EmissiveDraw) return;
-            meshMatLib.DrawEmissive(_graphicsDevice, camera, _viewProjection, _inverseViewProjection, _renderTargetEmissive, _renderTargetDiffuse, _renderTargetSpecular, _lightBlendState, _assets.Sphere.Meshes, gameTime);
 
-            return;
+            //Make a new _viewProjection
+            Matrix newProjection = Matrix.CreatePerspectiveFieldOfView(camera.FieldOfView*GameSettings.g_EmissiveDrawFOVFactor,
+                    GameSettings.g_ScreenWidth / (float)GameSettings.g_ScreenHeight, 1, GameSettings.g_FarPlane);
 
-            //return;
-            bool renderedonce = false;
+            Matrix transformedViewProjection = _view*newProjection;
 
-            //Draw all the affected models
+            meshMatLib.DrawEmissive(_graphicsDevice, camera, _viewProjection, transformedViewProjection, _inverseViewProjection, _renderTargetEmissive, _renderTargetDiffuse, _renderTargetSpecular, _lightBlendState, _assets.Sphere.Meshes, gameTime);
 
-            for (int index1 = 0; index1 < entities.Count; index1++)
-            {
-                BasicEntity entity = entities[index1];
-
-                if (entity.Material == null) continue;
-
-                if (entity.Material.Type != MaterialEffect.MaterialTypes.Emissive)
-                    continue;
-
-                _graphicsDevice.SetRenderTarget(_renderTargetEmissive);
-
-                _graphicsDevice.BlendState = BlendState.Opaque;
-
-                if (!renderedonce)
-                {
-                    _graphicsDevice.DepthStencilState = DepthStencilState.Default;
-                    _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
-
-                    Shaders.EmissiveEffectParameter_InvertViewProj.SetValue(_inverseViewProjection);
-                    Shaders.EmissiveEffectParameter_ViewProj.SetValue(_viewProjection);
-                    Shaders.EmissiveEffectParameter_CameraPosition.SetValue(camera.Position);
-                    
-
-
-                    renderedonce = true;
-                }
-
-                _graphicsDevice.Clear(Color.TransparentBlack);
-
-
-                Model model = entity.Model;
-
-                Matrix world = entity.WorldTransform.World;
-
-                Shaders.EmissiveEffectParameter_Origin.SetValue(entity.Position);
-
-                Shaders.EmissiveEffectParameter_EmissiveColor.SetValue(entity.Material.DiffuseColor);
-                Shaders.EmissiveEffectParameter_EmissiveStrength.SetValue(entity.Material.EmissiveStrength);
-
-                float size = model.Meshes[0].BoundingSphere.Radius*1.5f*entity.WorldTransform.Scale * 2; //* (entity.Material.EmissiveStrength+1);
-
-                Shaders.EmissiveEffectParameter_Size.SetValue(size);
-
-                Shaders.EmissiveEffect.CurrentTechnique = Shaders.EmissiveEffectTechnique_DrawEmissiveBuffer;
-
-                //Draw all basic entities with our emissive draw shader.
-                for (int index = 0; index < model.Meshes.Count; index++)
-                {
-                    ModelMesh mesh = model.Meshes[index];
-
-                    for (int i = 0; i < mesh.MeshParts.Count; i++)
-                    {
-                        ModelMeshPart meshpart = mesh.MeshParts[i];
-
-
-                        Shaders.EmissiveEffectParameter_WorldViewProj.SetValue(world*_view*_projection);
-                        Shaders.EmissiveEffectParameter_World.SetValue(world);
-
-                        Shaders.EmissiveEffect.CurrentTechnique.Passes[0].Apply();
-
-                        _graphicsDevice.SetVertexBuffer(meshpart.VertexBuffer);
-                        _graphicsDevice.Indices = (meshpart.IndexBuffer);
-                        int primitiveCount = meshpart.PrimitiveCount;
-                        int vertexOffset = meshpart.VertexOffset;
-                        int vCount = meshpart.NumVertices;
-                        int startIndex = meshpart.StartIndex;
-
-                        _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset, startIndex,
-                            primitiveCount);
-                    }
-                }
-
-
-
-                _graphicsDevice.SetRenderTarget(_renderTargetDiffuse);
-
-                _graphicsDevice.BlendState = _lightBlendState;
-
-                //float cameraToCenter = Vector3.Distance(camera.Position, entity.Position);
-                //bool inside = cameraToCenter < size * 1.2f;
-
-                _graphicsDevice.RasterizerState = RasterizerState.CullClockwise;//inside ? RasterizerState.CullClockwise : RasterizerState.CullCounterClockwise;
-
-                Matrix sphereWorldMatrix = Matrix.CreateScale(size*1.2f)*Matrix.CreateTranslation(entity.Position);
-
-                Shaders.EmissiveEffectParameter_WorldViewProj.SetValue(sphereWorldMatrix * _viewProjection);
-
-                if (GameSettings.g_EmissiveDrawDiffuse)
-                {
-                    Shaders.EmissiveEffect.CurrentTechnique = Shaders.EmissiveEffectTechnique_DrawEmissiveDiffuseEffect;
-
-                    foreach (ModelMesh mesh in _assets.Sphere.Meshes)
-                    {
-                        foreach (ModelMeshPart meshpart in mesh.MeshParts)
-                        {
-                            _graphicsDevice.SetVertexBuffer(meshpart.VertexBuffer);
-                            _graphicsDevice.Indices = (meshpart.IndexBuffer);
-                            int primitiveCount = meshpart.PrimitiveCount;
-                            int vertexOffset = meshpart.VertexOffset;
-                            int startIndex = meshpart.StartIndex;
-
-                            Shaders.EmissiveEffect.CurrentTechnique.Passes[0].Apply();
-
-                            _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset, startIndex,
-                                primitiveCount);
-                        }
-                    }
-                }
-
-                if (GameSettings.g_EmissiveDrawSpecular)
-                {
-                    _graphicsDevice.SetRenderTarget(_renderTargetSpecular);
-
-                    Shaders.EmissiveEffect.CurrentTechnique = Shaders.EmissiveEffectTechnique_DrawEmissiveSpecularEffect;
-
-                    foreach (ModelMesh mesh in _assets.Sphere.Meshes)
-                    {
-                        foreach (ModelMeshPart meshpart in mesh.MeshParts)
-                        {
-                            _graphicsDevice.SetVertexBuffer(meshpart.VertexBuffer);
-                            _graphicsDevice.Indices = (meshpart.IndexBuffer);
-                            int primitiveCount = meshpart.PrimitiveCount;
-                            int vertexOffset = meshpart.VertexOffset;
-                            int startIndex = meshpart.StartIndex;
-
-                            Shaders.EmissiveEffect.CurrentTechnique.Passes[0].Apply();
-
-                            _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset, startIndex,
-                                primitiveCount);
-                        }
-                    }
-                }
-
-            }
-
+            //blur
+            /*
             if (renderedonce && false)
             {
                 _graphicsDevice.BlendState = BlendState.Opaque;
@@ -581,6 +448,7 @@ namespace EngineTest.Renderer
             //_spriteBatch.End();
 
             //DrawMapToScreenToFullScreen(_renderTargetHologram);
+             * */
         }
 
         #endregion

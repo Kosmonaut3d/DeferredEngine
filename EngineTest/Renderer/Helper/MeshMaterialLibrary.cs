@@ -580,7 +580,7 @@ namespace EngineTest.Renderer.Helper
         }
 
         //I don't want to fill up the main Draw as much! Not used right  now
-        public void DrawEmissive(GraphicsDevice graphicsDevice, Camera camera, Matrix viewProjection, Matrix inverseViewProjection, RenderTarget2D renderTargetEmissive, RenderTarget2D _renderTargetDiffuse, RenderTarget2D _renderTargetSpecular, BlendState _lightBlendState, IEnumerable<ModelMesh> sphereModel, GameTime gameTime)
+        public void DrawEmissive(GraphicsDevice graphicsDevice, Camera camera, Matrix viewProjection, Matrix transformedViewProjection, Matrix inverseViewProjection, RenderTarget2D renderTargetEmissive, RenderTarget2D _renderTargetDiffuse, RenderTarget2D _renderTargetSpecular, BlendState _lightBlendState, IEnumerable<ModelMesh> sphereModel, GameTime gameTime)
         {
             bool setupRender = false;
 
@@ -591,7 +591,7 @@ namespace EngineTest.Renderer.Helper
                 if (matLib.Index < 1) continue;
 
                 //if none of this materialtype is drawn continue too!
-                bool isUsed = false;
+                /*bool isUsed = false;
 
                 for (int i = 0; i < matLib.Index; i++)
                 {
@@ -619,6 +619,7 @@ namespace EngineTest.Renderer.Helper
                 }
 
                 if (!isUsed) continue;
+                */
 
                 //Count the draws of different materials!
 
@@ -633,7 +634,7 @@ namespace EngineTest.Renderer.Helper
                     graphicsDevice.DepthStencilState = DepthStencilState.Default;
 
                     Shaders.EmissiveEffectParameter_InvertViewProj.SetValue(inverseViewProjection);
-                    Shaders.EmissiveEffectParameter_ViewProj.SetValue(viewProjection);
+                    Shaders.EmissiveEffectParameter_ViewProj.SetValue(transformedViewProjection);
                     Shaders.EmissiveEffectParameter_CameraPosition.SetValue(camera.Position);
 
                     if(GameSettings.g_EmissiveNoise)
@@ -666,7 +667,7 @@ namespace EngineTest.Renderer.Helper
                     {
                         //If it's set to "not rendered" skip
                         //if (!meshLib.GetWorldMatrices()[index].Rendered) continue;
-                        if (!meshLib.Rendered[index]) continue;
+                        // if (!meshLib.Rendered[index]) continue;
 
                         GameStats.MeshDraws++;
 
@@ -689,8 +690,8 @@ namespace EngineTest.Renderer.Helper
 
 
                         Matrix localWorldMatrix = meshLib.GetWorldMatrices()[index].World;
-                       
-                        Shaders.EmissiveEffectParameter_WorldViewProj.SetValue(localWorldMatrix * viewProjection);
+
+                        Shaders.EmissiveEffectParameter_WorldViewProj.SetValue(localWorldMatrix * transformedViewProjection);
 
                         Shaders.EmissiveEffectParameter_World.SetValue(localWorldMatrix);
 

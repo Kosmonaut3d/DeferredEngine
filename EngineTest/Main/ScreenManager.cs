@@ -28,10 +28,10 @@ namespace EngineTest.Main
         }
 
         //Update per frame
-        public void Update(GameTime gameTime)
+        public void Update(GameTime gameTime, bool isActive)
         {
-            _logic.Update(gameTime);
-            _renderer.Update(gameTime);
+            _logic.Update(gameTime, isActive);
+            _renderer.Update(gameTime, isActive);
 
             _debug.Update(gameTime);
         }

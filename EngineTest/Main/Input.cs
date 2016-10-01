@@ -17,12 +17,14 @@ namespace EngineTest.Main
         private static MouseState mouseState, mouseLastState;
 
 
-        public static void Update(GameTime gameTime, Camera camera)
+        public static void Update(GameTime gameTime, Camera camera, bool isActive)
         {
             mouseLastState = mouseState;
             keyboardLastState = keyboardState;
             mouseState = Mouse.GetState();
             keyboardState = Keyboard.GetState();
+
+            if (!isActive) return;
             KeyboardEvents(gameTime, camera);
             MouseEvents(camera);
         }

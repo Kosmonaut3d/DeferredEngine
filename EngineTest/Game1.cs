@@ -117,14 +117,14 @@ namespace EngineTest
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
-            if (!isActive) return;
+            //if (!isActive) return;
 
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
             // TODO: Add your update logic here
 
-            screenManager.Update(gameTime);
+            screenManager.Update(gameTime, isActive);
 
             base.Update(gameTime);
 

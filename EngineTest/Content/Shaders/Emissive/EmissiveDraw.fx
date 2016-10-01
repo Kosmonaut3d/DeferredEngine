@@ -6,6 +6,7 @@
 
 matrix  World;
 matrix  WorldViewProj;
+//Different ViewPort maybe?
 matrix ViewProjection;
 matrix InvertViewProjection;
 
@@ -178,7 +179,12 @@ float4 DrawEffectSpecular_PixelShader(VertexShaderOutputSpecular input) : SV_Tar
     position.w = 1.0f;
     //transform to world space
     position = mul(position, InvertViewProjection);
-    position /= position.w;           
+    position /= position.w; 
+
+    float4 positionTransformed = mul(float4(position), ViewProjection);
+    positionTransformed /= positionTransformed.w;
+
+    float2 texCoordTransformed = 0.5f * (float2(positionTransformed.x, -positionTransformed.y) + 1);
 
     //get normal data from the NormalMap
     float4 normalData = NormalMap.Sample(LinearSampler, texCoord);
@@ -263,7 +269,7 @@ float4 DrawEffectSpecular_PixelShader(VertexShaderOutputSpecular input) : SV_Tar
 
             //float2 ray = texCoord + offset.xy * radius * (j+1);
 
-                float2 ray = texCoord + (sampleTexCoord - texCoord) * j / 4.0f;
+             float2 ray = texCoordTransformed + (sampleTexCoord - texCoordTransformed) * j / 4.0f;
 
         //Read the sample Position!
                 int3 texCoordRay = int3(ray * Resolution, 0);
@@ -288,7 +294,7 @@ float4 DrawEffectSpecular_PixelShader(VertexShaderOutputSpecular input) : SV_Tar
 
                     float dist = saturate(1 - vectorLength / Size * 1.2f);
                 
-                //note that a new vectorDirection should be used here.
+                    //note that a new vectorDirection should be used here.
                     float normalfactor = saturate(dot(normal, foundVectorDirection / vectorLength));
                     //float normalfactor = saturate(dot(normal, vectorDirection));
                     float normalfactor2 = -(normalfactor - 1) * (normalfactor - 1) + 1;
@@ -328,13 +334,10 @@ float4 DrawEffectDiffuse_PixelShader(VertexShaderOutput input) : SV_Target
     //read depth
     float depthVal = 1 - DepthMap.Sample(PointSampler, texCoord).r;
 
-    float4 posEmissive = EmissiveMap.Load(texCoordInt);
-
     float4 output = 0;
 
     //we are done here? probably yes, just need to check depth tbh
-    if (posEmissive.a > 0)
-        return float4(0, 0, 0, 0);
+    
 
         //compute screen-space position
     float4 position;
@@ -345,6 +348,16 @@ float4 DrawEffectDiffuse_PixelShader(VertexShaderOutput input) : SV_Target
     position = mul(position, InvertViewProjection);
     position /= position.w;
 
+    float4 positionTransformed = mul(float4(position), ViewProjection);
+    positionTransformed /= positionTransformed.w;
+
+    float2 texCoordTransformed = 0.5f * (float2(positionTransformed.x, -positionTransformed.y) + 1);
+           
+    //float4 posEmissive = EmissiveMap.Load(float3(texCoordTransformed * Resolution,0));
+
+    ////if (posEmissive.a > 0)
+    ////    return float4(0, 0, 0, 0);
+
     //get normal data from the NormalMap
     float4 normalData = NormalMap.Sample(LinearSampler, texCoord);
         //tranform normal back into [-1,1] range
@@ -352,7 +365,7 @@ float4 DrawEffectDiffuse_PixelShader(VertexShaderOutput input) : SV_Target
     //transform posEmissive into realWorldCoordinates
 
     
-    float3 randNor = randomNormal(texCoord); //
+    float3 randNor = randomNormal(texCoord + position.yz); //
 
     const float3 sampleSphere[] =
     {
@@ -424,7 +437,7 @@ float4 DrawEffectDiffuse_PixelShader(VertexShaderOutput input) : SV_Target
 
             //float2 ray = texCoord + offset.xy * radius * (j+1);
 
-                float2 ray = texCoord + (sampleTexCoord - texCoord) * j / 8.0f;
+                float2 ray = texCoordTransformed + (sampleTexCoord - texCoordTransformed) * j / 8.0f;
 
         //Read the sample Position!
                 int3 texCoordRay = int3(ray * Resolution, 0);

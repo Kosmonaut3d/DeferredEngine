@@ -30,6 +30,7 @@ namespace EngineTest.Recources
         public static bool g_EmissiveDrawDiffuse = true;
         public static bool g_EmissiveDrawSpecular = true;
         public static bool g_EmissiveNoise = false;
+        public static float g_EmissiveDrawFOVFactor = 2;
 
         private static float _ssao_falloffmin = 0.0001f;
         private static float _ssao_falloffmax = 0.001f;

@@ -143,9 +143,11 @@ namespace EngineTest.Main
         }
 
         //Update per frame
-        public void Update(GameTime gameTime)
+        public void Update(GameTime gameTime, bool isActive)
         {
-            Input.Update(gameTime, Camera);
+            Input.Update(gameTime, Camera, isActive);
+
+            if (!isActive) return;
             
             float delta = (float) (gameTime.ElapsedGameTime.TotalMilliseconds*60/1000);
 
