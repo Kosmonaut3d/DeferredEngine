@@ -32,6 +32,20 @@ namespace EngineTest.Recources
         public static bool g_EmissiveNoise = false;
         public static float g_EmissiveDrawFOVFactor = 2;
 
+        //Whether or not materials' lighting scales with strength
+        public static bool g_EmissiveMaterialeSizeStrengthScaling = true;
+
+        private static int _g_EmissiveMaterialSamples = 8;
+        public static int g_EmissiveMaterialSamples
+        {
+            get { return _g_EmissiveMaterialSamples; }
+            set
+            {
+                _g_EmissiveMaterialSamples = value;
+                Shaders.EmissiveEffect.Parameters["Samples"].SetValue(_g_EmissiveMaterialSamples);
+            }
+        }
+
         private static float _ssao_falloffmin = 0.0001f;
         private static float _ssao_falloffmax = 0.001f;
         private static int _ssao_samples = 8;

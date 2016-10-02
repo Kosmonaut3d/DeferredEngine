@@ -585,7 +585,6 @@ namespace EngineTest.Renderer.Helper
             bool setupRender = false;
 
             //for culling
-
             BoundingFrustum transformedViewFrustum = new BoundingFrustum(transformedViewProjection);
 
             for (int index1 = 0; index1 < Index; index1++)
@@ -593,39 +592,6 @@ namespace EngineTest.Renderer.Helper
                 MaterialLibrary matLib = MaterialLib[index1];
 
                 if (matLib.Index < 1) continue;
-
-                //if none of this materialtype is drawn continue too!
-                /*bool isUsed = false;
-
-                for (int i = 0; i < matLib.Index; i++)
-                {
-                    MeshLibrary meshLib = matLib.GetMeshLibrary()[i];
-                    for (int index = 0; index < meshLib.Index; index++)
-                    {
-                        //If it's set to "not rendered" skip
-                        for (int j = 0; j < meshLib.Rendered.Length; j++)
-                        {
-                            if (meshLib.Rendered[j] == true)
-                            {
-                                isUsed = true;
-                                //if (meshLib.GetWorldMatrices()[j].HasChanged)
-                                //    hasAnyObjectMoved = true;
-                            }
-
-                            if (isUsed)// && hasAnyObjectMoved)
-                                break;
-
-                        }
-
-                        if (isUsed)// && hasAnyObjectMoved)
-                            break;
-                    }
-                }
-
-                if (!isUsed) continue;
-                */
-
-                //Count the draws of different materials!
 
                 MaterialEffect material = /*GameSettings.DebugDrawUntextured==2 ? Art.DefaultMaterial :*/ matLib.GetMaterial();
 
@@ -642,7 +608,7 @@ namespace EngineTest.Renderer.Helper
                     Shaders.EmissiveEffectParameter_CameraPosition.SetValue(camera.Position);
 
                     if (GameSettings.g_EmissiveNoise)
-                        Shaders.EmissiveEffectParameter_Time.SetValue((float)gameTime.TotalGameTime.TotalMilliseconds % 10000);
+                        Shaders.EmissiveEffectParameter_Time.SetValue((float)gameTime.TotalGameTime.TotalSeconds % 1000);
                     setupRender = true;
                 }
 
@@ -669,14 +635,8 @@ namespace EngineTest.Renderer.Helper
                     //Now draw the local meshes!
                     for (int index = 0; index < meshLib.Index; index++)
                     {
-                        //If it's set to "not rendered" skip
-                        //if (!meshLib.GetWorldMatrices()[index].Rendered) continue;
-                        // if (!meshLib.Rendered[index]) continue;
-
                         //culling
                         BoundingSphere sphere = new BoundingSphere(Vector3.Zero, 0);
-
-
 
                         sphere.Center = meshLib.GetBoundingCenterWorld(index);
                         sphere.Radius = meshLib.MeshBoundingSphere.Radius * meshLib.GetWorldMatrices()[index].Scale;
@@ -685,7 +645,7 @@ namespace EngineTest.Renderer.Helper
                             continue;
                         }
 
-                        GameStats.MeshDraws++;
+                        GameStats.EmissiveMeshDraws++;
 
                         graphicsDevice.SetRenderTarget(renderTargetEmissive);
 
@@ -697,10 +657,7 @@ namespace EngineTest.Renderer.Helper
                         Shaders.EmissiveEffectParameter_Origin.SetValue(origin);
                         //meshLib.GetBoundingCenterWorld(index));
 
-
-                        //float size = model.Meshes[0].BoundingSphere.Radius * 3 * entity.WorldTransform.Scale;
-
-                        float size = meshLib.MeshBoundingSphere.Radius * meshLib.GetWorldMatrices()[index].Scale * 3;
+                        float size = meshLib.MeshBoundingSphere.Radius * meshLib.GetWorldMatrices()[index].Scale * 3 * (GameSettings.g_EmissiveMaterialeSizeStrengthScaling ? material.EmissiveStrength : 1);
 
                         Shaders.EmissiveEffectParameter_Size.SetValue(size);
 
@@ -709,8 +666,7 @@ namespace EngineTest.Renderer.Helper
 
                         Matrix localWorldMatrix = meshLib.GetWorldMatrices()[index].World;
 
-                        Shaders.EmissiveEffectParameter_WorldViewProj.SetValue(localWorldMatrix *
-                                                                               transformedViewProjection);
+                        Shaders.EmissiveEffectParameter_WorldViewProj.SetValue(localWorldMatrix * transformedViewProjection);
 
                         Shaders.EmissiveEffectParameter_World.SetValue(localWorldMatrix);
 
@@ -726,12 +682,9 @@ namespace EngineTest.Renderer.Helper
                             // do nothing
                         }
 
-
-
                         graphicsDevice.BlendState = _lightBlendState;
 
                         graphicsDevice.RasterizerState = RasterizerState.CullClockwise;
-                        //inside ? RasterizerState.CullClockwise : RasterizerState.CullCounterClockwise;
 
                         Matrix sphereWorldMatrix = Matrix.CreateScale(size * 1.2f) *
                                                    Matrix.CreateTranslation(meshLib.GetBoundingCenterWorld(index));

@@ -308,7 +308,7 @@ namespace EngineTest.Renderer.Helper
                 }
 
                 _spriteBatch.DrawString(_sprFont,
-                    string.Format("meshes: " + GameStats.MeshDraws + " materials: " + GameStats.MaterialDraws + " lights: " + GameStats.LightsDrawn
+                    string.Format("meshes: " + GameStats.MeshDraws + " materials: " + GameStats.MaterialDraws + " lights: " + GameStats.LightsDrawn +  " emissive: " + GameStats.EmissiveMeshDraws
                     + " shadowMaps: " +GameStats.activeShadowMaps + "/"+ GameStats.shadowMaps ),
                     new Vector2(10.0f, 40.0f), Color.White);
 

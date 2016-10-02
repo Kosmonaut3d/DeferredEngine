@@ -14,5 +14,6 @@ namespace EngineTest.Recources
 
         public static int shadowMaps = 0;
         public static int activeShadowMaps = 0;
+        public static int EmissiveMeshDraws = 0;
     }
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using EngineTest.Entities;
@@ -35,6 +36,7 @@ namespace EngineTest.Renderer
         private bool viewProjectionHasChanged;
 
         private bool _temporalAAOffFrame = true;
+        private int _temporalAAFrame = 0;
 
         private Matrix _currentToPrevious;
 
@@ -410,7 +412,9 @@ namespace EngineTest.Renderer
             if (!GameSettings.g_EmissiveDraw) return;
 
             //Make a new _viewProjection
-            Matrix newProjection = Matrix.CreatePerspectiveFieldOfView(camera.FieldOfView*GameSettings.g_EmissiveDrawFOVFactor,
+
+            //This should actually scale dynamically with the position of the object
+            Matrix newProjection = Matrix.CreatePerspectiveFieldOfView(Math.Min((float)Math.PI, camera.FieldOfView*GameSettings.g_EmissiveDrawFOVFactor),
                     GameSettings.g_ScreenWidth / (float)GameSettings.g_ScreenHeight, 1, GameSettings.g_FarPlane);
 
             Matrix transformedViewProjection = _view*newProjection;
@@ -855,6 +859,8 @@ namespace EngineTest.Renderer
             GameStats.LightsDrawn = 0;
             GameStats.shadowMaps = 0;
             GameStats.activeShadowMaps = 0;
+
+            GameStats.EmissiveMeshDraws = 0;
         }
 
 
@@ -892,6 +898,9 @@ namespace EngineTest.Renderer
             {
                 viewProjectionHasChanged = true;
                 _temporalAAOffFrame = !_temporalAAOffFrame;
+                _temporalAAFrame++;
+
+                //if (_temporalAAFrame >= 4) _temporalAAFrame = 0;
             }
 
             //If the camera didn't do anything we don't need to update this stuff
@@ -917,11 +926,21 @@ namespace EngineTest.Renderer
                 {
                     if (GameSettings.g_TemporalAntiAliasingJitterMode == 0)
                     {
+                        //float x = 0.5f/GameSettings.g_ScreenWidth;
+                        //float y = 0.5f/GameSettings.g_ScreenHeight;
+
+                        //Vector3 translation = new Vector3(
+                        //    x: _temporalAAFrame > 1 ? x : -x,
+                        //    y: _temporalAAFrame %2 ==0 ? y : -y, z: 0);
+
+                        //_viewProjection = _viewProjection*
+                        //                  Matrix.CreateTranslation(translation);
+
                         float translation = _temporalAAOffFrame ? 0.5f : -0.5f;
 
-                        _viewProjection = _viewProjection*
-                                          Matrix.CreateTranslation(new Vector3(translation/GameSettings.g_ScreenWidth,
-                                              translation/GameSettings.g_ScreenHeight, 0));
+                        _viewProjection = _viewProjection *
+                                          Matrix.CreateTranslation(new Vector3(translation / GameSettings.g_ScreenWidth,
+                                              translation / GameSettings.g_ScreenHeight, 0));
                     }
                     else
                     {

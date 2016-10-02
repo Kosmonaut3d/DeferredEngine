@@ -52,7 +52,8 @@ namespace EngineTest.Main
             //Entities
 
             //Emissive Entities
-            AddEntity(_assets.TestTubes, _assets.emissiveMaterial2, new Vector3(0, 0, -40), -Math.PI, -Math.PI/2, 0, 1.8f);
+            //AddEntity(_assets.TestTubes, _assets.emissiveMaterial2, new Vector3(0, 0, -40), -Math.PI, -Math.PI/2, 0, 1.8f);
+            //AddEntity(_assets.TestTubes, _assets.emissiveMaterial, new Vector3(0, 0, -2), -Math.PI, 0, 0, 1.5f);
 
             //Dragon model which is movable with NUMPAD 2,3,6,8
             drake = AddEntity(_assets.DragonUvSmoothModel, _assets.emissiveMaterial, new Vector3(40, -10, 0), -Math.PI/2, 0, 0, 10);
@@ -171,6 +172,15 @@ namespace EngineTest.Main
             {
                 AddPointLight(new Vector3(FastRand.NextSingle() * 250 - 125, FastRand.NextSingle() * 50 - 25, FastRand.NextSingle() * 10 - 9), 30, new Color(FastRand.NextInteger(255), FastRand.NextInteger(255), FastRand.NextInteger(255)), 10, false);
 
+            }
+
+            if (Input.keyboardState.IsKeyDown(Keys.NumPad1))
+            {
+                _assets.silverMaterial.Roughness = Math.Min(1, _assets.silverMaterial.Roughness += 0.02f);
+            }
+            if (Input.keyboardState.IsKeyDown(Keys.NumPad3))
+            {
+                _assets.silverMaterial.Roughness = Math.Max(0, _assets.silverMaterial.Roughness -= 0.02f);
             }
 
             if (Input.keyboardState.IsKeyDown(Keys.Up))

@@ -1,11 +1,9 @@
-﻿//Lightshader Bounty Road 2016
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////
+﻿////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  VARIABLES
 //      PROJECTION  
 
-matrix  World;
-matrix  WorldViewProj;
+matrix World;
+matrix WorldViewProj;
 //Different ViewPort maybe?
 matrix ViewProjection;
 matrix InvertViewProjection;
@@ -22,6 +20,26 @@ float EmissiveStrength = 1;
 float3 EmissiveColor = float3(1, 1, 1);
 
 float Time = 1;
+
+static float3 sampleSphere[] =
+{
+    float3(0.2024537f, 0.841204f, -0.9060141f),
+        float3(-0.2200423f, 0.6282339f, -0.8275437f),
+        float3(0.3677659f, 0.1086345f, -0.4466777f),
+        float3(0.8775856f, 0.4617546f, -0.6427765f),
+        float3(0.7867433f, -0.141479f, -0.1567597f),
+        float3(0.4839356f, -0.8253108f, -0.1563844f),
+        float3(0.4401554f, -0.4228428f, -0.3300118f),
+        float3(0.0019193f, -0.8048455f, 0.0726584f),
+        float3(-0.7578573f, -0.5583301f, 0.2347527f),
+        float3(-0.4540417f, -0.252365f, 0.0694318f),
+        float3(-0.0483353f, -0.2527294f, 0.5924745f),
+        float3(-0.4192392f, 0.2084218f, -0.3672943f),
+        float3(-0.8433938f, 0.1451271f, 0.2202872f),
+        float3(-0.4037157f, -0.8263387f, 0.4698132f),
+        float3(-0.6657394f, 0.6298575f, 0.6342437f),
+        float3(-0.0001783f, 0.2834622f, 0.8343929f),
+};
 
 Texture2D EmissiveMap;
 Texture2D DepthMap;
@@ -49,8 +67,8 @@ SamplerState LinearSampler
 
 struct DrawBasic_VSIn
 {
-	float4 Position : SV_POSITION0;
-	float2 TexCoord : TEXCOORD0;
+    float4 Position : SV_POSITION0;
+    float2 TexCoord : TEXCOORD0;
 };
 
 struct DrawBasic_VSOut
@@ -148,138 +166,107 @@ float3 decode(float3 n)
     return 2.0f * n.xyz - 1.0f;
 }
 
+
+float lengthSquared(float3 v1)
+{
+    return v1.x * v1.x + v1.y * v1.y + v1.z * v1.z;
+}
+
 float4 DrawEffectSpecular_PixelShader(VertexShaderOutputSpecular input) : SV_Target
 {
-    
+     
+    float4 output = float4(0, 0, 0, 0);
+
      //obtain screen position
     input.ScreenPosition.xyz /= input.ScreenPosition.w;
     //obtain textureCoordinates corresponding to the current pixel
     //the screen coordinates are in [-1,1]*[1,-1]
     //the texture coordinates need to be in [0,1]*[0,1]
     float2 texCoord = 0.5f * (float2(input.ScreenPosition.x, -input.ScreenPosition.y) + 1);
-
-    /////////////////////////////////////////
-
     int3 texCoordInt = int3(texCoord * Resolution, 0);
 
     //read depth
     float depthVal = 1 - DepthMap.Sample(PointSampler, texCoord).r;
 
-    float4 posEmissive = EmissiveMap.Load(texCoordInt);
-
-    float4 output = 0;
-
-    //we are done here? probably yes, just need to check depth tbh
-    
-
-        //compute screen-space position
+    //compute world space position
     float4 position;
     position.xy = input.ScreenPosition.xy;
     position.z = depthVal;
     position.w = 1.0f;
     //transform to world space
     position = mul(position, InvertViewProjection);
-    position /= position.w; 
+    position /= position.w;
 
-    float4 positionTransformed = mul(float4(position), ViewProjection);
-    positionTransformed /= positionTransformed.w;
+    [branch]
+    if (lengthSquared(position - Origin) > Size * Size)
+        return output;
+    else
+    {
+        
+        float4 positionTransformed = mul(float4(position), ViewProjection);
+        positionTransformed /= positionTransformed.w;
 
-    float2 texCoordTransformed = 0.5f * (float2(positionTransformed.x, -positionTransformed.y) + 1);
+        float2 texCoordTransformed = 0.5f * (float2(positionTransformed.x, -positionTransformed.y) + 1);
 
-    //get normal data from the NormalMap
-    float4 normalData = NormalMap.Sample(LinearSampler, texCoord);
+        //get normal data from the NormalMap
+        float4 normalData = NormalMap.Load(texCoordInt);
         //tranform normal back into [-1,1] range
-    float3 normal = decode(normalData.xyz);
+        float3 normal = decode(normalData.xyz);
 
-    float roughness = normalData.a;
+        float roughness = normalData.a;
 
-    float3 viewDir = normalize(position.xyz - CameraPosition);
+        float3 viewDir = normalize(position.xyz - CameraPosition);
 
     
-    float3 randNor = randomNormal(texCoord); //
+        float3 randNor = randomNormal(texCoord); //
 
-    const float3 sampleSphere[] =
-    {
-        float3(0.2024537f, 0.841204f, -0.9060141f),
-        float3(-0.2200423f, 0.6282339f, -0.8275437f),
-        float3(0.3677659f, 0.1086345f, -0.4466777f),
-        float3(0.8775856f, 0.4617546f, -0.6427765f),
-        float3(0.7867433f, -0.141479f, -0.1567597f),
-        float3(0.4839356f, -0.8253108f, -0.1563844f),
-        float3(0.4401554f, -0.4228428f, -0.3300118f),
-        float3(0.0019193f, -0.8048455f, 0.0726584f),
-        float3(-0.7578573f, -0.5583301f, 0.2347527f),
-        float3(-0.4540417f, -0.252365f, 0.0694318f),
-        float3(-0.0483353f, -0.2527294f, 0.5924745f),
-        float3(-0.4192392f, 0.2084218f, -0.3672943f),
-        float3(-0.8433938f, 0.1451271f, 0.2202872f),
-        float3(-0.4037157f, -0.8263387f, 0.4698132f),
-        float3(-0.6657394f, 0.6298575f, 0.6342437f),
-        float3(-0.0001783f, 0.2834622f, 0.8343929f),
-    };
+        uint Samples = 8;
 
-    uint Samples = 8;
-
-    //float radius = 0.02f;
-
-    float emissiveContribution = 0;
-
-    //return float4(EmissiveColor*0.2f, 1);
-
-    [unroll]
-    //[branch]
-    for (uint i = 0; i < Samples; i++)
-    {
-        float3 offset = reflect(sampleSphere[i], randNor);
-
-        //Hemisphere
-        if(dot(normal, offset) < 0)
-            offset = -offset;
-
-        offset = normalize(normal*(1-roughness)*10 + offset);
-
-        offset = reflect(viewDir, offset);
-
-        //These vectors are projected from the origin
-
-        float3 endpoint = position.xyz + offset * Size/3;
-
-        float3 vectorDirection = endpoint - position.xyz;
-
-        float3 endpointadjusted = position.xyz + vectorDirection*1.2f;
-
-        vectorDirection = normalize(vectorDirection);
-
-       
-        float4 samplePositionVS = mul(float4(endpointadjusted, 1), ViewProjection);
-
-        samplePositionVS /= samplePositionVS.w;
-
-        float2 sampleTexCoord = 0.5f * (float2(samplePositionVS.x, -samplePositionVS.y) + 1);
-
-        //return float4(sampleTexCoord, 0, 1);
-        //offset = float3(0, 1, 0);
-         
-        //offset.y = -offset.y;
+        float emissiveContribution = 0;
 
         [unroll]
-        //[branch]
+        for (uint i = 0; i < Samples; i++)
+        {
+            float3 offset = reflect(sampleSphere[i], randNor);
+
+            //Hemisphere
+            if (dot(normal, offset) < 0)
+                offset = -offset;
+
+            offset = normalize(normal * (1 - roughness) * 10 + offset);
+
+            offset = reflect(viewDir, offset);
+
+            //These vectors are projected from the origin
+
+            float3 endpoint = position.xyz + offset * Size / 3;
+
+            float3 vectorDirection = endpoint - position.xyz;
+
+            float3 endpointadjusted = position.xyz + vectorDirection * 1.2f;
+
+            vectorDirection = normalize(vectorDirection);
+
+            float4 samplePositionVS = mul(float4(endpointadjusted, 1), ViewProjection);
+
+            samplePositionVS /= samplePositionVS.w;
+
+            float2 sampleTexCoord = 0.5f * (float2(samplePositionVS.x, -samplePositionVS.y) + 1);
+
+            [unroll]
             for (uint j = 0; j < 4; j++)
             {
+                float2 ray = texCoordTransformed + (sampleTexCoord - texCoordTransformed) * j / 4.0f;
 
-            //float2 ray = texCoord + offset.xy * radius * (j+1);
-
-             float2 ray = texCoordTransformed + (sampleTexCoord - texCoordTransformed) * j / 4.0f;
-
-        //Read the sample Position!
+                //Read the sample Position!
                 int3 texCoordRay = int3(ray * Resolution, 0);
 
                 float4 posEmissive = EmissiveMap.Load(texCoordRay);
 
-        //translate to real position
+                //translate to real position
 
-        //We haven't found anything
-            [branch]
+                //We haven't found anything
+                [branch]
                 if (posEmissive.a < 1)
                 {
                     continue;
@@ -299,47 +286,36 @@ float4 DrawEffectSpecular_PixelShader(VertexShaderOutputSpecular input) : SV_Tar
                     //float normalfactor = saturate(dot(normal, vectorDirection));
                     float normalfactor2 = -(normalfactor - 1) * (normalfactor - 1) + 1;
 
-                    emissiveContribution += dist*dist * normalfactor2;
+                    emissiveContribution += dist * dist * normalfactor2;
 
                     break;
                 }
             }
-        
+        }
+        emissiveContribution /= Samples;
 
+        return float4(EmissiveColor * emissiveContribution * EmissiveStrength * 0.05f, 1);
     }
-
-    emissiveContribution /= Samples;
-
-    //////////////////////////////////////
-
-
-    return float4(EmissiveColor * emissiveContribution * EmissiveStrength * 0.05f, 1);
-
 }
+
 
 float4 DrawEffectDiffuse_PixelShader(VertexShaderOutput input) : SV_Target
 {
-    
+    float4 output = float4(0, 0, 0, 0);
+
      //obtain screen position
     input.ScreenPosition.xyz /= input.ScreenPosition.w;
     //obtain textureCoordinates corresponding to the current pixel
     //the screen coordinates are in [-1,1]*[1,-1]
     //the texture coordinates need to be in [0,1]*[0,1]
     float2 texCoord = 0.5f * (float2(input.ScreenPosition.x, -input.ScreenPosition.y) + 1);
-
-    /////////////////////////////////////////
-
     int3 texCoordInt = int3(texCoord * Resolution, 0);
+    /////////////////////////////////////////
 
     //read depth
     float depthVal = 1 - DepthMap.Sample(PointSampler, texCoord).r;
 
-    float4 output = 0;
-
-    //we are done here? probably yes, just need to check depth tbh
-    
-
-        //compute screen-space position
+    //compute screen-space position
     float4 position;
     position.xy = input.ScreenPosition.xy;
     position.z = depthVal;
@@ -348,106 +324,65 @@ float4 DrawEffectDiffuse_PixelShader(VertexShaderOutput input) : SV_Target
     position = mul(position, InvertViewProjection);
     position /= position.w;
 
-    float4 positionTransformed = mul(float4(position), ViewProjection);
-    positionTransformed /= positionTransformed.w;
-
-    float2 texCoordTransformed = 0.5f * (float2(positionTransformed.x, -positionTransformed.y) + 1);
-           
-    //float4 posEmissive = EmissiveMap.Load(float3(texCoordTransformed * Resolution,0));
-
-    ////if (posEmissive.a > 0)
-    ////    return float4(0, 0, 0, 0);
-
-    //get normal data from the NormalMap
-    float4 normalData = NormalMap.Sample(LinearSampler, texCoord);
+    //early depth rejection
+    [branch]
+    if (lengthSquared(position - Origin) > Size * Size)
+        return output;
+    else
+    {
+        //Project into Emissive View Space
+        float4 positionTransformed = mul(float4(position), ViewProjection);
+        positionTransformed /= positionTransformed.w;
+        float2 texCoordTransformed = 0.5f * (float2(positionTransformed.x, -positionTransformed.y) + 1);
+          
+        //get normal data from the NormalMap
+        float4 normalData = NormalMap.Load(texCoordInt);
         //tranform normal back into [-1,1] range
-    float3 normal = decode(normalData.xyz);
-    //transform posEmissive into realWorldCoordinates
+        float3 normal = decode(normalData.xyz);
 
-    
-    float3 randNor = randomNormal(texCoord + position.yz); //
+        float3 randNor = randomNormal(texCoord + position.yz); //
 
-    const float3 sampleSphere[] =
-    {
-        float3(0.2024537f, 0.841204f, -0.9060141f),
-        float3(-0.2200423f, 0.6282339f, -0.8275437f),
-        float3(0.3677659f, 0.1086345f, -0.4466777f),
-        float3(0.8775856f, 0.4617546f, -0.6427765f),
-        float3(0.7867433f, -0.141479f, -0.1567597f),
-        float3(0.4839356f, -0.8253108f, -0.1563844f),
-        float3(0.4401554f, -0.4228428f, -0.3300118f),
-        float3(0.0019193f, -0.8048455f, 0.0726584f),
-        float3(-0.7578573f, -0.5583301f, 0.2347527f),
-        float3(-0.4540417f, -0.252365f, 0.0694318f),
-        float3(-0.0483353f, -0.2527294f, 0.5924745f),
-        float3(-0.4192392f, 0.2084218f, -0.3672943f),
-        float3(-0.8433938f, 0.1451271f, 0.2202872f),
-        float3(-0.4037157f, -0.8263387f, 0.4698132f),
-        float3(-0.6657394f, 0.6298575f, 0.6342437f),
-        float3(-0.0001783f, 0.2834622f, 0.8343929f),
-    };
+        float emissiveContribution = 0;
 
-    uint Samples = 16;
+        uint Samples = 16;
 
-    //float radius = 0.02f;
-
-    float emissiveContribution = 0;
-
-    [unroll]
-    //[branch]
-    for (uint i = 0; i < Samples; i++)
-    {
-        float3 offset = reflect(sampleSphere[i], randNor);
-                  
-        if (dot(normal, offset) < 0)
-            offset = -offset;
-        //These vectors are projected from the origin
-
-        float3 endpoint = Origin + offset * Size / 8;
-
-        float3 vectorDirection = endpoint - position.xyz;
-
-        [branch]
-        if(dot(normal, vectorDirection) < 0)
-            continue;
-        
-        else
+        [unroll]
+        for (uint i = 0; i < Samples; i++)
         {
+            float3 offset = reflect(sampleSphere[i], randNor);
 
+            float3 endpoint = Origin + offset * Size / 4 / EmissiveStrength;
+
+            float3 vectorDirection = endpoint - position.xyz;
+
+            if (dot(normal, vectorDirection) < 0)
+                continue;
+                //vectorDirection = -vectorDirection;
+            
             float3 endpointadjusted = position.xyz + vectorDirection * 1.2f;
 
             vectorDirection = normalize(vectorDirection);
 
-             
             float4 samplePositionVS = mul(float4(endpointadjusted, 1), ViewProjection);
 
             samplePositionVS /= samplePositionVS.w;
 
             float2 sampleTexCoord = 0.5f * (float2(samplePositionVS.x, -samplePositionVS.y) + 1);
 
-        //return float4(sampleTexCoord, 0, 1);
-        //offset = float3(0, 1, 0);
-         
-        //offset.y = -offset.y;
-
-        [unroll]
-        //[branch]
+            [unroll]
             for (uint j = 0; j < 8; j++)
             {
-
-            //float2 ray = texCoord + offset.xy * radius * (j+1);
-
                 float2 ray = texCoordTransformed + (sampleTexCoord - texCoordTransformed) * j / 8.0f;
 
-        //Read the sample Position!
-                int3 texCoordRay = int3(ray * Resolution, 0);
+                if (ray.x < 0 || ray.x > 1 || ray.y < 0 || ray.y > 1)
+                    break;
 
+                //Read the sample Position!
+                int3 texCoordRay = int3(ray * Resolution, 0);
                 float4 posEmissive = EmissiveMap.Load(texCoordRay);
 
-        //translate to real position
-
-        //We haven't found anything
-            [branch]
+                //We haven't found anything  - note: We should check depth against the position and reject based on that!
+                [branch]
                 if (posEmissive.a < 1)
                 {
                     continue;
@@ -468,16 +403,10 @@ float4 DrawEffectDiffuse_PixelShader(VertexShaderOutput input) : SV_Target
                 }
             }
         }
+        emissiveContribution /= Samples;
 
+        return float4(EmissiveColor * emissiveContribution * EmissiveStrength * 0.05f, 1);
     }
-
-    emissiveContribution /= Samples; //* 4.0f;
-
-    //////////////////////////////////////
-
-
-    return float4(EmissiveColor * emissiveContribution * EmissiveStrength * 0.05f, 1);
-
 }
 
 technique DrawEmissiveBuffer

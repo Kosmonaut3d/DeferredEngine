@@ -136,7 +136,7 @@ namespace EngineTest.Recources
 
                 hologramMaterial = CreateMaterial(Color.White, 0.2f, 1, null, null, null, null, null, MaterialEffect.MaterialTypes.Hologram, 1);
 
-                emissiveMaterial = CreateMaterial(Color.Gold, 0.2f, 1, null, null, null, null, null, MaterialEffect.MaterialTypes.Emissive, 1);
+                emissiveMaterial = CreateMaterial(Color.White, 0.2f, 1, null, null, null, null, null, MaterialEffect.MaterialTypes.Emissive, 1.5f);
 
                 emissiveMaterial2 = CreateMaterial(Color.LimeGreen, 0.2f, 1, null, null, null, null, null, MaterialEffect.MaterialTypes.Emissive, 0.8f);
 
@@ -272,11 +272,11 @@ namespace EngineTest.Recources
 
                             //Make the vases emissive!
 
-                            //if (compare.Contains("vase_round"))
+                            //if (compare.Contains("vase_hanging"))
                             //{
-                            //    matEffect.EmissiveStrength = 1;
+                            //    matEffect.EmissiveStrength = 2;
                             //    matEffect.Type = MaterialEffect.MaterialTypes.Emissive;
-                            //    matEffect.DiffuseColor = Color.Aquamarine.ToVector3();
+                            //    matEffect.DiffuseColor = Color.Gold.ToVector3();
 
                             //    matEffect.AlbedoMap = null;
                             //    matEffect.HasDiffuse = false;
