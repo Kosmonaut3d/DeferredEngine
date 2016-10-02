@@ -315,7 +315,7 @@ float4 DrawEffectDiffuse_PixelShader(VertexShaderOutput input) : SV_Target
     //read depth
     float depthVal = 1 - DepthMap.Sample(PointSampler, texCoord).r;
 
-    //compute screen-space position
+    //compute world space position
     float4 position;
     position.xy = input.ScreenPosition.xy;
     position.z = depthVal;
