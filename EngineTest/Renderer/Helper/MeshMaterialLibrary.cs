@@ -56,7 +56,14 @@ namespace EngineTest.Renderer.Helper
 
             if (mat == null)
             {
-                mat = (MaterialEffect)mesh.Effect;
+                if (mesh.Effect is MaterialEffect)
+                {
+                    mat = (MaterialEffect) mesh.Effect;
+                }
+                else
+                {
+                    mat = new MaterialEffect(mesh.Effect);
+                }
             }
 
             //Check if we already have a material like that, if yes put it in there!

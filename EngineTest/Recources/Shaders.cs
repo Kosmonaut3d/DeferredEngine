@@ -124,6 +124,23 @@ namespace EngineTest.Recources
         //public static EffectTechnique deferredSpotLightShadowed;
         //public static EffectParameter deferredSpotLightParameterShadowMap;
 
+        //Directional light
+
+        public static Effect deferredDirectionalLight;
+        public static EffectTechnique deferredDirectionalLightUnshadowed;
+
+        public static EffectParameter deferredDirectionalLightParameterViewProjection;
+        public static EffectParameter deferredDirectionalLightParameterCameraPosition;
+        public static EffectParameter deferredDirectionalLightParameterInverseViewProjection;
+
+        public static EffectParameter deferredDirectionalLightParameter_LightColor;
+        public static EffectParameter deferredDirectionalLightParameter_LightDirection;
+        public static EffectParameter deferredDirectionalLightParameter_LightIntensity;
+
+        public static EffectParameter deferredDirectionalLightParameter_AlbedoMap;
+        public static EffectParameter deferredDirectionalLightParameter_NormalMap;
+
+        //Point Light
         public static Effect deferredPointLight;
         public static EffectTechnique deferredPointLightUnshadowed;
         public static EffectTechnique deferredPointLightShadowed;
@@ -298,6 +315,22 @@ namespace EngineTest.Recources
             //deferredSpotLightShadowed = deferredSpotLight.Techniques["Shadowed"];
 
             //deferredSpotLightParameterShadowMap = deferredSpotLight.Parameters["shadowMap"];
+
+            //Directional Light
+            deferredDirectionalLight = content.Load<Effect>("Shaders/Deferred/DeferredDirectionalLight");
+
+            deferredDirectionalLightUnshadowed = deferredDirectionalLight.Techniques["Unshadowed"];
+
+            deferredDirectionalLightParameterViewProjection = deferredDirectionalLight.Parameters["ViewProjection"];
+            deferredDirectionalLightParameterCameraPosition = deferredDirectionalLight.Parameters["cameraPosition"];
+            deferredDirectionalLightParameterInverseViewProjection = deferredDirectionalLight.Parameters["InvertViewProjection"];
+
+            deferredDirectionalLightParameter_LightColor = deferredDirectionalLight.Parameters["lightColor"];
+            deferredDirectionalLightParameter_LightIntensity = deferredDirectionalLight.Parameters["lightIntensity"];
+            deferredDirectionalLightParameter_LightDirection = deferredDirectionalLight.Parameters["LightVector"];
+
+            deferredDirectionalLightParameter_AlbedoMap = deferredDirectionalLight.Parameters["AlbedoMap"];
+            deferredDirectionalLightParameter_NormalMap = deferredDirectionalLight.Parameters["NormalMap"];
 
             //PL
             deferredPointLight = content.Load<Effect>("Shaders/Deferred/DeferredPointLight");

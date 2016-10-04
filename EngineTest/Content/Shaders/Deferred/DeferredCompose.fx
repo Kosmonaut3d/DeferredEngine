@@ -95,8 +95,8 @@ float4 GaussianSampler(float2 TexCoord, float offset)
     float4 finalColor = float4(0, 0, 0, 0);
     for (int i = 0; i < SAMPLE_COUNT; i++)
     {
-        finalColor += HologramMap.Sample(linearSampler, TexCoord.xy +
-                    offset * SampleOffsets[i] * InverseResolution) * SampleWeights[i];
+        finalColor += HologramMap.SampleLevel(linearSampler, TexCoord.xy +
+                    offset * SampleOffsets[i] * InverseResolution, 0) * SampleWeights[i];
     }
    // finalColor = colorMap.Sample(colorSampler, TexCoord.xy);
     return finalColor;
@@ -122,14 +122,15 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
     float3 diffuseContrib = float3(0, 0, 0);
 
     //
-    
+    [branch]
     if(useGauss)
     {
-        float4 hologramColor = GaussianSampler(input.TexCoord, 3);
+        
 
-    //[branch]
+        [branch]
         if (abs(materialType - 2) < 0.1f)
         {
+          float4 hologramColor = GaussianSampler(input.TexCoord, 3);
     //    float2 pixel = trunc(input.TexCoord * Resolution);
 
     //    float pixelsize2 = 2 * pixelsize;

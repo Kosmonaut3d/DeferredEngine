@@ -57,6 +57,8 @@ namespace EngineTest.Recources
 
             public Model SponzaModel { get; set; }
 
+            public Model Plane;
+
             public Model TestTubes { get; set; }
 
             public Model Sphere;
@@ -131,6 +133,7 @@ namespace EngineTest.Recources
 
                 ProcessHelmets();
 
+                Plane = content.Load<Model>("Art/Plane");
 
                 baseMaterial = CreateMaterial(Color.Red, 0.3f, 0);
 
@@ -200,7 +203,9 @@ namespace EngineTest.Recources
                         }
 
                         if (i == 1)
+                        {
                             matEffect.DiffuseColor = new Color(0, 0.49f,  0.95f).ToVector3();
+                        }
 
                         if (i == 2)
                         {
@@ -281,6 +286,7 @@ namespace EngineTest.Recources
                             //    matEffect.AlbedoMap = null;
                             //    matEffect.HasDiffuse = false;
                             //}
+
 
                             if (compare.Contains("chain"))
                             {

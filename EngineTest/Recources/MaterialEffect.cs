@@ -28,7 +28,7 @@ namespace EngineTest.Recources
         public bool HasMetallic = false;
 
 
-        public Vector3 DiffuseColor;
+        public Vector3 DiffuseColor = Color.Gray.ToVector3();
 
         public float Roughness = 0.5f;
 

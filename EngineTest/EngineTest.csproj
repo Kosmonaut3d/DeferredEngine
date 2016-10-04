@@ -55,6 +55,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Entities\BasicEntity.cs" />
+    <Compile Include="Entities\DirectionalLight.cs" />
     <Compile Include="Game1.cs" />
     <Compile Include="Main\Input.cs" />
     <Compile Include="Main\MainLogic.cs" />
@@ -85,6 +86,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Icon.ico" />
+    <Content Include="Log.txt" />
   </ItemGroup>
   <ItemGroup>
     <MonoGameContentReference Include="Content\Content.mgcb" />

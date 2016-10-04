@@ -13,6 +13,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using DirectionalLight = EngineTest.Recources.DirectionalLight;
 
 namespace EngineTest.Renderer
 {
@@ -136,7 +137,7 @@ namespace EngineTest.Renderer
 
         
         //Main Draw!
-        public void Draw(Camera camera, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities, List<PointLight> pointLights, GameTime gameTime)
+        public void Draw(Camera camera, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities, List<PointLight> pointLights, List<DirectionalLight> dirLights, GameTime gameTime)
         {
             //Reset the stat counter
             ResetStats(); 
@@ -150,7 +151,7 @@ namespace EngineTest.Renderer
             //Render EnvironmentMaps
             if ((Input.WasKeyPressed(Keys.C)&&!DebugScreen.ConsoleOpen) || GameSettings.g_EnvironmentMappingEveryFrame || _renderTargetCubeMap == null)
             {
-                DrawCubeMap(camera.Position, meshMaterialLibrary, entities, pointLights);
+                DrawCubeMap(camera.Position, meshMaterialLibrary, entities, pointLights, dirLights);
                 camera.HasChanged = true;
             }
 
@@ -165,7 +166,7 @@ namespace EngineTest.Renderer
             DrawHolograms(meshMaterialLibrary);
 
             //Light the scene
-            DrawLights(pointLights, camera.Position);
+            DrawLights(pointLights, dirLights, camera.Position);
 
             DrawEnvironmentMap(camera);
 
@@ -215,7 +216,7 @@ namespace EngineTest.Renderer
 
 
         private void DrawCubeMap(Vector3 origin, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities,
-            List<PointLight> pointLights)
+            List<PointLight> pointLights, List<DirectionalLight> dirLights )
         {
             if (_renderTargetCubeMap == null) // _renderTargetCubeMap.Dispose();
             {
@@ -285,7 +286,7 @@ namespace EngineTest.Renderer
 
                 DrawGBuffer(meshMaterialLibrary, entities);
 
-                DrawLights(pointLights, origin);
+                DrawLights(pointLights, dirLights, origin);
 
                 Compose();
 
@@ -414,6 +415,7 @@ namespace EngineTest.Renderer
             //Make a new _viewProjection
 
             //This should actually scale dynamically with the position of the object
+            //Note: It would be better if the screen extended the same distance in each direction, right now it would probably be wider than tall
             Matrix newProjection = Matrix.CreatePerspectiveFieldOfView(Math.Min((float)Math.PI, camera.FieldOfView*GameSettings.g_EmissiveDrawFOVFactor),
                     GameSettings.g_ScreenWidth / (float)GameSettings.g_ScreenHeight, 1, GameSettings.g_FarPlane);
 
@@ -686,12 +688,48 @@ namespace EngineTest.Renderer
         /// Draw all light sources in a deferred Renderer!
         /// </summary>
         /// <param name="pointLights"></param>
+        /// <param name="dirLights"></param>
+        /// <param name="cameraOrigin"></param>
         /// <param name="camera"></param>
-        private void DrawLights(List<PointLight> pointLights, Vector3 cameraOrigin)
+        private void DrawLights(List<PointLight> pointLights, List<DirectionalLight> dirLights, Vector3 cameraOrigin)
         {
             _graphicsDevice.SetRenderTargets(_renderTargetLightBinding);
             _graphicsDevice.Clear(Color.TransparentBlack);
             DrawPointLights(pointLights, cameraOrigin);
+            DrawDirectionalLights(dirLights, cameraOrigin);
+        }
+
+        private void DrawDirectionalLights(List<DirectionalLight> dirLights, Vector3 cameraOrigin)
+        {
+            if (dirLights.Count < 1) return;
+
+            _graphicsDevice.DepthStencilState = DepthStencilState.Default;
+            _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+
+            //If nothing has changed we don't need to update
+            if (viewProjectionHasChanged)
+            {
+                Shaders.deferredDirectionalLightParameterViewProjection.SetValue(_viewProjection);
+                Shaders.deferredDirectionalLightParameterCameraPosition.SetValue(cameraOrigin);
+                Shaders.deferredDirectionalLightParameterInverseViewProjection.SetValue(_inverseViewProjection);
+            }
+
+            _graphicsDevice.DepthStencilState = DepthStencilState.Default;
+
+            for (int index = 0; index < dirLights.Count; index++)
+            {
+                DirectionalLight light = dirLights[index];
+                DrawDirectionalLight(light);
+            }
+        }
+
+        private void DrawDirectionalLight(DirectionalLight light)
+        {
+            Shaders.deferredDirectionalLightParameter_LightColor.SetValue(light.Color.ToVector3());
+            Shaders.deferredDirectionalLightParameter_LightDirection.SetValue(light.Direction);
+            Shaders.deferredDirectionalLightParameter_LightIntensity.SetValue(light.Intensity);
+            light.ApplyShader();
+            _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
         }
 
         //Draw the pointlights
@@ -1102,6 +1140,10 @@ namespace EngineTest.Renderer
             Shaders.deferredPointLightParameter_AlbedoMap.SetValue(_renderTargetAlbedo);
             Shaders.deferredPointLightParameter_DepthMap.SetValue(_renderTargetDepth);
             Shaders.deferredPointLightParameter_NormalMap.SetValue(_renderTargetNormal);
+
+            Shaders.deferredDirectionalLightParameter_AlbedoMap.SetValue(_renderTargetAlbedo);
+            //Shaders.deferredDirectionalLightParameter_DepthMap.SetValue(_renderTargetDepth);
+            Shaders.deferredDirectionalLightParameter_NormalMap.SetValue(_renderTargetNormal);
 
             Shaders.deferredEnvironmentParameter_AlbedoMap.SetValue(_renderTargetAlbedo);
             //Shaders.deferredEnvironmentParameter_DepthMap.SetValue(_renderTargetDepth);

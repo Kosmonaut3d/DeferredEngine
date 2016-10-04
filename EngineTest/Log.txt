@@ -1,0 +1,9 @@
+﻿Rendering ideas:
+
+Screen Space Emissive
+
+- draw Diffuse to the SSAO buffer at half or quarter res (and then upscale to half) -> perform bilateral blur on both things in one pass
+
+Screen Space Ambient Occlusion
+
+- use second color for screen space reflection occlusion (rays = reflect(viewDir, normal)) to cut cubemap reflections from these areas.

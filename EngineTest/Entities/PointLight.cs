@@ -8,30 +8,12 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace EngineTest.Recources
 {
-    public class PointLight
+    public class DirectionalLight
     {
-        private Vector3 _position;
-        public float _radius;
         public Color Color;
         public float Intensity;
-
-        public bool HasChanged = true;
-
-        public int ShadowResolution;
-        public bool StaticShadows;
-
-        public RenderTargetCube shadowMapCube;
-
-        public Matrix LightViewProjectionPositiveX;
-        public Matrix LightViewProjectionNegativeX;
-        public Matrix LightViewProjectionPositiveY;
-        public Matrix LightViewProjectionNegativeY;
-        public Matrix LightViewProjectionPositiveZ;
-        public Matrix LightViewProjectionNegativeZ;
-
-        public BoundingSphere BoundingSphere;
-
-        public bool DrawShadow = false;
+        private Vector3 _direction;
+        public bool HasChanged;
 
         /// <summary>
         /// A point light is a light that shines in all directions
@@ -44,69 +26,29 @@ namespace EngineTest.Recources
         /// <param name="shadowResolution">shadow map resolution per face. Optional</param>
         /// <param name="staticShadow">if set to true the shadows will not update at all. Dynamic shadows in contrast update only when needed.</param>
         /// <returns></returns>
-        public PointLight(Vector3 position, float radius, Color color, float intensity, bool drawShadow, int shadowResolution, bool staticShadow)
+        public DirectionalLight(Color color, float intensity, Vector3 direction)
         {
-            BoundingSphere = new BoundingSphere(position, radius);
-            Position = position;
-            Radius = radius;
             Color = color;
             Intensity = intensity;
-            DrawShadow = drawShadow;
 
-            ShadowResolution = shadowResolution;
-            StaticShadows = staticShadow;
-
+            Vector3 normalizedDirection = direction;
+            normalizedDirection.Normalize();
+            Direction = normalizedDirection;
         }
 
-        public Vector3 Position
+        public Vector3 Direction
         {
-            get { return _position;}
+            get { return _direction;}
             set
             {
-                _position = value;
-                BoundingSphere.Center = value;
+                _direction = value;
                 HasChanged = true;
             }
-        }
-
-        public float Radius
-        {
-            get { return _radius; }
-            set
-            {
-                _radius = value;
-                BoundingSphere.Radius = value;
-                HasChanged = true;
-            }
-        }
-
-
-        protected PointLight()
-        {
-
         }
 
         public virtual void ApplyShader()
         {
-            if (shadowMapCube != null)
-            {
-                Shaders.deferredPointLightParameterShadowMap.SetValue(shadowMapCube);
-
-                Shaders.deferredPointLightParameterLightViewProjectionPositiveX.SetValue(LightViewProjectionPositiveX);
-                Shaders.deferredPointLightParameterLightViewProjectionNegativeX.SetValue(LightViewProjectionNegativeX);
-
-                Shaders.deferredPointLightParameterLightViewProjectionPositiveY.SetValue(LightViewProjectionPositiveY);
-                Shaders.deferredPointLightParameterLightViewProjectionNegativeY.SetValue(LightViewProjectionNegativeY);
-
-                Shaders.deferredPointLightParameterLightViewProjectionPositiveZ.SetValue(LightViewProjectionPositiveZ);
-                Shaders.deferredPointLightParameterLightViewProjectionNegativeZ.SetValue(LightViewProjectionNegativeZ);
-
-                Shaders.deferredPointLightShadowed.Passes[0].Apply();
-            }
-            else
-            {
-                Shaders.deferredPointLightUnshadowed.Passes[0].Apply();
-            }
+            Shaders.deferredDirectionalLightUnshadowed.Passes[0].Apply();
         }
     }
 }

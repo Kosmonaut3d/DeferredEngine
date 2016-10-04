@@ -169,7 +169,7 @@ float3 decode(float3 n)
 
 float lengthSquared(float3 v1)
 {
-    return v1.x * v1.x + v1.y * v1.y + v1.z * v1.z;
+    return dot(v1, v1);
 }
 
 float4 DrawEffectSpecular_PixelShader(VertexShaderOutputSpecular input) : SV_Target
@@ -198,7 +198,7 @@ float4 DrawEffectSpecular_PixelShader(VertexShaderOutputSpecular input) : SV_Tar
     position /= position.w;
 
     [branch]
-    if (lengthSquared(position - Origin) > Size * Size)
+    if (lengthSquared(position.xyz - Origin) > Size * Size)
         return output;
     else
     {
@@ -326,7 +326,7 @@ float4 DrawEffectDiffuse_PixelShader(VertexShaderOutput input) : SV_Target
 
     //early depth rejection
     [branch]
-    if (lengthSquared(position - Origin) > Size * Size)
+    if (lengthSquared(position.xyz - Origin) > Size * Size)
         return output;
     else
     {

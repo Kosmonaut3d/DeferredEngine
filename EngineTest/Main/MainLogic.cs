@@ -13,6 +13,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using DirectionalLight = EngineTest.Recources.DirectionalLight;
 
 namespace EngineTest.Main
 {
@@ -31,6 +32,7 @@ namespace EngineTest.Main
 
         public List<BasicEntity> Entities = new List<BasicEntity>();
         public List<PointLight> PointLights = new List<PointLight>();
+        public List<DirectionalLight> DirectionalLights = new List<DirectionalLight>();
 
         private int _renderModeCycle = 0;
 
@@ -38,7 +40,7 @@ namespace EngineTest.Main
 
         private BasicEntity drake;
 
-#endregion
+        #endregion
         /////////////////////////////////////////////////////// METHODS
         
         //Done after Load
@@ -49,34 +51,26 @@ namespace EngineTest.Main
             Camera = new Camera(new Vector3(-80, 0, -10), new Vector3(1, 0, -10));
             MeshMaterialLibrary = new MeshMaterialLibrary();
 
-            //Entities
-
-            //Emissive Entities
-            //AddEntity(_assets.TestTubes, _assets.emissiveMaterial2, new Vector3(0, 0, -40), -Math.PI, -Math.PI/2, 0, 1.8f);
-            //AddEntity(_assets.TestTubes, _assets.emissiveMaterial, new Vector3(0, 0, -2), -Math.PI, 0, 0, 1.5f);
-
-            //Dragon model which is movable with NUMPAD 2,3,6,8
-            drake = AddEntity(_assets.DragonUvSmoothModel, _assets.emissiveMaterial, new Vector3(40, -10, 0), -Math.PI/2, 0, 0, 10);
-
+            ////////////////////////////////////////////////////////////////////////
+            //Sponza scene
+            
+                //entities
+            AddEntity(_assets.SponzaModel, Vector3.Zero, -Math.PI/2, 0, 0, 0.1f);
+            AddEntity(_assets.TestTubes, _assets.emissiveMaterial2, new Vector3(0, 0, -40), -Math.PI, -Math.PI/2, 0, 1.8f);
+            drake = AddEntity(_assets.DragonUvSmoothModel, _assets.emissiveMaterial, new Vector3(40, -10, 0), -Math.PI / 2, 0, 0, 10);
 
             AddEntity(_assets.DragonUvSmoothModel, _assets.silverMaterial, new Vector3(30, 10, 1), -Math.PI / 2, 0, 0, 10);
-            AddEntity(_assets.SponzaModel, Vector3.Zero, -Math.PI/2, 0, 0, 0.1f);
-
 
             AddEntity(_assets.HelmetModel, new Vector3(70, 0, -10), -Math.PI / 2, 0, -Math.PI / 2, 1);
 
-            //Hologram skulls
+                //Hologram skulls
             AddEntity(_assets.SkullModel, _assets.hologramMaterial, new Vector3(69, 0, -6.5f), -Math.PI / 2, 0, Math.PI / 2 + 0.3f, 0.9f);
             AddEntity(_assets.SkullModel, _assets.hologramMaterial, new Vector3(69, 8.5f, -6.5f), -Math.PI / 2, 0, Math.PI / 2 + 0.3f, 0.8f);
 
-            //Lights
-            //shadowLight is moveable with arrow keys
+                //lights
             shadowLight = AddPointLight(position: new Vector3(-80, 2, -20), radius: 50, color: Color.Wheat, intensity: 20, castShadows: true);
 
             //AddPointLight(position: new Vector3(-20, 0, -20), radius: 100, color: Color.White, intensity: 10, castShadows: true, shadowResolution: 1024, staticShadow: true);
-
-            //AddPointLight(position: new Vector3(-20, 0, -100), radius: 200, color: Color.White, intensity: 20, castShadows: true, shadowResolution: 1024, staticShadow: true);
-
 
             //for (int i = 0; i < 10; i++)
             //{
@@ -84,14 +78,32 @@ namespace EngineTest.Main
             //}
             //AddPointLight(position: new Vector3(+20, -10, -20), radius: 50, color: Color.Orange, intensity: 20, castShadows: true);
         
+            ///////////////////////////////////////////////////////////////////////////////
+            //Base scene
+
+            //    //entities
+            //AddEntity(_assets.Plane, new Vector3(0, 0, 0), 0, 0, 0, 100);
+            //AddEntity(_assets.HelmetModel, new Vector3(70, 0, -10), -Math.PI / 2, 0, -Math.PI / 2, 1);
+
+            //    //Hologram skulls
+            //AddEntity(_assets.SkullModel, _assets.hologramMaterial, new Vector3(69, 0, -6.5f), -Math.PI / 2, 0, Math.PI / 2 + 0.3f, 0.9f);
+            //AddEntity(_assets.SkullModel, _assets.hologramMaterial, new Vector3(69, 8.5f, -6.5f), -Math.PI / 2, 0, Math.PI / 2 + 0.3f, 0.8f);
+
+            //    //lights
+            //AddDirectionalLight(new Vector3(0,0.1f,1), 20, Color.White);
+
         }
 
 
 
-
-
-
         //////////////////////////////////////////// ADD FUNCTIONS ///////////////////////////////////////////////
+
+        private DirectionalLight AddDirectionalLight(Vector3 direction, int intensity, Color color)
+        {
+            DirectionalLight light = new DirectionalLight(color, intensity, direction);
+            DirectionalLights.Add(light);
+            return light;
+        }
 
         //The function to use for new pointlights
         /// <summary>
@@ -111,6 +123,7 @@ namespace EngineTest.Main
             PointLights.Add(light);
             return light;
         }
+
 
 
         private BasicEntity AddEntity(Model model, Vector3 position, double angleX, double angleY, double angleZ, float scale)
@@ -161,7 +174,7 @@ namespace EngineTest.Main
 
             //drake.AngleZ += 0.02f*delta;
 
-            //_assets.emissiveMaterial2.EmissiveStrength = (float) (Math.Sin(gameTime.TotalGameTime.TotalSeconds*2)+1);
+            //_assets.emissiveMaterial2.EmissiveStrength = (float) (Math.Sin(gameTime.TotalGameTime.TotalSeconds*2)+1)/4+1;
 
             //KeyInputs for specific tasks
 

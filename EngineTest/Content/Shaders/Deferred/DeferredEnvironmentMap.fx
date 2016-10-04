@@ -217,6 +217,7 @@ PixelShaderOutput PixelShaderFunctionClassic(VertexShaderOutput input)
     //tranform normal back into [-1,1] range
     float3 normal = decode(normalData.xyz); //2.0f * normalData.xyz - 1.0f;    //could do mad
 
+    
     //If x and y
     if (normalData.x + normalData.y <= 0.001f) //Out of range
     {
