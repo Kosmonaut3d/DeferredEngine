@@ -22,10 +22,18 @@ namespace EngineTest.Recources
         public int ShadowResolution;
         public bool StaticShadow;
 
-        public RenderTarget2D shadowMap;
+        public RenderTarget2D ShadowMap;
         public Matrix ShadowViewProjection;
 
+        public ShadowFilteringTypes ShadowFiltering;
+        public bool ScreenSpaceShadowBlur;
+
         public Matrix LightViewProjection;
+
+        public enum ShadowFilteringTypes
+        {
+            PCF, Poisson, VSM
+        };
 
         /// <summary>
         /// Create a Directional light, shadows are optional
@@ -37,7 +45,7 @@ namespace EngineTest.Recources
         /// <param name="shadowSize"></param>
         /// <param name="shadowDepth"></param>
         /// <param name="shadowResolution"></param>
-        public DirectionalLight(Color color, float intensity, Vector3 direction,Vector3 position = default(Vector3), bool drawShadows = false, float shadowSize = 100, float shadowDepth = 100, int shadowResolution = 512, bool staticshadows = false)
+        public DirectionalLight(Color color, float intensity, Vector3 direction,Vector3 position = default(Vector3), bool drawShadows = false, float shadowSize = 100, float shadowDepth = 100, int shadowResolution = 512, ShadowFilteringTypes shadowFiltering = ShadowFilteringTypes.Poisson, bool screenspaceshadowblur = false, bool staticshadows = false)
         {
             Color = color;
             Intensity = intensity;
@@ -53,6 +61,10 @@ namespace EngineTest.Recources
             ShadowDepth = shadowDepth;
             ShadowResolution = shadowResolution;
             StaticShadow = staticshadows;
+
+            ScreenSpaceShadowBlur = screenspaceshadowblur;
+
+            ShadowFiltering = shadowFiltering;
 
             Position = position;
         }
@@ -83,8 +95,18 @@ namespace EngineTest.Recources
             {
                 //Shaders.deferredDirectionalLightParameterLightViewProjection.SetValue(LightViewProjection);
                 //Shaders.deferredDirectionalLightParameter_ShadowMap.SetValue(shadowMap);
-
-                Shaders.deferredDirectionalLightShadowed.Passes[0].Apply();
+                if (ScreenSpaceShadowBlur)
+                {
+                    Shaders.deferredDirectionalLightSSShadowed.Passes[0].Apply();  
+                }
+                else
+                {
+                    Shaders.deferredDirectionalLightParameterLightViewProjection.SetValue(LightViewProjection);
+                    Shaders.deferredDirectionalLightParameter_ShadowMap.SetValue(ShadowMap);
+                    Shaders.deferredDirectionalLightParameter_ShadowFiltering.SetValue((int)ShadowFiltering);
+                    Shaders.deferredDirectionalLightParameter_ShadowMapSize.SetValue((float)ShadowResolution);
+                    Shaders.deferredDirectionalLightShadowed.Passes[0].Apply();   
+                }
             }
             else
             {

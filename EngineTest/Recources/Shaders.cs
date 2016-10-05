@@ -78,6 +78,11 @@ namespace EngineTest.Recources
         public static EffectTechnique ScreenSpaceEffectTechnique_BlurHorizontal;
         public static EffectTechnique ScreenSpaceEffectTechnique_BlurVertical;
 
+        //Gaussian Blur
+        public static Effect GaussianBlurEffect;
+        public static EffectParameter GaussianBlurEffectParameter_InverseResolution;
+        public static EffectParameter GaussianBlurEffectParameter_TargetMap;
+
         //ClearGBuffer
         public static Effect ClearGBufferEffect;
 
@@ -128,6 +133,7 @@ namespace EngineTest.Recources
 
         public static Effect deferredDirectionalLight;
         public static EffectTechnique deferredDirectionalLightUnshadowed;
+        public static EffectTechnique deferredDirectionalLightSSShadowed;
         public static EffectTechnique deferredDirectionalLightShadowed;
         public static EffectTechnique deferredDirectionalLightShadowOnly;
 
@@ -140,6 +146,9 @@ namespace EngineTest.Recources
         public static EffectParameter deferredDirectionalLightParameter_LightDirection;
         public static EffectParameter deferredDirectionalLightParameter_LightIntensity;
 
+        public static EffectParameter deferredDirectionalLightParameter_ShadowFiltering;
+        public static EffectParameter deferredDirectionalLightParameter_ShadowMapSize;
+        
         public static EffectParameter deferredDirectionalLightParameter_AlbedoMap;
         public static EffectParameter deferredDirectionalLightParameter_NormalMap;
         public static EffectParameter deferredDirectionalLightParameter_DepthMap;
@@ -190,6 +199,7 @@ namespace EngineTest.Recources
         public static EffectParameter virtualShadowMappingEffectParameter_WorldViewProj;
         public static EffectTechnique virtualShadowMappingEffect_Technique_Depth;
         public static EffectTechnique virtualShadowMappingEffect_Technique_VSM;
+        
 
         //SSR
 
@@ -269,7 +279,10 @@ namespace EngineTest.Recources
             ScreenSpaceEffectTechnique_BlurHorizontal = ScreenSpaceEffect.Techniques["BilateralHorizontal"];
             ScreenSpaceEffectTechnique_BlurVertical = ScreenSpaceEffect.Techniques["BilateralVertical"];
 
-            ClearGBufferEffect = content.Load<Effect>("Shaders/GbufferSetup/ClearGBuffer");
+            //Blur
+            GaussianBlurEffect = content.Load<Effect>("Shaders/ScreenSpace/GaussianBlur");
+            GaussianBlurEffectParameter_InverseResolution = GaussianBlurEffect.Parameters["InverseResolution"];
+            GaussianBlurEffectParameter_TargetMap = GaussianBlurEffect.Parameters["TargetMap"];
 
             //Gbuffer
             GBufferEffect = content.Load<Effect>("Shaders/GbufferSetup/GBuffer");
@@ -289,6 +302,8 @@ namespace EngineTest.Recources
             GBufferEffectParameter_Material_Specular = GBufferEffect.Parameters["RoughnessMap"];
 
             GBufferEffectParameter_Material_MaterialType = GBufferEffect.Parameters["MaterialType"];
+
+            ClearGBufferEffect = content.Load<Effect>("Shaders/GbufferSetup/ClearGBuffer");
 
             //Techniques
 
@@ -328,6 +343,7 @@ namespace EngineTest.Recources
             deferredDirectionalLight = content.Load<Effect>("Shaders/Deferred/DeferredDirectionalLight");
 
             deferredDirectionalLightUnshadowed = deferredDirectionalLight.Techniques["Unshadowed"];
+            deferredDirectionalLightSSShadowed = deferredDirectionalLight.Techniques["SSShadowed"];
             deferredDirectionalLightShadowed = deferredDirectionalLight.Techniques["Shadowed"];
             deferredDirectionalLightShadowOnly = deferredDirectionalLight.Techniques["ShadowOnly"];
 
@@ -339,6 +355,8 @@ namespace EngineTest.Recources
             deferredDirectionalLightParameter_LightColor = deferredDirectionalLight.Parameters["lightColor"];
             deferredDirectionalLightParameter_LightIntensity = deferredDirectionalLight.Parameters["lightIntensity"];
             deferredDirectionalLightParameter_LightDirection = deferredDirectionalLight.Parameters["LightVector"];
+            deferredDirectionalLightParameter_ShadowFiltering = deferredDirectionalLight.Parameters["ShadowFiltering"];
+            deferredDirectionalLightParameter_ShadowMapSize = deferredDirectionalLight.Parameters["ShadowMapSize"];
 
             deferredDirectionalLightParameter_AlbedoMap = deferredDirectionalLight.Parameters["AlbedoMap"];
             deferredDirectionalLightParameter_NormalMap = deferredDirectionalLight.Parameters["NormalMap"];

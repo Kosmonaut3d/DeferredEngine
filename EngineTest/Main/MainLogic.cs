@@ -90,7 +90,16 @@ namespace EngineTest.Main
             AddEntity(_assets.SkullModel, _assets.hologramMaterial, new Vector3(69, 8.5f, -6.5f), -Math.PI / 2, 0, Math.PI / 2 + 0.3f, 0.8f);
 
             //lights
-            AddDirectionalLight(new Vector3(0.2f, 0.2f, 1), 20, Color.White, Vector3.UnitZ*0, true, 250, 180, 2048);
+            AddDirectionalLight(direction: new Vector3(0.2f, 0.2f, 1),
+                intensity: 20, 
+                color: Color.White, 
+                position: Vector3.UnitZ*0, 
+                drawShadows: true, 
+                shadowWorldSize: 250, 
+                shadowDepth: 180, 
+                shadowResolution: 2048, 
+                shadowFilteringFiltering: DirectionalLight.ShadowFilteringTypes.Poisson, 
+                screenspaceShadowBlur: false);
 
         }
 
@@ -98,9 +107,19 @@ namespace EngineTest.Main
 
         //////////////////////////////////////////// ADD FUNCTIONS ///////////////////////////////////////////////
 
-        private DirectionalLight AddDirectionalLight(Vector3 direction, int intensity, Color color, Vector3 position = default(Vector3), bool drawShadows = false, float shadowSize = 100, float shadowDepth = 100, int shadowResolution = 512, bool staticshadows = false )
+        private DirectionalLight AddDirectionalLight(Vector3 direction, int intensity, Color color, Vector3 position = default(Vector3), bool drawShadows = false, float shadowWorldSize = 100, float shadowDepth = 100, int shadowResolution = 512, DirectionalLight.ShadowFilteringTypes shadowFilteringFiltering = DirectionalLight.ShadowFilteringTypes.Poisson, bool screenspaceShadowBlur = false, bool staticshadows = false )
         {
-            DirectionalLight light = new DirectionalLight(color, intensity, direction, position, drawShadows, shadowSize, shadowDepth, shadowResolution, staticshadows);
+            DirectionalLight light = new DirectionalLight(color: color, 
+                intensity: intensity, 
+                direction: direction, 
+                position: position, 
+                drawShadows: drawShadows, 
+                shadowSize: shadowWorldSize, 
+                shadowDepth: shadowDepth, 
+                shadowResolution: shadowResolution, 
+                shadowFiltering: shadowFilteringFiltering, 
+                screenspaceshadowblur: screenspaceShadowBlur, 
+                staticshadows: staticshadows);
             DirectionalLights.Add(light);
             return light;
         }

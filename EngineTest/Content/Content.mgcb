@@ -956,3 +956,9 @@
 /processorParam:DebugMode=Auto
 /build:Shaders/Deferred/DeferredDirectionalLight.fx
 
+#begin Shaders/ScreenSpace/GaussianBlur.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/ScreenSpace/GaussianBlur.fx
+

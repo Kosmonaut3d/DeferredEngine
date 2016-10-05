@@ -138,16 +138,24 @@ float4 PixelShaderFunction(VertexShaderOutput input) : SV_Target
     //tranform normal back into [-1,1] range
     float3 normalWS = decode(normalData.xyz); //2.0f * normalData.xyz - 1.0f;    //could do mad
 
-    float depthVal = linearizeDepth(1 - DepthMap.Sample(texSampler, texCoord).r);
-    
-    float3 normalVS = mul(float4(normalWS, 0), ViewProjection).xyz;
-    normalVS = normalize(normalVS);
-
-    float3 randNor = randomNormal(input.TexCoord); //
-
-    const float3 sampleSphere[] =
+    //Ignore sky!
+    [branch]
+    if (normalData.x + normalData.y <= 0.001f) //Out of range
     {
-        float3(0.2024537f, 0.841204f, -0.9060141f),
+        return float4(1, 0, 0, 0);
+    }
+    else
+    {
+        float depthVal = linearizeDepth(1 - DepthMap.Sample(texSampler, texCoord).r);
+    
+        float3 normalVS = mul(float4(normalWS, 0), ViewProjection).xyz;
+        normalVS = normalize(normalVS);
+
+        float3 randNor = randomNormal(input.TexCoord); //
+
+        const float3 sampleSphere[] =
+        {
+            float3(0.2024537f, 0.841204f, -0.9060141f),
         float3(-0.2200423f, 0.6282339f, -0.8275437f),
         float3(0.3677659f, 0.1086345f, -0.4466777f),
         float3(0.8775856f, 0.4617546f, -0.6427765f),
@@ -163,48 +171,49 @@ float4 PixelShaderFunction(VertexShaderOutput input) : SV_Target
         float3(-0.4037157f, -0.8263387f, 0.4698132f),
         float3(-0.6657394f, 0.6298575f, 0.6342437f),
         float3(-0.0001783f, 0.2834622f, 0.8343929f),
-    };
+        };
 
-    float3 pos = float3(input.TexCoord, depthVal);
+        float3 pos = float3(input.TexCoord, depthVal);
 
-    float result = 0;
+        float result = 0;
 
-    float radius = SampleRadius * (1 - depthVal);
+        float radius = SampleRadius * (1 - depthVal);
 
     [unroll]
-    for (uint i = 0; i < Samples; i++)
-    {
-        float3 offset = reflect(sampleSphere[i], randNor);
+        for (uint i = 0; i < Samples; i++)
+        {
+            float3 offset = reflect(sampleSphere[i], randNor);
                 
         //reverse the sign if the normal is looking backward
-        offset = sign(dot(offset, normalVS)) * offset; //
-        offset.y = -offset.y;
-        float3 ray = pos + offset * radius;
+            offset = sign(dot(offset, normalVS)) * offset; //
+            offset.y = -offset.y;
+            float3 ray = pos + offset * radius;
 
         //outside of view
-        if ((saturate(ray.x) != ray.x) || (saturate(ray.y) != ray.y))
-            continue;
+            if ((saturate(ray.x) != ray.x) || (saturate(ray.y) != ray.y))
+                continue;
 
 
         //sample
 
-        float depthSample = linearizeDepth(1 - DepthMap.SampleLevel(texSampler, ray.xy, 0).r);
+            float depthSample = linearizeDepth(1 - DepthMap.SampleLevel(texSampler, ray.xy, 0).r);
 
-        float depthDiff = (depthVal - depthSample);
+            float depthDiff = (depthVal - depthSample);
 
-        float occlusion = depthDiff * (1 - depthVal);
+            float occlusion = depthDiff * (1 - depthVal);
 
-        float falloff = 1 - saturate(depthDiff * (1 - depthVal) - FalloffMin) / (FalloffMax - FalloffMin);
+            float falloff = 1 - saturate(depthDiff * (1 - depthVal) - FalloffMin) / (FalloffMax - FalloffMin);
         
-        occlusion *= falloff;
+            occlusion *= falloff;
 
-        result += occlusion;
+            result += occlusion;
         
+        }
+        result /= Samples;
+        result = saturate(1 - result * Strength * 200);
+
+        return float4(result, 0, 0, 0);
     }
-    result /= Samples;
-    result = saturate(1 - result * Strength * 200);
-
-    return float4(result, 0, 0, 0);
 }
 
 

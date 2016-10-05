@@ -10,18 +10,17 @@ static const float BlurWeights[ BlurKernelSize ] =
     0.176033f, 0.120985f, 0.064759f, 0.026995f, 0.008764f, 0.002216f
 };
 
-texture SceneMap;
+Texture2D TargetMap;
 
-sampler SceneSampler = sampler_state
+SamplerState SceneSampler
 {
-    Texture = (SceneMap);
     AddressU = CLAMP;
     AddressV = CLAMP;
     MagFilter = LINEAR;
     MinFilter = LINEAR;
     Mipfilter = LINEAR;
 };
-float2 InverseRenderTargetDimension : INVRTDIM;
+float2 InverseResolution;
 
 struct VI
 {
@@ -52,9 +51,9 @@ float4 HorizontalPS( VO input ) : COLOR0
     [unroll] 
 	for( int i = 0 ; i < BlurKernelSize ; i++ )
     {   
-		float2 offset = BlurKernel[ i ].xy * InverseRenderTargetDimension.xy;
+		float2 offset = BlurKernel[ i ].xy * InverseResolution.xy;
     
-		float4 sample = tex2D( SceneSampler, input.TexCoord0 + offset );
+		float4 sample = TargetMap.Sample(SceneSampler, input.TexCoord0 + offset );
 		sample *=  BlurWeights[ i ];
 		
 		outputColor += sample;
@@ -70,9 +69,9 @@ float4 VerticalPS( VO input ) : COLOR0
     [unroll] 
 	for( int i = 0 ; i < BlurKernelSize ; i++ )
     {   
-		float2 offset = BlurKernel[ i ].yx * InverseRenderTargetDimension.xy;
+        float2 offset = BlurKernel[i].yx * InverseResolution.xy;
     
-		float4 sample = tex2D( SceneSampler, input.TexCoord0 + offset );
+        float4 sample = TargetMap.Sample(SceneSampler, input.TexCoord0 + offset);
 		sample *=  BlurWeights[ i ];
 
 		outputColor += sample;

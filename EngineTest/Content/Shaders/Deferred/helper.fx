@@ -22,6 +22,14 @@ static float SampleWeights[9] =
     0.077847f,
 };
 
+//////////////////////SHADOW
+
+
+
+
+
+
+
 //float2 encode(float3 n)
 //{
 //    half2 enc = normalize(n.xy) * (sqrt(-n.z * 0.5 + 0.5));

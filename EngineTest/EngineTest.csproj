@@ -72,6 +72,7 @@
     <Compile Include="Entities\Camera.cs" />
     <Compile Include="Main\DebugScreen.cs" />
     <Compile Include="Renderer\Helper\FastRand.cs" />
+    <Compile Include="Renderer\Helper\GaussianBlur.cs" />
     <Compile Include="Renderer\Helper\MeshMaterialLibrary.cs" />
     <Compile Include="Renderer\Helper\QuadRenderer.cs" />
     <Compile Include="Renderer\Renderer.cs" />

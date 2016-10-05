@@ -46,6 +46,9 @@ namespace EngineTest.Recources
             }
         }
 
+        public static int g_ShadowForceFiltering = 0; //1 = PCF, 2 = Poisson, 3 = VSM;
+        public static bool g_ShadowForceScreenSpace = false;
+
         private static float _ssao_falloffmin = 0.0001f;
         private static float _ssao_falloffmax = 0.001f;
         private static int _ssao_samples = 8;
