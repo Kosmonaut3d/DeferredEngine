@@ -50,7 +50,7 @@ namespace EngineTest.Recources
         private static float _ssao_falloffmax = 0.001f;
         private static int _ssao_samples = 8;
         private static float _ssao_sampleradius = 0.015f;
-        private static float _ssao_strength = 80;
+        private static float _ssao_strength = 30;
         public static bool ssao_Blur = true;
         private static bool _ssao_active = true;
 

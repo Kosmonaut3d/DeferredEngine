@@ -22,8 +22,7 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input)
 {
     PixelShaderOutput output;
     //black color
-    output.Color = 0.0f;
-    output.Color.a = 0.0f;
+    output.Color = 0;
     //when transforming 0.5f into [-1,1], we will get 0.0f
     output.Normal.rgb = 0.0f;
     //no specular power

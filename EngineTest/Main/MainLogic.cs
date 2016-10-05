@@ -54,23 +54,23 @@ namespace EngineTest.Main
             ////////////////////////////////////////////////////////////////////////
             //Sponza scene
             
-                //entities
+            //    //entities
             AddEntity(_assets.SponzaModel, Vector3.Zero, -Math.PI/2, 0, 0, 0.1f);
-            AddEntity(_assets.TestTubes, _assets.emissiveMaterial2, new Vector3(0, 0, -40), -Math.PI, -Math.PI/2, 0, 1.8f);
-            drake = AddEntity(_assets.DragonUvSmoothModel, _assets.emissiveMaterial, new Vector3(40, -10, 0), -Math.PI / 2, 0, 0, 10);
+            //AddEntity(_assets.TestTubes, _assets.emissiveMaterial2, new Vector3(0, 0, -40), -Math.PI, -Math.PI/2, 0, 1.8f);
+            //drake = AddEntity(_assets.DragonUvSmoothModel, _assets.emissiveMaterial, new Vector3(40, -10, 0), -Math.PI / 2, 0, 0, 10);
 
             AddEntity(_assets.DragonUvSmoothModel, _assets.silverMaterial, new Vector3(30, 10, 1), -Math.PI / 2, 0, 0, 10);
 
-            AddEntity(_assets.HelmetModel, new Vector3(70, 0, -10), -Math.PI / 2, 0, -Math.PI / 2, 1);
+            //AddEntity(_assets.HelmetModel, new Vector3(70, 0, -10), -Math.PI / 2, 0, -Math.PI / 2, 1);
 
-                //Hologram skulls
-            AddEntity(_assets.SkullModel, _assets.hologramMaterial, new Vector3(69, 0, -6.5f), -Math.PI / 2, 0, Math.PI / 2 + 0.3f, 0.9f);
-            AddEntity(_assets.SkullModel, _assets.hologramMaterial, new Vector3(69, 8.5f, -6.5f), -Math.PI / 2, 0, Math.PI / 2 + 0.3f, 0.8f);
+            //    //Hologram skulls
+            //AddEntity(_assets.SkullModel, _assets.hologramMaterial, new Vector3(69, 0, -6.5f), -Math.PI / 2, 0, Math.PI / 2 + 0.3f, 0.9f);
+            //AddEntity(_assets.SkullModel, _assets.hologramMaterial, new Vector3(69, 8.5f, -6.5f), -Math.PI / 2, 0, Math.PI / 2 + 0.3f, 0.8f);
 
-                //lights
-            shadowLight = AddPointLight(position: new Vector3(-80, 2, -20), radius: 50, color: Color.Wheat, intensity: 20, castShadows: true);
+            //    //lights
+            //shadowLight = AddPointLight(position: new Vector3(-80, 2, -20), radius: 50, color: Color.Wheat, intensity: 20, castShadows: true);
 
-            //AddPointLight(position: new Vector3(-20, 0, -20), radius: 100, color: Color.White, intensity: 10, castShadows: true, shadowResolution: 1024, staticShadow: true);
+            AddPointLight(position: new Vector3(-20, 0, -40), radius: 120, color: Color.White, intensity: 10, castShadows: false, shadowResolution: 1024, staticShadow: true);
 
             //for (int i = 0; i < 10; i++)
             //{
@@ -81,16 +81,16 @@ namespace EngineTest.Main
             ///////////////////////////////////////////////////////////////////////////////
             //Base scene
 
-            //    //entities
-            //AddEntity(_assets.Plane, new Vector3(0, 0, 0), 0, 0, 0, 100);
-            //AddEntity(_assets.HelmetModel, new Vector3(70, 0, -10), -Math.PI / 2, 0, -Math.PI / 2, 1);
+            //entities
+            //AddEntity(_assets.Plane, new Vector3(0, 0, 0), 0, 0, 0, 200);
+            AddEntity(_assets.HelmetModel, new Vector3(70, 0, -10), -Math.PI / 2, 0, -Math.PI / 2, 1);
 
-            //    //Hologram skulls
-            //AddEntity(_assets.SkullModel, _assets.hologramMaterial, new Vector3(69, 0, -6.5f), -Math.PI / 2, 0, Math.PI / 2 + 0.3f, 0.9f);
-            //AddEntity(_assets.SkullModel, _assets.hologramMaterial, new Vector3(69, 8.5f, -6.5f), -Math.PI / 2, 0, Math.PI / 2 + 0.3f, 0.8f);
+            //Hologram skulls
+            AddEntity(_assets.SkullModel, _assets.hologramMaterial, new Vector3(69, 0, -6.5f), -Math.PI / 2, 0, Math.PI / 2 + 0.3f, 0.9f);
+            AddEntity(_assets.SkullModel, _assets.hologramMaterial, new Vector3(69, 8.5f, -6.5f), -Math.PI / 2, 0, Math.PI / 2 + 0.3f, 0.8f);
 
-            //    //lights
-            //AddDirectionalLight(new Vector3(0,0.1f,1), 20, Color.White);
+            //lights
+            AddDirectionalLight(new Vector3(0.2f, 0.2f, 1), 20, Color.White, Vector3.UnitZ*0, true, 250, 180, 2048);
 
         }
 
@@ -98,9 +98,9 @@ namespace EngineTest.Main
 
         //////////////////////////////////////////// ADD FUNCTIONS ///////////////////////////////////////////////
 
-        private DirectionalLight AddDirectionalLight(Vector3 direction, int intensity, Color color)
+        private DirectionalLight AddDirectionalLight(Vector3 direction, int intensity, Color color, Vector3 position = default(Vector3), bool drawShadows = false, float shadowSize = 100, float shadowDepth = 100, int shadowResolution = 512, bool staticshadows = false )
         {
-            DirectionalLight light = new DirectionalLight(color, intensity, direction);
+            DirectionalLight light = new DirectionalLight(color, intensity, direction, position, drawShadows, shadowSize, shadowDepth, shadowResolution, staticshadows);
             DirectionalLights.Add(light);
             return light;
         }
@@ -233,7 +233,7 @@ namespace EngineTest.Main
             if (Input.WasKeyPressed(Keys.F1))
             {
                 _renderModeCycle++;
-                if (_renderModeCycle > 8) _renderModeCycle = 0;
+                if (_renderModeCycle > 9) _renderModeCycle = 0;
 
                 switch (_renderModeCycle)
                 {
@@ -263,6 +263,9 @@ namespace EngineTest.Main
                         break;
                     case 8:
                         GameSettings.g_RenderMode = Renderer.Renderer.RenderModes.Emissive;
+                        break;
+                    case 9:
+                        GameSettings.g_RenderMode = Renderer.Renderer.RenderModes.DirectionalShadow;
                         break;
 
                 }

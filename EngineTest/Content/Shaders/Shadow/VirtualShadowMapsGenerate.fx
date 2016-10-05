@@ -36,14 +36,13 @@ DrawBasic_VSOut DrawBasic_VertexShader(DrawBasic_VSIn input)
     return Output;
 }
 
-
-float4 DrawBasic_PixelShader(DrawBasic_VSOut input) : SV_TARGET
+float4 DrawBasicVSM_PixelShader(DrawBasic_VSOut input) : SV_TARGET
 {
     float depth = input.Depth.x / input.Depth.y;
 
     //depth = Projection._43 / (depth - Projection._33);
 
-    float depthsq = depth * depth ;
+    float depthsq = depth * depth;
 
     float dx = ddx(depth);
     float dy = ddy(depth);
@@ -51,7 +50,14 @@ float4 DrawBasic_PixelShader(DrawBasic_VSOut input) : SV_TARGET
     //depth -= 0.00002f * transparent;
 
     depthsq += 0.25 * (dx * dx + dy * dy);
-    return float4(1-depth, 1-depthsq, 0, 0);
+    return float4(1 - depth, 1 - depthsq, 0, 0);
+}
+
+float4 DrawBasic_PixelShader(DrawBasic_VSOut input) : SV_TARGET
+{
+    float depth = input.Depth.x / input.Depth.y;
+
+    return float4(1-depth, 0, 0, 0);
 }
 
 technique DrawDepth
@@ -62,3 +68,13 @@ technique DrawDepth
         PixelShader = compile ps_5_0 DrawBasic_PixelShader();
     }
 }
+
+technique DrawVSM
+{
+    pass Pass1
+    {
+        VertexShader = compile vs_4_0 DrawBasic_VertexShader();
+        PixelShader = compile ps_5_0 DrawBasicVSM_PixelShader();
+    }
+}
+

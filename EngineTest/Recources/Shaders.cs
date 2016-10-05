@@ -128,10 +128,13 @@ namespace EngineTest.Recources
 
         public static Effect deferredDirectionalLight;
         public static EffectTechnique deferredDirectionalLightUnshadowed;
+        public static EffectTechnique deferredDirectionalLightShadowed;
+        public static EffectTechnique deferredDirectionalLightShadowOnly;
 
         public static EffectParameter deferredDirectionalLightParameterViewProjection;
         public static EffectParameter deferredDirectionalLightParameterCameraPosition;
         public static EffectParameter deferredDirectionalLightParameterInverseViewProjection;
+        public static EffectParameter deferredDirectionalLightParameterLightViewProjection;
 
         public static EffectParameter deferredDirectionalLightParameter_LightColor;
         public static EffectParameter deferredDirectionalLightParameter_LightDirection;
@@ -139,6 +142,9 @@ namespace EngineTest.Recources
 
         public static EffectParameter deferredDirectionalLightParameter_AlbedoMap;
         public static EffectParameter deferredDirectionalLightParameter_NormalMap;
+        public static EffectParameter deferredDirectionalLightParameter_DepthMap;
+        public static EffectParameter deferredDirectionalLightParameter_ShadowMap;
+        public static EffectParameter deferredDirectionalLightParameter_SSShadowMap;
 
         //Point Light
         public static Effect deferredPointLight;
@@ -182,6 +188,8 @@ namespace EngineTest.Recources
 
         public static Effect virtualShadowMappingEffect;
         public static EffectParameter virtualShadowMappingEffectParameter_WorldViewProj;
+        public static EffectTechnique virtualShadowMappingEffect_Technique_Depth;
+        public static EffectTechnique virtualShadowMappingEffect_Technique_VSM;
 
         //SSR
 
@@ -320,10 +328,13 @@ namespace EngineTest.Recources
             deferredDirectionalLight = content.Load<Effect>("Shaders/Deferred/DeferredDirectionalLight");
 
             deferredDirectionalLightUnshadowed = deferredDirectionalLight.Techniques["Unshadowed"];
+            deferredDirectionalLightShadowed = deferredDirectionalLight.Techniques["Shadowed"];
+            deferredDirectionalLightShadowOnly = deferredDirectionalLight.Techniques["ShadowOnly"];
 
             deferredDirectionalLightParameterViewProjection = deferredDirectionalLight.Parameters["ViewProjection"];
             deferredDirectionalLightParameterCameraPosition = deferredDirectionalLight.Parameters["cameraPosition"];
             deferredDirectionalLightParameterInverseViewProjection = deferredDirectionalLight.Parameters["InvertViewProjection"];
+            deferredDirectionalLightParameterLightViewProjection = deferredDirectionalLight.Parameters["LightViewProjection"];
 
             deferredDirectionalLightParameter_LightColor = deferredDirectionalLight.Parameters["lightColor"];
             deferredDirectionalLightParameter_LightIntensity = deferredDirectionalLight.Parameters["lightIntensity"];
@@ -331,6 +342,9 @@ namespace EngineTest.Recources
 
             deferredDirectionalLightParameter_AlbedoMap = deferredDirectionalLight.Parameters["AlbedoMap"];
             deferredDirectionalLightParameter_NormalMap = deferredDirectionalLight.Parameters["NormalMap"];
+            deferredDirectionalLightParameter_DepthMap = deferredDirectionalLight.Parameters["DepthMap"];
+            deferredDirectionalLightParameter_ShadowMap = deferredDirectionalLight.Parameters["ShadowMap"];
+            deferredDirectionalLightParameter_SSShadowMap = deferredDirectionalLight.Parameters["SSShadowMap"];
 
             //PL
             deferredPointLight = content.Load<Effect>("Shaders/Deferred/DeferredPointLight");
@@ -378,6 +392,8 @@ namespace EngineTest.Recources
             virtualShadowMappingEffect = content.Load<Effect>("Shaders/Shadow/VirtualShadowMapsGenerate");
             virtualShadowMappingEffectParameter_WorldViewProj = virtualShadowMappingEffect.Parameters["WorldViewProj"];
 
+            virtualShadowMappingEffect_Technique_VSM = virtualShadowMappingEffect.Techniques["DrawVSM"];
+            virtualShadowMappingEffect_Technique_Depth = virtualShadowMappingEffect.Techniques["DrawDepth"];
             //SSReflections
             //SSReflectionEffect = content.Load<Effect>("Shaders/SSReflectionEffect");
 

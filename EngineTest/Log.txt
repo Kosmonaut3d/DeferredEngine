@@ -7,3 +7,7 @@ Screen Space Emissive
 Screen Space Ambient Occlusion
 
 - use second color for screen space reflection occlusion (rays = reflect(viewDir, normal)) to cut cubemap reflections from these areas.
+
+Light View Space Global Illumination
+
+- have a projector calculate global illumination in its view space - then project onto screen space.

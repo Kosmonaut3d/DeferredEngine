@@ -280,13 +280,14 @@ namespace EngineTest.Renderer.Helper
         {
             opaque,
             alpha,
-            shadow,
+            shadowVSM,
+            shadowDepth,
             hologram
         };
 
         public void Draw(RenderType renderType, GraphicsDevice graphicsDevice, Matrix viewProjection, bool lightViewPointChanged = false, bool hasAnyObjectMoved = false)
         {
-            if (renderType == RenderType.opaque || renderType == RenderType.shadow || renderType == RenderType.hologram)
+            if (renderType == RenderType.opaque || renderType == RenderType.shadowDepth || renderType == RenderType.shadowVSM || renderType == RenderType.hologram)
             {
                 graphicsDevice.BlendState = BlendState.Opaque;
                 graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
@@ -339,7 +340,7 @@ namespace EngineTest.Renderer.Helper
                 graphicsDevice.Clear(new Color(0.51f, 0.501f, 0, 0));
             }
 
-            if (renderType == RenderType.shadow) GameStats.activeShadowMaps++;
+            if (renderType == RenderType.shadowVSM || renderType == RenderType.shadowDepth) GameStats.activeShadowMaps++;
 
             for (int index1 = 0; index1 < Index; index1++)
             {
@@ -393,12 +394,16 @@ namespace EngineTest.Renderer.Helper
 
                 Effect shader;
                 //Set the appropriate Shader for the material
-                if (renderType == RenderType.shadow)
+                if (renderType == RenderType.shadowVSM || renderType == RenderType.shadowDepth)
                 {
                     if (material.HasShadow)
                     {
                         //if we have special shadow shaders for the material
                         shader = Shaders.virtualShadowMappingEffect;
+
+                        shader.CurrentTechnique = renderType == RenderType.shadowVSM
+                            ? Shaders.virtualShadowMappingEffect_Technique_VSM
+                            : Shaders.virtualShadowMappingEffect_Technique_Depth;
                     }
                     else continue;
                 }
@@ -554,7 +559,7 @@ namespace EngineTest.Renderer.Helper
                             Shaders.GBufferEffectParameter_World.SetValue(localWorldMatrix);
                             Shaders.GBufferEffectParameter_WorldViewProj.SetValue(localWorldMatrix * viewProjection);
                         }
-                        else if (renderType == RenderType.shadow)
+                        else if (renderType == RenderType.shadowDepth || renderType == RenderType.shadowVSM)
                         {
                             Shaders.virtualShadowMappingEffectParameter_WorldViewProj.SetValue(localWorldMatrix * viewProjection);
                         }

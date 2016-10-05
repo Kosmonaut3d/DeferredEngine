@@ -222,7 +222,7 @@ PixelShaderOutput PixelShaderFunctionClassic(VertexShaderOutput input)
     if (normalData.x + normalData.y <= 0.001f) //Out of range
     {
             output.Diffuse = float4(0, 0, 0, 0);
-            output.Specular = float4(0, 0, 0, 0);
+            output.Specular = float4(0.6706f, 0.8078f, 0.9216f,0)*0.05f; //float4(0, 0.4431f, 0.78, 0) * 0.05f;
             return output;
     }
     //get metalness

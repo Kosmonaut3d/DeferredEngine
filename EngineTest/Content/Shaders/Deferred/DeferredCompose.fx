@@ -125,8 +125,6 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
     [branch]
     if(useGauss)
     {
-        
-
         [branch]
         if (abs(materialType - 2) < 0.1f)
         {

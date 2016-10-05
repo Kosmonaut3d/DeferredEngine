@@ -21,7 +21,16 @@ SamplerState texSampler
     Mipfilter = POINT;
 };
 
-SamplerState blurSampler
+SamplerState blurSamplerPoint
+{
+    AddressU = CLAMP;
+    AddressV = CLAMP;
+    MagFilter = POINT;
+    MinFilter = POINT;
+    Mipfilter = POINT;
+};
+
+SamplerState blurSamplerLinear
 {
     AddressU = CLAMP;
     AddressV = CLAMP;
@@ -29,7 +38,6 @@ SamplerState blurSampler
     MinFilter = LINEAR;
     Mipfilter = LINEAR;
 };
-
        
 float FalloffMin = 0.000001f;
 float FalloffMax = 0.002f;
@@ -73,6 +81,15 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
     //align texture coordinates
     output.TexCoord = input.TexCoord;
     output.viewDirVS = input.Position.xyz;
+    return output;
+}
+
+VertexShaderOutputBlur VertexShaderBlurFunction(VertexShaderInput input)
+{
+    VertexShaderOutputBlur output;
+    output.Position = float4(input.Position, 1);
+    //align texture coordinates
+    output.TexCoord = input.TexCoord;
     return output;
 }
 
@@ -121,7 +138,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : SV_Target
     //tranform normal back into [-1,1] range
     float3 normalWS = decode(normalData.xyz); //2.0f * normalData.xyz - 1.0f;    //could do mad
 
-    float depthVal = linearizeDepth( 1-DepthMap.Sample(texSampler, texCoord).r);
+    float depthVal = linearizeDepth(1 - DepthMap.Sample(texSampler, texCoord).r);
     
     float3 normalVS = mul(float4(normalWS, 0), ViewProjection).xyz;
     normalVS = normalize(normalVS);
@@ -152,7 +169,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : SV_Target
 
     float result = 0;
 
-    float radius = SampleRadius * (1-depthVal);
+    float radius = SampleRadius * (1 - depthVal);
 
     [unroll]
     for (uint i = 0; i < Samples; i++)
@@ -161,7 +178,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : SV_Target
                 
         //reverse the sign if the normal is looking backward
         offset = sign(dot(offset, normalVS)) * offset; //
-        offset.y = -offset.y; 
+        offset.y = -offset.y;
         float3 ray = pos + offset * radius;
 
         //outside of view
@@ -171,13 +188,13 @@ float4 PixelShaderFunction(VertexShaderOutput input) : SV_Target
 
         //sample
 
-        float depthSample = linearizeDepth(1 - DepthMap.SampleLevel(texSampler, ray.xy,0).r);
+        float depthSample = linearizeDepth(1 - DepthMap.SampleLevel(texSampler, ray.xy, 0).r);
 
         float depthDiff = (depthVal - depthSample);
 
-        float occlusion = depthDiff * (1-depthVal);
+        float occlusion = depthDiff * (1 - depthVal);
 
-        float falloff = 1 - saturate(depthDiff  *(1-depthVal) - FalloffMin) / (FalloffMax-FalloffMin);
+        float falloff = 1 - saturate(depthDiff * (1 - depthVal) - FalloffMin) / (FalloffMax - FalloffMin);
         
         occlusion *= falloff;
 
@@ -187,7 +204,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : SV_Target
     result /= Samples;
     result = saturate(1 - result * Strength * 200);
 
-    return float4(result,result,result, 1);
+    return float4(result, 0, 0, 0);
 }
 
 
@@ -197,35 +214,72 @@ float4 BilateralBlurVertical(VertexShaderOutputBlur input) : SV_TARGET
     const float texelsize = InverseResolution.x; //Als erstes ermitteln wir die horizontale Texelsize. 
     const float samplerOffsets[numSamples] =
       { -4.0f, -3.0f, -2.0f, -1.0f, 0.0f, 1.0f, 2.0f, 3.0f, 4.0f };
-      //Wie bereits erwähnt überspringen wir jeden zweiten Pixel. 
+    const float gaussianWeights[numSamples] =
+    {
+        0.055119, 0.081029, 0.106701, 0.125858, 0.13298, 0.125858, 0.106701, 0.081029, 0.055119
+    };
+    
+    const uint numSamples2 = 4;
+    const float samplerOffsets2[numSamples2] =
+      { -7.5f, -5.5f, 5.5f, 7.5f };
+    const float gaussianWeights2[numSamples2] =
+    {
+        0.012886, 0.051916, 0.051916, 0.012886,
+    };
+
+    //Wie bereits erwähnt überspringen wir jeden zweiten Pixel. 
       
     float compareDepth = DepthMap.Sample(texSampler, input.TexCoord).r;
       //Tiefe des momentanen Pixels 
-    float result = 0.0f;
+    float4 result = 0;
     float weightSum = 0.0f;
+    [unroll]
     for (uint i = 0; i < numSamples; ++i)
     {
-        float2 sampleOffset = float2(texelsize * samplerOffsets[i], 0.0f);
+        float2 sampleOffset = float2( texelsize * samplerOffsets[i],0);
         float2 samplePos = input.TexCoord + sampleOffset;
            //Ermittle die Sampling-Position für den Gaussian-Blur. 
            
-        float sampleDepth = DepthMap.SampleLevel(texSampler, samplePos, 0).r;
+        float sampleDepth = DepthMap.Sample(texSampler, samplePos).r;
            //Hole Tiefe für den aktuellen Sample. 
            
-        float weight = (1.0f / (0.0001f + abs(compareDepth - sampleDepth)));
+        float weight = (1.0f / (0.0001f + abs(compareDepth - sampleDepth))) * gaussianWeights[i];
            //Berechne bilaterale Wichtung für den aktuellen Sample, je größer die Entfernung 
            //vom momentanen Sample zum Quellsample, desto kleiner die Wichtung. 
            //0.0001 wird addiert um ein teilen durch 0 zu verhindern. 
            
-        result += SSAOMap.SampleLevel(blurSampler, samplePos, 0).r * weight;
+        result += SSAOMap.Sample(blurSamplerPoint, samplePos) * weight;
            //Sample den Punkt und wichte ihn. 
            
         weightSum += weight;
            //Addiere die Wichtung, damit später der Durchschnitt ermittelt werden kann. 
     }
+
+   [unroll]
+    for (uint j = 0; j < numSamples2; ++j)
+    {
+        float2 sampleOffset = float2(texelsize * samplerOffsets2[j],0);
+        float2 samplePos = input.TexCoord + sampleOffset;
+           //Ermittle die Sampling-Position für den Gaussian-Blur. 
+           
+        float sampleDepth = DepthMap.Sample(texSampler, samplePos).r;
+           //Hole Tiefe für den aktuellen Sample. 
+           
+        float weight = (1.0f / (0.0001f + abs(compareDepth - sampleDepth))) * gaussianWeights2[j];
+           //Berechne bilaterale Wichtung für den aktuellen Sample, je größer die Entfernung 
+           //vom momentanen Sample zum Quellsample, desto kleiner die Wichtung. 
+           //0.0001 wird addiert um ein teilen durch 0 zu verhindern. 
+           
+        result += SSAOMap.Sample(blurSamplerLinear, samplePos, 0) * weight;
+           //Sample den Punkt und wichte ihn. 
+           
+        weightSum += weight;
+           //Addiere die Wichtung, damit später der Durchschnitt ermittelt werden kann. 
+    }
+
     result /= weightSum;
       //Ermittle den Durchschnitt durch das Teilen durch die Wichtungssumme. 
-    return float4(result, result, result, 1);
+    return result;
 }
 
 float4 BilateralBlurHorizontal(VertexShaderOutputBlur input) : SV_TARGET
@@ -234,35 +288,72 @@ float4 BilateralBlurHorizontal(VertexShaderOutputBlur input) : SV_TARGET
     const float texelsize = InverseResolution.y; //Als erstes ermitteln wir die horizontale Texelsize. 
     const float samplerOffsets[numSamples] =
       { -4.0f, -3.0f, -2.0f, -1.0f, 0.0f, 1.0f, 2.0f, 3.0f, 4.0f };
-      //Wie bereits erwähnt überspringen wir jeden zweiten Pixel. 
+    const float gaussianWeights[numSamples] =
+    {
+    0.055119, 0.081029,0.106701, 0.125858, 0.13298, 0.125858,0.106701,0.081029, 0.055119
+    };
+    
+    const uint numSamples2 = 4;
+    const float samplerOffsets2[numSamples2] =
+      { -7.5f, -5.5f, 5.5f, 7.5f };
+    const float gaussianWeights2[numSamples2] =
+    {
+        0.012886, 0.051916, 0.051916, 0.012886,
+    };
+
+    //Wie bereits erwähnt überspringen wir jeden zweiten Pixel. 
       
     float compareDepth = DepthMap.Sample(texSampler, input.TexCoord).r;
       //Tiefe des momentanen Pixels 
-    float result = 0.0f;
+    float4 result = 0;
     float weightSum = 0.0f;
+    [unroll]
     for (uint i = 0; i < numSamples; ++i)
     {
         float2 sampleOffset = float2(0.0f, texelsize * samplerOffsets[i]);
         float2 samplePos = input.TexCoord + sampleOffset;
            //Ermittle die Sampling-Position für den Gaussian-Blur. 
            
-        float sampleDepth = DepthMap.SampleLevel(texSampler, samplePos, 0).r;
+        float sampleDepth = DepthMap.Sample(texSampler, samplePos).r;
            //Hole Tiefe für den aktuellen Sample. 
            
-        float weight = (1.0f / (0.0001f + abs(compareDepth - sampleDepth)));
+        float weight = (1.0f / (0.0001f + abs(compareDepth - sampleDepth))) * gaussianWeights[i];
            //Berechne bilaterale Wichtung für den aktuellen Sample, je größer die Entfernung 
            //vom momentanen Sample zum Quellsample, desto kleiner die Wichtung. 
            //0.0001 wird addiert um ein teilen durch 0 zu verhindern. 
            
-        result += SSAOMap.SampleLevel(blurSampler, samplePos, 0).r * weight;
+        result += SSAOMap.Sample(blurSamplerPoint, samplePos) * weight;
            //Sample den Punkt und wichte ihn. 
            
         weightSum += weight;
            //Addiere die Wichtung, damit später der Durchschnitt ermittelt werden kann. 
     }
+
+    [unroll]
+    for (uint j = 0; j < numSamples2; ++j)
+    {
+        float2 sampleOffset = float2(0.0f, texelsize * samplerOffsets2[j]);
+        float2 samplePos = input.TexCoord + sampleOffset;
+           //Ermittle die Sampling-Position für den Gaussian-Blur. 
+           
+        float sampleDepth = DepthMap.SampleLevel(texSampler, samplePos, 0).r;
+           //Hole Tiefe für den aktuellen Sample. 
+           
+        float weight = (1.0f / (0.0001f + abs(compareDepth - sampleDepth))) * gaussianWeights2[j];
+           //Berechne bilaterale Wichtung für den aktuellen Sample, je größer die Entfernung 
+           //vom momentanen Sample zum Quellsample, desto kleiner die Wichtung. 
+           //0.0001 wird addiert um ein teilen durch 0 zu verhindern. 
+           
+        result += SSAOMap.Sample(blurSamplerLinear, samplePos) * weight;
+           //Sample den Punkt und wichte ihn. 
+           
+        weightSum += weight;
+           //Addiere die Wichtung, damit später der Durchschnitt ermittelt werden kann. 
+    }
+
     result /= weightSum;
       //Ermittle den Durchschnitt durch das Teilen durch die Wichtungssumme. 
-    return float4(result, result, result, 1);
+    return result;
 }
 
 
@@ -279,6 +370,7 @@ technique BilateralVertical
 {
     pass Pass1
     {
+        VertexShader = compile vs_4_0 VertexShaderBlurFunction();
         PixelShader = compile ps_4_0 BilateralBlurVertical();
     }
 }
@@ -287,6 +379,7 @@ technique BilateralHorizontal
 {
     pass Pass1
     {
+        VertexShader = compile vs_4_0 VertexShaderBlurFunction();
         PixelShader = compile ps_4_0 BilateralBlurHorizontal();
     }
 }
