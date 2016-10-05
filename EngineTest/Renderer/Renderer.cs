@@ -585,9 +585,10 @@ namespace EngineTest.Renderer
 
                     Shaders.deferredDirectionalLightParameterLightViewProjection.SetValue(light.LightViewProjection);
                     Shaders.deferredDirectionalLightParameter_ShadowMap.SetValue(light.ShadowMap);
-                    Shaders.deferredDirectionalLightParameter_ShadowFiltering.SetValue((int) light.ShadowFiltering);
+                    Shaders.deferredDirectionalLightParameter_ShadowFiltering.SetValue((int)light.ShadowFiltering);
+                    Shaders.deferredDirectionalLightParameter_ShadowMapSize.SetValue((float)light.ShadowResolution);
 
-                    Shaders.deferredDirectionalLightShadowOnly.Passes[0].Apply();
+                    Shaders.deferredDirectionalLightShadowOnly.Passes[0].Apply();   
 
                     _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
                 }

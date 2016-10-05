@@ -32,7 +32,7 @@ namespace EngineTest.Recources
 
         public enum ShadowFilteringTypes
         {
-            PCF, Poisson, VSM
+            PCF, SoftPCF3x, SoftPCF5x, Poisson, VSM
         };
 
         /// <summary>
@@ -97,6 +97,8 @@ namespace EngineTest.Recources
                 //Shaders.deferredDirectionalLightParameter_ShadowMap.SetValue(shadowMap);
                 if (ScreenSpaceShadowBlur)
                 {
+                    Shaders.deferredDirectionalLightParameterLightViewProjection.SetValue(LightViewProjection);
+                    Shaders.deferredDirectionalLightParameter_ShadowFiltering.SetValue((int)ShadowFiltering);
                     Shaders.deferredDirectionalLightSSShadowed.Passes[0].Apply();  
                 }
                 else

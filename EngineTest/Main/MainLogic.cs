@@ -98,7 +98,7 @@ namespace EngineTest.Main
                 shadowWorldSize: 250, 
                 shadowDepth: 180, 
                 shadowResolution: 2048, 
-                shadowFilteringFiltering: DirectionalLight.ShadowFilteringTypes.Poisson, 
+                shadowFilteringFiltering: DirectionalLight.ShadowFilteringTypes.SoftPCF3x, 
                 screenspaceShadowBlur: false);
 
         }
