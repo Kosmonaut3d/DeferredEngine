@@ -19,6 +19,7 @@ Features:
 
 Controls:
 - " ^ " / the key above TAB : debug console with suggestions (tab to autocomplete)
+- Space: Go into editor mode 
 - WASD : move the camera
 - right mouse drag : rotate the camera
 - L : Spawn new point light
