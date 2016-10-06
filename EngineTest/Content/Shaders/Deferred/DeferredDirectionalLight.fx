@@ -299,10 +299,10 @@ float CalcShadowTermPCFOffset(float light_space_depth, float ndotl, float2 shado
     	
     float samples[5];
     samples[0] = (light_space_depth - variableBias < 1 - ShadowMap.SampleLevel(pointSampler, shadow_coord, 0).r);
-    samples[1] = (light_space_depth - variableBias < 1 - ShadowMap.SampleLevel(pointSampler, shadow_coord + float2(size, 0), 0).r) * frac(shadow_coord.x * ShadowMapSize - 0.5f);
-    samples[2] = (light_space_depth - variableBias < 1 - ShadowMap.SampleLevel(pointSampler, shadow_coord + float2(0, size), 0).r) * frac(shadow_coord.y * ShadowMapSize - 0.5f);
-    samples[3] = (light_space_depth - variableBias < 1 - ShadowMap.SampleLevel(pointSampler, shadow_coord - float2(size, 0), 0).r) * (1 - frac(shadow_coord.x * ShadowMapSize - 0.5f));
-    samples[4] = (light_space_depth - variableBias < 1 - ShadowMap.SampleLevel(pointSampler, shadow_coord - float2(0, size), 0).r) * (1 - frac(shadow_coord.y * ShadowMapSize - 0.5f));
+    samples[1] = (light_space_depth - variableBias < 1 - ShadowMap.SampleLevel(pointSampler, shadow_coord + float2(size, 0), 0).r) * frac(shadow_coord.x * ShadowMapSize + 0.5f);
+    samples[2] = (light_space_depth - variableBias < 1 - ShadowMap.SampleLevel(pointSampler, shadow_coord + float2(0, size), 0).r) * frac(shadow_coord.y * ShadowMapSize + 0.5f);
+    samples[3] = (light_space_depth - variableBias < 1 - ShadowMap.SampleLevel(pointSampler, shadow_coord - float2(size, 0), 0).r) * (1 - frac(shadow_coord.x * ShadowMapSize + 0.5f));
+    samples[4] = (light_space_depth - variableBias < 1 - ShadowMap.SampleLevel(pointSampler, shadow_coord - float2(0, size), 0).r) * (1 - frac(shadow_coord.y * ShadowMapSize + 0.5f));
 
 
     shadow_term = (samples[0] + samples[1] + samples[2] + samples[3] + samples[4]) / 5.0;

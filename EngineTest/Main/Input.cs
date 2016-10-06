@@ -14,7 +14,7 @@ namespace EngineTest.Main
     static class Input
     {
         public static KeyboardState keyboardState, keyboardLastState;
-        private static MouseState mouseState, mouseLastState;
+        public static MouseState mouseState, mouseLastState;
 
 
         public static void Update(GameTime gameTime, Camera camera, bool isActive)
@@ -52,6 +52,11 @@ namespace EngineTest.Main
                 camera.Forward.Normalize();
             }
 
+        }
+
+        public static Point GetMousePosition()
+        {
+            return mouseState.Position;
         }
 
         private static void KeyboardEvents(GameTime gameTime, Camera camera)
@@ -94,6 +99,11 @@ namespace EngineTest.Main
         public static bool WasKeyPressed(Keys key)
         {
             return keyboardLastState.IsKeyUp(key) && keyboardState.IsKeyDown(key);
+        }
+
+        public static bool WasLMBPressed()
+        {
+            return mouseState.LeftButton == ButtonState.Pressed && mouseLastState.LeftButton == ButtonState.Released;
         }
 
         public static bool WasKeyReleased(Keys key)

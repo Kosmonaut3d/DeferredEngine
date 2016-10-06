@@ -57,6 +57,7 @@
     <Compile Include="Entities\BasicEntity.cs" />
     <Compile Include="Entities\DirectionalLight.cs" />
     <Compile Include="Game1.cs" />
+    <Compile Include="Main\EditorLogic.cs" />
     <Compile Include="Main\Input.cs" />
     <Compile Include="Main\MainLogic.cs" />
     <Compile Include="Main\ScreenManager.cs" />
@@ -65,18 +66,21 @@
     <Compile Include="Recources\Assets.cs" />
     <Compile Include="Recources\GameSettings.cs" />
     <Compile Include="Recources\GameStats.cs" />
+    <Compile Include="Recources\Helper\IdGenerator.cs" />
     <Compile Include="Recources\MaterialEffect.cs" />
     <Compile Include="Recources\Shaders.cs" />
-    <Compile Include="Recources\SpotLight.cs" />
+    <Compile Include="Entities\UNUSED_SpotLight.cs" />
     <Compile Include="Entities\PointLight.cs" />
     <Compile Include="Entities\Camera.cs" />
     <Compile Include="Main\DebugScreen.cs" />
     <Compile Include="Renderer\Helper\FastRand.cs" />
-    <Compile Include="Renderer\Helper\GaussianBlur.cs" />
+    <Compile Include="Renderer\RenderModules\EditorRender.cs" />
+    <Compile Include="Renderer\RenderModules\GaussianBlur.cs" />
     <Compile Include="Renderer\Helper\MeshMaterialLibrary.cs" />
     <Compile Include="Renderer\Helper\QuadRenderer.cs" />
     <Compile Include="Renderer\Renderer.cs" />
     <Compile Include="Renderer\Renderer_old.cs" />
+    <Compile Include="Renderer\RenderModules\IdRenderer.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="MonoGame.Framework">

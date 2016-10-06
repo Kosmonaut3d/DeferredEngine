@@ -19,7 +19,7 @@ namespace EngineTest.Recources
             private Texture2D background_ddn;
             private Texture2D chain_texture_ddn;
             private Texture2D chain_texture_mask;
-            private Texture2D lion_ddn;
+            public Texture2D lion_ddn;
             private Texture2D lion2_ddn;
             private Texture2D spnza_bricks_a_ddn;
             private Texture2D spnza_bricks_a_spec;
@@ -60,6 +60,8 @@ namespace EngineTest.Recources
             public Model Plane;
 
             public Model TestTubes { get; set; }
+
+            public Model EditorArrow;
 
             public Model Sphere;
             public MaterialEffect baseMaterial;
@@ -134,6 +136,8 @@ namespace EngineTest.Recources
                 ProcessHelmets();
 
                 Plane = content.Load<Model>("Art/Plane");
+
+                EditorArrow = content.Load<Model>("Art/Editor/Arrow");
 
                 baseMaterial = CreateMaterial(Color.Red, 0.3f, 0);
 

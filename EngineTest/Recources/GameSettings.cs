@@ -73,6 +73,7 @@ namespace EngineTest.Recources
 
         public static bool g_TemporalAntiAliasing = true;
         public static int g_TemporalAntiAliasingJitterMode = 0;
+        public static bool Editor_enable = false;
 
         // Screen Space Ambient Occlusion
 

@@ -16,14 +16,17 @@ namespace EngineTest.Main
     {
         private Renderer.Renderer _renderer;
         private MainLogic _logic;
+        private EditorLogic _editorLogic;
         private Assets _assets;
         private DebugScreen _debug;
+
+        private EditorLogic.EditorReceivedData _editorReceivedDataBuffer;
 
         public void Initialize(GraphicsDevice graphicsDevice)
         {
             _renderer.Initialize(graphicsDevice, _assets);
             _logic.Initialize(_assets);
-
+            _editorLogic.Initialize(graphicsDevice);
             _debug.Initialize(graphicsDevice);
         }
 
@@ -31,6 +34,7 @@ namespace EngineTest.Main
         public void Update(GameTime gameTime, bool isActive)
         {
             _logic.Update(gameTime, isActive);
+            _editorLogic.Update(gameTime, _logic.Entities, _editorReceivedDataBuffer);
             _renderer.Update(gameTime, isActive);
 
             _debug.Update(gameTime);
@@ -41,6 +45,7 @@ namespace EngineTest.Main
         {
             _renderer = new Renderer.Renderer();
             _logic = new MainLogic();
+            _editorLogic = new EditorLogic();
             _assets = new Assets();
             _debug = new DebugScreen();
 
@@ -61,7 +66,7 @@ namespace EngineTest.Main
         /// </summary>
         public void Draw(GameTime gameTime)
         {
-            _renderer.Draw(_logic.Camera, _logic.MeshMaterialLibrary, _logic.Entities, _logic.PointLights, _logic.DirectionalLights, gameTime);
+            _editorReceivedDataBuffer = _renderer.Draw(_logic.Camera, _logic.MeshMaterialLibrary, _logic.Entities, _logic.PointLights, _logic.DirectionalLights, _editorLogic.GetEditorData(), gameTime);
 
             _debug.Draw(gameTime);
         }

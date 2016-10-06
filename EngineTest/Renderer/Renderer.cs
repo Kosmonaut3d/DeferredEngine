@@ -10,6 +10,7 @@ using EngineTest.Entities;
 using EngineTest.Main;
 using EngineTest.Recources;
 using EngineTest.Renderer.Helper;
+using EngineTest.Renderer.RenderModules;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
@@ -28,6 +29,7 @@ namespace EngineTest.Renderer
         private SpriteBatch _spriteBatch;
         private QuadRenderer _quadRenderer;
         private GaussianBlur _gaussianBlur;
+        private EditorRender _editorRender;
 
         //Checkvariables for change
         private float _supersampling = 1;
@@ -48,6 +50,7 @@ namespace EngineTest.Renderer
         private Matrix _view;
         private Matrix _projection;
         private Matrix _viewProjection;
+        private Matrix _staticViewProjection;
         private Matrix _inverseViewProjection;
 
         private Matrix _previousViewProjection;
@@ -110,6 +113,9 @@ namespace EngineTest.Renderer
             _gaussianBlur = new GaussianBlur();
             _gaussianBlur.Initialize(graphicsDevice);
 
+            _editorRender = new EditorRender();
+            _editorRender.Initialize(graphicsDevice, assets);
+
             //SetUpRenderTargets(_graphicsDevice.PresentationParameters.BackBufferWidth, _graphicsDevice.PresentationParameters.BackBufferHeight);
 
             _assets = assets;
@@ -122,7 +128,8 @@ namespace EngineTest.Renderer
         //Update per frame
         public void Update(GameTime gameTime, bool isActive)
         {
-
+            if (!isActive) return;
+            _editorRender.Update(gameTime);
         }
 
         //Load content
@@ -149,7 +156,7 @@ namespace EngineTest.Renderer
 
         
         //Main Draw!
-        public void Draw(Camera camera, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities, List<PointLight> pointLights, List<DirectionalLight> dirLights, GameTime gameTime)
+        public EditorLogic.EditorReceivedData Draw(Camera camera, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities, List<PointLight> pointLights, List<DirectionalLight> dirLights, EditorLogic.EditorSendData editorData, GameTime gameTime)
         {
             //Reset the stat counter
             ResetStats(); 
@@ -199,12 +206,29 @@ namespace EngineTest.Renderer
             //DrawScreenSpaceEffect2(camera);
 
             CombineTemporalAntialiasing();
+                
+            if(GameSettings.Editor_enable) _editorRender.DrawIds(meshMaterialLibrary, _staticViewProjection, editorData);
             //Show certain buffer stages depending on user input
             RenderMode();
+
+            if (GameSettings.Editor_enable)
+            {
+                DrawMapToScreenToFullScreen(_editorRender.GetOutlines(), BlendState.Additive);
+
+                _editorRender.DrawEditorElements(meshMaterialLibrary, _staticViewProjection, editorData);
+            }
+
+
 
             //Just some object culling, setting up for the next frame
             meshMaterialLibrary.FrustumCullingFinalizeFrame(entities);
 
+            return new EditorLogic.EditorReceivedData
+            {
+                HoveredId =  _editorRender.GetHoveredId(),
+                ViewMatrix =  _view,
+                ProjectionMatrix =  _projection
+            };
         }
 
 
@@ -982,8 +1006,10 @@ namespace EngineTest.Renderer
             _spriteBatch.End();
         }
 
-        private void DrawMapToScreenToFullScreen(Texture2D map)
+        private void DrawMapToScreenToFullScreen(Texture2D map, BlendState blendState = null)
         {
+            if(blendState == null) blendState = BlendState.Opaque;
+
             int height;
             int width;
             if (Math.Abs(map.Width / (float)map.Height - GameSettings.g_ScreenWidth / (float)GameSettings.g_ScreenHeight) < 0.001)
@@ -1006,7 +1032,7 @@ namespace EngineTest.Renderer
                 }
             }
             _graphicsDevice.SetRenderTarget(null);
-            _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.AnisotropicClamp);
+            _spriteBatch.Begin(0, blendState, SamplerState.PointClamp, null, null);
             _spriteBatch.Draw(map, new Rectangle(0, 0, width, height), Color.White);
             _spriteBatch.End();
         }
@@ -1156,6 +1182,7 @@ namespace EngineTest.Renderer
 
                 
                 _viewProjection = _view*_projection;
+                _staticViewProjection = _viewProjection;
 
                 _currentToPrevious = Matrix.Invert(_viewProjection)*_previousViewProjection;
 
@@ -1315,6 +1342,8 @@ namespace EngineTest.Renderer
 
             if (!onlyEssentials)
             {
+                _editorRender.SetUpRenderTarget(width, height);
+
                 _renderTargetFinal2 = new RenderTarget2D(_graphicsDevice, target_width,
                     target_height, false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
 

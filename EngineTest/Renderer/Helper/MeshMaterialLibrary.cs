@@ -6,6 +6,8 @@ using System.Text;
 using System.Threading.Tasks;
 using EngineTest.Entities;
 using EngineTest.Recources;
+using EngineTest.Recources.Helper;
+using EngineTest.Renderer.RenderModules;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -145,8 +147,8 @@ namespace EngineTest.Renderer.Helper
             for (var i = 0; i < Index; i++)
             {
                 MaterialLibrary matLib = MaterialLib[i];
-                if (matLib.HasMaterial(mat))
-                {
+                //if (matLib.HasMaterial(mat))
+                //{
                     if (matLib.DeleteFromRegistry(mesh, worldMatrix))
                     {
                         for (var j = i; j < Index - 1; j++)
@@ -159,7 +161,7 @@ namespace EngineTest.Renderer.Helper
 
                         break;
                     }
-                }
+                //}
             }
         }
 
@@ -282,12 +284,14 @@ namespace EngineTest.Renderer.Helper
             alpha,
             shadowVSM,
             shadowDepth,
-            hologram
+            hologram,
+            idRender,
+            idOutline,
         };
 
-        public void Draw(RenderType renderType, GraphicsDevice graphicsDevice, Matrix viewProjection, bool lightViewPointChanged = false, bool hasAnyObjectMoved = false)
+        public void Draw(RenderType renderType, GraphicsDevice graphicsDevice, Matrix viewProjection, bool lightViewPointChanged = false, bool hasAnyObjectMoved = false, bool outlined = false, int outlineId = 0)
         {
-            if (renderType == RenderType.opaque || renderType == RenderType.shadowDepth || renderType == RenderType.shadowVSM || renderType == RenderType.hologram)
+            if (renderType != RenderType.alpha)
             {
                 graphicsDevice.BlendState = BlendState.Opaque;
                 graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
@@ -410,13 +414,24 @@ namespace EngineTest.Renderer.Helper
                 else
                 {
                     if (renderType == RenderType.hologram)
+                    {
                         shader = Shaders.HologramEffect;
+                    }
+                    else if (renderType == RenderType.idRender || renderType == RenderType.idOutline)
+                    {
+                        shader = Shaders.IdRenderEffect;
+
+                        if(renderType == RenderType.idOutline && !outlined)
+                            Shaders.IdRenderEffectParameterColorId.SetValue(Color.Transparent.ToVector4());
+
+                    }
                     else
                     {
                         shader = Shaders.GBufferEffect;
                     }
                 }
 
+                 if(renderType != RenderType.idRender && renderType != RenderType.idOutline)
                 GameStats.MaterialDraws++;
 
                 //todo: We only need textures for non shadow mapping, right? Not quite actually, for alpha textures we need materials
@@ -550,26 +565,69 @@ namespace EngineTest.Renderer.Helper
                         //if (!meshLib.GetWorldMatrices()[index].Rendered) continue;
                         if (!meshLib.Rendered[index]) continue;
 
-                        GameStats.MeshDraws++;
-
 
                         Matrix localWorldMatrix = meshLib.GetWorldMatrices()[index].World;
                         if (renderType == RenderType.opaque || renderType == RenderType.alpha)
                         {
                             Shaders.GBufferEffectParameter_World.SetValue(localWorldMatrix);
                             Shaders.GBufferEffectParameter_WorldViewProj.SetValue(localWorldMatrix * viewProjection);
+
+                            shader.CurrentTechnique.Passes[0].Apply();
                         }
                         else if (renderType == RenderType.shadowDepth || renderType == RenderType.shadowVSM)
                         {
                             Shaders.virtualShadowMappingEffectParameter_WorldViewProj.SetValue(localWorldMatrix * viewProjection);
+
+                            shader.CurrentTechnique.Passes[0].Apply();
                         }
                         else if (renderType == RenderType.hologram)
                         {
                             Shaders.HologramEffectParameter_World.SetValue(localWorldMatrix);
                             Shaders.HologramEffectParameter_WorldViewProj.SetValue(localWorldMatrix * viewProjection);
+
+                            shader.CurrentTechnique.Passes[0].Apply();
+                        }
+                        else if (renderType == RenderType.idRender || renderType == RenderType.idOutline)
+                        {
+                            Shaders.IdRenderEffectParameterWorldViewProj.SetValue(localWorldMatrix * viewProjection);
+
+                            int id = meshLib.GetWorldMatrices()[index].Id;
+
+                            if (renderType == RenderType.idRender)
+                            {
+                                Shaders.IdRenderEffectParameterColorId.SetValue(IdGenerator.GetColorFromId(id).ToVector4() );
+
+                                Shaders.IdRenderEffectDrawId.Apply();
+                            }
+
+                            if (renderType == RenderType.idOutline)
+                            {
+                                //Is this the Id we want to outline?
+                                if (id == outlineId)
+                                {
+                                    graphicsDevice.RasterizerState = RasterizerState.CullNone;
+                                    
+                                    Shaders.IdRenderEffectParameterWorld.SetValue(localWorldMatrix);
+
+                                    if(outlined)
+                                    Shaders.IdRenderEffectDrawOutline.Apply();
+                                    else
+                                    {
+                                        Shaders.IdRenderEffectDrawId.Apply();
+                                    }
+                                }
+                                else
+                                {
+                                    continue;
+                                    //graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+                                    //Shaders.IdRenderEffectDrawId.Apply();
+                                }
+                            }
+
                         }
 
-                        shader.CurrentTechnique.Passes[0].Apply();
+
+                        GameStats.MeshDraws++;
 
                         try
                         {

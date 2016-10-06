@@ -39,6 +39,7 @@ namespace EngineTest.Main
         private PointLight shadowLight;
 
         private BasicEntity drake;
+        private BasicEntity sponza;
 
         #endregion
         /////////////////////////////////////////////////////// METHODS
@@ -55,9 +56,9 @@ namespace EngineTest.Main
             //Sponza scene
             
             //    //entities
-            AddEntity(_assets.SponzaModel, Vector3.Zero, -Math.PI/2, 0, 0, 0.1f);
+            sponza = AddEntity(_assets.SponzaModel, Vector3.Zero, -Math.PI/2, 0, 0, 0.1f);
             //AddEntity(_assets.TestTubes, _assets.emissiveMaterial2, new Vector3(0, 0, -40), -Math.PI, -Math.PI/2, 0, 1.8f);
-            //drake = AddEntity(_assets.DragonUvSmoothModel, _assets.emissiveMaterial, new Vector3(40, -10, 0), -Math.PI / 2, 0, 0, 10);
+            drake = AddEntity(_assets.DragonUvSmoothModel, _assets.emissiveMaterial, new Vector3(40, -10, 0), -Math.PI / 2, 0, 0, 10);
 
             AddEntity(_assets.DragonUvSmoothModel, _assets.silverMaterial, new Vector3(30, 10, 1), -Math.PI / 2, 0, 0, 10);
 
@@ -84,7 +85,7 @@ namespace EngineTest.Main
             //entities
             //AddEntity(_assets.Plane, new Vector3(0, 0, 0), 0, 0, 0, 200);
             AddEntity(_assets.HelmetModel, new Vector3(70, 0, -10), -Math.PI / 2, 0, -Math.PI / 2, 1);
-
+            
             //Hologram skulls
             AddEntity(_assets.SkullModel, _assets.hologramMaterial, new Vector3(69, 0, -6.5f), -Math.PI / 2, 0, Math.PI / 2 + 0.3f, 0.9f);
             AddEntity(_assets.SkullModel, _assets.hologramMaterial, new Vector3(69, 8.5f, -6.5f), -Math.PI / 2, 0, Math.PI / 2 + 0.3f, 0.8f);
@@ -199,6 +200,10 @@ namespace EngineTest.Main
 
             if (DebugScreen.ConsoleOpen) return;
 
+            if (Input.WasKeyPressed(Keys.Space))
+            {
+                GameSettings.Editor_enable = !GameSettings.Editor_enable;
+            }
 
             if (Input.keyboardState.IsKeyDown(Keys.L))
             {
@@ -230,23 +235,6 @@ namespace EngineTest.Main
             if (Input.keyboardState.IsKeyDown(Keys.Right))
             {
                 shadowLight.Position += Vector3.UnitY * delta;
-            }
-
-            if (Input.keyboardState.IsKeyDown(Keys.NumPad6))
-            {
-                drake.Position -= Vector3.UnitY * delta;
-            }
-            if (Input.keyboardState.IsKeyDown(Keys.NumPad4))
-            {
-                drake.Position += Vector3.UnitY * delta;
-            }
-            if (Input.keyboardState.IsKeyDown(Keys.NumPad8))
-            {
-                drake.Position -= Vector3.UnitX * delta;
-            }
-            if (Input.keyboardState.IsKeyDown(Keys.NumPad2))
-            {
-                drake.Position += Vector3.UnitX * delta;
             }
 
             if (Input.WasKeyPressed(Keys.F1))

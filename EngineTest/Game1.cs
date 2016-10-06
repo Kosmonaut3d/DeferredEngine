@@ -32,6 +32,7 @@ namespace EngineTest
 
             screenManager = new ScreenManager();
 
+            IsMouseVisible = true;
 
             Window.ClientSizeChanged += ClientChangedWindowSize;
 

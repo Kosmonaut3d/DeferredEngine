@@ -1,23 +1,33 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using EngineTest.Recources;
+using EngineTest.Recources.Helper;
 using EngineTest.Renderer.Helper;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace EngineTest.Entities
 {
-    public class BasicEntity
+    public abstract class TransformableObject
+    {
+        public abstract Vector3 Position { get; set; }
+        public abstract int Id { get; set; }
+    }
+
+    public class BasicEntity : TransformableObject
     {
         public Model Model;
         public MaterialEffect Material;
 
+        public int _id;
+
         private Vector3 _position;
 
-        public Vector3 Position
+        public override Vector3 Position
         {
             get
             {
@@ -29,6 +39,11 @@ namespace EngineTest.Entities
                 _position = value;
             }
         }
+
+        public override int Id {
+            get { return _id; }
+            set { _id = value; } }
+
         private double _angleZ;
         private double _angleX; //forward
         private double _angleY;
@@ -70,7 +85,7 @@ namespace EngineTest.Entities
             }
         }
 
-        public TransformMatrix WorldTransform = new TransformMatrix(Matrix.Identity);
+        public TransformMatrix WorldTransform;
         public Matrix RotationMatrix;
         public Matrix WorldOldMatrix;
 
@@ -80,6 +95,9 @@ namespace EngineTest.Entities
 
         public BasicEntity(Model model, MaterialEffect material, Vector3 position, double angleZ, double angleX, double angleY, float scale, MeshMaterialLibrary library)
         {
+            Id = IdGenerator.GetNewId();
+            WorldTransform = new TransformMatrix(Matrix.Identity, Id);
+
             Position = position;
             AngleZ = angleZ;
             AngleX = angleX;
@@ -90,6 +108,8 @@ namespace EngineTest.Entities
             Model = model;
 
             library.Register(Material, Model, WorldTransform);
+
+            
         }
 
         public void Dispose(MeshMaterialLibrary library)
@@ -125,12 +145,14 @@ namespace EngineTest.Entities
         public Matrix World;
         public bool Rendered = true;
         public bool HasChanged = true;
+        public readonly int Id;
 
         public float Scale;
 
-        public TransformMatrix(Matrix world)
+        public TransformMatrix(Matrix world, int id)
         {
             World = world;
+            Id = id;
         }
 
         public Vector3 TransformMatrixSubModel(Vector3 translateSub)

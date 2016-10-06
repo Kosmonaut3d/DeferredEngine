@@ -10,6 +10,16 @@ namespace EngineTest.Recources
 {
     public static class Shaders
     {
+        //Id Generator
+        public static Effect IdRenderEffect;
+        public static EffectParameter IdRenderEffectParameterWorld;
+        public static EffectParameter IdRenderEffectParameterWorldViewProj;
+        public static EffectParameter IdRenderEffectParameterColorId;
+
+        public static EffectPass IdRenderEffectDrawId;
+        public static EffectPass IdRenderEffectDrawOutline;
+        
+
         //Temporal AntiAliasing
 
         public static Effect TemporalAntiAliasingEffect;
@@ -215,6 +225,16 @@ namespace EngineTest.Recources
 
         public static void Load(ContentManager content)
         {
+            //Editor
+
+            IdRenderEffect = content.Load<Effect>("Shaders/Editor/IdRender");
+            IdRenderEffectParameterWorldViewProj = IdRenderEffect.Parameters["WorldViewProj"];
+            IdRenderEffectParameterColorId = IdRenderEffect.Parameters["ColorId"];
+            IdRenderEffectParameterWorld = IdRenderEffect.Parameters["World"];
+
+            IdRenderEffectDrawId = IdRenderEffect.Techniques["DrawId"].Passes[0];
+            IdRenderEffectDrawOutline = IdRenderEffect.Techniques["DrawOutline"].Passes[0];
+
             //TAA
 
             TemporalAntiAliasingEffect = content.Load<Effect>("Shaders/TemporalAntiAliasing/TemporalAntiAliasing");
