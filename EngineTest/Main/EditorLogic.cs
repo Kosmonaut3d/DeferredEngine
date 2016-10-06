@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using EngineTest.Entities;
+using EngineTest.Recources;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -14,13 +15,20 @@ namespace EngineTest.Main
     {
         private int _selectedId = 0;
 
-        private bool gizmoMode = false;
+        private bool gizmoTransformationMode = false;
         private Vector3 gizmoPosition;
         private int gizmoId = 0;
+        private GizmoModes gizmoMode = GizmoModes.translation;
 
         public TransformableObject SelectedObject;
 
         private GraphicsDevice _graphicsDevice;
+
+        public enum GizmoModes
+        {
+            translation,
+            rotation
+        };
 
         public struct EditorReceivedData
         {
@@ -33,6 +41,8 @@ namespace EngineTest.Main
         {
             public int SelectedObjectId;
             public Vector3 SelectedObjectPosition;
+            public bool GizmoTransformationMode;
+            public GizmoModes GizmoMode;
         }
 
         public void Initialize(GraphicsDevice graphicsDevice)
@@ -48,15 +58,20 @@ namespace EngineTest.Main
         /// <param name="data"></param>
         public void Update(GameTime gameTime, List<BasicEntity> entities, EditorReceivedData data)
         {
+            if (!GameSettings.Editor_enable) return;
+
+            if(Input.WasKeyPressed(Keys.R)) gizmoMode = GizmoModes.rotation;
+            if (Input.WasKeyPressed(Keys.T)) gizmoMode = GizmoModes.translation;
+
             int hoveredId = data.HoveredId;
 
-            if (gizmoMode)
+            if (gizmoTransformationMode)
             {
                 if (Input.mouseState.LeftButton == ButtonState.Pressed)
                 {
                     GizmoControl(gizmoId, data);
                 }
-                else gizmoMode = false;
+                else gizmoTransformationMode = false;
             }
             else if (Input.WasLMBPressed())
             {
@@ -103,17 +118,41 @@ namespace EngineTest.Main
 
             Plane plane = new Plane();
 
-            if(gizmoId == 1)
+            if (gizmoMode == GizmoModes.translation)
             {
-                plane = new Plane(SelectedObject.Position, SelectedObject.Position + Vector3.UnitZ, SelectedObject.Position + Vector3.UnitY);
+                if (gizmoId == 1)
+                {
+                    plane = new Plane(SelectedObject.Position, SelectedObject.Position + Vector3.UnitZ,
+                        SelectedObject.Position + Vector3.UnitY);
+                }
+                else if (gizmoId == 2)
+                {
+                    plane = new Plane(SelectedObject.Position, SelectedObject.Position + Vector3.UnitY,
+                        SelectedObject.Position + Vector3.UnitZ);
+                }
+                else if (gizmoId == 3)
+                {
+                    plane = new Plane(SelectedObject.Position, SelectedObject.Position + Vector3.UnitZ,
+                        SelectedObject.Position + Vector3.UnitX);
+                }
             }
-            else if (gizmoId == 2)
+            else //rotation
             {
-                plane = new Plane(SelectedObject.Position, SelectedObject.Position + Vector3.UnitY, SelectedObject.Position + Vector3.UnitZ);
-            }
-            else if (gizmoId == 3)
-            {
-                plane = new Plane(SelectedObject.Position, SelectedObject.Position + Vector3.UnitZ, SelectedObject.Position + Vector3.UnitX);
+                if (gizmoId == 1)
+                {
+                    plane = new Plane(SelectedObject.Position, SelectedObject.Position + Vector3.UnitX,
+                        SelectedObject.Position + Vector3.UnitY);
+                }
+                else if (gizmoId == 2)
+                {
+                    plane = new Plane(SelectedObject.Position, SelectedObject.Position + Vector3.UnitX,
+                        SelectedObject.Position + Vector3.UnitZ);
+                }
+                else if (gizmoId == 3)
+                {
+                    plane = new Plane(SelectedObject.Position, SelectedObject.Position + Vector3.UnitZ,
+                        SelectedObject.Position + Vector3.UnitY);
+                }
             }
 
             float? d = ray.Intersects(plane);
@@ -124,9 +163,9 @@ namespace EngineTest.Main
 
             Vector3 hitPoint = pos1 + (pos2 - pos1)*f;
 
-            if (gizmoMode == false)
+            if (gizmoTransformationMode == false)
             {
-                gizmoMode = true;
+                gizmoTransformationMode = true;
                 gizmoPosition = hitPoint;
                 return;
             }
@@ -134,11 +173,38 @@ namespace EngineTest.Main
             //Get the difference
             Vector3 diff = hitPoint - gizmoPosition;
 
-            diff.Z *= gizmoId == 1 ? 1 : 0;
-            diff.Y *= gizmoId == 2 ? 1 : 0;
-            diff.X *= gizmoId == 3 ? 1 : 0;
+            if (gizmoMode == GizmoModes.translation)
+            {
+                diff.Z *= gizmoId == 1 ? 1 : 0;
+                diff.Y *= gizmoId == 2 ? 1 : 0;
+                diff.X *= gizmoId == 3 ? 1 : 0;
 
-            SelectedObject.Position += diff;
+                SelectedObject.Position += diff;
+            }
+            else
+            {
+                diff.Z *= gizmoId == 1 ? 0 : 1;
+                diff.Y *= gizmoId == 2 ? 0 : 1;
+                diff.X *= gizmoId == 3 ? 0 : 1;
+
+                float diffL = diff.X + diff.Y + diff.Z;
+
+                diffL /= 10;
+
+                if (gizmoId == 1) //Z
+                {
+                    SelectedObject.AngleZ += diffL;
+                }
+                if (gizmoId == 2) //Z
+                {
+                    SelectedObject.AngleY += diffL;
+                }
+                if (gizmoId == 3) //Z
+                {
+                    SelectedObject.AngleX += diffL;
+                }
+            }
+
 
             gizmoPosition = hitPoint;
 
@@ -151,7 +217,9 @@ namespace EngineTest.Main
             return new EditorSendData()
             {
                 SelectedObjectId = SelectedObject.Id,
-                SelectedObjectPosition = SelectedObject.Position
+                SelectedObjectPosition = SelectedObject.Position,
+                GizmoTransformationMode = gizmoTransformationMode,
+                GizmoMode =  gizmoMode
             };
         }
 

@@ -32,6 +32,13 @@ namespace EngineTest.Renderer.RenderModules
 
         public void Draw(MeshMaterialLibrary meshMat, Matrix viewProjection, EditorLogic.EditorSendData editorData, bool mouseMoved, Assets _assets)
         {
+            if (editorData.GizmoTransformationMode)
+            {
+                _graphicsDevice.SetRenderTarget(_idRenderTarget2D);
+                _graphicsDevice.Clear(Color.Black);
+                return;
+            }
+
             if (mouseMoved)
             {
                 DrawIds(meshMat, viewProjection, editorData, _assets);
@@ -45,6 +52,7 @@ namespace EngineTest.Renderer.RenderModules
 
         public void DrawIds(MeshMaterialLibrary meshMat, Matrix viewProjection, EditorLogic.EditorSendData editorData, Assets _assets)
         {
+            
             _graphicsDevice.SetRenderTarget(_idRenderTarget2D);
             _graphicsDevice.BlendState = BlendState.Opaque;
             

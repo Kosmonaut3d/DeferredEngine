@@ -16,6 +16,9 @@ namespace EngineTest.Entities
     {
         public abstract Vector3 Position { get; set; }
         public abstract int Id { get; set; }
+        public abstract double AngleZ { get; set; }
+        public abstract double AngleX { get; set; }
+        public abstract double AngleY { get; set; }
     }
 
     public class BasicEntity : TransformableObject
@@ -48,7 +51,7 @@ namespace EngineTest.Entities
         private double _angleX; //forward
         private double _angleY;
 
-        public double AngleZ
+        public override double AngleZ
         {
             get
             {
@@ -60,7 +63,7 @@ namespace EngineTest.Entities
                 _angleZ = value;
             }
         }
-        public double AngleX
+        public override double AngleX
         {
             get
             {
@@ -72,7 +75,7 @@ namespace EngineTest.Entities
                 _angleX = value;
             }
         } //forward
-        public double AngleY
+        public override double AngleY
         {
             get
             {

@@ -62,6 +62,7 @@ namespace EngineTest.Recources
             public Model TestTubes { get; set; }
 
             public Model EditorArrow;
+            public Model EditorArrowRound;
 
             public Model Sphere;
             public MaterialEffect baseMaterial;
@@ -138,6 +139,7 @@ namespace EngineTest.Recources
                 Plane = content.Load<Model>("Art/Plane");
 
                 EditorArrow = content.Load<Model>("Art/Editor/Arrow");
+                EditorArrowRound = content.Load<Model>("Art/Editor/ArrowRound");
 
                 baseMaterial = CreateMaterial(Color.Red, 0.3f, 0);
 

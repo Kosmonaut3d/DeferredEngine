@@ -74,14 +74,19 @@ namespace EngineTest.Renderer.RenderModules
             _graphicsDevice.BlendState = BlendState.Opaque;
 
             Vector3 position = editorData.SelectedObjectPosition;
+            EditorLogic.GizmoModes gizmoMode = editorData.GizmoMode;
 
             //Z
-            DrawArrow(position, Math.PI, 0,0, GetHoveredId()==1 ? 1 : 0.5f, Color.Blue, staticViewProjection); //z 1
-            DrawArrow(position, -Math.PI / 2, 0, 0, GetHoveredId()==2 ? 1 : 0.5f, Color.Green, staticViewProjection); //y 2
-            DrawArrow(position, 0, Math.PI / 2, 0,GetHoveredId()==3 ? 1 : 0.5f, Color.Red, staticViewProjection); //x 3
+            DrawArrow(position, Math.PI, 0, 0, GetHoveredId() == 1 ? 1 : 0.5f, Color.Blue, staticViewProjection, gizmoMode); //z 1
+            DrawArrow(position, -Math.PI / 2, 0, 0, GetHoveredId() == 2 ? 1 : 0.5f, Color.Green, staticViewProjection, gizmoMode); //y 2
+            DrawArrow(position, 0, Math.PI / 2, 0, GetHoveredId() == 3 ? 1 : 0.5f, Color.Red, staticViewProjection, gizmoMode); //x 3
+
+            //DrawArrowRound(position, Math.PI, 0, 0, GetHoveredId() == 1 ? 1 : 0.5f, Color.Blue, staticViewProjection); //z 1
+            //DrawArrowRound(position, -Math.PI / 2, 0, 0, GetHoveredId() == 2 ? 1 : 0.5f, Color.Green, staticViewProjection); //y 2
+            //DrawArrowRound(position, 0, Math.PI / 2, 0, GetHoveredId() == 3 ? 1 : 0.5f, Color.Red, staticViewProjection); //x 3
         }
 
-        private void DrawArrow(Vector3 Position, double AngleX, double AngleY, double AngleZ, float Scale, Color color, Matrix staticViewProjection)
+        private void DrawArrow(Vector3 Position, double AngleX, double AngleY, double AngleZ, float Scale, Color color, Matrix staticViewProjection, EditorLogic.GizmoModes gizmoMode)
         {
             Matrix Rotation = Matrix.CreateRotationX((float)AngleX) * Matrix.CreateRotationY((float)AngleY) *
                                Matrix.CreateRotationZ((float)AngleZ);
@@ -90,7 +95,12 @@ namespace EngineTest.Renderer.RenderModules
 
             Shaders.IdRenderEffectParameterWorldViewProj.SetValue(WorldViewProj);
             Shaders.IdRenderEffectParameterColorId.SetValue(color.ToVector4());
-            foreach (ModelMesh mesh in _assets.EditorArrow.Meshes)
+
+            Model model = gizmoMode == EditorLogic.GizmoModes.translation
+                ? _assets.EditorArrow
+                : _assets.EditorArrowRound;
+
+            foreach (ModelMesh mesh in model.Meshes)
             {
                 foreach (ModelMeshPart meshpart in mesh.MeshParts)
                 {
@@ -107,6 +117,7 @@ namespace EngineTest.Renderer.RenderModules
                 }
             }
         }
+
 
         public RenderTarget2D GetOutlines()
         {

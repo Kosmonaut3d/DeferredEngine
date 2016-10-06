@@ -5,7 +5,7 @@ namespace EngineTest.Recources.Helper
     static class IdGenerator
     {
         //start at 3, we need 123 for gizmos
-        static int _currentId = 3;
+        static int _currentId = 103;
 
         public static int GetNewId()
         {
