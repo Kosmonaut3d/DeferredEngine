@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using EngineTest.Entities;
 using EngineTest.Recources;
+using EngineTest.Renderer.Helper;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -56,7 +57,7 @@ namespace EngineTest.Main
         /// <param name="gameTime"></param>
         /// <param name="entities"></param>
         /// <param name="data"></param>
-        public void Update(GameTime gameTime, List<BasicEntity> entities, EditorReceivedData data)
+        public void Update(GameTime gameTime, List<BasicEntity> entities, EditorReceivedData data, MeshMaterialLibrary meshMaterialLibrary)
         {
             if (!GameSettings.Editor_enable) return;
 
@@ -98,6 +99,31 @@ namespace EngineTest.Main
                     }
                 }
 
+            }
+
+            //Controls
+
+            if (Input.WasKeyPressed(Keys.Delete))
+            {
+                    //Find object
+                    if (SelectedObject is BasicEntity)
+                    {
+                        entities.Remove((BasicEntity) SelectedObject);
+                        meshMaterialLibrary.DeleteFromRegistry((BasicEntity) SelectedObject);
+
+                        SelectedObject = null;
+                    }
+            }
+
+            if (Input.WasKeyPressed(Keys.Insert))
+            {
+                if (SelectedObject is BasicEntity)
+                {
+                    BasicEntity copy = SelectedObject.Clone;
+                    copy.RegisterInLibrary(meshMaterialLibrary);
+    
+                    entities.Add(copy);
+                }
             }
         }
 

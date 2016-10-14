@@ -220,7 +220,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : SV_Target
 float4 BilateralBlurVertical(VertexShaderOutputBlur input) : SV_TARGET
 {
     const uint numSamples = 9;
-    const float texelsize = InverseResolution.x; //Als erstes ermitteln wir die horizontale Texelsize. 
+    const float texelsize = InverseResolution.x; 
     const float samplerOffsets[numSamples] =
       { -4.0f, -3.0f, -2.0f, -1.0f, 0.0f, 1.0f, 2.0f, 3.0f, 4.0f };
     const float gaussianWeights[numSamples] =
@@ -236,10 +236,8 @@ float4 BilateralBlurVertical(VertexShaderOutputBlur input) : SV_TARGET
         0.012886, 0.051916, 0.051916, 0.012886,
     };
 
-    //Wie bereits erwähnt überspringen wir jeden zweiten Pixel. 
-      
     float compareDepth = DepthMap.Sample(texSampler, input.TexCoord).r;
-      //Tiefe des momentanen Pixels 
+
     float4 result = 0;
     float weightSum = 0.0f;
     [unroll]
@@ -247,21 +245,14 @@ float4 BilateralBlurVertical(VertexShaderOutputBlur input) : SV_TARGET
     {
         float2 sampleOffset = float2( texelsize * samplerOffsets[i],0);
         float2 samplePos = input.TexCoord + sampleOffset;
-           //Ermittle die Sampling-Position für den Gaussian-Blur. 
-           
+         
         float sampleDepth = DepthMap.Sample(texSampler, samplePos).r;
-           //Hole Tiefe für den aktuellen Sample. 
-           
+         
         float weight = (1.0f / (0.0001f + abs(compareDepth - sampleDepth))) * gaussianWeights[i];
-           //Berechne bilaterale Wichtung für den aktuellen Sample, je größer die Entfernung 
-           //vom momentanen Sample zum Quellsample, desto kleiner die Wichtung. 
-           //0.0001 wird addiert um ein teilen durch 0 zu verhindern. 
-           
+        
         result += SSAOMap.Sample(blurSamplerPoint, samplePos) * weight;
-           //Sample den Punkt und wichte ihn. 
-           
+        
         weightSum += weight;
-           //Addiere die Wichtung, damit später der Durchschnitt ermittelt werden kann. 
     }
 
    [unroll]
@@ -269,32 +260,26 @@ float4 BilateralBlurVertical(VertexShaderOutputBlur input) : SV_TARGET
     {
         float2 sampleOffset = float2(texelsize * samplerOffsets2[j],0);
         float2 samplePos = input.TexCoord + sampleOffset;
-           //Ermittle die Sampling-Position für den Gaussian-Blur. 
-           
+         
         float sampleDepth = DepthMap.Sample(texSampler, samplePos).r;
-           //Hole Tiefe für den aktuellen Sample. 
-           
+        
         float weight = (1.0f / (0.0001f + abs(compareDepth - sampleDepth))) * gaussianWeights2[j];
-           //Berechne bilaterale Wichtung für den aktuellen Sample, je größer die Entfernung 
-           //vom momentanen Sample zum Quellsample, desto kleiner die Wichtung. 
-           //0.0001 wird addiert um ein teilen durch 0 zu verhindern. 
-           
+          
         result += SSAOMap.Sample(blurSamplerLinear, samplePos, 0) * weight;
-           //Sample den Punkt und wichte ihn. 
-           
+          
         weightSum += weight;
-           //Addiere die Wichtung, damit später der Durchschnitt ermittelt werden kann. 
+         
     }
 
     result /= weightSum;
-      //Ermittle den Durchschnitt durch das Teilen durch die Wichtungssumme. 
+    
     return result;
 }
 
 float4 BilateralBlurHorizontal(VertexShaderOutputBlur input) : SV_TARGET
 {
     const uint numSamples = 9;
-    const float texelsize = InverseResolution.y; //Als erstes ermitteln wir die horizontale Texelsize. 
+    const float texelsize = InverseResolution.y;
     const float samplerOffsets[numSamples] =
       { -4.0f, -3.0f, -2.0f, -1.0f, 0.0f, 1.0f, 2.0f, 3.0f, 4.0f };
     const float gaussianWeights[numSamples] =
@@ -310,10 +295,8 @@ float4 BilateralBlurHorizontal(VertexShaderOutputBlur input) : SV_TARGET
         0.012886, 0.051916, 0.051916, 0.012886,
     };
 
-    //Wie bereits erwähnt überspringen wir jeden zweiten Pixel. 
-      
     float compareDepth = DepthMap.Sample(texSampler, input.TexCoord).r;
-      //Tiefe des momentanen Pixels 
+    
     float4 result = 0;
     float weightSum = 0.0f;
     [unroll]
@@ -321,21 +304,15 @@ float4 BilateralBlurHorizontal(VertexShaderOutputBlur input) : SV_TARGET
     {
         float2 sampleOffset = float2(0.0f, texelsize * samplerOffsets[i]);
         float2 samplePos = input.TexCoord + sampleOffset;
-           //Ermittle die Sampling-Position für den Gaussian-Blur. 
-           
+        
         float sampleDepth = DepthMap.Sample(texSampler, samplePos).r;
-           //Hole Tiefe für den aktuellen Sample. 
-           
+         
         float weight = (1.0f / (0.0001f + abs(compareDepth - sampleDepth))) * gaussianWeights[i];
-           //Berechne bilaterale Wichtung für den aktuellen Sample, je größer die Entfernung 
-           //vom momentanen Sample zum Quellsample, desto kleiner die Wichtung. 
-           //0.0001 wird addiert um ein teilen durch 0 zu verhindern. 
-           
+        
         result += SSAOMap.Sample(blurSamplerPoint, samplePos) * weight;
-           //Sample den Punkt und wichte ihn. 
-           
+         
         weightSum += weight;
-           //Addiere die Wichtung, damit später der Durchschnitt ermittelt werden kann. 
+          
     }
 
     [unroll]
@@ -343,25 +320,19 @@ float4 BilateralBlurHorizontal(VertexShaderOutputBlur input) : SV_TARGET
     {
         float2 sampleOffset = float2(0.0f, texelsize * samplerOffsets2[j]);
         float2 samplePos = input.TexCoord + sampleOffset;
-           //Ermittle die Sampling-Position für den Gaussian-Blur. 
-           
+         
         float sampleDepth = DepthMap.SampleLevel(texSampler, samplePos, 0).r;
-           //Hole Tiefe für den aktuellen Sample. 
-           
+          
         float weight = (1.0f / (0.0001f + abs(compareDepth - sampleDepth))) * gaussianWeights2[j];
-           //Berechne bilaterale Wichtung für den aktuellen Sample, je größer die Entfernung 
-           //vom momentanen Sample zum Quellsample, desto kleiner die Wichtung. 
-           //0.0001 wird addiert um ein teilen durch 0 zu verhindern. 
-           
+        
         result += SSAOMap.Sample(blurSamplerLinear, samplePos) * weight;
-           //Sample den Punkt und wichte ihn. 
-           
+          
         weightSum += weight;
-           //Addiere die Wichtung, damit später der Durchschnitt ermittelt werden kann. 
+         
     }
 
     result /= weightSum;
-      //Ermittle den Durchschnitt durch das Teilen durch die Wichtungssumme. 
+    
     return result;
 }
 

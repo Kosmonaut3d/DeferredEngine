@@ -46,7 +46,7 @@ namespace EngineTest.Recources
             }
         }
 
-        public static int g_ShadowForceFiltering = 0; //1 = PCF, 2 = Poisson, 3 = VSM;
+        public static int g_ShadowForceFiltering = 0; //1 = PCF, 2 3 better PCF  4 = Poisson, 5 = VSM;
         public static bool g_ShadowForceScreenSpace = false;
 
         private static float _ssao_falloffmin = 0.0001f;

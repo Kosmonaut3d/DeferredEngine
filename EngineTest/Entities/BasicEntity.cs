@@ -19,6 +19,8 @@ namespace EngineTest.Entities
         public abstract double AngleZ { get; set; }
         public abstract double AngleX { get; set; }
         public abstract double AngleY { get; set; }
+
+        public abstract BasicEntity Clone { get; }
     }
 
     public class BasicEntity : TransformableObject
@@ -88,6 +90,13 @@ namespace EngineTest.Entities
             }
         }
 
+        public override BasicEntity Clone {
+            get
+            {
+                return new BasicEntity(Model, Material, Position, AngleZ, AngleX, AngleY, Scale );   
+            }  
+        }
+
         public TransformMatrix WorldTransform;
         public Matrix RotationMatrix;
         public Matrix WorldOldMatrix;
@@ -96,7 +105,7 @@ namespace EngineTest.Entities
 
 
 
-        public BasicEntity(Model model, MaterialEffect material, Vector3 position, double angleZ, double angleX, double angleY, float scale, MeshMaterialLibrary library)
+        public BasicEntity(Model model, MaterialEffect material, Vector3 position, double angleZ, double angleX, double angleY, float scale, MeshMaterialLibrary library = null)
         {
             Id = IdGenerator.GetNewId();
             WorldTransform = new TransformMatrix(Matrix.Identity, Id);
@@ -110,9 +119,14 @@ namespace EngineTest.Entities
             Material = material;
             Model = model;
 
-            library.Register(Material, Model, WorldTransform);
-
+            if(library!=null)
+            RegisterInLibrary(library);
             
+        }
+
+        public void RegisterInLibrary(MeshMaterialLibrary library)
+        {
+            library.Register(Material, Model, WorldTransform);
         }
 
         public void Dispose(MeshMaterialLibrary library)
