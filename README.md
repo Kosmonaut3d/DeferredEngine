@@ -21,6 +21,8 @@ Controls:
 - " ^ " / the key above TAB : debug console with suggestions (tab to autocomplete)
 - Space: Go into editor mode 
   - R / T: Change transformation gizmos between translation and rotation
+  - Del : Delete object
+  - Insert : Copy object
 - WASD : move the camera
 - right mouse drag : rotate the camera
 - L : Spawn new point light
