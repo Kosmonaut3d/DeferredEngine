@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using EngineTest.Entities;
+using EngineTest.Entities.Editor;
 using EngineTest.Main;
 using EngineTest.Recources;
 using EngineTest.Renderer.Helper;
@@ -16,6 +18,8 @@ namespace EngineTest.Renderer.RenderModules
         public IdRenderer _idRenderer;
         public GraphicsDevice _graphicsDevice;
 
+        private BillboardBuffer _billboardBuffer;
+
         private Assets _assets;
 
         private double mouseMoved;
@@ -24,11 +28,11 @@ namespace EngineTest.Renderer.RenderModules
         public void Initialize(GraphicsDevice graphics, Assets assets)
         {
             _graphicsDevice = graphics;
-
-            _idRenderer = new IdRenderer();
-            _idRenderer.Initialize(graphics);
-
             _assets = assets;
+
+            _billboardBuffer = new BillboardBuffer(Color.White, graphics);
+            _idRenderer = new IdRenderer();
+            _idRenderer.Initialize(graphics, _billboardBuffer, _assets);
 
         }
 
@@ -54,24 +58,58 @@ namespace EngineTest.Renderer.RenderModules
             _idRenderer.SetUpRenderTarget(width, height);
         }
 
-        public void DrawIds(MeshMaterialLibrary meshMaterialLibrary, Matrix staticViewProjection, EditorLogic.EditorSendData editorData)
+        public void DrawBillboards(List<PointLight> lights, Matrix staticViewProjection, EditorLogic.EditorSendData sendData)
         {
-            _idRenderer.Draw(meshMaterialLibrary, staticViewProjection, editorData, mouseMovement, _assets);
+            int hoveredId = GetHoveredId();
+
+            _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+            _graphicsDevice.SetVertexBuffer(_billboardBuffer.VBuffer);
+            _graphicsDevice.Indices = (_billboardBuffer.IBuffer);
+
+            Shaders.BillboardEffectParameter_Texture.SetValue(_assets.Icon_Light);
+
+            Shaders.BillboardEffect.CurrentTechnique = Shaders.BillboardEffectTechnique_Billboard;
+
+            Shaders.BillboardEffectParameter_IdColor.SetValue(Color.Gray.ToVector3());
+
+            foreach (var light in lights)
+            {
+                Matrix world = Matrix.CreateTranslation(light.Position);
+                Shaders.BillboardEffectParameter_WorldViewProj.SetValue(world*staticViewProjection);
+
+                if (light.Id == GetHoveredId()) Shaders.BillboardEffectParameter_IdColor.SetValue(Color.White.ToVector3());
+                if (light.Id == sendData.SelectedObjectId) 
+                    Shaders.BillboardEffectParameter_IdColor.SetValue(Color.Gold.ToVector3());
+
+                Shaders.BillboardEffect.CurrentTechnique.Passes[0].Apply();
+
+                _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2);
+
+                if (light.Id == GetHoveredId() || light.Id == sendData.SelectedObjectId) Shaders.BillboardEffectParameter_IdColor.SetValue(Color.Gray.ToVector3());
+            }
         }
 
-        public void DrawEditorElements(MeshMaterialLibrary meshMaterialLibrary, Matrix staticViewProjection, EditorLogic.EditorSendData editorData)
+        public void DrawIds(MeshMaterialLibrary meshMaterialLibrary, List<PointLight>lights, Matrix staticViewProjection, EditorLogic.EditorSendData editorData)
         {
+            _idRenderer.Draw(meshMaterialLibrary, lights, staticViewProjection, editorData, mouseMovement);
+        }
+
+        public void DrawEditorElements(MeshMaterialLibrary meshMaterialLibrary, List<PointLight> lights, Matrix staticViewProjection, EditorLogic.EditorSendData editorData)
+        {
+            _graphicsDevice.SetRenderTarget(null);
+            _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+            _graphicsDevice.DepthStencilState = DepthStencilState.Default;
+            _graphicsDevice.BlendState = BlendState.Opaque;
+
             DrawGizmo(staticViewProjection, editorData);
+            DrawBillboards(lights, staticViewProjection, editorData);
         }
 
         public void DrawGizmo(Matrix staticViewProjection, EditorLogic.EditorSendData editorData)
         {
             if (editorData.SelectedObjectId == 0) return;
 
-            _graphicsDevice.SetRenderTarget(null);
-            _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
-            _graphicsDevice.DepthStencilState = DepthStencilState.Default;
-            _graphicsDevice.BlendState = BlendState.Opaque;
+            
 
             Vector3 position = editorData.SelectedObjectPosition;
             EditorLogic.GizmoModes gizmoMode = editorData.GizmoMode;
@@ -90,7 +128,7 @@ namespace EngineTest.Renderer.RenderModules
         {
             Matrix Rotation = Matrix.CreateRotationX((float)AngleX) * Matrix.CreateRotationY((float)AngleY) *
                                Matrix.CreateRotationZ((float)AngleZ);
-            Matrix ScaleMatrix = Matrix.CreateScale(Scale);
+            Matrix ScaleMatrix = Matrix.CreateScale(0.75f, 0.75f,Scale*1.5f);
             Matrix WorldViewProj = ScaleMatrix * Rotation * Matrix.CreateTranslation(Position) * staticViewProjection;
 
             Shaders.IdRenderEffectParameterWorldViewProj.SetValue(WorldViewProj);

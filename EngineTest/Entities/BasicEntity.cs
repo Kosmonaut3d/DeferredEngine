@@ -20,7 +20,7 @@ namespace EngineTest.Entities
         public abstract double AngleX { get; set; }
         public abstract double AngleY { get; set; }
 
-        public abstract BasicEntity Clone { get; }
+        public abstract TransformableObject Clone { get; }
     }
 
     public class BasicEntity : TransformableObject
@@ -90,7 +90,7 @@ namespace EngineTest.Entities
             }
         }
 
-        public override BasicEntity Clone {
+        public override TransformableObject Clone {
             get
             {
                 return new BasicEntity(Model, Material, Position, AngleZ, AngleX, AngleY, Scale );   

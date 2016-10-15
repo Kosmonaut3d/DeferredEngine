@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using EngineTest.Entities;
+using EngineTest.Recources.Helper;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace EngineTest.Recources
 {
-    public class PointLight
+    public class PointLight : TransformableObject
     {
         private Vector3 _position;
         public float _radius;
@@ -19,6 +21,8 @@ namespace EngineTest.Recources
 
         public int ShadowResolution;
         public bool StaticShadows;
+
+        private int _id;
 
         public RenderTargetCube shadowMapCube;
 
@@ -56,9 +60,11 @@ namespace EngineTest.Recources
             ShadowResolution = shadowResolution;
             StaticShadows = staticShadow;
 
+            Id = IdGenerator.GetNewId();
+
         }
 
-        public Vector3 Position
+        public override Vector3 Position
         {
             get { return _position; }
             set
@@ -67,6 +73,20 @@ namespace EngineTest.Recources
                 BoundingSphere.Center = value;
                 HasChanged = true;
             }
+        }
+
+        public override int Id
+        {
+            get { return _id; }
+            set { _id = value; }
+        }
+        public override double AngleZ { get; set; }
+        public override double AngleX { get; set; }
+        public override double AngleY { get; set; }
+
+        public override TransformableObject Clone
+        {
+            get { return new PointLight(Position, Radius, Color, Intensity, DrawShadow, ShadowResolution, StaticShadows);}
         }
 
         public float Radius

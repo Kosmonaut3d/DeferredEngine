@@ -57,7 +57,7 @@ namespace EngineTest.Main
         /// <param name="gameTime"></param>
         /// <param name="entities"></param>
         /// <param name="data"></param>
-        public void Update(GameTime gameTime, List<BasicEntity> entities, EditorReceivedData data, MeshMaterialLibrary meshMaterialLibrary)
+        public void Update(GameTime gameTime, List<BasicEntity> entities, List<PointLight> pointLights, EditorReceivedData data, MeshMaterialLibrary meshMaterialLibrary)
         {
             if (!GameSettings.Editor_enable) return;
 
@@ -89,13 +89,29 @@ namespace EngineTest.Main
                     SelectedObject = null;
                     return;
                 }
+
+                bool foundnew = false;
                 //Get the selected entity!
-                foreach (var VARIABLE in entities)
+                for (int index = 0; index < entities.Count; index++)
                 {
+                    var VARIABLE = entities[index];
                     if (VARIABLE.Id == hoveredId)
                     {
                         SelectedObject = VARIABLE;
+                        foundnew = true;
                         break;
+                    }
+                }
+                if (foundnew == false)
+                {
+                    for (int index = 0; index < pointLights.Count; index++)
+                    {
+                        PointLight pointLight = pointLights[index];
+                        if (pointLight.Id == hoveredId)
+                        {
+                            SelectedObject = pointLight;
+                            break;
+                        }
                     }
                 }
 
@@ -113,16 +129,30 @@ namespace EngineTest.Main
 
                         SelectedObject = null;
                     }
+
+                    else if (SelectedObject is PointLight)
+                    {
+                        pointLights.Remove((PointLight)SelectedObject);
+                        
+                        SelectedObject = null;
+                    }
             }
 
             if (Input.WasKeyPressed(Keys.Insert))
             {
                 if (SelectedObject is BasicEntity)
                 {
-                    BasicEntity copy = SelectedObject.Clone;
+                    BasicEntity copy = (BasicEntity)SelectedObject.Clone;
                     copy.RegisterInLibrary(meshMaterialLibrary);
     
                     entities.Add(copy);
+                }
+                else if (SelectedObject is PointLight)
+                {
+                    PointLight copy = (PointLight)SelectedObject.Clone;
+                    
+
+                    pointLights.Add(copy);
                 }
             }
         }

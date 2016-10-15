@@ -18,8 +18,19 @@ namespace EngineTest.Recources
 
         public static EffectPass IdRenderEffectDrawId;
         public static EffectPass IdRenderEffectDrawOutline;
-        
 
+        //Billboard Renderer
+
+        public static Effect BillboardEffect;
+        public static EffectParameter BillboardEffectParameter_WorldViewProj;
+        public static EffectParameter BillboardEffectParameter_AspectRatio;
+        public static EffectParameter BillboardEffectParameter_Texture;
+        public static EffectParameter BillboardEffectParameter_DepthMap;
+        public static EffectParameter BillboardEffectParameter_IdColor;
+
+        public static EffectTechnique BillboardEffectTechnique_Billboard;
+        public static EffectTechnique BillboardEffectTechnique_Id;
+        
         //Temporal AntiAliasing
 
         public static Effect TemporalAntiAliasingEffect;
@@ -209,7 +220,7 @@ namespace EngineTest.Recources
         public static EffectParameter virtualShadowMappingEffectParameter_WorldViewProj;
         public static EffectTechnique virtualShadowMappingEffect_Technique_Depth;
         public static EffectTechnique virtualShadowMappingEffect_Technique_VSM;
-        
+
 
         //SSR
 
@@ -234,6 +245,16 @@ namespace EngineTest.Recources
 
             IdRenderEffectDrawId = IdRenderEffect.Techniques["DrawId"].Passes[0];
             IdRenderEffectDrawOutline = IdRenderEffect.Techniques["DrawOutline"].Passes[0];
+
+            BillboardEffect = content.Load<Effect>("Shaders/Editor/BillboardEffect");
+            BillboardEffectParameter_WorldViewProj = BillboardEffect.Parameters["WorldViewProj"];
+            BillboardEffectParameter_AspectRatio = BillboardEffect.Parameters["AspectRatio"];
+            BillboardEffectParameter_Texture = BillboardEffect.Parameters["Texture"];
+            BillboardEffectParameter_DepthMap = BillboardEffect.Parameters["DepthMap"];
+            BillboardEffectParameter_IdColor = BillboardEffect.Parameters["IdColor"];
+
+            BillboardEffectTechnique_Billboard = BillboardEffect.Techniques["Billboard"];
+            BillboardEffectTechnique_Id = BillboardEffect.Techniques["Id"];
 
             //TAA
 

@@ -34,7 +34,7 @@ namespace EngineTest.Main
         public void Update(GameTime gameTime, bool isActive)
         {
             _logic.Update(gameTime, isActive);
-            _editorLogic.Update(gameTime, _logic.Entities, _editorReceivedDataBuffer, _logic.MeshMaterialLibrary);
+            _editorLogic.Update(gameTime, _logic.Entities, _logic.PointLights, _editorReceivedDataBuffer, _logic.MeshMaterialLibrary);
             _renderer.Update(gameTime, isActive);
 
             _debug.Update(gameTime);

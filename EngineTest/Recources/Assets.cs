@@ -49,6 +49,8 @@ namespace EngineTest.Recources
 
             public static Texture2D BaseTex;
 
+            public Texture2D Icon_Light;
+
             public Model SkullModel { get; set; }
 
             public Model HelmetModel { get; set; }
@@ -123,6 +125,8 @@ namespace EngineTest.Recources
                 sponza_curtain_metallic = content.Load<Texture2D>("Sponza/textures/sponza_curtain_metallic");
 
                 Sphere = content.Load<Model>("sphere");
+
+                Icon_Light = content.Load<Texture2D>("Art/Editor/icon_light");
 
                 ProcessSponza();
 

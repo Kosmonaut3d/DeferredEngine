@@ -207,7 +207,7 @@ namespace EngineTest.Renderer
 
             CombineTemporalAntialiasing();
                 
-            if(GameSettings.Editor_enable) _editorRender.DrawIds(meshMaterialLibrary, _staticViewProjection, editorData);
+            if(GameSettings.Editor_enable) _editorRender.DrawIds(meshMaterialLibrary, pointLights, _staticViewProjection, editorData);
             //Show certain buffer stages depending on user input
             RenderMode();
 
@@ -215,7 +215,8 @@ namespace EngineTest.Renderer
             {
                 DrawMapToScreenToFullScreen(_editorRender.GetOutlines(), BlendState.Additive);
 
-                _editorRender.DrawEditorElements(meshMaterialLibrary, _staticViewProjection, editorData);
+                _editorRender.DrawEditorElements(meshMaterialLibrary, pointLights, _staticViewProjection, editorData);
+
             }
 
 
@@ -1308,6 +1309,8 @@ namespace EngineTest.Renderer
             int target_width = (int) (width * ssmultiplier);
             int target_height = (int) (height * ssmultiplier);
 
+            Shaders.BillboardEffectParameter_AspectRatio.SetValue((float)target_width / target_height);
+
             _renderTargetAlbedo = new RenderTarget2D(_graphicsDevice, target_width,
                 target_height, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
 
@@ -1390,6 +1393,8 @@ namespace EngineTest.Renderer
 
         private void UpdateRenderMapBindings(bool onlyEssentials)
         {
+            Shaders.BillboardEffectParameter_DepthMap.SetValue(_renderTargetDepth);
+
             Shaders.deferredPointLightParameter_AlbedoMap.SetValue(_renderTargetAlbedo);
             Shaders.deferredPointLightParameter_DepthMap.SetValue(_renderTargetDepth);
             Shaders.deferredPointLightParameter_NormalMap.SetValue(_renderTargetNormal);
