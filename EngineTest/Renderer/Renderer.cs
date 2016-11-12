@@ -596,7 +596,7 @@ namespace EngineTest.Renderer
 
                 if (dirLightShadowed > 1)
                 {
-                    throw new NotImplementedException("Only one shadowed DirectionalLight is supported right now");
+                 //   throw new NotImplementedException("Only one shadowed DirectionalLight is supported right now");
                 }
             }
 

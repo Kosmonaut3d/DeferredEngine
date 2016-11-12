@@ -58,7 +58,7 @@ namespace EngineTest.Main
             //    //entities
             sponza = AddEntity(_assets.SponzaModel, Vector3.Zero, Math.PI/2, 0, 0, 0.1f);
             AddEntity(_assets.TestTubes, _assets.emissiveMaterial2, new Vector3(0, 0, 40), 0,0, 0, 1.8f);
-            drake = AddEntity(_assets.DragonUvSmoothModel, _assets.emissiveMaterial, new Vector3(40, -10, 0), Math.PI / 2, 0, 0, 10);
+            //drake = AddEntity(_assets.DragonUvSmoothModel, _assets.emissiveMaterial, new Vector3(40, -10, 0), Math.PI / 2, 0, 0, 10);
 
             AddEntity(_assets.DragonUvSmoothModel, _assets.silverMaterial, new Vector3(30, 10, 1), Math.PI / 2, 0, 0, 10);
 
@@ -91,17 +91,17 @@ namespace EngineTest.Main
             AddEntity(_assets.SkullModel, _assets.hologramMaterial, new Vector3(69, 8.5f, 13.5f), -Math.PI / 2, 0, Math.PI / 2 + 0.3f, 0.8f);
 
             //lights
-            //AddDirectionalLight(direction: new Vector3(0.2f, 0.2f, 1),
-            //    intensity: 20, 
-            //    color: Color.White, 
-            //    position: Vector3.UnitZ*0, 
-            //    drawShadows: true, 
-            //    shadowWorldSize: 250, 
-            //    shadowDepth: 180, 
-            //    shadowResolution: 2048, 
-            //    shadowFilteringFiltering: DirectionalLight.ShadowFilteringTypes.SoftPCF3x, 
-            //    screenspaceShadowBlur: false);
-
+            AddDirectionalLight(direction: new Vector3(0.2f, -0.2f, -1),
+                intensity: 20,
+                color: Color.White,
+                position: Vector3.UnitZ * 0,
+                drawShadows: true,
+                shadowWorldSize: 250,
+                shadowDepth: 180,
+                shadowResolution: 2048,
+                shadowFilteringFiltering: DirectionalLight.ShadowFilteringTypes.SoftPCF3x,
+                screenspaceShadowBlur: true);
+            
         }
 
 
