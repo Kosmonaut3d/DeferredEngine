@@ -85,6 +85,12 @@ namespace EngineTest.Recources
                 HelmetModel = content.Load<Model>("daft_helmets");
                 SkullModel = content.Load<Model>("skull");
 
+            // HOW TO ADD NEW MODELS WITH PRE-EXISTING ALBEDO TEXTURES
+
+               // HelmetModel = ProcessModel(HelmetModel);
+
+
+
                 SponzaTextures.Add(background_ddn = content.Load<Texture2D>("Sponza/textures/background_ddn"));
                 SponzaTextures.Add(chain_texture_ddn = content.Load<Texture2D>("Sponza/textures/chain_texture_ddn"));
                 SponzaTextures.Add(chain_texture_mask = content.Load<Texture2D>("Sponza/textures/chain_texture_mask"));
@@ -242,6 +248,33 @@ namespace EngineTest.Recources
                         meshPart.Effect = matEffect;
                     }
                 }
+            }
+
+            private Model ProcessModel(Model model)
+            {
+                foreach (ModelMesh mesh in model.Meshes)
+                {
+                    foreach (ModelMeshPart meshPart in mesh.MeshParts)
+                    {
+                        MaterialEffect matEffect = new MaterialEffect(meshPart.Effect);
+
+                        if (!(meshPart.Effect is BasicEffect))
+                        {
+                            throw new Exception("Can only process models with basic effect");    
+                        }
+                        
+                        BasicEffect oEffect = meshPart.Effect as BasicEffect;
+
+                        if (oEffect.TextureEnabled)
+                        matEffect.AlbedoMap = oEffect.Texture;
+
+                        matEffect.DiffuseColor = oEffect.DiffuseColor;
+
+                        meshPart.Effect = matEffect;
+                    }
+                }
+
+                return model;
             }
 
             //Assign specific materials to submeshes
