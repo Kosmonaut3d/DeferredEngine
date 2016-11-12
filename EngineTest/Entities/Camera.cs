@@ -11,7 +11,7 @@ namespace EngineTest.Renderer
     public class Camera
     {
         private Vector3 _position;
-        private Vector3 _up = -Vector3.UnitZ;
+        private Vector3 _up = Vector3.UnitZ;
         private Vector3 _forward = Vector3.Up;
         private float fieldOfView = (float) Math.PI/4;
 

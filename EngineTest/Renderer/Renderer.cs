@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using EngineTest.Entities;
 using EngineTest.Main;
 using EngineTest.Recources;
+using EngineTest.Recources.Helper;
 using EngineTest.Renderer.Helper;
 using EngineTest.Renderer.RenderModules;
 using Microsoft.Xna.Framework;
@@ -30,6 +31,7 @@ namespace EngineTest.Renderer
         private QuadRenderer _quadRenderer;
         private GaussianBlur _gaussianBlur;
         private EditorRender _editorRender;
+        private CPURayMarch _cpuRayMarch;
 
         //Checkvariables for change
         private float _supersampling = 1;
@@ -115,6 +117,9 @@ namespace EngineTest.Renderer
 
             _editorRender = new EditorRender();
             _editorRender.Initialize(graphicsDevice, assets);
+
+            _cpuRayMarch = new CPURayMarch();
+            _cpuRayMarch.Initialize(_graphicsDevice);
 
             //SetUpRenderTargets(_graphicsDevice.PresentationParameters.BackBufferWidth, _graphicsDevice.PresentationParameters.BackBufferHeight);
 
@@ -203,8 +208,6 @@ namespace EngineTest.Renderer
             //Combine the buffers
             Compose();
 
-            //DrawScreenSpaceEffect2(camera);
-
             CombineTemporalAntialiasing();
                 
             if(GameSettings.Editor_enable) _editorRender.DrawIds(meshMaterialLibrary, pointLights, _staticViewProjection, editorData);
@@ -219,7 +222,14 @@ namespace EngineTest.Renderer
 
             }
 
+            //DrawScreenSpaceEffect2(camera);
 
+            if(Input.WasKeyPressed(Keys.K))
+            _cpuRayMarch.Calculate(_renderTargetDepth, _renderTargetNormal, _inverseViewProjection, _viewProjection, camera);
+
+            _cpuRayMarch.Draw();
+
+            LineHelperManager.Draw(_graphicsDevice, _staticViewProjection);
 
             //Just some object culling, setting up for the next frame
             meshMaterialLibrary.FrustumCullingFinalizeFrame(entities);
@@ -477,7 +487,7 @@ namespace EngineTest.Renderer
             Shaders.ScreenSpaceEffect2Parameter_InverseViewProjection.SetValue(_inverseViewProjection);
             //Shaders.ScreenSpaceEffect2Parameter_Projection.SetValue(_projection);
             Shaders.ScreenSpaceEffect2Parameter_ViewProjection.SetValue(_viewProjection);
-            //Shaders.ScreenSpaceEffectParameter_CameraPosition.SetValue(camera.Position);
+            Shaders.ScreenSpaceEffect2Parameter_CameraPosition.SetValue(camera.Position);
 
             //Shaders.ScreenSpaceEffect.CurrentTechnique = Shaders.ScreenSpaceEffectTechnique_SSAO;
             Shaders.ScreenSpaceEffect2.CurrentTechnique.Passes[0].Apply();

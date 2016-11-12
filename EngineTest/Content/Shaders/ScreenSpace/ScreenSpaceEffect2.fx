@@ -3,6 +3,7 @@
 
 float4x4 ViewProjection;
 float4x4 InverseViewProjection;
+float3 CameraPosition;
 
 Texture2D DepthMap;
 Texture2D TargetMap;
@@ -96,8 +97,8 @@ float4 PixelShaderFunction(VertexShaderOutput input) : SV_Target
     float4 positionWS = mul(positionVS, InverseViewProjection);
     positionWS /= positionWS.w;
 
-    float3 incident = normalize(input.viewDirWS);
-    
+   // float3 incident = normalize(input.viewDirWS);
+    float3 incident = normalize(positionWS.xyz - CameraPosition);
 
     float3 reflectVector = reflect(incident, normal);
     // go

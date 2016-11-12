@@ -49,18 +49,18 @@ namespace EngineTest.Main
         {
             _assets = assets;
 
-            Camera = new Camera(new Vector3(-80, 0, -10), new Vector3(1, 0, -10));
+            Camera = new Camera(new Vector3(-80, 0, 10), new Vector3(1, 0, -10));
             MeshMaterialLibrary = new MeshMaterialLibrary();
 
             ////////////////////////////////////////////////////////////////////////
             //Sponza scene
             
             //    //entities
-            sponza = AddEntity(_assets.SponzaModel, Vector3.Zero, -Math.PI/2, 0, 0, 0.1f);
-            AddEntity(_assets.TestTubes, _assets.emissiveMaterial2, new Vector3(0, 0, -40), -Math.PI, -Math.PI/2, 0, 1.8f);
-            drake = AddEntity(_assets.DragonUvSmoothModel, _assets.emissiveMaterial, new Vector3(40, -10, 0), -Math.PI / 2, 0, 0, 10);
+            sponza = AddEntity(_assets.SponzaModel, Vector3.Zero, Math.PI/2, 0, 0, 0.1f);
+            AddEntity(_assets.TestTubes, _assets.emissiveMaterial2, new Vector3(0, 0, 40), 0,0, 0, 1.8f);
+            drake = AddEntity(_assets.DragonUvSmoothModel, _assets.emissiveMaterial, new Vector3(40, -10, 0), Math.PI / 2, 0, 0, 10);
 
-            AddEntity(_assets.DragonUvSmoothModel, _assets.silverMaterial, new Vector3(30, 10, 1), -Math.PI / 2, 0, 0, 10);
+            AddEntity(_assets.DragonUvSmoothModel, _assets.silverMaterial, new Vector3(30, 10, 1), Math.PI / 2, 0, 0, 10);
 
             //AddEntity(_assets.HelmetModel, new Vector3(70, 0, -10), -Math.PI / 2, 0, -Math.PI / 2, 1);
 
@@ -69,7 +69,7 @@ namespace EngineTest.Main
             //AddEntity(_assets.SkullModel, _assets.hologramMaterial, new Vector3(69, 8.5f, -6.5f), -Math.PI / 2, 0, Math.PI / 2 + 0.3f, 0.8f);
 
             //    //lights
-            shadowLight = AddPointLight(position: new Vector3(-80, 2, -20), radius: 50, color: Color.Wheat, intensity: 20, castShadows: true);
+            shadowLight = AddPointLight(position: new Vector3(-80, 2, 20), radius: 50, color: Color.Wheat, intensity: 20, castShadows: true);
 
             //AddPointLight(position: new Vector3(-20, 0, -40), radius: 120, color: Color.White, intensity: 10, castShadows: false, shadowResolution: 1024, staticShadow: true);
 
@@ -84,11 +84,11 @@ namespace EngineTest.Main
 
             //entities
             //AddEntity(_assets.Plane, new Vector3(0, 0, 0), 0, 0, 0, 200);
-            AddEntity(_assets.HelmetModel, new Vector3(70, 0, -10), -Math.PI / 2, 0, -Math.PI / 2, 1);
+            AddEntity(_assets.HelmetModel, new Vector3(70, 0, 10), -Math.PI / 2, 0, -Math.PI / 2, 1);
             
             //Hologram skulls
-            AddEntity(_assets.SkullModel, _assets.hologramMaterial, new Vector3(69, 0, -6.5f), -Math.PI / 2, 0, Math.PI / 2 + 0.3f, 0.9f);
-            AddEntity(_assets.SkullModel, _assets.hologramMaterial, new Vector3(69, 8.5f, -6.5f), -Math.PI / 2, 0, Math.PI / 2 + 0.3f, 0.8f);
+            AddEntity(_assets.SkullModel, _assets.hologramMaterial, new Vector3(69, 0, 13.5f), -Math.PI / 2, 0, Math.PI / 2 + 0.3f, 0.9f);
+            AddEntity(_assets.SkullModel, _assets.hologramMaterial, new Vector3(69, 8.5f, 13.5f), -Math.PI / 2, 0, Math.PI / 2 + 0.3f, 0.8f);
 
             //lights
             //AddDirectionalLight(direction: new Vector3(0.2f, 0.2f, 1),

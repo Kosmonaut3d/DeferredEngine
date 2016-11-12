@@ -30,7 +30,11 @@ namespace EngineTest.Recources
 
         public static EffectTechnique BillboardEffectTechnique_Billboard;
         public static EffectTechnique BillboardEffectTechnique_Id;
-        
+
+        //Lines
+        public static Effect LineEffect;
+        public static EffectParameter LineEffectParameter_WorldViewProj;
+
         //Temporal AntiAliasing
 
         public static Effect TemporalAntiAliasingEffect;
@@ -76,6 +80,7 @@ namespace EngineTest.Recources
         public static EffectParameter ScreenSpaceEffect2Parameter_NormalMap;
         public static EffectParameter ScreenSpaceEffect2Parameter_ViewProjection;
         public static EffectParameter ScreenSpaceEffect2Parameter_InverseViewProjection;
+        public static EffectParameter ScreenSpaceEffect2Parameter_CameraPosition;
 
         //Screen Space Effect
 
@@ -220,6 +225,7 @@ namespace EngineTest.Recources
         public static EffectParameter virtualShadowMappingEffectParameter_WorldViewProj;
         public static EffectTechnique virtualShadowMappingEffect_Technique_Depth;
         public static EffectTechnique virtualShadowMappingEffect_Technique_VSM;
+        
 
 
         //SSR
@@ -255,6 +261,9 @@ namespace EngineTest.Recources
 
             BillboardEffectTechnique_Billboard = BillboardEffect.Techniques["Billboard"];
             BillboardEffectTechnique_Id = BillboardEffect.Techniques["Id"];
+
+            LineEffect = content.Load<Effect>("Shaders/Editor/LineEffect");
+            LineEffectParameter_WorldViewProj = LineEffect.Parameters["WorldViewProj"];
 
             //TAA
 
@@ -295,6 +304,7 @@ namespace EngineTest.Recources
             ScreenSpaceEffect2Parameter_DepthMap = ScreenSpaceEffect2.Parameters["DepthMap"];
             ScreenSpaceEffect2Parameter_NormalMap = ScreenSpaceEffect2.Parameters["NormalMap"];
             ScreenSpaceEffect2Parameter_TargetMap = ScreenSpaceEffect2.Parameters["TargetMap"];
+            ScreenSpaceEffect2Parameter_CameraPosition = ScreenSpaceEffect2.Parameters["CameraPosition"];
             ScreenSpaceEffect2Parameter_ViewProjection = ScreenSpaceEffect2.Parameters["ViewProjection"];
             ScreenSpaceEffect2Parameter_InverseViewProjection = ScreenSpaceEffect2.Parameters["InverseViewProjection"];
 

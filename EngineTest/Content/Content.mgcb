@@ -1024,3 +1024,9 @@
 /processorParam:TextureFormat=Color
 /build:Art/Editor/icon_light.png
 
+#begin Shaders/Editor/LineEffect.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/Editor/LineEffect.fx
+
