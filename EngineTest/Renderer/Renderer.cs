@@ -591,12 +591,13 @@ namespace EngineTest.Renderer
 
                     camera.HasChanged = true;
                     light.HasChanged = false;
-                    dirLightShadowed++;
+
+                    if(light.ScreenSpaceShadowBlur) dirLightShadowed++;
                 }
 
                 if (dirLightShadowed > 1)
                 {
-                 //   throw new NotImplementedException("Only one shadowed DirectionalLight is supported right now");
+                    throw new NotImplementedException("Only one shadowed DirectionalLight with screen space blur is supported right now");
                 }
             }
 
