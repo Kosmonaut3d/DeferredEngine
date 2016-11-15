@@ -60,6 +60,8 @@ namespace EngineTest.Main
             AddEntity(_assets.TestTubes, _assets.emissiveMaterial2, new Vector3(0, 0, 40), 0,0, 0, 1.8f);
             //drake = AddEntity(_assets.DragonUvSmoothModel, _assets.emissiveMaterial, new Vector3(40, -10, 0), Math.PI / 2, 0, 0, 10);
 
+            //AddEntity(_assets.Stormtrooper, _assets.stormtrooperMaterial, new Vector3(40, 0, 10), Math.PI / 2, 0, 0, 10);
+
             AddEntity(_assets.DragonUvSmoothModel, _assets.silverMaterial, new Vector3(30, 10, 1), Math.PI / 2, 0, 0, 10);
 
             //AddEntity(_assets.HelmetModel, new Vector3(70, 0, -10), -Math.PI / 2, 0, -Math.PI / 2, 1);

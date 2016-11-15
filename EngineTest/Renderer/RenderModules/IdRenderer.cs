@@ -139,7 +139,7 @@ namespace EngineTest.Renderer.RenderModules
             Vector3 position = editorData.SelectedObjectPosition;
 
             //Z
-            DrawArrow(position, Math.PI, 0, 0, 0.5f, new Color(1,0,0), staticViewProjection, _assets);
+            DrawArrow(position, 0, 0, 0, 0.5f, new Color(1,0,0), staticViewProjection, _assets);
             DrawArrow(position, -Math.PI / 2, 0, 0, 0.5f, new Color(2, 0, 0), staticViewProjection, _assets);
             DrawArrow(position, 0, Math.PI / 2, 0, 0.5f, new Color(3, 0, 0), staticViewProjection, _assets);
         }

@@ -125,7 +125,7 @@ namespace EngineTest.Renderer
 
             _assets = assets;
 
-            GameSettings.ApplySSAO();
+            GameSettings.ApplySettings();
 
             SetUpRenderTargets(GameSettings.g_ScreenWidth, GameSettings.g_ScreenHeight, false);
         }
@@ -404,6 +404,8 @@ namespace EngineTest.Renderer
                     {
                         DrawMapToScreenToFullScreen(_renderTargetFinal);
                     }
+
+                    DrawPostProcessing();
                     break;
             }
         }
@@ -416,7 +418,7 @@ namespace EngineTest.Renderer
 
             _spriteBatch.Begin(0,BlendState.Additive);
 
-            _spriteBatch.Draw(_renderTargetScreenSpaceEffect, new Rectangle(0,0,GameSettings.g_ScreenWidth, GameSettings.g_ScreenHeight), Color.Red);
+            _spriteBatch.Draw(_renderTargetScreenSpaceEffect, new Rectangle(0,0,(int) (GameSettings.g_ScreenWidth * GameSettings.g_supersampling), (int) (GameSettings.g_ScreenHeight * GameSettings.g_supersampling)), Color.Red);
 
             _spriteBatch.End();
 
@@ -496,6 +498,31 @@ namespace EngineTest.Renderer
             DrawMapToScreenToFullScreen(_renderTargetScreenSpaceEffect2);
 
 
+        }
+
+        private void DrawPostProcessing()
+        {
+            RenderTarget2D baseRenderTarget;
+
+            if (GameSettings.g_TemporalAntiAliasing)
+            {
+                baseRenderTarget = (_temporalAAOffFrame ? _renderTargetFinal2 : _renderTargetFinal);
+            }
+            else
+            {
+                baseRenderTarget = _renderTargetFinal;
+            }
+
+            Shaders.PostProcessingParameter_ScreenTexture.SetValue(baseRenderTarget);
+            _graphicsDevice.SetRenderTarget(_renderTargetScreenSpaceEffectPrepareBlur);
+
+            _graphicsDevice.DepthStencilState = DepthStencilState.Default;
+            _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+            
+            Shaders.PostProcessing.CurrentTechnique.Passes[0].Apply();
+            _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+
+            DrawMapToScreenToFullScreen(_renderTargetScreenSpaceEffectPrepareBlur);
         }
 
         private void DrawEmissiveEffect(List<BasicEntity> entities, Camera camera, MeshMaterialLibrary meshMatLib, GameTime gameTime)

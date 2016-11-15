@@ -76,6 +76,37 @@ namespace EngineTest.Recources
         public static bool Editor_enable = false;
         public static bool h_DrawLines = true;
 
+        // PostProcessing
+
+        private static float _chromaticAbberationStrength = 0.004f;
+        public static float ChromaticAbberationStrength
+        {
+            get { return _chromaticAbberationStrength; }
+            set
+            {
+                _chromaticAbberationStrength = value;
+                Shaders.PostProcessingParameter_ChromaticAbberationStrength.SetValue(_chromaticAbberationStrength);
+
+                if(_chromaticAbberationStrength<=0)
+                Shaders.PostProcessing.CurrentTechnique = Shaders.PostProcessingTechnique_Vignette;
+                else
+                {
+                    Shaders.PostProcessing.CurrentTechnique = Shaders.PostProcessingTechnique_VignetteChroma;
+                }
+            }
+        }
+
+        private static float _sCurveStrength = 0.05f;
+        public static float SCurveStrength
+        {
+            get { return _sCurveStrength; }
+            set
+            {
+                _sCurveStrength = value;
+                Shaders.PostProcessingParameter_SCurveStrength.SetValue(_sCurveStrength);
+            }
+        }
+
         // Screen Space Ambient Occlusion
 
         public static bool ssao_Active
@@ -138,6 +169,15 @@ namespace EngineTest.Recources
                 _ssao_strength = value;
                 Shaders.ScreenSpaceEffect_Strength.SetValue(value);
             }
+        }
+
+
+        public static void ApplySettings()
+        {
+            ApplySSAO();
+
+            SCurveStrength = _sCurveStrength;
+            ChromaticAbberationStrength = _chromaticAbberationStrength;
         }
 
         public static void ApplySSAO()

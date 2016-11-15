@@ -446,7 +446,7 @@ namespace EngineTest.Renderer.Helper
                             Shaders.GBufferEffectParameter_Material_NormalMap.SetValue(material.NormalMap);
                             Shaders.GBufferEffectParameter_Material_Specular.SetValue(material.RoughnessMap);
                             Shaders.GBufferEffect.CurrentTechnique =
-                                Shaders.GBufferEffectTechniques_DrawTextureSpecularNormalMask;
+                            Shaders.GBufferEffectTechniques_DrawTextureSpecularNormalMask;
                         }
 
                         else if (material.HasNormal)
@@ -492,7 +492,7 @@ namespace EngineTest.Renderer.Helper
                             Shaders.GBufferEffectParameter_Material_NormalMap.SetValue(material.NormalMap);
                             Shaders.GBufferEffectParameter_Material_Specular.SetValue(material.RoughnessMap);
                             Shaders.GBufferEffect.CurrentTechnique =
-                                Shaders.GBufferEffectTechniques_DrawTextureSpecularNormal;
+                            Shaders.GBufferEffectTechniques_DrawTextureSpecularNormal;
                         }
 
                         else if (material.HasNormal && material.HasDiffuse)

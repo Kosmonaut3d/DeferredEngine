@@ -51,6 +51,10 @@ namespace EngineTest.Recources
 
             public Texture2D Icon_Light;
 
+            //public Model JackJean;
+
+            //public Model Stormtrooper;
+
             public Model SkullModel { get; set; }
 
             public Model HelmetModel { get; set; }
@@ -74,6 +78,8 @@ namespace EngineTest.Recources
             public MaterialEffect silverMaterial;
             public MaterialEffect hologramMaterial;
 
+            public MaterialEffect stormtrooperMaterial;
+
             public void Load(ContentManager content, GraphicsDevice graphicsDevice)
             {
                 BaseTex = new Texture2D(graphicsDevice, 1, 1);
@@ -85,6 +91,10 @@ namespace EngineTest.Recources
                 HelmetModel = content.Load<Model>("daft_helmets");
                 SkullModel = content.Load<Model>("skull");
 
+                //JackJean = content.Load<Model>("Art/Skinned/JackJean");
+                //JackJean = ProcessModel(JackJean);
+
+                //Stormtrooper = content.Load<Model>("Art/test/stormtrooper");
             // HOW TO ADD NEW MODELS WITH PRE-EXISTING ALBEDO TEXTURES
 
                // HelmetModel = ProcessModel(HelmetModel);
@@ -157,7 +167,16 @@ namespace EngineTest.Recources
 
                 emissiveMaterial = CreateMaterial(Color.White, 0.2f, 1, null, null, null, null, null, MaterialEffect.MaterialTypes.Emissive, 1.5f);
 
-                emissiveMaterial2 = CreateMaterial(Color.LimeGreen, 0.2f, 1, null, null, null, null, null, MaterialEffect.MaterialTypes.Emissive, 0.8f);
+                emissiveMaterial2 = CreateMaterial(Color.Red, 0.2f, 1, null, null, null, null, null, MaterialEffect.MaterialTypes.Emissive, 0.8f);
+
+                //stormtrooperMaterial = CreateMaterial(Color.White, 1, 0,
+                //    content.Load<Texture2D>("Art/test/stormtrooper_albedo"),
+                //    content.Load<Texture2D>("Art/test/stormtrooper_normal"),
+                //    content.Load<Texture2D>("Art/test/stormtrooper_roughness"),
+                //    content.Load<Texture2D>("Art/test/stormtrooper_metalness"),
+                //    null,
+                //    MaterialEffect.MaterialTypes.Basic
+                //);
 
                 goldMaterial = CreateMaterial(Color.Gold, 0.2f, 1);
 

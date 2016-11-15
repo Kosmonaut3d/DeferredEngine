@@ -138,8 +138,7 @@ namespace EngineTest.Renderer.Helper
             if (cmds.Length < 2) return false;
             if (prop != null)
             {
-
-
+                
                 Object value = ConvertStringToType(cmds[1], prop.FieldType);
                 
                 if (cmds.Length > 0 && value != null)
@@ -159,29 +158,7 @@ namespace EngineTest.Renderer.Helper
                     if (propinfo != null)
                     {
                         string type = propinfo.PropertyType.ToString();
-                        switch (type)
-                        {
-                            case "System.Double":
-                                {
-                                    value = Convert.ToDouble(cmds[1]);
-                                    break;
-                                }
-                            case "System.Single":
-                                {
-                                    value = Convert.ToSingle(cmds[1]);
-                                    break;
-                                }
-                            case "System.Int32":
-                                {
-                                    value = Convert.ToInt32(cmds[1]);
-                                    break;
-                                }
-                            case "System.Boolean":
-                                {
-                                    value = Convert.ToBoolean(cmds[1]);
-                                    break;
-                                }
-                        }
+                        value = ConvertStringToType(cmds[1], propinfo.PropertyType);
                     }
                 }
                 catch (Exception)
@@ -432,12 +409,16 @@ namespace EngineTest.Renderer.Helper
                 {
                     case "System.Double":
                         {
+                            if (input.Contains('.'))
+                                input = input.Replace('.', ',');
                             output = Convert.ToDouble(input);
                             break;
                         }
                     case "System.Single":
-                        {
-                            output = Convert.ToSingle(input);
+                    {
+                        if(input.Contains('.'))
+                            input = input.Replace('.', ',');
+                        output = Convert.ToSingle(input);
                             break;
                         }
                     case "System.Int32":

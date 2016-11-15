@@ -43,6 +43,17 @@ namespace EngineTest.Recources
         public static EffectParameter TemporalAntiAliasingEffect_AccumulationMap;
         public static EffectParameter TemporalAntiAliasingEffect_CurrentToPrevious;
 
+        //Vignette and CA
+
+        public static Effect PostProcessing;
+
+        public static EffectParameter PostProcessingParameter_ScreenTexture;
+        public static EffectParameter PostProcessingParameter_ChromaticAbberationStrength;
+        public static EffectParameter PostProcessingParameter_SCurveStrength;
+
+        public static EffectTechnique PostProcessingTechnique_Vignette;
+        public static EffectTechnique PostProcessingTechnique_VignetteChroma;
+
         //Hologram
 
         public static Effect HologramEffect;
@@ -272,6 +283,17 @@ namespace EngineTest.Recources
             TemporalAntiAliasingEffect_AccumulationMap = TemporalAntiAliasingEffect.Parameters["AccumulationMap"];
             TemporalAntiAliasingEffect_DepthMap = TemporalAntiAliasingEffect.Parameters["DepthMap"];
             TemporalAntiAliasingEffect_CurrentToPrevious = TemporalAntiAliasingEffect.Parameters["CurrentToPrevious"];
+
+            //Post
+
+            PostProcessing = content.Load<Effect>("Shaders/PostProcessing/PostProcessing");
+
+            PostProcessingParameter_ChromaticAbberationStrength =
+                PostProcessing.Parameters["ChromaticAbberationStrength"];
+            PostProcessingParameter_SCurveStrength = PostProcessing.Parameters["SCurveStrength"];
+            PostProcessingParameter_ScreenTexture = PostProcessing.Parameters["ScreenTexture"];
+            PostProcessingTechnique_Vignette = PostProcessing.Techniques["Vignette"];
+            PostProcessingTechnique_VignetteChroma = PostProcessing.Techniques["VignetteChroma"];
 
             //Hologram Effect
             HologramEffect = content.Load<Effect>("Shaders/Hologram/HologramEffect");
