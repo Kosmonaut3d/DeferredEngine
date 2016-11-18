@@ -268,6 +268,9 @@ namespace EngineTest.Renderer
             Shaders.TemporalAntiAliasingEffect_UpdateMap.SetValue(_renderTargetFinal);
             Shaders.TemporalAntiAliasingEffect_CurrentToPrevious.SetValue(_currentToPrevious);
 
+            //Shaders.TemporalAntiAliasingEffect_CurrentToPrevious.SetValue(_inverseViewProjection);
+            //Shaders.TemporalAntiAliasingEffect.Parameters["PreviousViewProjection"].SetValue(_previousViewProjection);
+
             Shaders.TemporalAntiAliasingEffect.CurrentTechnique.Passes[0].Apply();
             _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
 
@@ -1244,6 +1247,7 @@ namespace EngineTest.Renderer
                 _staticViewProjection = _viewProjection;
 
                 _currentToPrevious = Matrix.Invert(_viewProjection)*_previousViewProjection;
+                //_currentToPrevious = Matrix.Invert(_previousViewProjection) * _viewProjection;
 
                 _previousViewProjection = _viewProjection;
 

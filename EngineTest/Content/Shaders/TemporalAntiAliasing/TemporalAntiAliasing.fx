@@ -1,6 +1,8 @@
 ﻿
 float4x4 CurrentToPrevious;
 
+float4x4 PreviousViewProjection;
+
 Texture2D DepthMap;
 Texture2D AccumulationMap;
 Texture2D UpdateMap;
@@ -64,11 +66,16 @@ float4 PixelShaderFunction(VertexShaderOutput input) : SV_Target
     
     float depthVal = 1 - DepthMap.Sample(texSampler, texCoord).r;
 
-    //Convert to WS and then back to previous VS
     positionVS.w = 1.0f;
     positionVS.z = depthVal;
     float4 previousPositionVS = mul(positionVS, CurrentToPrevious);
     previousPositionVS /= previousPositionVS.w;
+
+    //float4 PositionWS = mul(positionVS, CurrentToPrevious);
+    //PositionWS /= PositionWS.w;
+
+    //float4 previousPositionVS = mul(PositionWS, PreviousViewProjection);
+    //previousPositionVS /= previousPositionVS.w;
 
     float2 sampleTexCoord = 0.5f * (float2(previousPositionVS.x, -previousPositionVS.y) + 1);
 
@@ -91,7 +98,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : SV_Target
     //overlap
     float overlap = dot(accumulationColorSample.rgb, updatedColorSample.rgb);
 
-    float overlapThreshold = (alpha) * 0.1f + 0.0000000000005f;
+    float overlapThreshold = (alpha) * 0.2f + 0.0000000000005f;
 
     bool foundOverlap = overlap > overlapThreshold;
 
@@ -127,12 +134,12 @@ float4 PixelShaderFunction(VertexShaderOutput input) : SV_Target
     //    return float4(updatedColorSample.rgb, 0);
 
     //alpha = 1 - 0.1f;
-    alpha = min(alpha+(1 - alpha) / 2, 0.9f);
+    alpha = min(1 - 1 / (1 / (1 - alpha) + 1), 0.9375);
 
-    if (!foundOverlap)
-        alpha = alpha/2;
+    //if (!foundOverlap)
+    //    alpha = alpha/2;
 
-    if (abs(previousPositionVS.z / depthVal - 1) > 0.000001)
+    if (abs(previousPositionVS.z - depthVal) > 0.00001)
         alpha = 0;
     //if ()
     //    alpha = 0;
