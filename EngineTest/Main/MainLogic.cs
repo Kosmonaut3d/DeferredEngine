@@ -57,7 +57,7 @@ namespace EngineTest.Main
             
             //    //entities
             sponza = AddEntity(_assets.SponzaModel, Vector3.Zero, Math.PI/2, 0, 0, 0.1f);
-            AddEntity(_assets.TestTubes, _assets.emissiveMaterial2, new Vector3(0, 0, 40), 0,0, 0, 1.8f);
+            //AddEntity(_assets.TestTubes, _assets.emissiveMaterial2, new Vector3(0, 0, 40), 0,0, 0, 1.8f);
             //drake = AddEntity(_assets.DragonUvSmoothModel, _assets.emissiveMaterial, new Vector3(40, -10, 0), Math.PI / 2, 0, 0, 10);
 
             //AddEntity(_assets.Stormtrooper, _assets.stormtrooperMaterial, new Vector3(40, 0, 10), Math.PI / 2, 0, 0, 10);

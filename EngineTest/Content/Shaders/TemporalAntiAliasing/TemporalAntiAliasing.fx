@@ -3,6 +3,9 @@ float4x4 CurrentToPrevious;
 
 Texture2D DepthMap;
 Texture2D AccumulationMap;
+Texture2D UpdateMap;
+
+float2 Resolution = { 1280, 800 };
 
 SamplerState texSampler
 {
@@ -69,7 +72,74 @@ float4 PixelShaderFunction(VertexShaderOutput input) : SV_Target
 
     float2 sampleTexCoord = 0.5f * (float2(previousPositionVS.x, -previousPositionVS.y) + 1);
 
-    return AccumulationMap.Sample(linearSampler, sampleTexCoord);
+    //Check how much they match
+
+    float4 updatedColorSample = UpdateMap.Sample(texSampler, texCoord);
+
+    //
+
+    //float4 accumulationColorSample = AccumulationMap.Sample(linearSampler, sampleTexCoord);
+
+    int3 sampleTexCoordInt = int3(sampleTexCoord * Resolution, 0);
+
+    float4 accumulationColorSample = AccumulationMap.Load(sampleTexCoordInt);
+
+    float alpha = accumulationColorSample.a;
+
+    //static float overlapThreshold = 0.05f;
+
+    //overlap
+    float overlap = dot(accumulationColorSample.rgb, updatedColorSample.rgb);
+
+    float overlapThreshold = (alpha) * 0.1f + 0.0000000000005f;
+
+    bool foundOverlap = overlap > overlapThreshold;
+
+    if(!foundOverlap)
+    [branch]
+    for (int x = -1; x <= 1; x++)
+        {
+        [branch]
+            for (int y = -1; y <= 1; y++)
+            {
+            
+                if (x == 0 && y == 0)
+                {
+                    continue;
+                }
+
+                float4 accumulationColorSampleNeighbour = AccumulationMap.Load(sampleTexCoordInt + int3(x, y, 0));
+
+                float overlap = dot(accumulationColorSampleNeighbour.rgb, updatedColorSample.rgb);
+    
+                if (overlap > overlapThreshold)
+                {
+                    foundOverlap = true;
+                    break;
+                }
+            }
+
+            if (foundOverlap)
+                break;
+        }
+
+    //if(!foundOverlap)
+    //    return float4(updatedColorSample.rgb, 0);
+
+    //alpha = 1 - 0.1f;
+    alpha = min(alpha+(1 - alpha) / 2, 0.9f);
+
+    if (!foundOverlap)
+        alpha = alpha/2;
+
+    if (abs(previousPositionVS.z / depthVal - 1) > 0.000001)
+        alpha = 0;
+    //if ()
+    //    alpha = 0;
+
+    return float4(lerp(updatedColorSample.rgb, accumulationColorSample.rgb, alpha), alpha);
+
+    //return AccumulationMap.Sample(linearSampler, sampleTexCoord);
 }
 
 technique TAA

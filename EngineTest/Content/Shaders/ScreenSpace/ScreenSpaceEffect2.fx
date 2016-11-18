@@ -406,10 +406,10 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
                
         if (depthValRay < rayPositionVS.z && ((Offset.z > 0 && depthValRay > startingDepth) || (Offset.z < 0 && depthValRay < startingDepth)))
 		{
-			//int3 texCoordInt = int3(sampleTexCoord * resolution, 0);
-			//float4 albedoColor = TargetMap.Load(texCoordInt);
+			int3 texCoordInt = int3(sampleTexCoord * resolution, 0);
+			float4 albedoColor = TargetMap.Load(texCoordInt);
 
-            float4 albedoColor = TargetMap.SampleLevel(texSampler, sampleTexCoord, roughness*5);
+            //float4 albedoColor = TargetMap.SampleLevel(texSampler, sampleTexCoord, roughness*5*i);
 
 			output = albedoColor;
 			output.a = 1;

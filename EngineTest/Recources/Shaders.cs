@@ -41,7 +41,9 @@ namespace EngineTest.Recources
 
         public static EffectParameter TemporalAntiAliasingEffect_DepthMap;
         public static EffectParameter TemporalAntiAliasingEffect_AccumulationMap;
+        public static EffectParameter TemporalAntiAliasingEffect_UpdateMap;
         public static EffectParameter TemporalAntiAliasingEffect_CurrentToPrevious;
+        public static EffectParameter TemporalAntiAliasingEffect_Resolution;
 
         //Vignette and CA
 
@@ -286,9 +288,10 @@ namespace EngineTest.Recources
             TemporalAntiAliasingEffect = content.Load<Effect>("Shaders/TemporalAntiAliasing/TemporalAntiAliasing");
 
             TemporalAntiAliasingEffect_AccumulationMap = TemporalAntiAliasingEffect.Parameters["AccumulationMap"];
+            TemporalAntiAliasingEffect_UpdateMap = TemporalAntiAliasingEffect.Parameters["UpdateMap"];
             TemporalAntiAliasingEffect_DepthMap = TemporalAntiAliasingEffect.Parameters["DepthMap"];
             TemporalAntiAliasingEffect_CurrentToPrevious = TemporalAntiAliasingEffect.Parameters["CurrentToPrevious"];
-
+            TemporalAntiAliasingEffect_Resolution = TemporalAntiAliasingEffect.Parameters["Resolution"];
             //Post
 
             PostProcessing = content.Load<Effect>("Shaders/PostProcessing/PostProcessing");

@@ -71,13 +71,13 @@ namespace EngineTest.Recources
         public static bool g_HologramDraw = true;
 
         public static bool g_TemporalAntiAliasing = true;
-        public static int g_TemporalAntiAliasingJitterMode = 0;
+        public static int g_TemporalAntiAliasingJitterMode = 1;
         public static bool Editor_enable = false;
         public static bool h_DrawLines = true;
 
         // PostProcessing
 
-        private static float _chromaticAbberationStrength = 0.004f;
+        private static float _chromaticAbberationStrength = 0.002f;
         public static float ChromaticAbberationStrength
         {
             get { return _chromaticAbberationStrength; }
@@ -195,6 +195,7 @@ namespace EngineTest.Recources
 
             SCurveStrength = _sCurveStrength;
             ChromaticAbberationStrength = _chromaticAbberationStrength;
+            
         }
 
         public static void ApplySSAO()

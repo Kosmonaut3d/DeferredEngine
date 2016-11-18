@@ -221,7 +221,7 @@ float4 PixelShaderSSRFunction(VertexShaderOutput input) : COLOR0
     float3 diffuseLight = diffuseLightMap.Sample(pointSampler, input.TexCoord).rgb;
     float3 specularLight = specularLightMap.Sample(pointSampler, input.TexCoord).rgb;
 
-    float4 ssreflectionMap = SSRMap.Sample(pointSampler, input.TexCoord);
+    float4 ssreflectionMap = SSRMap.Sample(linearSampler, input.TexCoord);
     specularLight = lerp(specularLight, ssreflectionMap.rgb / exposure, ssreflectionMap.a);
 
     float3 plasticFinal = diffuseColor.rgb * (diffuseLight) + specularLight;

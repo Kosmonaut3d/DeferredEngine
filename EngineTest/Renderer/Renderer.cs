@@ -81,8 +81,9 @@ namespace EngineTest.Renderer
         private RenderTargetBinding[] _renderTargetFinalBinding = new RenderTargetBinding[1];
 
         //TAA
-        private RenderTarget2D _renderTargetFinal2;
-        private RenderTargetBinding[] _renderTargetFinal2Binding = new RenderTargetBinding[1];
+        private RenderTarget2D _renderTargetTAA_1;
+        private RenderTarget2D _renderTargetTAA_2;
+        //private RenderTargetBinding[] _renderTargetFinal2Binding = new RenderTargetBinding[1];
 
         private RenderTarget2D _renderTargetScreenSpaceEffectReflection;
 
@@ -259,15 +260,18 @@ namespace EngineTest.Renderer
             _spriteBatch.End(); 
             */
 
-            _graphicsDevice.BlendState = _linearBlendState;
+            _graphicsDevice.SetRenderTarget(_temporalAAOffFrame ? _renderTargetTAA_2 : _renderTargetTAA_1);
+            //_graphicsDevice.BlendState = _linearBlendState;
+            _graphicsDevice.BlendState = BlendState.Opaque;
 
-            Shaders.TemporalAntiAliasingEffect_AccumulationMap.SetValue(_temporalAAOffFrame ? _renderTargetFinal : _renderTargetFinal2);
+            Shaders.TemporalAntiAliasingEffect_AccumulationMap.SetValue(_temporalAAOffFrame ? _renderTargetTAA_1 : _renderTargetTAA_2);
+            Shaders.TemporalAntiAliasingEffect_UpdateMap.SetValue(_renderTargetFinal);
             Shaders.TemporalAntiAliasingEffect_CurrentToPrevious.SetValue(_currentToPrevious);
 
             Shaders.TemporalAntiAliasingEffect.CurrentTechnique.Passes[0].Apply();
             _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
 
-            _graphicsDevice.BlendState = BlendState.Opaque;
+            //_graphicsDevice.BlendState = BlendState.Opaque;
         }
 
 
@@ -403,7 +407,7 @@ namespace EngineTest.Renderer
                 default:
                     if (GameSettings.g_TemporalAntiAliasing)
                     {
-                        DrawMapToScreenToFullScreen(_temporalAAOffFrame ? _renderTargetFinal2 : _renderTargetFinal);
+                        DrawMapToScreenToFullScreen(_temporalAAOffFrame ? _renderTargetTAA_2 : _renderTargetTAA_1);
                     }
                     else
                     {
@@ -495,7 +499,7 @@ namespace EngineTest.Renderer
 
             if (GameSettings.g_TemporalAntiAliasing)
             {
-                Shaders.ScreenSpaceEffect2Parameter_TargetMap.SetValue(_temporalAAOffFrame ? _renderTargetFinal2 : _renderTargetFinal);
+                Shaders.ScreenSpaceEffect2Parameter_TargetMap.SetValue(_temporalAAOffFrame ? _renderTargetTAA_1 : _renderTargetTAA_2);
             }
             else
             {
@@ -522,7 +526,7 @@ namespace EngineTest.Renderer
 
             if (GameSettings.g_TemporalAntiAliasing)
             {
-                baseRenderTarget = (_temporalAAOffFrame ? _renderTargetFinal2 : _renderTargetFinal);
+                baseRenderTarget = (_temporalAAOffFrame ? _renderTargetTAA_2 : _renderTargetTAA_1);
             }
             else
             {
@@ -1096,14 +1100,14 @@ namespace EngineTest.Renderer
         {
             _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
 
-            if (GameSettings.g_TemporalAntiAliasing)
-            {
-                _graphicsDevice.SetRenderTargets(_temporalAAOffFrame ? _renderTargetFinal2Binding : _renderTargetFinalBinding);
-            }
-            else
-            {
+            //if (GameSettings.g_TemporalAntiAliasing)
+            //{
+            //    _graphicsDevice.SetRenderTargets(_temporalAAOffFrame ? _renderTargetFinal2Binding : _renderTargetFinalBinding);
+            //}
+            //else
+            //{
                 _graphicsDevice.SetRenderTargets(_renderTargetFinalBinding);
-            }
+            //}
 
             //Skull depth
             //_deferredCompose.Parameters["average_skull_depth"].SetValue(Vector3.Distance(camera.Position , new Vector3(29, 0, -6.5f)));
@@ -1344,7 +1348,8 @@ namespace EngineTest.Renderer
                 if (!onlyEssentials)
                 {
                     _renderTargetHologram.Dispose();
-                    _renderTargetFinal2.Dispose();
+                    _renderTargetTAA_1.Dispose();
+                    _renderTargetTAA_2.Dispose();
                     _renderTargetSSAOEffect.Dispose();
                     _renderTargetScreenSpaceEffectReflection.Dispose();
 
@@ -1401,19 +1406,15 @@ namespace EngineTest.Renderer
             {
                 _editorRender.SetUpRenderTarget(width, height);
 
-                _renderTargetFinal2 = new RenderTarget2D(_graphicsDevice, target_width,
-                    target_height, false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
+                _renderTargetTAA_1 = new RenderTarget2D(_graphicsDevice, target_width, target_height, false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
+                _renderTargetTAA_2 = new RenderTarget2D(_graphicsDevice, target_width, target_height, false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
 
-                _renderTargetFinal2Binding[0] = new RenderTargetBinding(_renderTargetFinal2);
-
+                Shaders.TemporalAntiAliasingEffect_Resolution.SetValue(new Vector2(target_width, target_height));
                 // Shaders.SSReflectionEffectParameter_Resolution.SetValue(new Vector2(target_width, target_height));
                 Shaders.deferredPointLightParameterResolution.SetValue(new Vector2(target_width, target_height));
                 Shaders.EmissiveEffectParameter_Resolution.SetValue(new Vector2(target_width, target_height));
 
                 _renderTargetEmissive = new RenderTarget2D(_graphicsDevice, target_width,
-                    target_height, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
-
-                _renderTargetScreenSpaceEffectReflection = new RenderTarget2D(_graphicsDevice, target_width,
                     target_height, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
 
                 _renderTargetScreenSpaceEffectBlurX = new RenderTarget2D(_graphicsDevice, target_width,
@@ -1424,6 +1425,9 @@ namespace EngineTest.Renderer
 
                 Shaders.ScreenSpaceEffectParameter_InverseResolution.SetValue(new Vector2(1.0f/target_width,
                     1.0f/target_height));
+                
+                _renderTargetScreenSpaceEffectReflection = new RenderTarget2D(_graphicsDevice, target_width,
+                    target_height, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
 
                 ///////////////////
                 /// HALF RESOLUTION
