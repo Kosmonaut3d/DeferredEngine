@@ -199,6 +199,27 @@ PixelShaderOutput DrawTextureSpecular_PixelShader(DrawBasic_VSOut input) : SV_TA
 }
 
 [earlydepthstencil]      //experimental
+PixelShaderOutput DrawTextureSpecularMetallic_PixelShader(DrawBasic_VSOut input) : SV_TARGET
+{
+    Render_IN renderParams;
+
+    float4 textureColor = Texture.Sample(TextureSampler, input.TexCoord);
+    float4 outputColor = textureColor; //* input.Color;
+
+    float RoughnessTexture = RoughnessMap.Sample(TextureSampler, input.TexCoord).r;
+    float metallicTexture = MetallicMap.Sample(TextureSampler, input.TexCoord).r;
+
+    renderParams.Position = input.Position;
+    renderParams.Color = outputColor;
+    renderParams.Normal = normalize(input.Normal);
+    renderParams.Depth = input.Depth;
+    renderParams.Metallic = metallicTexture;
+    renderParams.roughness = RoughnessTexture;
+
+    return Lighting(renderParams);
+}
+
+[earlydepthstencil]      //experimental
 PixelShaderOutput DrawTextureSpecularNormal_PixelShader(DrawNormals_VSOut input) : SV_TARGET
 {
     Render_IN renderParams;
@@ -420,6 +441,15 @@ technique DrawTextureSpecular
     {
         VertexShader = compile vs_4_0 DrawBasic_VertexShader();
         PixelShader = compile ps_5_0 DrawTextureSpecular_PixelShader();
+    }
+}
+
+technique DrawTextureSpecularMetallic
+{
+    pass Pass1
+    {
+        VertexShader = compile vs_4_0 DrawBasic_VertexShader();
+        PixelShader = compile ps_5_0 DrawTextureSpecularMetallic_PixelShader();
     }
 }
 

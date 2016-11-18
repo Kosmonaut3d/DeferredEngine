@@ -502,6 +502,13 @@ namespace EngineTest.Renderer.Helper
                             Shaders.GBufferEffect.CurrentTechnique = Shaders.GBufferEffectTechniques_DrawTextureNormal;
                         }
 
+                        else if (material.HasMetallic && material.HasRoughness && material.HasDiffuse)
+                        {
+                            Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
+                            Shaders.GBufferEffectParameter_Material_Specular.SetValue(material.RoughnessMap);
+                            Shaders.GBufferEffect.CurrentTechnique = Shaders.GBufferEffectTechniques_DrawTextureSpecularMetallic;
+                        }
+
                         else if (material.HasRoughness && material.HasDiffuse)
                         {
                             Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);

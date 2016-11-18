@@ -148,6 +148,7 @@ namespace EngineTest.Recources
         public static EffectTechnique GBufferEffectTechniques_DrawTextureSpecularNormal;
         public static EffectTechnique GBufferEffectTechniques_DrawTextureNormal;
         public static EffectTechnique GBufferEffectTechniques_DrawTextureSpecular;
+        public static EffectTechnique GBufferEffectTechniques_DrawTextureSpecularMetallic;
         public static EffectTechnique GBufferEffectTechniques_DrawTexture;
         public static EffectTechnique GBufferEffectTechniques_DrawBasic;
 
@@ -392,6 +393,7 @@ namespace EngineTest.Recources
             GBufferEffectTechniques_DrawTextureSpecularNormal = GBufferEffect.Techniques["DrawTextureSpecularNormal"];
             GBufferEffectTechniques_DrawTextureNormal = GBufferEffect.Techniques["DrawTextureNormal"];
             GBufferEffectTechniques_DrawTextureSpecular = GBufferEffect.Techniques["DrawTextureSpecular"];
+            GBufferEffectTechniques_DrawTextureSpecularMetallic = GBufferEffect.Techniques["DrawTextureSpecularMetallic"];
             GBufferEffectTechniques_DrawTexture = GBufferEffect.Techniques["DrawTexture"];
             GBufferEffectTechniques_DrawBasic = GBufferEffect.Techniques["DrawBasic"];
 

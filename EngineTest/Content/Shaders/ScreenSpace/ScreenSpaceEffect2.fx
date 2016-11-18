@@ -302,7 +302,7 @@ float4 PixelShaderFunctionOLD(VertexShaderOutput input) : SV_Target
 }
 */
 
-float4 PixelShaderFunction(VertexShaderOutput input) : SV_Target
+float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 {
     float4 output = float4(0,0,0,0);
 
@@ -450,7 +450,7 @@ technique Classic
 {
     pass Pass1
     {
-        VertexShader = compile vs_4_0 VertexShaderFunction();
-        PixelShader = compile ps_4_0 PixelShaderFunction();
+        VertexShader = compile vs_5_0 VertexShaderFunction();
+        PixelShader = compile ps_5_0 PixelShaderFunction();
     }
 }

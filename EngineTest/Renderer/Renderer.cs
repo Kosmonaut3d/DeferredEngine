@@ -205,11 +205,10 @@ namespace EngineTest.Renderer
 
             DrawEmissiveEffect(entities, camera, meshMaterialLibrary, gameTime);
 
+            DrawScreenSpaceReflectionsEffect(camera);
+
             //Combine the buffers
             Compose();
-
-            DrawScreenSpaceEffect2(camera);
-
 
             CombineTemporalAntialiasing();
                 
@@ -225,7 +224,7 @@ namespace EngineTest.Renderer
 
             }
 
-            //DrawScreenSpaceEffect2(camera);
+            //DrawScreenSpaceReflectionsEffect(camera);
 
             if(Input.WasKeyPressed(Keys.K))
             _cpuRayMarch.Calculate(_renderTargetDepth, _renderTargetNormal, _inverseViewProjection, _viewProjection, camera);
@@ -483,12 +482,14 @@ namespace EngineTest.Renderer
             //need bilateral upsample
         }
 
-        private void DrawScreenSpaceEffect2(Camera camera)
+        private void DrawScreenSpaceReflectionsEffect(Camera camera)
         {
             //Another way to make SSR, not good yet
 
-            _graphicsDevice.SetRenderTarget(_renderTargetScreenSpaceEffectReflection);
+            if (!GameSettings.g_SSR) return;
 
+            _graphicsDevice.SetRenderTarget(_renderTargetScreenSpaceEffectReflection);
+            _graphicsDevice.BlendState = BlendState.Opaque;
             _graphicsDevice.DepthStencilState = DepthStencilState.Default;
             _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
 
@@ -1389,7 +1390,7 @@ namespace EngineTest.Renderer
             _renderTargetLightBinding[1] = new RenderTargetBinding(_renderTargetSpecular);
 
             _renderTargetFinal = new RenderTarget2D(_graphicsDevice, target_width,
-               target_height, true, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
+               target_height, false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
 
             _renderTargetFinalBinding[0] = new RenderTargetBinding(_renderTargetFinal);
 
@@ -1401,7 +1402,7 @@ namespace EngineTest.Renderer
                 _editorRender.SetUpRenderTarget(width, height);
 
                 _renderTargetFinal2 = new RenderTarget2D(_graphicsDevice, target_width,
-                    target_height, true, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
+                    target_height, false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
 
                 _renderTargetFinal2Binding[0] = new RenderTargetBinding(_renderTargetFinal2);
 
