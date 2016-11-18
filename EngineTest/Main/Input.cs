@@ -59,6 +59,11 @@ namespace EngineTest.Main
             return mouseState.Position;
         }
 
+        public static Vector2 GetMousePositionNormalized()
+        {
+            return new Vector2((float)mouseState.X/GameSettings.g_ScreenWidth, (float)mouseState.Y/GameSettings.g_ScreenHeight);
+        }
+
         private static void KeyboardEvents(GameTime gameTime, Camera camera)
         {
             if (DebugScreen.ConsoleOpen) return;

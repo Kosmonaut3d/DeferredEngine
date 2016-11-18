@@ -8,7 +8,6 @@ namespace EngineTest.Recources
 {
     public static class GameSettings
     {
-        public static bool g_SSR = false;
         public static float g_FarPlane = 500;
         public static float g_supersampling = 1;
         public static int ShowDisplayInfo = 3;
@@ -107,6 +106,22 @@ namespace EngineTest.Recources
             }
         }
 
+        // SSR
+
+        private static bool _g_SSR = true;
+
+        public static bool g_SSR
+        {
+            get { return _g_SSR;}
+            set
+            {
+                _g_SSR = value;
+                Shaders.DeferredCompose.CurrentTechnique = value
+                    ? Shaders.DeferredComposeTechnique_SSR
+                    : Shaders.DeferredComposeTechnique_1;
+            }
+        }
+
         // Screen Space Ambient Occlusion
 
         public static bool ssao_Active
@@ -175,6 +190,8 @@ namespace EngineTest.Recources
         public static void ApplySettings()
         {
             ApplySSAO();
+
+            g_SSR = _g_SSR;
 
             SCurveStrength = _sCurveStrength;
             ChromaticAbberationStrength = _chromaticAbberationStrength;

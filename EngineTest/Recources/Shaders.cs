@@ -159,6 +159,10 @@ namespace EngineTest.Recources
         public static EffectParameter DeferredComposeEffectParameter_specularLightMap;
         public static EffectParameter DeferredComposeEffectParameter_HologramMap;
         public static EffectParameter DeferredComposeEffectParameter_SSAOMap;
+        public static EffectParameter DeferredComposeEffectParameter_SSRMap;
+
+        public static EffectTechnique DeferredComposeTechnique_1;
+        public static EffectTechnique DeferredComposeTechnique_SSR;
 
         //Deferred Light
         //public static Effect deferredSpotLight;
@@ -401,8 +405,10 @@ namespace EngineTest.Recources
             DeferredComposeEffectParameter_specularLightMap = DeferredCompose.Parameters["specularLightMap"];
             DeferredComposeEffectParameter_HologramMap = DeferredCompose.Parameters["HologramMap"];
             DeferredComposeEffectParameter_SSAOMap = DeferredCompose.Parameters["SSAOMap"];
+            DeferredComposeEffectParameter_SSRMap = DeferredCompose.Parameters["SSRMap"];
 
-
+            DeferredComposeTechnique_1 = DeferredCompose.Techniques["Technique1"];
+            DeferredComposeTechnique_SSR = DeferredCompose.Techniques["TechniqueSSR"];
             ////DeferredLights
 
             //deferredSpotLight = content.Load<Effect>("Shaders/Deferred/DeferredSpotLight");

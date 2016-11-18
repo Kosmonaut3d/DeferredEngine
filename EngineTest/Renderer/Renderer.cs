@@ -64,7 +64,8 @@ namespace EngineTest.Renderer
         public enum RenderModes { Albedo, Normal, Depth, Deferred, Diffuse, Specular, Hologram,
             SSAO,
             Emissive,
-            DirectionalShadow
+            DirectionalShadow,
+            SSR
         };
 
         private RenderTarget2D _renderTargetAlbedo;
@@ -83,11 +84,11 @@ namespace EngineTest.Renderer
         private RenderTarget2D _renderTargetFinal2;
         private RenderTargetBinding[] _renderTargetFinal2Binding = new RenderTargetBinding[1];
 
-        private RenderTarget2D _renderTargetScreenSpaceEffect2;
+        private RenderTarget2D _renderTargetScreenSpaceEffectReflection;
 
         private RenderTarget2D _renderTargetHologram;
 
-        private RenderTarget2D _renderTargetScreenSpaceEffect;
+        private RenderTarget2D _renderTargetSSAOEffect;
 
         private RenderTarget2D _renderTargetScreenSpaceEffectPrepareBlur;
 
@@ -204,9 +205,11 @@ namespace EngineTest.Renderer
 
             DrawEmissiveEffect(entities, camera, meshMaterialLibrary, gameTime);
 
-
             //Combine the buffers
             Compose();
+
+            DrawScreenSpaceEffect2(camera);
+
 
             CombineTemporalAntialiasing();
                 
@@ -384,7 +387,7 @@ namespace EngineTest.Renderer
                     DrawMapToScreenToFullScreen(_renderTargetSpecular);
                     break;
                 case RenderModes.SSAO:
-                    DrawMapToScreenToFullScreen(_renderTargetScreenSpaceEffect);
+                    DrawMapToScreenToFullScreen(_renderTargetSSAOEffect);
                     break;
                 case RenderModes.Hologram:
                     DrawMapToScreenToFullScreen(_renderTargetHologram);
@@ -394,6 +397,9 @@ namespace EngineTest.Renderer
                     break;
                 case RenderModes.Emissive:
                     DrawMapToScreenToFullScreen(_renderTargetEmissive);
+                    break;
+                case RenderModes.SSR:
+                    DrawMapToScreenToFullScreen(_renderTargetScreenSpaceEffectReflection);
                     break;
                 default:
                     if (GameSettings.g_TemporalAntiAliasing)
@@ -418,7 +424,7 @@ namespace EngineTest.Renderer
 
             _spriteBatch.Begin(0,BlendState.Additive);
 
-            _spriteBatch.Draw(_renderTargetScreenSpaceEffect, new Rectangle(0,0,(int) (GameSettings.g_ScreenWidth * GameSettings.g_supersampling), (int) (GameSettings.g_ScreenHeight * GameSettings.g_supersampling)), Color.Red);
+            _spriteBatch.Draw(_renderTargetSSAOEffect, new Rectangle(0,0,(int) (GameSettings.g_ScreenWidth * GameSettings.g_supersampling), (int) (GameSettings.g_ScreenHeight * GameSettings.g_supersampling)), Color.Red);
 
             _spriteBatch.End();
 
@@ -458,7 +464,7 @@ namespace EngineTest.Renderer
         {
             if (!GameSettings.ssao_Active) return;
 
-            _graphicsDevice.SetRenderTarget(_renderTargetScreenSpaceEffect);
+            _graphicsDevice.SetRenderTarget(_renderTargetSSAOEffect);
 
             _graphicsDevice.DepthStencilState = DepthStencilState.Default;
             _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
@@ -481,11 +487,20 @@ namespace EngineTest.Renderer
         {
             //Another way to make SSR, not good yet
 
-            _graphicsDevice.SetRenderTarget(_renderTargetScreenSpaceEffect2);
+            _graphicsDevice.SetRenderTarget(_renderTargetScreenSpaceEffectReflection);
 
             _graphicsDevice.DepthStencilState = DepthStencilState.Default;
             _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
-            
+
+            if (GameSettings.g_TemporalAntiAliasing)
+            {
+                Shaders.ScreenSpaceEffect2Parameter_TargetMap.SetValue(_temporalAAOffFrame ? _renderTargetFinal2 : _renderTargetFinal);
+            }
+            else
+            {
+                Shaders.ScreenSpaceEffect2Parameter_TargetMap.SetValue(_renderTargetFinal);
+            }
+
             Shaders.ScreenSpaceEffect2Parameter_InverseViewProjection.SetValue(_inverseViewProjection);
             //Shaders.ScreenSpaceEffect2Parameter_Projection.SetValue(_projection);
             Shaders.ScreenSpaceEffect2Parameter_ViewProjection.SetValue(_viewProjection);
@@ -495,7 +510,7 @@ namespace EngineTest.Renderer
             Shaders.ScreenSpaceEffect2.CurrentTechnique.Passes[0].Apply();
             _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
 
-            DrawMapToScreenToFullScreen(_renderTargetScreenSpaceEffect2);
+            DrawMapToScreenToFullScreen(_renderTargetScreenSpaceEffectReflection);
 
 
         }
@@ -911,9 +926,9 @@ namespace EngineTest.Renderer
 
            Shaders.deferredEnvironmentParameterCameraPosition.SetValue(cameraPosition);
 
-            Shaders.deferredEnvironment.CurrentTechnique = GameSettings.g_SSR
-                ? Shaders.deferredEnvironment.Techniques["g_SSR"]
-                : Shaders.deferredEnvironment.Techniques["Classic"];
+            //Shaders.deferredEnvironment.CurrentTechnique = GameSettings.g_SSR
+            //    ? Shaders.deferredEnvironment.Techniques["g_SSR"]
+            //    : Shaders.deferredEnvironment.Techniques["Classic"];
             Shaders.deferredEnvironment.CurrentTechnique.Passes[0].Apply();
             _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
         }
@@ -1329,8 +1344,8 @@ namespace EngineTest.Renderer
                 {
                     _renderTargetHologram.Dispose();
                     _renderTargetFinal2.Dispose();
-                    _renderTargetScreenSpaceEffect.Dispose();
-                    _renderTargetScreenSpaceEffect2.Dispose();
+                    _renderTargetSSAOEffect.Dispose();
+                    _renderTargetScreenSpaceEffectReflection.Dispose();
 
                     _renderTargetScreenSpaceEffectBlurX.Dispose();
                     _renderTargetScreenSpaceEffectBlurYFinal.Dispose();
@@ -1374,7 +1389,7 @@ namespace EngineTest.Renderer
             _renderTargetLightBinding[1] = new RenderTargetBinding(_renderTargetSpecular);
 
             _renderTargetFinal = new RenderTarget2D(_graphicsDevice, target_width,
-               target_height, false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
+               target_height, true, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
 
             _renderTargetFinalBinding[0] = new RenderTargetBinding(_renderTargetFinal);
 
@@ -1386,7 +1401,7 @@ namespace EngineTest.Renderer
                 _editorRender.SetUpRenderTarget(width, height);
 
                 _renderTargetFinal2 = new RenderTarget2D(_graphicsDevice, target_width,
-                    target_height, false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
+                    target_height, true, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
 
                 _renderTargetFinal2Binding[0] = new RenderTargetBinding(_renderTargetFinal2);
 
@@ -1397,7 +1412,7 @@ namespace EngineTest.Renderer
                 _renderTargetEmissive = new RenderTarget2D(_graphicsDevice, target_width,
                     target_height, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
 
-                _renderTargetScreenSpaceEffect2 = new RenderTarget2D(_graphicsDevice, target_width,
+                _renderTargetScreenSpaceEffectReflection = new RenderTarget2D(_graphicsDevice, target_width,
                     target_height, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
 
                 _renderTargetScreenSpaceEffectBlurX = new RenderTarget2D(_graphicsDevice, target_width,
@@ -1416,7 +1431,7 @@ namespace EngineTest.Renderer
                 target_width /= 2;
                 target_height /= 2;
 
-                _renderTargetScreenSpaceEffect = new RenderTarget2D(_graphicsDevice, target_width,
+                _renderTargetSSAOEffect = new RenderTarget2D(_graphicsDevice, target_width,
                     target_height, false, SurfaceFormat.HalfSingle, DepthFormat.None, 0,
                     RenderTargetUsage.DiscardContents);
 
@@ -1452,14 +1467,15 @@ namespace EngineTest.Renderer
             Shaders.DeferredComposeEffectParameter_specularLightMap.SetValue(_renderTargetSpecular);
             Shaders.DeferredComposeEffectParameter_SSAOMap.SetValue(_renderTargetScreenSpaceEffectBlurYFinal);
             Shaders.DeferredComposeEffectParameter_HologramMap.SetValue(_renderTargetHologram);
+            Shaders.DeferredComposeEffectParameter_SSRMap.SetValue(_renderTargetScreenSpaceEffectReflection);
 
             Shaders.ScreenSpaceEffectParameter_NormalMap.SetValue(_renderTargetNormal);
             Shaders.ScreenSpaceEffectParameter_DepthMap.SetValue(_renderTargetDepth);
-            Shaders.ScreenSpaceEffectParameter_SSAOMap.SetValue(_renderTargetScreenSpaceEffect);
+            Shaders.ScreenSpaceEffectParameter_SSAOMap.SetValue(_renderTargetSSAOEffect);
 
             Shaders.ScreenSpaceEffect2Parameter_DepthMap.SetValue(_renderTargetDepth);
             Shaders.ScreenSpaceEffect2Parameter_NormalMap.SetValue(_renderTargetNormal);
-            Shaders.ScreenSpaceEffect2Parameter_TargetMap.SetValue(_renderTargetFinal);
+            //Shaders.ScreenSpaceEffect2Parameter_TargetMap.SetValue(_renderTargetFinal);
 
             Shaders.EmissiveEffectParameter_DepthMap.SetValue(_renderTargetDepth);
             Shaders.EmissiveEffectParameter_EmissiveMap.SetValue(_renderTargetEmissive);

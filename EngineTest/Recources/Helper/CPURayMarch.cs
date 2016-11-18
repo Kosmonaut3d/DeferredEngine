@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using EngineTest.Main;
 using EngineTest.Renderer;
 using EngineTest.Renderer.Helper;
 using Microsoft.Xna.Framework;
@@ -21,6 +22,7 @@ namespace EngineTest.Recources.Helper
         private Vector3 reflectVector;
 
         List<Vector3> samplePositions = new List<Vector3>();
+        List<Vector3> sampleTests = new List<Vector3>();
 
         public void Initialize(GraphicsDevice graphics)
         {
@@ -31,9 +33,11 @@ namespace EngineTest.Recources.Helper
         { 
 
             samplePositions.Clear();
+            sampleTests.Clear();
             
-            Vector2 texCoord = new Vector2(0.5f, 0.5f); //middle of the screen
+            //Vector2 texCoord = new Vector2(0.5f, 0.5f); //middle of the screen
 
+            Vector2 texCoord = Input.GetMousePositionNormalized();
             //construct VS
 
             float depthVal = 1 - SampleFloat(depthMap, texCoord);
@@ -55,7 +59,7 @@ namespace EngineTest.Recources.Helper
             startPosition = positionWS.Xyz();
 
             Vector3 incident = Vector3.Normalize(startPosition - camera.Position);
-
+            
             reflectVector = Vector3.Reflect(incident, startNormal);
 
             Vector4 samplePositionVS = Vector4.Transform(positionWS + new Vector4(reflectVector, 0), viewProjection);
@@ -64,6 +68,7 @@ namespace EngineTest.Recources.Helper
             Vector4 Offset = (samplePositionVS - positionVS);
 
             float xMultiplier = 1;
+            float yMultiplier = 1;
             //Lets go to the end of the screen
             if (Offset.X > 0)
             {
@@ -74,15 +79,58 @@ namespace EngineTest.Recources.Helper
                 xMultiplier = (-1 - positionVS.X) / Offset.X;
             }
 
-            int samples = 10;
+            if (Offset.Y > 0)
+            {
+                yMultiplier = (1 - positionVS.Y) / Offset.Y;
+            }
+            else
+            {
+                yMultiplier = (-1 - positionVS.Y) / Offset.Y;
+            }
+
+            //what multiplier is smaller?
+
+            float multiplier = xMultiplier < yMultiplier ? xMultiplier : yMultiplier;
+
+            //int samples = 20;
+
+            //Offset *= multiplier / samples;
+
+            Offset *= multiplier;
+
+            float maxOffset = Math.Max(Math.Abs(Offset.X), Math.Abs(Offset.Y));
+            
+            
+            int samples = (int)(maxOffset*10);
+
+            Offset /= samples;
+            
             for (int i = 0; i < samples; i++)
             {
-                Vector4 samplePosition = samplePositionVS + Offset*i*2;
+                Vector4 rayPositionVS = samplePositionVS + Offset*i;
 
-                Vector4 sampleWorld = Vector4.Transform(samplePosition, InverseViewProjection);
-                sampleWorld /= sampleWorld.W;
+                //float2 sampleTexCoord = 0.5f * (float2(samplePositionVS.x, -samplePositionVS.y) + 1);
 
-                samplePositions.Add(sampleWorld.Xyz());
+                Vector2 sampleTexCoord = 0.5f*(new Vector2(rayPositionVS.X , -rayPositionVS.Y ) + Vector2.One);
+
+                float depthValRay = 1 - SampleFloat(depthMap, sampleTexCoord);
+                
+                Vector4 rayPositionDepthVS = new Vector4(rayPositionVS.X, rayPositionVS.Y, depthValRay, rayPositionVS.W );
+
+                Vector4 rayDepthSampleWS = Vector4.Transform(rayPositionDepthVS, InverseViewProjection);
+                rayDepthSampleWS /= rayDepthSampleWS.W;
+
+                sampleTests.Add(rayDepthSampleWS.Xyz());
+
+
+                Vector4 rayPositionWS = Vector4.Transform(rayPositionVS, InverseViewProjection);
+                rayPositionWS /= rayPositionWS.W;
+
+                samplePositions.Add(rayPositionWS.Xyz());
+
+
+                if (depthValRay < rayPositionVS.Z) break;
+
             }
 
 
@@ -91,14 +139,19 @@ namespace EngineTest.Recources.Helper
         public void Draw()
         {
             LineHelperManager.AddLineStartEnd(startPosition, startPosition+startNormal*10, 1);
-            LineHelperManager.AddLineStartEnd(startPosition, startPosition + reflectVector * 10, 1, Color.AliceBlue, Color.Aqua);
+            //LineHelperManager.AddLineStartEnd(startPosition, startPosition + reflectVector * 10, 1, Color.AliceBlue, Color.Aqua);
 
             for (int index = 0; index < samplePositions.Count-1; index++)
             {
                 Vector3 v0 = samplePositions[index];
                 Vector3 v1 = samplePositions[index + 1];
                 LineHelperManager.AddLineStartEnd(v0, v1, 1, Color.Yellow, Color.Red);
+
+                LineHelperManager.AddLineStartEnd(v0, sampleTests[index],1, Color.Blue, Color.Violet);
             }
+
+            if(samplePositions.Count>0)
+            LineHelperManager.AddLineStartEnd(samplePositions[samplePositions.Count-1], sampleTests[samplePositions.Count - 1], 1, Color.Blue, Color.Violet);
         }
 
         private Vector3 decode(Vector3 input)
