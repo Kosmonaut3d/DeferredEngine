@@ -32,8 +32,8 @@ namespace EngineTest.Recources.Helper
         public void Calculate(RenderTarget2D depthMap, RenderTarget2D normalMap, Matrix InverseViewProjection, Matrix viewProjection, Camera camera)
         { 
 
-            samplePositions.Clear();
-            sampleTests.Clear();
+            //samplePositions.Clear();
+            //sampleTests.Clear();
             
             //Vector2 texCoord = new Vector2(0.5f, 0.5f); //middle of the screen
 
@@ -99,9 +99,9 @@ namespace EngineTest.Recources.Helper
             Offset *= multiplier;
 
             float maxOffset = Math.Max(Math.Abs(Offset.X), Math.Abs(Offset.Y));
-            
-            
-            int samples = (int)(maxOffset*10);
+
+
+            int samples = 10;//(int)(maxOffset*10);
 
             Offset /= samples;
             

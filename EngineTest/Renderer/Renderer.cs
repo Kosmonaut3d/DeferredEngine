@@ -83,6 +83,8 @@ namespace EngineTest.Renderer
         //TAA
         private RenderTarget2D _renderTargetTAA_1;
         private RenderTarget2D _renderTargetTAA_2;
+        
+        private RenderTarget2D _renderTargetDepth2;
         //private RenderTargetBinding[] _renderTargetFinal2Binding = new RenderTargetBinding[1];
 
         private RenderTarget2D _renderTargetScreenSpaceEffectReflection;
@@ -515,7 +517,7 @@ namespace EngineTest.Renderer
             Shaders.ScreenSpaceEffect2Parameter_CameraPosition.SetValue(camera.Position);
 
             //Shaders.ScreenSpaceEffect.CurrentTechnique = Shaders.ScreenSpaceEffectTechnique_SSAO;
-            Shaders.ScreenSpaceEffect2.CurrentTechnique.Passes[0].Apply();
+            Shaders.ScreenSpaceReflectionEffect.CurrentTechnique.Passes[0].Apply();
             _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
 
             DrawMapToScreenToFullScreen(_renderTargetScreenSpaceEffectReflection);
@@ -1412,7 +1414,7 @@ namespace EngineTest.Renderer
 
                 _renderTargetTAA_1 = new RenderTarget2D(_graphicsDevice, target_width, target_height, false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
                 _renderTargetTAA_2 = new RenderTarget2D(_graphicsDevice, target_width, target_height, false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
-
+                
                 Shaders.TemporalAntiAliasingEffect_Resolution.SetValue(new Vector2(target_width, target_height));
                 // Shaders.SSReflectionEffectParameter_Resolution.SetValue(new Vector2(target_width, target_height));
                 Shaders.deferredPointLightParameterResolution.SetValue(new Vector2(target_width, target_height));

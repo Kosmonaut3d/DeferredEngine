@@ -87,7 +87,7 @@ namespace EngineTest.Recources
         public static EffectTechnique EmissiveEffectTechnique_DrawEmissiveSpecularEffect;
         //Second Screen Space Effect
 
-        public static Effect ScreenSpaceEffect2;
+        public static Effect ScreenSpaceReflectionEffect;
         public static EffectParameter ScreenSpaceEffect2Parameter_DepthMap;
         public static EffectParameter ScreenSpaceEffect2Parameter_TargetMap;
         public static EffectParameter ScreenSpaceEffect2Parameter_NormalMap;
@@ -329,14 +329,14 @@ namespace EngineTest.Recources
             EmissiveEffectTechnique_DrawEmissiveSpecularEffect = EmissiveEffect.Techniques["DrawEmissiveSpecularEffect"];
             EmissiveEffectTechnique_DrawEmissiveDiffuseEffect = EmissiveEffect.Techniques["DrawEmissiveDiffuseEffect"];
             //Screen Space Effect 2
-            ScreenSpaceEffect2 = content.Load<Effect>("Shaders/ScreenSpace/ScreenSpaceEffect2");
+            ScreenSpaceReflectionEffect = content.Load<Effect>("Shaders/ScreenSpace/ScreenSpaceEffect2");
 
-            ScreenSpaceEffect2Parameter_DepthMap = ScreenSpaceEffect2.Parameters["DepthMap"];
-            ScreenSpaceEffect2Parameter_NormalMap = ScreenSpaceEffect2.Parameters["NormalMap"];
-            ScreenSpaceEffect2Parameter_TargetMap = ScreenSpaceEffect2.Parameters["TargetMap"];
-            ScreenSpaceEffect2Parameter_CameraPosition = ScreenSpaceEffect2.Parameters["CameraPosition"];
-            ScreenSpaceEffect2Parameter_ViewProjection = ScreenSpaceEffect2.Parameters["ViewProjection"];
-            ScreenSpaceEffect2Parameter_InverseViewProjection = ScreenSpaceEffect2.Parameters["InverseViewProjection"];
+            ScreenSpaceEffect2Parameter_DepthMap = ScreenSpaceReflectionEffect.Parameters["DepthMap"];
+            ScreenSpaceEffect2Parameter_NormalMap = ScreenSpaceReflectionEffect.Parameters["NormalMap"];
+            ScreenSpaceEffect2Parameter_TargetMap = ScreenSpaceReflectionEffect.Parameters["TargetMap"];
+            ScreenSpaceEffect2Parameter_CameraPosition = ScreenSpaceReflectionEffect.Parameters["CameraPosition"];
+            ScreenSpaceEffect2Parameter_ViewProjection = ScreenSpaceReflectionEffect.Parameters["ViewProjection"];
+            ScreenSpaceEffect2Parameter_InverseViewProjection = ScreenSpaceReflectionEffect.Parameters["InverseViewProjection"];
 
             //Screen Space Effect
             ScreenSpaceEffect = content.Load<Effect>("Shaders/ScreenSpace/ScreenSpaceEffect");

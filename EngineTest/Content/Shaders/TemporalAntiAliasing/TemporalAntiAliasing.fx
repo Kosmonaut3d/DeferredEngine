@@ -1,7 +1,6 @@
 ﻿
 float4x4 CurrentToPrevious;
 
-float4x4 PreviousViewProjection;
 
 Texture2D DepthMap;
 Texture2D AccumulationMap;
@@ -55,6 +54,18 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
     return output;
 }
 
+float3 ToYUV(float3 rgb)
+{
+    float y = 0.299f * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b;
+
+    return float3(y, y, y); //(rgb.b - y) * 0.493, (rgb.r - y) * 0.877);
+}
+
+float overlapFunction(float3 x, float3 y)
+{
+    return dot(x / y, float3(1, 1, 1)) / 3;
+}
+
 
 float4 PixelShaderFunction(VertexShaderOutput input) : SV_Target
 {
@@ -93,45 +104,49 @@ float4 PixelShaderFunction(VertexShaderOutput input) : SV_Target
 
     float alpha = accumulationColorSample.a;
 
-    //static float overlapThreshold = 0.05f;
+    ////static float overlapThreshold = 0.05f;
 
-    //overlap
-    float overlap = dot(accumulationColorSample.rgb, updatedColorSample.rgb);
+    //float3 baseColorYUV = ToYUV(updatedColorSample.rgb);
+    ////overlap
+    //float overlap = overlapFunction(ToYUV(accumulationColorSample.rgb), baseColorYUV);
 
-    float overlapThreshold = (alpha) * 0.2f + 0.0000000000005f;
+    //float overlapThreshold = (1-alpha) * 0.6f; //+ 0.0000000000005f;
 
-    bool foundOverlap = overlap > overlapThreshold;
+    //bool foundOverlap = overlap > overlapThreshold;
 
-    if(!foundOverlap)
-    [branch]
-    for (int x = -1; x <= 1; x++)
-        {
-        [branch]
-            for (int y = -1; y <= 1; y++)
-            {
-            
-                if (x == 0 && y == 0)
-                {
-                    continue;
-                }
-
-                float4 accumulationColorSampleNeighbour = AccumulationMap.Load(sampleTexCoordInt + int3(x, y, 0));
-
-                float overlap = dot(accumulationColorSampleNeighbour.rgb, updatedColorSample.rgb);
-    
-                if (overlap > overlapThreshold)
-                {
-                    foundOverlap = true;
-                    break;
-                }
-            }
-
-            if (foundOverlap)
-                break;
-        }
+    ////if (dot(updatedColorSample.rgb, float3(1, 1, 1)) > 1.8f)
+    ////   foundOverlap = true;
 
     //if(!foundOverlap)
-    //    return float4(updatedColorSample.rgb, 0);
+    //[branch]
+    //for (int x = -1; x <= 1; x++)
+    //    {
+    //        [branch]
+    //        for (int y = -1; y <= 1; y++)
+    //        {
+            
+    //            if (x == 0 && y == 0)
+    //            {
+    //                continue;
+    //            }
+
+    //            float4 accumulationColorSampleNeighbour = AccumulationMap.Load(sampleTexCoordInt + int3(x, y, 0));
+
+    //            float overlap = overlapFunction(ToYUV(accumulationColorSampleNeighbour.rgb), baseColorYUV);
+    
+    //            if (overlap > overlapThreshold)
+    //            {
+    //                foundOverlap = true;
+    //                break;
+    //            }
+    //        }
+
+    //        if (foundOverlap)
+    //            break;
+    //    }
+
+    //if(!foundOverlap)
+    //    alpha = 0;
 
     //alpha = 1 - 0.1f;
     alpha = min(1 - 1 / (1 / (1 - alpha) + 1), 0.9375);

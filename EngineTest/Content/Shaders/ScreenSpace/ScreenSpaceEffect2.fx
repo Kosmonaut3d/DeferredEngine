@@ -5,6 +5,8 @@ float4x4 ViewProjection;
 float4x4 InverseViewProjection;
 float3 CameraPosition;
 
+bool AccuracyMode=false;
+
 Texture2D DepthMap;
 Texture2D TargetMap;
 Texture2D NormalMap;
@@ -381,14 +383,21 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 
 	float maxOffset = max(abs(Offset.x), abs(Offset.y));
            
-    int samples = 20; //int(maxOffset * 20);
+    static int samples = 15; //int(maxOffset * 20);
+    
+    static float border = 0.1f;
+
+    static float border2 = 1 - border;
+    static float bordermulti = 1 / border;
 
 	Offset /= samples;
 
 	float startingDepth = samplePositionVS.z;
 
-	[unroll]
-	for (int i = 0; i < 20; i++)
+    float4 hitPosition;
+
+	[branch]
+	for (int i = 0; i < samples; i++)
 	{
 		//if (i >= samples)
 		//	break;
@@ -403,10 +412,38 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 		float2 sampleTexCoord = 0.5f * (float2(rayPositionVS.x, -rayPositionVS.y) + float2(1,1));
 
 		float depthValRay = 1 - DepthMap.Sample(texSampler, sampleTexCoord).r;
-               
-        if (depthValRay < rayPositionVS.z && ((Offset.z > 0 && depthValRay > startingDepth) || (Offset.z < 0 && depthValRay < startingDepth)))
-		{
-			int3 texCoordInt = int3(sampleTexCoord * resolution, 0);
+          
+        [branch]     
+        if (depthValRay <= rayPositionVS.z && (Offset.z > 0)) //&& depthValRay >= startingDepth)  ) //|| (Offset.z < 0 && depthValRay < startingDepth)))
+        {
+            hitPosition = rayPositionVS;
+            [branch]
+            if(AccuracyMode==true)
+            {
+                int samples2 = samples + 1 - i;
+
+                [branch]
+                for (int j = samples2; j > 0; j--)
+                {
+                    rayPositionVS = hitPosition - Offset * j / (samples2+1);
+
+                    float2 sampleTexCoordAccurate = 0.5f * (float2(rayPositionVS.x, -rayPositionVS.y) + float2(1, 1));
+
+                    int3 texCoordInt2 = int3(sampleTexCoordAccurate * resolution, 0);
+                    depthValRay = 1 - DepthMap.Load(texCoordInt2).r;
+
+                    if (depthValRay < rayPositionVS.z && depthValRay >= startingDepth)
+                    {
+                        sampleTexCoord = sampleTexCoordAccurate;
+                        break;
+                    }
+                }
+            }
+
+            if (depthValRay < startingDepth)
+                break;
+
+            int3 texCoordInt = int3(sampleTexCoord * resolution, 0);
 			float4 albedoColor = TargetMap.Load(texCoordInt);
 
             //float4 albedoColor = TargetMap.SampleLevel(texSampler, sampleTexCoord, roughness*5*i);
@@ -414,28 +451,26 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 			output = albedoColor;
 			output.a = 1;
 
-			float border = 0.1f;
-
             [branch]
-			if (sampleTexCoord.y > 0.9f)
+            if (sampleTexCoord.y > border2)
 			{
-				output.a = lerp(1, 0, (sampleTexCoord.y - 0.9) * 10);
-			}
-			else if (sampleTexCoord.y < 0.1f)
+                output.a = lerp(1, 0, (sampleTexCoord.y - border2) * bordermulti);
+            }
+            else if (sampleTexCoord.y < border)
 			{
-				output.a = lerp(0, 1, sampleTexCoord.y * 10);
-			}
+                output.a = lerp(0, 1, sampleTexCoord.y * bordermulti);
+            }
             [branch]
-			if (sampleTexCoord.x > 0.9f)
+            if (sampleTexCoord.x > border2)
 			{
-				output.a *= lerp(1, 0, (sampleTexCoord.x - 0.9) * 10);
-			}
-			else if (sampleTexCoord.x < 0.1f)
+                output.a *= lerp(1, 0, (sampleTexCoord.x - border2) * bordermulti);
+            }
+            else if (sampleTexCoord.x < border)
 			{
-				output.a *= lerp(0, 1, sampleTexCoord.x * 10);
-			}
+                output.a *= lerp(0, 1, sampleTexCoord.x * bordermulti);
+            }
             
-			output.rgb *= output.a * (1-roughness);
+            output.rgb *= output.a * (1 - roughness);
 			
 			break;
 		}

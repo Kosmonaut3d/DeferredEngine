@@ -122,6 +122,17 @@ namespace EngineTest.Recources
             }
         }
 
+        private static bool _g_SSR_Accuracy = true;
+        public static bool g_SSR_Accuracy
+        {
+            get { return _g_SSR_Accuracy;}
+            set
+            {
+                _g_SSR_Accuracy = value;
+                Shaders.ScreenSpaceReflectionEffect.Parameters["AccuracyMode"].SetValue(value);
+            }
+        }
+
         // Screen Space Ambient Occlusion
 
         public static bool ssao_Active
@@ -192,6 +203,7 @@ namespace EngineTest.Recources
             ApplySSAO();
 
             g_SSR = _g_SSR;
+            g_SSR_Accuracy = _g_SSR_Accuracy;
 
             SCurveStrength = _sCurveStrength;
             ChromaticAbberationStrength = _chromaticAbberationStrength;
