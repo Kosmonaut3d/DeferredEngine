@@ -94,6 +94,7 @@ namespace EngineTest.Recources
         public static EffectParameter ScreenSpaceEffect2Parameter_ViewProjection;
         public static EffectParameter ScreenSpaceEffect2Parameter_InverseViewProjection;
         public static EffectParameter ScreenSpaceEffect2Parameter_CameraPosition;
+        public static EffectParameter ScreenSpaceEffect2Parameter_Resolution;
 
         //Screen Space Effect
 
@@ -335,6 +336,7 @@ namespace EngineTest.Recources
             ScreenSpaceEffect2Parameter_NormalMap = ScreenSpaceReflectionEffect.Parameters["NormalMap"];
             ScreenSpaceEffect2Parameter_TargetMap = ScreenSpaceReflectionEffect.Parameters["TargetMap"];
             ScreenSpaceEffect2Parameter_CameraPosition = ScreenSpaceReflectionEffect.Parameters["CameraPosition"];
+            ScreenSpaceEffect2Parameter_Resolution = ScreenSpaceReflectionEffect.Parameters["resolution"];
             ScreenSpaceEffect2Parameter_ViewProjection = ScreenSpaceReflectionEffect.Parameters["ViewProjection"];
             ScreenSpaceEffect2Parameter_InverseViewProjection = ScreenSpaceReflectionEffect.Parameters["InverseViewProjection"];
 

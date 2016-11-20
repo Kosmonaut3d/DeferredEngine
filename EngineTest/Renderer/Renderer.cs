@@ -1435,6 +1435,7 @@ namespace EngineTest.Renderer
                 _renderTargetScreenSpaceEffectReflection = new RenderTarget2D(_graphicsDevice, target_width,
                     target_height, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
 
+                Shaders.ScreenSpaceEffect2Parameter_Resolution.SetValue(new Vector2(target_width, target_height));
                 ///////////////////
                 /// HALF RESOLUTION
 
