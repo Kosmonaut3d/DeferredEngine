@@ -62,7 +62,9 @@ namespace EngineTest.Main
 
             //AddEntity(_assets.Stormtrooper, _assets.stormtrooperMaterial, new Vector3(40, 0, 10), Math.PI / 2, 0, 0, 10);
 
-            AddEntity(_assets.DragonUvSmoothModel, _assets.silverMaterial, new Vector3(30, 10, 1), Math.PI / 2, 0, 0, 10);
+            AddEntity(_assets.DragonUvSmoothModel, _assets.baseMaterial, new Vector3(30, 10, 1), Math.PI / 2, 0, 0, 10);
+
+            AddEntity(_assets.TestCube, _assets.rockMaterial, new Vector3(20, 0, 10), Math.PI / 2, 0, 0, 5);
 
             //AddEntity(_assets.HelmetModel, new Vector3(70, 0, -10), -Math.PI / 2, 0, -Math.PI / 2, 1);
 
@@ -71,9 +73,9 @@ namespace EngineTest.Main
             //AddEntity(_assets.SkullModel, _assets.hologramMaterial, new Vector3(69, 8.5f, -6.5f), -Math.PI / 2, 0, Math.PI / 2 + 0.3f, 0.8f);
 
             //    //lights
-            shadowLight = AddPointLight(position: new Vector3(-80, 2, 20), radius: 50, color: Color.Wheat, intensity: 20, castShadows: true);
+            //shadowLight = AddPointLight(position: new Vector3(-80, 2, 20), radius: 50, color: Color.Wheat, intensity: 20, castShadows: true);
 
-            //AddPointLight(position: new Vector3(-20, 0, -40), radius: 120, color: Color.White, intensity: 10, castShadows: false, shadowResolution: 1024, staticShadow: true);
+            AddPointLight(position: new Vector3(-20, 0, 40), radius: 120, color: Color.White, intensity: 30, castShadows: false, shadowResolution: 1024, staticShadow: true);
 
             //for (int i = 0; i < 10; i++)
             //{
@@ -86,11 +88,12 @@ namespace EngineTest.Main
 
             //entities
             //AddEntity(_assets.Plane, new Vector3(0, 0, 0), 0, 0, 0, 200);
-            AddEntity(_assets.HelmetModel, new Vector3(70, 0, 10), -Math.PI / 2, 0, -Math.PI / 2, 1);
+
+            AddEntity(_assets.HelmetModel, new Vector3(60, 0, 10), Math.PI/2, 0, Math.PI / 2, 1);
             
             //Hologram skulls
-            AddEntity(_assets.SkullModel, _assets.hologramMaterial, new Vector3(69, 0, 13.5f), -Math.PI / 2, 0, Math.PI / 2 + 0.3f, 0.9f);
-            AddEntity(_assets.SkullModel, _assets.hologramMaterial, new Vector3(69, 8.5f, 13.5f), -Math.PI / 2, 0, Math.PI / 2 + 0.3f, 0.8f);
+            AddEntity(_assets.SkullModel, _assets.hologramMaterial, new Vector3(59, 0, 6.5f), Math.PI / 2, 0, -Math.PI / 2 - 0.3f, 0.9f);
+            //AddEntity(_assets.SkullModel, _assets.hologramMaterial, new Vector3(59, -8.5f, 6.5f), Math.PI / 2, 0, -Math.PI / 2 - 0.3f, 0.8f);
 
             //lights
             AddDirectionalLight(direction: new Vector3(0.2f, -0.2f, -1),
@@ -103,7 +106,7 @@ namespace EngineTest.Main
                 shadowResolution: 2048,
                 shadowFilteringFiltering: DirectionalLight.ShadowFilteringTypes.SoftPCF3x,
                 screenspaceShadowBlur: true);
-            
+
         }
 
 

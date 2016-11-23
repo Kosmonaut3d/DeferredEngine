@@ -88,13 +88,16 @@ namespace EngineTest.Recources
         //Second Screen Space Effect
 
         public static Effect ScreenSpaceReflectionEffect;
-        public static EffectParameter ScreenSpaceEffect2Parameter_DepthMap;
-        public static EffectParameter ScreenSpaceEffect2Parameter_TargetMap;
-        public static EffectParameter ScreenSpaceEffect2Parameter_NormalMap;
-        public static EffectParameter ScreenSpaceEffect2Parameter_ViewProjection;
-        public static EffectParameter ScreenSpaceEffect2Parameter_InverseViewProjection;
-        public static EffectParameter ScreenSpaceEffect2Parameter_CameraPosition;
-        public static EffectParameter ScreenSpaceEffect2Parameter_Resolution;
+        public static EffectParameter ScreenSpaceReflectionParameter_DepthMap;
+        public static EffectParameter ScreenSpaceReflectionParameter_TargetMap;
+        public static EffectParameter ScreenSpaceReflectionParameter_NormalMap;
+        public static EffectParameter ScreenSpaceReflectionParameter_ViewProjection;
+        public static EffectParameter ScreenSpaceReflectionParameter_InverseViewProjection;
+        public static EffectParameter ScreenSpaceReflectionParameter_CameraPosition;
+        public static EffectParameter ScreenSpaceReflectionParameter_Resolution;
+
+        public static EffectTechnique ScreenSpaceReflectionTechnique_Default;
+        public static EffectTechnique ScreenSpaceReflectionTechnique_Old;
 
         //Screen Space Effect
 
@@ -132,6 +135,7 @@ namespace EngineTest.Recources
         public static EffectParameter GBufferEffectParameter_World;
         public static EffectParameter GBufferEffectParameter_WorldViewProj;
         public static EffectParameter GBufferEffectParameter_View;
+        public static EffectParameter GBufferEffectParameter_Camera;
 
         public static EffectParameter GBufferEffectParameter_Material_Metallic;
         public static EffectParameter GBufferEffectParameter_Material_MetallicMap;
@@ -140,9 +144,11 @@ namespace EngineTest.Recources
         public static EffectParameter GBufferEffectParameter_Material_Mask;
         public static EffectParameter GBufferEffectParameter_Material_Texture;
         public static EffectParameter GBufferEffectParameter_Material_NormalMap;
-        public static EffectParameter GBufferEffectParameter_Material_Specular;
+        public static EffectParameter GBufferEffectParameter_Material_DisplacementMap;
+        public static EffectParameter GBufferEffectParameter_Material_RoughnessMap;
         public static EffectParameter GBufferEffectParameter_Material_MaterialType;
 
+        public static EffectTechnique GBufferEffectTechniques_DrawTextureDisplacement;
         public static EffectTechnique GBufferEffectTechniques_DrawTextureSpecularNormalMask;
         public static EffectTechnique GBufferEffectTechniques_DrawTextureNormalMask;
         public static EffectTechnique GBufferEffectTechniques_DrawTextureSpecularMask;
@@ -332,13 +338,16 @@ namespace EngineTest.Recources
             //Screen Space Effect 2
             ScreenSpaceReflectionEffect = content.Load<Effect>("Shaders/ScreenSpace/ScreenSpaceEffect2");
 
-            ScreenSpaceEffect2Parameter_DepthMap = ScreenSpaceReflectionEffect.Parameters["DepthMap"];
-            ScreenSpaceEffect2Parameter_NormalMap = ScreenSpaceReflectionEffect.Parameters["NormalMap"];
-            ScreenSpaceEffect2Parameter_TargetMap = ScreenSpaceReflectionEffect.Parameters["TargetMap"];
-            ScreenSpaceEffect2Parameter_CameraPosition = ScreenSpaceReflectionEffect.Parameters["CameraPosition"];
-            ScreenSpaceEffect2Parameter_Resolution = ScreenSpaceReflectionEffect.Parameters["resolution"];
-            ScreenSpaceEffect2Parameter_ViewProjection = ScreenSpaceReflectionEffect.Parameters["ViewProjection"];
-            ScreenSpaceEffect2Parameter_InverseViewProjection = ScreenSpaceReflectionEffect.Parameters["InverseViewProjection"];
+            ScreenSpaceReflectionParameter_DepthMap = ScreenSpaceReflectionEffect.Parameters["DepthMap"];
+            ScreenSpaceReflectionParameter_NormalMap = ScreenSpaceReflectionEffect.Parameters["NormalMap"];
+            ScreenSpaceReflectionParameter_TargetMap = ScreenSpaceReflectionEffect.Parameters["TargetMap"];
+            ScreenSpaceReflectionParameter_CameraPosition = ScreenSpaceReflectionEffect.Parameters["CameraPosition"];
+            ScreenSpaceReflectionParameter_Resolution = ScreenSpaceReflectionEffect.Parameters["resolution"];
+            ScreenSpaceReflectionParameter_ViewProjection = ScreenSpaceReflectionEffect.Parameters["ViewProjection"];
+            ScreenSpaceReflectionParameter_InverseViewProjection = ScreenSpaceReflectionEffect.Parameters["InverseViewProjection"];
+
+            ScreenSpaceReflectionTechnique_Default = ScreenSpaceReflectionEffect.Techniques["Default"];
+            ScreenSpaceReflectionTechnique_Old = ScreenSpaceReflectionEffect.Techniques["Old"];
 
             //Screen Space Effect
             ScreenSpaceEffect = content.Load<Effect>("Shaders/ScreenSpace/ScreenSpaceEffect");
@@ -373,6 +382,7 @@ namespace EngineTest.Recources
             GBufferEffectParameter_World = GBufferEffect.Parameters["World"];
             GBufferEffectParameter_WorldViewProj = GBufferEffect.Parameters["WorldViewProj"];
             GBufferEffectParameter_View = GBufferEffect.Parameters["View"];
+            GBufferEffectParameter_Camera = GBufferEffect.Parameters["Camera"];
 
             GBufferEffectParameter_Material_Metallic = GBufferEffect.Parameters["Metallic"];
             GBufferEffectParameter_Material_MetallicMap = GBufferEffect.Parameters["MetallicMap"];
@@ -382,7 +392,8 @@ namespace EngineTest.Recources
             GBufferEffectParameter_Material_Mask = GBufferEffect.Parameters["Mask"];
             GBufferEffectParameter_Material_Texture = GBufferEffect.Parameters["Texture"];
             GBufferEffectParameter_Material_NormalMap = GBufferEffect.Parameters["NormalMap"];
-            GBufferEffectParameter_Material_Specular = GBufferEffect.Parameters["RoughnessMap"];
+            GBufferEffectParameter_Material_RoughnessMap = GBufferEffect.Parameters["RoughnessMap"];
+            GBufferEffectParameter_Material_DisplacementMap = GBufferEffect.Parameters["DisplacementMap"];
 
             GBufferEffectParameter_Material_MaterialType = GBufferEffect.Parameters["MaterialType"];
 
@@ -390,6 +401,7 @@ namespace EngineTest.Recources
 
             //Techniques
 
+            GBufferEffectTechniques_DrawTextureDisplacement = GBufferEffect.Techniques["DrawTextureDisplacement"];
             GBufferEffectTechniques_DrawTextureSpecularNormalMask = GBufferEffect.Techniques["DrawTextureSpecularNormalMask"];
             GBufferEffectTechniques_DrawTextureNormalMask = GBufferEffect.Techniques["DrawTextureNormalMask"];
             GBufferEffectTechniques_DrawTextureSpecularMask = GBufferEffect.Techniques["DrawTextureSpecularMask"];

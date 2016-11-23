@@ -437,14 +437,22 @@ namespace EngineTest.Renderer.Helper
                 //todo: We only need textures for non shadow mapping, right? Not quite actually, for alpha textures we need materials
                 if (renderType == RenderType.opaque || renderType == RenderType.alpha)
                 {
-                    if (material.HasMask) //Has diffuse for sure then
+                    if (material.HasDisplacement)
+                    {
+                        Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
+                        Shaders.GBufferEffectParameter_Material_NormalMap.SetValue(material.NormalMap);
+                        Shaders.GBufferEffectParameter_Material_DisplacementMap.SetValue(material.DisplacementMap);
+                        Shaders.GBufferEffect.CurrentTechnique =
+                        Shaders.GBufferEffectTechniques_DrawTextureDisplacement;
+                    }
+                    else if (material.HasMask) //Has diffuse for sure then
                     {
                         if (material.HasNormal && material.HasRoughness)
                         {
                             Shaders.GBufferEffectParameter_Material_Mask.SetValue(material.Mask);
                             Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
                             Shaders.GBufferEffectParameter_Material_NormalMap.SetValue(material.NormalMap);
-                            Shaders.GBufferEffectParameter_Material_Specular.SetValue(material.RoughnessMap);
+                            Shaders.GBufferEffectParameter_Material_RoughnessMap.SetValue(material.RoughnessMap);
                             Shaders.GBufferEffect.CurrentTechnique =
                             Shaders.GBufferEffectTechniques_DrawTextureSpecularNormalMask;
                         }
@@ -462,7 +470,7 @@ namespace EngineTest.Renderer.Helper
                         {
                             Shaders.GBufferEffectParameter_Material_Mask.SetValue(material.Mask);
                             Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
-                            Shaders.GBufferEffectParameter_Material_Specular.SetValue(material.RoughnessMap);
+                            Shaders.GBufferEffectParameter_Material_RoughnessMap.SetValue(material.RoughnessMap);
                             Shaders.GBufferEffect.CurrentTechnique =
                                 Shaders.GBufferEffectTechniques_DrawTextureSpecularMask;
                         }
@@ -480,7 +488,7 @@ namespace EngineTest.Renderer.Helper
                         {
                             Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
                             Shaders.GBufferEffectParameter_Material_NormalMap.SetValue(material.NormalMap);
-                            Shaders.GBufferEffectParameter_Material_Specular.SetValue(material.RoughnessMap);
+                            Shaders.GBufferEffectParameter_Material_RoughnessMap.SetValue(material.RoughnessMap);
                             Shaders.GBufferEffectParameter_Material_MetallicMap.SetValue(material.MetallicMap);
                             Shaders.GBufferEffect.CurrentTechnique =
                                 Shaders.GBufferEffectTechniques_DrawTextureSpecularNormalMetallic;
@@ -490,7 +498,7 @@ namespace EngineTest.Renderer.Helper
                         {
                             Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
                             Shaders.GBufferEffectParameter_Material_NormalMap.SetValue(material.NormalMap);
-                            Shaders.GBufferEffectParameter_Material_Specular.SetValue(material.RoughnessMap);
+                            Shaders.GBufferEffectParameter_Material_RoughnessMap.SetValue(material.RoughnessMap);
                             Shaders.GBufferEffect.CurrentTechnique =
                             Shaders.GBufferEffectTechniques_DrawTextureSpecularNormal;
                         }
@@ -505,14 +513,14 @@ namespace EngineTest.Renderer.Helper
                         else if (material.HasMetallic && material.HasRoughness && material.HasDiffuse)
                         {
                             Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
-                            Shaders.GBufferEffectParameter_Material_Specular.SetValue(material.RoughnessMap);
+                            Shaders.GBufferEffectParameter_Material_RoughnessMap.SetValue(material.RoughnessMap);
                             Shaders.GBufferEffect.CurrentTechnique = Shaders.GBufferEffectTechniques_DrawTextureSpecularMetallic;
                         }
 
                         else if (material.HasRoughness && material.HasDiffuse)
                         {
                             Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
-                            Shaders.GBufferEffectParameter_Material_Specular.SetValue(material.RoughnessMap);
+                            Shaders.GBufferEffectParameter_Material_RoughnessMap.SetValue(material.RoughnessMap);
                             Shaders.GBufferEffect.CurrentTechnique = Shaders.GBufferEffectTechniques_DrawTextureSpecular;
                         }
 

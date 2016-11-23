@@ -16,6 +16,7 @@ namespace EngineTest.Recources
         private Texture2D _mask;
         private Texture2D _normalMap;
         private Texture2D _metallicMap;
+        private Texture2D _displacementMap;
 
         public bool IsTransparent = false;
 
@@ -26,6 +27,7 @@ namespace EngineTest.Recources
         public bool HasMask = false;
         public bool HasNormal = false;
         public bool HasMetallic = false;
+        public bool HasDisplacement = false;
 
 
         public Vector3 DiffuseColor = Color.Gray.ToVector3();
@@ -80,6 +82,17 @@ namespace EngineTest.Recources
             }
         }
 
+        public Texture2D DisplacementMap
+        {
+            get { return _displacementMap; }
+            set
+            {
+                if (value == null) return;
+                _displacementMap = value;
+                HasDisplacement = true;
+            }
+        }
+
         public Texture2D Mask
         {
             get { return _mask; }
@@ -116,7 +129,7 @@ namespace EngineTest.Recources
             }
         }
 
-        public void Initialize(Color diffuseColor, float roughness, float metalness, Texture2D albedoMap = null, Texture2D normalMap = null, Texture2D roughnessMap = null, Texture2D metallicMap = null, Texture2D mask = null, MaterialTypes type = MaterialTypes.Basic, float emissiveStrength = 0)
+        public void Initialize(Color diffuseColor, float roughness, float metalness, Texture2D albedoMap = null, Texture2D normalMap = null, Texture2D roughnessMap = null, Texture2D metallicMap = null, Texture2D mask = null, Texture2D displacementMap = null, MaterialTypes type = MaterialTypes.Basic, float emissiveStrength = 0)
         {
             DiffuseColor = diffuseColor.ToVector3();
             Roughness = roughness;
@@ -126,6 +139,7 @@ namespace EngineTest.Recources
             NormalMap = normalMap;
             RoughnessMap = roughnessMap;
             MetallicMap = metallicMap;
+            DisplacementMap = displacementMap;
             Mask = mask;
             Type = type;
 
@@ -164,6 +178,8 @@ namespace EngineTest.Recources
             if (HasNormal != b.HasNormal) return false;
 
             if (HasShadow != b.HasShadow) return false;
+
+            if (HasDisplacement != b.HasDisplacement) return false;
 
             if (Vector3.DistanceSquared(DiffuseColor, b.DiffuseColor) > 0.01f) return false;
 

@@ -367,8 +367,8 @@ namespace EngineTest.Renderer
 
             if (keyboardState.IsKeyDown(Keys.F5) && keyboardLastState.IsKeyUp(Keys.F5))
             {
-                GameSettings.g_SSR = !GameSettings.g_SSR;
-                window.Title = "Screen Space Reflections = " + GameSettings.g_SSR.ToString();
+                GameSettings.g_SSReflection = !GameSettings.g_SSReflection;
+                window.Title = "Screen Space Reflections = " + GameSettings.g_SSReflection.ToString();
             }
 
             //if (keyboardState.IsKeyDown(Keys.F5) && keyboardLastState.IsKeyUp(Keys.F5))
@@ -663,7 +663,7 @@ namespace EngineTest.Renderer
                 DrawMapToScreenToFullScreen(_renderTargetSkull);
             else //if (_renderMode == RenderModes.Deferred)
             {
-                if (GameSettings.g_SSR && !cubeMap)
+                if (GameSettings.g_SSReflection && !cubeMap)
                 {
                     DrawSSAO();
                 }
@@ -1260,7 +1260,7 @@ namespace EngineTest.Renderer
             _deferredEnvironment.Parameters["cameraPosition"].SetValue(_camera.Position);
             _deferredEnvironment.Parameters["cameraDirection"].SetValue(_camera.Forward);
 
-            _deferredEnvironment.CurrentTechnique = GameSettings.g_SSR
+            _deferredEnvironment.CurrentTechnique = GameSettings.g_SSReflection
                 ? _deferredEnvironment.Techniques["g_SSR"]
                 : _deferredEnvironment.Techniques["Classic"];
             _deferredEnvironment.CurrentTechnique.Passes[0].Apply();

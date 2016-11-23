@@ -108,28 +108,30 @@ namespace EngineTest.Recources
 
         // SSR
 
-        private static bool _g_SSR = true;
+        private static bool _g_SSReflection = true;
 
-        public static bool g_SSR
+        public static bool g_SSReflection
         {
-            get { return _g_SSR;}
+            get { return _g_SSReflection;}
             set
             {
-                _g_SSR = value;
+                _g_SSReflection = value;
                 Shaders.DeferredCompose.CurrentTechnique = value
                     ? Shaders.DeferredComposeTechnique_SSR
                     : Shaders.DeferredComposeTechnique_1;
             }
         }
 
-        private static bool _g_SSR_Accuracy = true;
-        public static bool g_SSR_Accuracy
+        private static bool _g_SSReflection_Accuracy = true;
+        public static bool g_SSReflectionAccuracy
         {
-            get { return _g_SSR_Accuracy;}
+            get { return _g_SSReflection_Accuracy;}
             set
             {
-                _g_SSR_Accuracy = value;
-                Shaders.ScreenSpaceReflectionEffect.Parameters["AccuracyMode"].SetValue(value);
+                _g_SSReflection_Accuracy = value;
+                Shaders.ScreenSpaceReflectionEffect.CurrentTechnique = value
+                    ? Shaders.ScreenSpaceReflectionTechnique_Default
+                    : Shaders.ScreenSpaceReflectionTechnique_Old;
             }
         }
 
@@ -201,9 +203,11 @@ namespace EngineTest.Recources
         public static void ApplySettings()
         {
             ApplySSAO();
+            
+            g_TemporalAntiAliasing = false;
 
-            g_SSR = _g_SSR;
-            g_SSR_Accuracy = _g_SSR_Accuracy;
+            g_SSReflection = _g_SSReflection;
+            //g_SSReflectionAccuracy = _g_SSReflection_Accuracy;
 
             SCurveStrength = _sCurveStrength;
             ChromaticAbberationStrength = _chromaticAbberationStrength;

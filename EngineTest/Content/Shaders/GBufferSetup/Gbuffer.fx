@@ -10,6 +10,8 @@ matrix  WorldViewProj;
 
 float4 FogColor = float4(1, 0.375, 0, 1);
 
+float3 Camera;
+
 float2 Resolution;
 
 #include "helper.fx"
@@ -24,9 +26,6 @@ int MaterialType = 0;
 float CLIP_VALUE = 0.99;
 
 float4 DiffuseColor = float4(0.8f, 0.8f, 0.8f, 1);
-
-//Temporal Antialiasing
-float2 TemporalDisplacement = float2(0, 0);
 
 Texture2D<float4> Texture : register(t0); 
 sampler TextureSampler : register(s0)
@@ -44,6 +43,8 @@ sampler TextureSampler : register(s0)
 Texture2D<float4> MetallicMap;
 
 Texture2D<float4> RoughnessMap;
+
+Texture2D<float4> DisplacementMap;
 
 Texture2D<float4> Mask;
 
@@ -115,7 +116,7 @@ struct PixelShaderOutputVSM
 DrawBasic_VSOut DrawBasic_VertexShader(DrawBasic_VSIn input)
 {
     DrawBasic_VSOut Output;
-    Output.Position = mul(input.Position, WorldViewProj) + float4(TemporalDisplacement,0,0);
+    Output.Position = mul(input.Position, WorldViewProj);
     Output.Normal = mul(float4(input.Normal, 0), World).xyz;
     Output.TexCoord = input.TexCoord;
     Output.Depth = float2(Output.Position.z, Output.Position.w);
@@ -125,7 +126,7 @@ DrawBasic_VSOut DrawBasic_VertexShader(DrawBasic_VSIn input)
 DrawNormals_VSOut DrawNormals_VertexShader(DrawNormals_VSIn input)
 {
     DrawNormals_VSOut Output;
-    Output.Position = mul(input.Position, WorldViewProj) + float4(TemporalDisplacement, 0, 0);
+    Output.Position = mul(input.Position, WorldViewProj);
     Output.WorldToTangentSpace[0] = mul(normalize(float4(input.Tangent, 0)), World).xyz;
     Output.WorldToTangentSpace[1] = mul(normalize(float4(input.Binormal, 0)), World).xyz;
     Output.WorldToTangentSpace[2] = mul(normalize(float4(input.Normal, 0)), World).xyz;
@@ -270,6 +271,7 @@ PixelShaderOutput DrawTextureSpecularNormalMetallic_PixelShader(DrawNormals_VSOu
 
     return Lighting(renderParams);
 }
+
 
 
 [earlydepthstencil]      //experimental
@@ -417,6 +419,47 @@ PixelShaderOutput DrawBasic_PixelShader(DrawBasic_VSOut input)
     return Lighting(renderParams);
 }
 
+
+[earlydepthstencil]     //DISPLACEMENT / POM
+PixelShaderOutput DrawTextureDisplacement_PixelShader(DrawNormals_VSOut input) : SV_TARGET
+{
+    Render_IN renderParams;
+
+    float3x3 worldToTangent = input.WorldToTangentSpace;
+
+    float3 tangentPos = mul(input.Position.xyz, worldToTangent);
+    float3 tangentCamera = mul(Camera, worldToTangent);
+    
+    float3 viewDir = normalize(tangentPos - tangentCamera);
+    //POM
+    float height = DisplacementMap.Sample(TextureSampler, input.TexCoord).r;
+    float2 p = viewDir.xy / viewDir.z * height * 0.01f;
+
+    float2 texCoordPOM = input.TexCoord - p;
+
+    //float RoughnessTexture = RoughnessMap.Sample(TextureSampler, input.TexCoord).r;
+    //float metallicTexture = MetallicMap.Sample(TextureSampler, input.TexCoord).r;
+
+    
+    float4 textureColor = Texture.Sample(TextureSampler, texCoordPOM);
+    float4 outputColor = textureColor; //* input.Color;
+
+    // NORMAL MAP ////
+    float3 normalMap = 1 * NormalMap.Sample(TextureSampler, texCoordPOM).rgb - float3(0.5f, 0.5f, 0.5f);
+    normalMap = normalize(mul(normalMap, worldToTangent));
+
+   
+  
+    renderParams.Position = input.Position;
+    renderParams.Color = outputColor;
+    renderParams.Normal = normalMap;
+    renderParams.Depth = input.Depth;
+    renderParams.Metallic = Metallic;
+    renderParams.roughness = Roughness;
+
+    return Lighting(renderParams);
+}
+
 technique DrawBasic
 {
     pass Pass1
@@ -514,5 +557,14 @@ technique DrawTextureNormalMask
     {
         VertexShader = compile vs_4_0 DrawNormals_VertexShader();
         PixelShader = compile ps_4_0 DrawTextureNormalMask_PixelShader();
+    }
+}
+
+technique DrawTextureDisplacement
+{
+    pass Pass1
+    {
+        VertexShader = compile vs_4_0 DrawNormals_VertexShader();
+        PixelShader = compile ps_4_0 DrawTextureDisplacement_PixelShader();
     }
 }

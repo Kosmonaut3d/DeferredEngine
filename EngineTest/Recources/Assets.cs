@@ -69,6 +69,8 @@ namespace EngineTest.Recources
 
         public Model TestTubes { get; set; }
 
+        public Model TestCube;
+
         public Model EditorArrow;
         public Model EditorArrowRound;
 
@@ -80,18 +82,18 @@ namespace EngineTest.Recources
         public MaterialEffect silverMaterial;
         public MaterialEffect hologramMaterial;
 
-        public MaterialEffect stormtrooperMaterial;
+        public MaterialEffect rockMaterial;
 
         public void Load(ContentManager content, GraphicsDevice graphicsDevice)
         {
             BaseTex = new Texture2D(graphicsDevice, 1, 1);
             BaseTex.SetData(new Color[] { Color.White });
 
-            DragonUvSmoothModel = content.Load<Model>("dragon_uv_smooth");
+            DragonUvSmoothModel = content.Load<Model>("Art/default/dragon_uv_smooth");
 
             SponzaModel = content.Load<Model>("Sponza/Sponza");
-            HelmetModel = content.Load<Model>("daft_helmets");
-            SkullModel = content.Load<Model>("skull");
+            HelmetModel = content.Load<Model>("Art/default/daft_helmets");
+            SkullModel = content.Load<Model>("Art/default/skull");
 
             //JackJean = content.Load<Model>("Art/Skinned/JackJean");
             //JackJean = ProcessModel(JackJean);
@@ -143,7 +145,7 @@ namespace EngineTest.Recources
 
             sponza_curtain_metallic = content.Load<Texture2D>("Sponza/textures/sponza_curtain_metallic");
 
-            Sphere = content.Load<Model>("sphere");
+            Sphere = content.Load<Model>("Art/default/sphere");
 
             Icon_Light = content.Load<Texture2D>("Art/Editor/icon_light");
 
@@ -157,6 +159,8 @@ namespace EngineTest.Recources
 
             TestTubes = content.Load<Model>("Art/test/tubes");
 
+            TestCube = content.Load<Model>("Art/test/cube");
+
             ProcessHelmets();
 
             Plane = content.Load<Model>("Art/Plane");
@@ -166,11 +170,20 @@ namespace EngineTest.Recources
 
             baseMaterial = CreateMaterial(Color.Red, 0.3f, 0);
 
-            hologramMaterial = CreateMaterial(Color.White, 0.2f, 1, null, null, null, null, null, MaterialEffect.MaterialTypes.Hologram, 1);
+            hologramMaterial = CreateMaterial(Color.White, 0.2f, 1, null, null, null, null, null, null, MaterialEffect.MaterialTypes.Hologram, 1);
 
-            emissiveMaterial = CreateMaterial(Color.White, 0.2f, 1, null, null, null, null, null, MaterialEffect.MaterialTypes.Emissive, 1.5f);
+            emissiveMaterial = CreateMaterial(Color.White, 0.2f, 1, null, null, null, null, null, null, MaterialEffect.MaterialTypes.Emissive, 1.5f);
 
-            emissiveMaterial2 = CreateMaterial(Color.LimeGreen, 0.2f, 1, null, null, null, null, null, MaterialEffect.MaterialTypes.Emissive, 0.8f);
+            emissiveMaterial2 = CreateMaterial(Color.LimeGreen, 0.2f, 1, null, null, null, null, null, null, MaterialEffect.MaterialTypes.Emissive, 0.8f);
+
+            rockMaterial = CreateMaterial(Color.White, roughness: 1, metallic: 0,
+                albedoMap: content.Load<Texture2D>("Art/test/squarebricks-diffuse"),
+                normalMap: content.Load<Texture2D>("Art/test/squarebricks-normal"),
+                roughnessMap: null,
+                metallicMap: null,
+                mask: null,
+                displacementMap: content.Load<Texture2D>("Art/test/squarebricks-depth")
+            );
 
             //stormtrooperMaterial = CreateMaterial(Color.White, 1, 0,
             //    content.Load<Texture2D>("Art/test/stormtrooper_albedo"),
@@ -200,10 +213,10 @@ namespace EngineTest.Recources
         /// <param name="type">2: hologram, 3:emissive</param>
         /// <param name="emissiveStrength"></param>
         /// <returns></returns>
-        private MaterialEffect CreateMaterial(Color color, float roughness, float metallic, Texture2D albedoMap = null, Texture2D normalMap = null, Texture2D roughnessMap = null, Texture2D metallicMap = null, Texture2D mask = null, MaterialEffect.MaterialTypes type = 0, float emissiveStrength = 0)
+        private MaterialEffect CreateMaterial(Color color, float roughness, float metallic, Texture2D albedoMap = null, Texture2D normalMap = null, Texture2D roughnessMap = null, Texture2D metallicMap = null, Texture2D mask = null, Texture2D displacementMap = null, MaterialEffect.MaterialTypes type = 0, float emissiveStrength = 0)
         {
             MaterialEffect mat = new MaterialEffect(Shaders.ClearGBufferEffect);
-            mat.Initialize(color, roughness, metallic, albedoMap, normalMap, roughnessMap, metallicMap, mask, type, emissiveStrength);
+            mat.Initialize(color, roughness, metallic, albedoMap, normalMap, roughnessMap, metallicMap, mask, displacementMap, type, emissiveStrength);
             return mat;
         }
 
@@ -350,6 +363,12 @@ namespace EngineTest.Recources
 
                         //    matEffect.AlbedoMap = null;
                         //    matEffect.HasDiffuse = false;
+                        //}
+
+                        //if (compare.Contains("floor"))
+                        //{
+                        //    matEffect.Roughness = 0.05f;
+                        //    matEffect.Metallic = 1;
                         //}
 
 

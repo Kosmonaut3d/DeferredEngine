@@ -495,7 +495,7 @@ namespace EngineTest.Renderer
         {
             //Another way to make SSR, not good yet
 
-            if (!GameSettings.g_SSR) return;
+            if (!GameSettings.g_SSReflection) return;
 
             _graphicsDevice.SetRenderTarget(_renderTargetScreenSpaceEffectReflection);
             _graphicsDevice.BlendState = BlendState.Opaque;
@@ -504,17 +504,17 @@ namespace EngineTest.Renderer
 
             if (GameSettings.g_TemporalAntiAliasing)
             {
-                Shaders.ScreenSpaceEffect2Parameter_TargetMap.SetValue(_temporalAAOffFrame ? _renderTargetTAA_1 : _renderTargetTAA_2);
+                Shaders.ScreenSpaceReflectionParameter_TargetMap.SetValue(_temporalAAOffFrame ? _renderTargetTAA_1 : _renderTargetTAA_2);
             }
             else
             {
-                Shaders.ScreenSpaceEffect2Parameter_TargetMap.SetValue(_renderTargetFinal);
+                Shaders.ScreenSpaceReflectionParameter_TargetMap.SetValue(_renderTargetFinal);
             }
 
-            Shaders.ScreenSpaceEffect2Parameter_InverseViewProjection.SetValue(_inverseViewProjection);
-            //Shaders.ScreenSpaceEffect2Parameter_Projection.SetValue(_projection);
-            Shaders.ScreenSpaceEffect2Parameter_ViewProjection.SetValue(_viewProjection);
-            Shaders.ScreenSpaceEffect2Parameter_CameraPosition.SetValue(camera.Position);
+            Shaders.ScreenSpaceReflectionParameter_InverseViewProjection.SetValue(_inverseViewProjection);
+            //Shaders.ScreenSpaceReflectionParameter_Projection.SetValue(_projection);
+            Shaders.ScreenSpaceReflectionParameter_ViewProjection.SetValue(_viewProjection);
+            Shaders.ScreenSpaceReflectionParameter_CameraPosition.SetValue(camera.Position);
 
             //Shaders.ScreenSpaceEffect.CurrentTechnique = Shaders.ScreenSpaceEffectTechnique_SSAO;
             Shaders.ScreenSpaceReflectionEffect.CurrentTechnique.Passes[0].Apply();
@@ -936,7 +936,7 @@ namespace EngineTest.Renderer
 
            Shaders.deferredEnvironmentParameterCameraPosition.SetValue(cameraPosition);
 
-            //Shaders.deferredEnvironment.CurrentTechnique = GameSettings.g_SSR
+            //Shaders.deferredEnvironment.CurrentTechnique = GameSettings.g_SSReflection
             //    ? Shaders.deferredEnvironment.Techniques["g_SSR"]
             //    : Shaders.deferredEnvironment.Techniques["Classic"];
             Shaders.deferredEnvironment.CurrentTechnique.Passes[0].Apply();
@@ -1243,7 +1243,7 @@ namespace EngineTest.Renderer
                     GameSettings.g_ScreenWidth / (float)GameSettings.g_ScreenHeight, 1, GameSettings.g_FarPlane);
 
                 Shaders.GBufferEffectParameter_View.SetValue(_view);
-
+                Shaders.GBufferEffectParameter_Camera.SetValue(camera.Position);
                 
                 _viewProjection = _view*_projection;
                 _staticViewProjection = _viewProjection;
@@ -1435,7 +1435,7 @@ namespace EngineTest.Renderer
                 _renderTargetScreenSpaceEffectReflection = new RenderTarget2D(_graphicsDevice, target_width,
                     target_height, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
 
-                Shaders.ScreenSpaceEffect2Parameter_Resolution.SetValue(new Vector2(target_width, target_height));
+                Shaders.ScreenSpaceReflectionParameter_Resolution.SetValue(new Vector2(target_width, target_height));
                 ///////////////////
                 /// HALF RESOLUTION
 
@@ -1485,9 +1485,9 @@ namespace EngineTest.Renderer
             Shaders.ScreenSpaceEffectParameter_DepthMap.SetValue(_renderTargetDepth);
             Shaders.ScreenSpaceEffectParameter_SSAOMap.SetValue(_renderTargetSSAOEffect);
 
-            Shaders.ScreenSpaceEffect2Parameter_DepthMap.SetValue(_renderTargetDepth);
-            Shaders.ScreenSpaceEffect2Parameter_NormalMap.SetValue(_renderTargetNormal);
-            //Shaders.ScreenSpaceEffect2Parameter_TargetMap.SetValue(_renderTargetFinal);
+            Shaders.ScreenSpaceReflectionParameter_DepthMap.SetValue(_renderTargetDepth);
+            Shaders.ScreenSpaceReflectionParameter_NormalMap.SetValue(_renderTargetNormal);
+            //Shaders.ScreenSpaceReflectionParameter_TargetMap.SetValue(_renderTargetFinal);
 
             Shaders.EmissiveEffectParameter_DepthMap.SetValue(_renderTargetDepth);
             Shaders.EmissiveEffectParameter_EmissiveMap.SetValue(_renderTargetEmissive);
