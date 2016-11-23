@@ -204,7 +204,7 @@ namespace EngineTest.Recources
         {
             ApplySSAO();
             
-            g_TemporalAntiAliasing = false;
+            g_TemporalAntiAliasing = true;
 
             g_SSReflection = _g_SSReflection;
             //g_SSReflectionAccuracy = _g_SSReflection_Accuracy;

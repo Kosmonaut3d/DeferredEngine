@@ -151,7 +151,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : SV_Target
         float3 normalVS = mul(float4(normalWS, 0), ViewProjection).xyz;
         normalVS = normalize(normalVS);
 
-        float3 randNor = randomNormal(input.TexCoord); //
+        float3 randNor = randomNormal(mul(input.TexCoord, ViewProjection).rg); //
 
         const float3 sampleSphere[] =
         {
