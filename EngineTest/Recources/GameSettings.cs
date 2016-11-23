@@ -31,6 +31,8 @@ namespace EngineTest.Recources
         public static bool g_EmissiveNoise = false;
         public static float g_EmissiveDrawFOVFactor = 2;
 
+        public static float m_defaultRoughness = 0;
+
         //Whether or not materials' lighting scales with strength
         public static bool g_EmissiveMaterialeSizeStrengthScaling = true;
 
@@ -122,16 +124,20 @@ namespace EngineTest.Recources
             }
         }
 
-        private static bool _g_SSReflection_Accuracy = true;
-        public static bool g_SSReflectionAccuracy
+        private static bool _g_SSReflection_Taa = true;
+        public static bool g_SSReflectionNoise = true;
+
+        public static bool g_SSReflectionTaa
         {
-            get { return _g_SSReflection_Accuracy;}
+            get { return _g_SSReflection_Taa;}
             set
             {
-                _g_SSReflection_Accuracy = value;
+                _g_SSReflection_Taa = value;
                 Shaders.ScreenSpaceReflectionEffect.CurrentTechnique = value
-                    ? Shaders.ScreenSpaceReflectionTechnique_Default
-                    : Shaders.ScreenSpaceReflectionTechnique_Old;
+                    ? Shaders.ScreenSpaceReflectionTechnique_Taa
+                    : Shaders.ScreenSpaceReflectionTechnique_Default;
+
+                if (value) g_SSReflectionNoise = true;
             }
         }
 
@@ -207,7 +213,7 @@ namespace EngineTest.Recources
             g_TemporalAntiAliasing = true;
 
             g_SSReflection = _g_SSReflection;
-            //g_SSReflectionAccuracy = _g_SSReflection_Accuracy;
+            
 
             SCurveStrength = _sCurveStrength;
             ChromaticAbberationStrength = _chromaticAbberationStrength;

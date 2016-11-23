@@ -182,9 +182,10 @@ PixelShaderOutput PixelShaderFunctionClassic(VertexShaderOutput input)
 
     float4 DiffuseReflectColor = ReflectionCubeMap.SampleLevel(ReflectionCubeMapSampler, reflectionVector, 9) * fresnel; //* NdotC * NdotC * NdotC;
 
+    float ssreflectionMap = ReflectionMap.Sample(normalSampler, input.TexCoord).a;
 
     output.Diffuse = float4(DiffuseReflectColor.xyz, 0) * 0.01;
-    output.Specular = float4(ReflectColor.xyz, 0) * 0.02;
+    output.Specular = float4(ReflectColor.xyz, 0) * 0.02 * (1-ssreflectionMap);
 
     return output;
 }

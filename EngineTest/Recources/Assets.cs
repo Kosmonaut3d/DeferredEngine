@@ -81,6 +81,8 @@ namespace EngineTest.Recources
         public MaterialEffect emissiveMaterial2;
         public MaterialEffect silverMaterial;
         public MaterialEffect hologramMaterial;
+        public MaterialEffect metalRough03Material;
+        public MaterialEffect metalRough02Material;
 
         public MaterialEffect rockMaterial;
 
@@ -169,6 +171,9 @@ namespace EngineTest.Recources
             EditorArrowRound = content.Load<Model>("Art/Editor/ArrowRound");
 
             baseMaterial = CreateMaterial(Color.Red, 0.3f, 0);
+
+            metalRough03Material = CreateMaterial(Color.Silver, 0.3f, 1);
+            metalRough02Material = CreateMaterial(Color.Silver, 0.2f, 1);
 
             hologramMaterial = CreateMaterial(Color.White, 0.2f, 1, null, null, null, null, null, null, MaterialEffect.MaterialTypes.Hologram, 1);
 
@@ -367,8 +372,9 @@ namespace EngineTest.Recources
 
                         //if (compare.Contains("floor"))
                         //{
-                        //    matEffect.Roughness = 0.05f;
+                        //    matEffect.Roughness = 0.2f;
                         //    matEffect.Metallic = 1;
+                        //    //matEffect.HasDiffuse = false;
                         //}
 
 

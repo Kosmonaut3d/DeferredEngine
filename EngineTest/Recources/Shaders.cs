@@ -95,9 +95,10 @@ namespace EngineTest.Recources
         public static EffectParameter ScreenSpaceReflectionParameter_InverseViewProjection;
         public static EffectParameter ScreenSpaceReflectionParameter_CameraPosition;
         public static EffectParameter ScreenSpaceReflectionParameter_Resolution;
+        public static EffectParameter ScreenSpaceReflectionParameter_Time;
 
         public static EffectTechnique ScreenSpaceReflectionTechnique_Default;
-        public static EffectTechnique ScreenSpaceReflectionTechnique_Old;
+        public static EffectTechnique ScreenSpaceReflectionTechnique_Taa;
 
         //Screen Space Effect
 
@@ -240,6 +241,7 @@ namespace EngineTest.Recources
         public static Effect deferredEnvironment;
         public static EffectParameter deferredEnvironmentParameter_AlbedoMap;
         public static EffectParameter deferredEnvironmentParameter_NormalMap;
+        public static EffectParameter deferredEnvironmentParameter_SSRMap;
         public static EffectParameter deferredEnvironmentParameter_DepthMap;
         public static EffectParameter deferredEnvironmentParameterCameraPosition;
         public static EffectParameter deferredEnvironmentParameterInverseViewProjection;
@@ -345,9 +347,10 @@ namespace EngineTest.Recources
             ScreenSpaceReflectionParameter_Resolution = ScreenSpaceReflectionEffect.Parameters["resolution"];
             ScreenSpaceReflectionParameter_ViewProjection = ScreenSpaceReflectionEffect.Parameters["ViewProjection"];
             ScreenSpaceReflectionParameter_InverseViewProjection = ScreenSpaceReflectionEffect.Parameters["InverseViewProjection"];
+            ScreenSpaceReflectionParameter_Time = ScreenSpaceReflectionEffect.Parameters["Time"];
 
             ScreenSpaceReflectionTechnique_Default = ScreenSpaceReflectionEffect.Techniques["Default"];
-            ScreenSpaceReflectionTechnique_Old = ScreenSpaceReflectionEffect.Techniques["Old"];
+            ScreenSpaceReflectionTechnique_Taa = ScreenSpaceReflectionEffect.Techniques["TAA"];
 
             //Screen Space Effect
             ScreenSpaceEffect = content.Load<Effect>("Shaders/ScreenSpace/ScreenSpaceEffect");
@@ -499,6 +502,7 @@ namespace EngineTest.Recources
             deferredEnvironmentParameter_AlbedoMap = deferredEnvironment.Parameters["AlbedoMap"];
             deferredEnvironmentParameter_NormalMap = deferredEnvironment.Parameters["NormalMap"];
             deferredEnvironmentParameter_DepthMap = deferredEnvironment.Parameters["DepthMap"];
+            deferredEnvironmentParameter_SSRMap = deferredEnvironment.Parameters["ReflectionMap"];
 
             deferredEnvironmentParameterCameraPosition = deferredEnvironment.Parameters["cameraPosition"];
             deferredEnvironmentParameterInverseViewProjection = deferredEnvironment.Parameters["InvertViewProjection"];

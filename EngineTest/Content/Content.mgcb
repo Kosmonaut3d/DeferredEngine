@@ -866,7 +866,7 @@
 /processorParam:PremultiplyTextureAlpha=True
 /processorParam:PremultiplyVertexColors=True
 /processorParam:ResizeTexturesToPowerOfTwo=False
-/processorParam:RotationX=180
+/processorParam:RotationX=0
 /processorParam:RotationY=0
 /processorParam:RotationZ=0
 /processorParam:Scale=1

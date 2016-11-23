@@ -38,6 +38,7 @@ namespace EngineTest.Renderer
         private bool _hologramDraw;
         private int _forceShadowFiltering = 0;
         private bool _forceShadowSS = false;
+        private bool _SSR = true;
 
         private Assets _assets;
 
@@ -208,7 +209,7 @@ namespace EngineTest.Renderer
 
             DrawEmissiveEffect(entities, camera, meshMaterialLibrary, gameTime);
 
-            DrawScreenSpaceReflectionsEffect(camera);
+            DrawScreenSpaceReflectionsEffect(camera, gameTime);
 
             //Combine the buffers
             Compose();
@@ -491,7 +492,7 @@ namespace EngineTest.Renderer
             //need bilateral upsample
         }
 
-        private void DrawScreenSpaceReflectionsEffect(Camera camera)
+        private void DrawScreenSpaceReflectionsEffect(Camera camera, GameTime gameTime)
         {
             //Another way to make SSR, not good yet
 
@@ -510,6 +511,9 @@ namespace EngineTest.Renderer
             {
                 Shaders.ScreenSpaceReflectionParameter_TargetMap.SetValue(_renderTargetFinal);
             }
+
+            if (GameSettings.g_SSReflectionNoise)
+                Shaders.ScreenSpaceReflectionParameter_Time.SetValue((float)gameTime.TotalGameTime.TotalSeconds % 1000);
 
             Shaders.ScreenSpaceReflectionParameter_InverseViewProjection.SetValue(_inverseViewProjection);
             //Shaders.ScreenSpaceReflectionParameter_Projection.SetValue(_projection);
@@ -1211,6 +1215,14 @@ namespace EngineTest.Renderer
                 }
             }
 
+            if (_SSR != GameSettings.g_SSReflection)
+            {
+                _graphicsDevice.SetRenderTarget(_renderTargetScreenSpaceEffectReflection);
+                _graphicsDevice.Clear(Color.TransparentBlack);
+
+                _SSR = GameSettings.g_SSReflection;
+            }
+
 
         }
 
@@ -1431,15 +1443,13 @@ namespace EngineTest.Renderer
 
                 Shaders.ScreenSpaceEffectParameter_InverseResolution.SetValue(new Vector2(1.0f/target_width,
                     1.0f/target_height));
-                
-                _renderTargetScreenSpaceEffectReflection = new RenderTarget2D(_graphicsDevice, target_width,
-                    target_height, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
 
                 Shaders.ScreenSpaceReflectionParameter_Resolution.SetValue(new Vector2(target_width, target_height));
+                _renderTargetScreenSpaceEffectReflection = new RenderTarget2D(_graphicsDevice, target_width,
+                    target_height, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
                 ///////////////////
                 /// HALF RESOLUTION
-
-
+                
                 target_width /= 2;
                 target_height /= 2;
 
@@ -1451,6 +1461,9 @@ namespace EngineTest.Renderer
                 _renderTargetHologram = new RenderTarget2D(_graphicsDevice, target_width,
                     target_height, false, SurfaceFormat.Single, DepthFormat.Depth24, 0,
                     RenderTargetUsage.PreserveContents);
+
+
+
             }
 
             UpdateRenderMapBindings(onlyEssentials);
@@ -1473,6 +1486,7 @@ namespace EngineTest.Renderer
             Shaders.deferredEnvironmentParameter_AlbedoMap.SetValue(_renderTargetAlbedo);
             //Shaders.deferredEnvironmentParameter_DepthMap.SetValue(_renderTargetDepth);
             Shaders.deferredEnvironmentParameter_NormalMap.SetValue(_renderTargetNormal);
+            Shaders.deferredEnvironmentParameter_SSRMap.SetValue(_renderTargetScreenSpaceEffectReflection);
 
             Shaders.DeferredComposeEffectParameter_ColorMap.SetValue(_renderTargetAlbedo);
             Shaders.DeferredComposeEffectParameter_diffuseLightMap.SetValue(_renderTargetDiffuse);

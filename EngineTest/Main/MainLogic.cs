@@ -49,7 +49,7 @@ namespace EngineTest.Main
         {
             _assets = assets;
 
-            Camera = new Camera(new Vector3(-80, 0, 10), new Vector3(1, 0, -10));
+            Camera = new Camera(new Vector3(-80, 0, 10), new Vector3(1, 1, -10));
             MeshMaterialLibrary = new MeshMaterialLibrary();
 
             ////////////////////////////////////////////////////////////////////////
@@ -62,7 +62,7 @@ namespace EngineTest.Main
 
             //AddEntity(_assets.Stormtrooper, _assets.stormtrooperMaterial, new Vector3(40, 0, 10), Math.PI / 2, 0, 0, 10);
 
-            AddEntity(_assets.DragonUvSmoothModel, _assets.baseMaterial, new Vector3(30, 10, 1), Math.PI / 2, 0, 0, 10);
+            AddEntity(_assets.DragonUvSmoothModel, _assets.baseMaterial, new Vector3(30, 10, 0), Math.PI / 2, 0, 0, 10);
 
             AddEntity(_assets.TestCube, _assets.rockMaterial, new Vector3(20, 0, 10), Math.PI / 2, 0, 0, 5);
 
@@ -73,21 +73,31 @@ namespace EngineTest.Main
             //AddEntity(_assets.SkullModel, _assets.hologramMaterial, new Vector3(69, 8.5f, -6.5f), -Math.PI / 2, 0, Math.PI / 2 + 0.3f, 0.8f);
 
             //    //lights
-            shadowLight = AddPointLight(position: new Vector3(-80, 2, 20), radius: 50, color: Color.Wheat, intensity: 20, castShadows: true);
+            //shadowLight = AddPointLight(position: new Vector3(-80, 2, 20), radius: 50, color: Color.Wheat, intensity: 20, castShadows: true);
 
-            //AddPointLight(position: new Vector3(-20, 0, 40), radius: 120, color: Color.White, intensity: 30, castShadows: false, shadowResolution: 1024, staticShadow: true);
+            AddPointLight(position: new Vector3(-20, 0, 40), radius: 120, color: Color.White, intensity: 20, castShadows: true, shadowResolution: 1024, staticShadow: false);
 
             //for (int i = 0; i < 10; i++)
             //{
             //    AddPointLight(new Vector3(FastRand.NextSingle() * 250 - 125, FastRand.NextSingle() * 40 - 20, FastRand.NextSingle() * 10 - 13), 40, new Color(FastRand.NextInteger(255), FastRand.NextInteger(255), FastRand.NextInteger(255)), 20, true);
             //}
             //AddPointLight(position: new Vector3(+20, -10, -20), radius: 50, color: Color.Orange, intensity: 20, castShadows: true);
-        
+
             ///////////////////////////////////////////////////////////////////////////////
             //Base scene
 
             //entities
-            //AddEntity(_assets.Plane, new Vector3(0, 0, 0), 0, 0, 0, 200);
+            AddEntity(_assets.Plane, assets.metalRough02Material, new Vector3(0, 0, 0), 0, 0, 0, 30);
+
+            AddEntity(_assets.Plane, assets.goldMaterial, new Vector3(80, 0, 0), 0, 0, 0, 30);
+            //AddEntity(_assets.Plane, assets.metalRough02Material, new Vector3(0, 0, 0), 0, 0, 0, 10);
+            //AddEntity(_assets.Plane, assets.silverMaterial, new Vector3(-20, 0, 0), 0, 0, 0, 10);
+            //AddEntity(_assets.Plane, assets.metalRough02Material, new Vector3(-40, 0, 0), 0, 0, 0, 10);
+            //AddEntity(_assets.Plane, assets.metalRough02Material, new Vector3(20, 20, 0), 0, 0, 0, 10);
+            //AddEntity(_assets.Plane, assets.silverMaterial, new Vector3(0, 20, 0), 0, 0, 0, 10);
+            //AddEntity(_assets.Plane, assets.metalRough02Material, new Vector3(-20, 20, 0), 0, 0, 0, 10);
+            //AddEntity(_assets.Plane, assets.silverMaterial, new Vector3(-40, 20, 0), 0, 0, 0, 10);
+            //AddEntity(_assets.Plane, assets.metalRough02Material, new Vector3(-350, 0, 0), 0, 0, 0, 15);
 
             AddEntity(_assets.HelmetModel, new Vector3(60, 0, 10), Math.PI/2, 0, Math.PI / 2, 1);
             
@@ -212,7 +222,7 @@ namespace EngineTest.Main
 
             if (Input.keyboardState.IsKeyDown(Keys.L))
             {
-                AddPointLight(new Vector3(FastRand.NextSingle() * 250 - 125, FastRand.NextSingle() * 50 - 25, FastRand.NextSingle() * 10 - 9), 30, new Color(FastRand.NextInteger(255), FastRand.NextInteger(255), FastRand.NextInteger(255)), 10, false);
+                AddPointLight(new Vector3(FastRand.NextSingle() * 250 - 125, FastRand.NextSingle() * 50 - 25, FastRand.NextSingle() * 30 - 19), 30, new Color(FastRand.NextInteger(255), FastRand.NextInteger(255), FastRand.NextInteger(255)), 10, false);
 
             }
 

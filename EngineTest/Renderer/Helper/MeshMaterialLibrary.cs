@@ -551,7 +551,7 @@ namespace EngineTest.Renderer.Helper
                         //}
                     }
 
-                    if (!material.HasRoughness) Shaders.GBufferEffectParameter_Material_Roughness.SetValue(material.Roughness);
+                    if (!material.HasRoughness) Shaders.GBufferEffectParameter_Material_Roughness.SetValue(GameSettings.m_defaultRoughness > 0 ? GameSettings.m_defaultRoughness : material.Roughness);
                     Shaders.GBufferEffectParameter_Material_Metallic.SetValue(material.Metallic);
                     Shaders.GBufferEffectParameter_Material_MaterialType.SetValue(material.materialTypeNumber);
                 }
