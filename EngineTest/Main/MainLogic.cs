@@ -73,9 +73,9 @@ namespace EngineTest.Main
             //AddEntity(_assets.SkullModel, _assets.hologramMaterial, new Vector3(69, 8.5f, -6.5f), -Math.PI / 2, 0, Math.PI / 2 + 0.3f, 0.8f);
 
             //    //lights
-            //shadowLight = AddPointLight(position: new Vector3(-80, 2, 20), radius: 50, color: Color.Wheat, intensity: 20, castShadows: true);
+            shadowLight = AddPointLight(position: new Vector3(-80, 2, 20), radius: 50, color: Color.Wheat, intensity: 20, castShadows: true);
 
-            AddPointLight(position: new Vector3(-20, 0, 40), radius: 120, color: Color.White, intensity: 30, castShadows: false, shadowResolution: 1024, staticShadow: true);
+            //AddPointLight(position: new Vector3(-20, 0, 40), radius: 120, color: Color.White, intensity: 30, castShadows: false, shadowResolution: 1024, staticShadow: true);
 
             //for (int i = 0; i < 10; i++)
             //{

@@ -103,7 +103,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 
 
     [branch]
-    if (normalData.x + normalData.y <= 0.801f || roughness > 0.8f) //Out of range
+    if (normalData.x + normalData.y <= 0.001f || roughness > 0.8f) //Out of range
     {
         return float4(0, 0, 0, 0);
     }
@@ -176,14 +176,14 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 
     float4 hitPosition;
 
-	[branch]
+	[unroll]
     for (int i = 0; i < samples; i++)
     {
 		//if (i >= samples)
 		//	break;
 
-        //if (Offset.z < 0)
-        //    break;
+        if (Offset.z < 0)
+            break;
 
         float4 rayPositionVS = samplePositionVS + Offset * i;
 
@@ -210,7 +210,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
             [branch]
             for (int j = 1; j <= samples2; j++)
             {
-                rayPositionVS = hitPosition - Offset * j / (samples2 );
+                rayPositionVS = hitPosition - Offset * j / (samples2);
 
                 float2 sampleTexCoordAccurate = 0.5f * (float2(rayPositionVS.x, -rayPositionVS.y) + float2(1, 1));
 
@@ -249,8 +249,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
                         if (depthValRayLerped >= hitPosition.z)
                         {
                             hit = false;
-                            sampleTexCoord = sampleTexCoordAccurate;
-
+                            //sampleTexCoord = sampleTexCoordAccurate;
                         }
                         //else
                         //{
@@ -268,7 +267,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
             }
             
             if (!hit)
-                break;
+                continue;
 
             //if (depthValRay < startingDepth)
             //    break;
