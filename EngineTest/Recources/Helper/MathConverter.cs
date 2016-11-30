@@ -100,6 +100,30 @@ namespace ConversionHelper
             return toReturn;
         }
 
+        public static bool Equals(BEPUutilities.Matrix M1, BEPUutilities.Matrix M2)
+        {
+            if (M1.M11 != M2.M11) return false;
+            if (M1.M12 != M2.M12) return false;
+            if (M1.M13 != M2.M13) return false;
+            if (M1.M14 != M2.M14) return false;
+
+            if (M1.M21 != M2.M21) return false;
+            if (M1.M22 != M2.M22) return false;
+            if (M1.M23 != M2.M23) return false;
+            if (M1.M24 != M2.M24) return false;
+
+            if (M1.M31 != M2.M31) return false;
+            if (M1.M32 != M2.M32) return false;
+            if (M1.M33 != M2.M33) return false;
+            if (M1.M34 != M2.M34) return false;
+
+            if (M1.M41 != M2.M41) return false;
+            if (M1.M42 != M2.M42) return false;
+            if (M1.M43 != M2.M43) return false;
+            if (M1.M44 != M2.M44) return false;
+            return true;
+        }
+
         public static BEPUutilities.Matrix Convert(Matrix matrix)
         {
             BEPUutilities.Matrix toReturn;
@@ -153,6 +177,32 @@ namespace ConversionHelper
             bepuMatrix.M43 = matrix.M43;
             bepuMatrix.M44 = matrix.M44;
 
+        }
+
+        public static BEPUutilities.Matrix Copy(BEPUutilities.Matrix matrix)
+        {
+            BEPUutilities.Matrix bepuMatrix = BEPUutilities.Matrix.Identity;
+            bepuMatrix.M11 = matrix.M11;
+            bepuMatrix.M12 = matrix.M12;
+            bepuMatrix.M13 = matrix.M13;
+            bepuMatrix.M14 = matrix.M14;
+
+            bepuMatrix.M21 = matrix.M21;
+            bepuMatrix.M22 = matrix.M22;
+            bepuMatrix.M23 = matrix.M23;
+            bepuMatrix.M24 = matrix.M24;
+
+            bepuMatrix.M31 = matrix.M31;
+            bepuMatrix.M32 = matrix.M32;
+            bepuMatrix.M33 = matrix.M33;
+            bepuMatrix.M34 = matrix.M34;
+
+            bepuMatrix.M41 = matrix.M41;
+            bepuMatrix.M42 = matrix.M42;
+            bepuMatrix.M43 = matrix.M43;
+            bepuMatrix.M44 = matrix.M44;
+
+            return bepuMatrix;
         }
 
         public static Matrix Convert(BEPUutilities.Matrix3x3 matrix)

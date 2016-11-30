@@ -6,14 +6,17 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using BEPUphysics;
+using BEPUphysics.BroadPhaseEntries;
 using BEPUphysics.Entities;
 using BEPUphysics.Entities.Prefabs;
+using BEPUutilities;
 using ConversionHelper;
 using EngineTest.Recources;
 using EngineTest.Recources.Helper;
 using EngineTest.Renderer.Helper;
-using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Matrix = Microsoft.Xna.Framework.Matrix;
+using Vector3 = Microsoft.Xna.Framework.Vector3;
 
 namespace EngineTest.Entities
 {
@@ -37,7 +40,8 @@ namespace EngineTest.Entities
 
         private Vector3 _position;
 
-        public Entity PhysicsAttachment = null;
+        public Entity DynamicPhysicsObject = null;
+        public StaticMesh StaticPhysicsObject = null;
 
         public override Vector3 Position
         {
@@ -104,6 +108,8 @@ namespace EngineTest.Entities
             }  
         }
 
+        
+
         public TransformMatrix WorldTransform;
         public Matrix RotationMatrix;
         public Matrix WorldOldMatrix = Matrix.Identity;
@@ -142,8 +148,8 @@ namespace EngineTest.Entities
 
         public void RegisterPhysics(Entity PhysisEntity)
         {
-            PhysicsAttachment = PhysisEntity;
-            PhysicsAttachment.Position = new BEPUutilities.Vector3(Position.X, Position.Y, Position.Z);
+            DynamicPhysicsObject = PhysisEntity;
+            DynamicPhysicsObject.Position = new BEPUutilities.Vector3(Position.X, Position.Y, Position.Z);
         }
 
         public void Dispose(MeshMaterialLibrary library)
@@ -158,7 +164,7 @@ namespace EngineTest.Entities
 
         public virtual void ApplyTransformation()
         {
-            if (PhysicsAttachment == null)
+            if (DynamicPhysicsObject == null)
             {
                 RotationMatrix = Matrix.CreateRotationX((float) AngleX)*Matrix.CreateRotationY((float) AngleY)*
                                   Matrix.CreateRotationZ((float) AngleZ);
@@ -167,17 +173,31 @@ namespace EngineTest.Entities
 
                 WorldTransform.Scale = Scale;
                 WorldTransform.World = WorldOldMatrix;
+                
+                if (StaticPhysicsObject != null && !GameSettings.Editor_enable)
+                {
+                    AffineTransform Change = new AffineTransform(
+                            new BEPUutilities.Vector3(Scale, Scale, Scale),
+                            BEPUutilities.Quaternion.CreateFromRotationMatrix(MathConverter.Convert(RotationMatrix)),
+                            MathConverter.Convert(Position));
+
+                    if (!MathConverter.Equals(Change.Matrix, StaticPhysicsObject.WorldTransform.Matrix))
+                    {
+                        //StaticPhysicsMatrix = MathConverter.Copy(Change.Matrix);
+
+                        StaticPhysicsObject.WorldTransform = Change;
+                    }
+                }
             }
             else
             {
                 //Has something changed?
                 WorldTransform.Scale = Scale;
-                WorldOldMatrix = Extensions.CopyFromBepuMatrix(WorldOldMatrix, PhysicsAttachment.WorldTransform);
+                WorldOldMatrix = Extensions.CopyFromBepuMatrix(WorldOldMatrix, DynamicPhysicsObject.WorldTransform);
                 Matrix ScaleMatrix = Matrix.CreateScale(Scale);
-
-
                 //WorldOldMatrix = Matrix.CreateScale(Scale)*WorldOldMatrix; 
                 WorldTransform.World = ScaleMatrix * WorldOldMatrix;
+
             }
         }
 
@@ -188,9 +208,9 @@ namespace EngineTest.Entities
 
         internal void CheckPhysics()
         {
-            if (PhysicsAttachment == null) return;
+            if (DynamicPhysicsObject == null) return;
 
-            WorldNewMatrix = Extensions.CopyFromBepuMatrix(WorldNewMatrix, PhysicsAttachment.WorldTransform);
+            WorldNewMatrix = Extensions.CopyFromBepuMatrix(WorldNewMatrix, DynamicPhysicsObject.WorldTransform);
 
             if (WorldNewMatrix != WorldOldMatrix)
             {
@@ -202,11 +222,11 @@ namespace EngineTest.Entities
             {
                 if (Position != WorldNewMatrix.Translation && GameSettings.Editor_enable)
                 {
-                    //PhysicsAttachment.Position = new BEPUutilities.Vector3(Position.X, Position.Y, Position.Z);
-                    PhysicsAttachment.Position = MathConverter.Convert(Position);
+                    //DynamicPhysicsObject.Position = new BEPUutilities.Vector3(Position.X, Position.Y, Position.Z);
+                    DynamicPhysicsObject.Position = MathConverter.Convert(Position);
                 }
-                //    PhysicsAttachment.Position = new BEPUutilities.Vector3(Position.X, Position.Y, Position.Z);
-                //    //WorldNewMatrix = Extensions.CopyFromBepuMatrix(WorldNewMatrix, PhysicsAttachment.WorldTransform);
+                //    DynamicPhysicsObject.Position = new BEPUutilities.Vector3(Position.X, Position.Y, Position.Z);
+                //    //WorldNewMatrix = Extensions.CopyFromBepuMatrix(WorldNewMatrix, DynamicPhysicsObject.WorldTransform);
                 //    //if (Position != WorldNewMatrix.Translation)
                 //    //{
                 //    //    var i = 0;

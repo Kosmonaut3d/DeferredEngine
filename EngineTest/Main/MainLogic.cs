@@ -243,7 +243,8 @@ namespace EngineTest.Main
                 BEPUutilities.Quaternion.CreateFromRotationMatrix(MathConverter.Convert(entity.RotationMatrix)), 
                 MathConverter.Convert(entity.Position)));
 
-            //entity.PhysicsAttachment = mesh;
+            entity.StaticPhysicsObject = mesh;
+            //entity.DynamicPhysicsObject = mesh;
             _physicsSpace.Add(mesh);
         }
 

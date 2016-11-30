@@ -25,6 +25,7 @@ namespace EngineTest.Renderer.Helper
         public int Index;
 
         private bool _previousMode = GameSettings.g_CPU_Culling;
+        private bool _previousEditorMode = GameSettings.Editor_enable;
 
         /// <summary>
         /// 
@@ -208,12 +209,12 @@ namespace EngineTest.Renderer.Helper
                 BasicEntity entity = entities[index1];
 
                 //If both the camera hasn't changed and the Transformation isn't changed we don't need to update the renderstate
-                if (!hasCameraChanged && !entity.WorldTransform.HasChanged)// && entity.PhysicsAttachment == null)
+                if (!hasCameraChanged && !entity.WorldTransform.HasChanged)// && entity.DynamicPhysicsObject == null)
                 {
                     continue;
                 }
 
-                if (entity.WorldTransform.HasChanged)// || entity.PhysicsAttachment != null)
+                if (entity.WorldTransform.HasChanged)// || entity.DynamicPhysicsObject != null)
                     entity.ApplyTransformation();
             }
 
@@ -258,7 +259,24 @@ namespace EngineTest.Renderer.Helper
 
         public void FrustumCullingStartFrame(List<BasicEntity> entities)
         {
-            //Set Changed to false
+            if (_previousEditorMode != GameSettings.Editor_enable)
+            {
+                _previousEditorMode = GameSettings.Editor_enable;
+                //Set Changed to true
+                for (int index1 = 0; index1 < entities.Count; index1++)
+                {
+                    BasicEntity entity = entities[index1];
+                    entity.WorldTransform.HasChanged = true;
+                }
+
+                for (int index1 = 0; index1 < Index; index1++)
+                {
+                    MaterialLibrary matLib = GameSettings.g_CPU_Sort ? MaterialLib[MaterialLibPointer[index1]] : MaterialLib[index1];
+
+                    matLib.hasChangedThisFrame = true;
+                }
+            }
+            
             for (int index1 = 0; index1 < entities.Count; index1++)
             {
                 BasicEntity entity = entities[index1];
