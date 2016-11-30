@@ -169,7 +169,10 @@ namespace EngineTest.Renderer
         public EditorLogic.EditorReceivedData Draw(Camera camera, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities, List<PointLight> pointLights, List<DirectionalLight> dirLights, EditorLogic.EditorSendData editorData, GameTime gameTime)
         {
             //Reset the stat counter
-            ResetStats(); 
+            ResetStats();
+
+
+            meshMaterialLibrary.FrustumCullingStartFrame(entities);
 
             //Check if we changed some drastic stuff for which we need to reload some elements
             CheckRenderChanges(dirLights);
@@ -182,6 +185,11 @@ namespace EngineTest.Renderer
             {
                 DrawCubeMap(camera.Position, meshMaterialLibrary, entities, pointLights, dirLights, 300);
                 camera.HasChanged = true;
+            }
+
+            if (Input.WasKeyPressed(Keys.V) && !DebugScreen.ConsoleOpen)
+            {
+                Shaders.deferredEnvironment.Parameters["ReflectionCubeMap"].SetValue(_assets.TestCubeMap);
             }
 
             //Update our view projection matrices if the camera moved
@@ -1100,7 +1108,7 @@ namespace EngineTest.Renderer
                 }
             }
             _graphicsDevice.SetRenderTarget(null);
-            _spriteBatch.Begin(0, blendState, SamplerState.PointClamp, null, null);
+            _spriteBatch.Begin(0, blendState, _supersampling>1 ? SamplerState.LinearWrap : SamplerState.PointClamp, null, null);
             _spriteBatch.Draw(map, new Rectangle(0, 0, width, height), Color.White);
             _spriteBatch.End();
         }

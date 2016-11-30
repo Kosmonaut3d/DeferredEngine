@@ -92,6 +92,19 @@ float3 randomNormal(float2 tex)
     return normalize(float3(noiseX, noiseY, noiseZ));
 }
 
+//float roughnessToConeAngle(float roughness)
+//{
+//    float specularPower = pow(2, 10 * (1-roughness) + 1);
+//    // based on phong reflection model
+//    const float xi = 0.244f;
+//    float exponent = 1.0f / (specularPower + 1.0f);
+//	/*
+//	 * may need to try clamping very high exponents to 0.0f, test out on mirror surfaces first to gauge
+//	 * return specularPower >= 8192 ? 0.0f : cos(pow(xi, exponent));
+//	 */
+//    return pow(xi, exponent); //cos(pow(xi, exponent));
+//}
+
 float4 PixelShaderFunctionTAA(VertexShaderOutput input) : COLOR0
 {
     float4 output = float4(0, 0, 0, 0);
@@ -130,13 +143,13 @@ float4 PixelShaderFunctionTAA(VertexShaderOutput input) : COLOR0
 	// float3 incident = normalize(input.viewDirWS);
     float3 incident = normalize(positionWS.xyz - CameraPosition);
 
-    float3 randNor = randomNormal(frac(mul(input.TexCoord, ViewProjection).rg)) * -randomNormal(frac(mul(1 - input.TexCoord, ViewProjection).ba)); //
+    float3 randNor = randomNormal(frac(mul(input.TexCoord, ViewProjection).xy)) * -randomNormal(frac(mul(1 - input.TexCoord, ViewProjection).xy)); //
 
     //hemisphere
     if (dot(randNor, normal) < 0)
         randNor *= -1;
 
-    normal = normalize(normal + roughness * randNor);
+    normal = normalize(lerp(normal, randNor, roughness)); //roughnessToConeAngle(roughness)); //normalize(normal + (1-roughnessToConeAngle(roughness)) * randNor);
 
     float3 reflectVector = reflect(incident, normal);
 	// go
@@ -200,7 +213,7 @@ float4 PixelShaderFunctionTAA(VertexShaderOutput input) : COLOR0
 		//if (i >= samples)
 		//	break;
 
-        if (Offset.z < 0)
+        if (Offset.z < -0.5f)
             break;
 
         float4 rayPositionVS = samplePositionVS + Offset * (i+offsetTaa);

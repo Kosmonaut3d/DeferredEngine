@@ -154,7 +154,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : SV_Target
     //if (!foundOverlap)
     //    alpha = alpha/2;
 
-    if (abs(previousPositionVS.z - depthVal) > 0.00001)
+    if (abs(previousPositionVS.z - depthVal) > 0.00001 || depthVal >= 0.999999f)
         alpha = 0;
     //if ()
     //    alpha = 0;

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using BEPUphysics;
 using EngineTest.Recources;
 using EngineTest.Renderer.Helper;
 using Microsoft.Xna.Framework;
@@ -22,10 +23,10 @@ namespace EngineTest.Main
 
         private EditorLogic.EditorReceivedData _editorReceivedDataBuffer;
 
-        public void Initialize(GraphicsDevice graphicsDevice)
+        public void Initialize(GraphicsDevice graphicsDevice, Space space)
         {
             _renderer.Initialize(graphicsDevice, _assets);
-            _logic.Initialize(_assets);
+            _logic.Initialize(_assets, space);
             _editorLogic.Initialize(graphicsDevice);
             _debug.Initialize(graphicsDevice);
         }

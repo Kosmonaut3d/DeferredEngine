@@ -70,6 +70,8 @@
     <Compile Include="Recources\Helper\CPURayMarch.cs" />
     <Compile Include="Recources\Helper\Extensions.cs" />
     <Compile Include="Recources\Helper\IdGenerator.cs" />
+    <Compile Include="Recources\Helper\MathConverter.cs" />
+    <Compile Include="Recources\Helper\ModelDataExtractor.cs" />
     <Compile Include="Recources\MaterialEffect.cs" />
     <Compile Include="Recources\Shaders.cs" />
     <Compile Include="Entities\UNUSED_SpotLight.cs" />
@@ -88,6 +90,14 @@
     <Compile Include="Renderer\RenderModules\IdRenderer.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="BEPUphysics, Version=1.4.0.0, Culture=neutral, PublicKeyToken=31f6a8732a21de19, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Content\BEPUphysics.dll</HintPath>
+    </Reference>
+    <Reference Include="BEPUutilities, Version=1.4.0.0, Culture=neutral, PublicKeyToken=31f6a8732a21de19, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Content\BEPUutilities.dll</HintPath>
+    </Reference>
     <Reference Include="MonoGame.Framework">
       <HintPath>$(MonoGameInstallDirectory)\MonoGame\v3.0\Assemblies\Windows\MonoGame.Framework.dll</HintPath>
     </Reference>
@@ -95,6 +105,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Content\BEPUphysics.dll" />
+    <Content Include="Content\BEPUutilities.dll" />
     <Content Include="Icon.ico" />
     <Content Include="Log.txt" />
   </ItemGroup>

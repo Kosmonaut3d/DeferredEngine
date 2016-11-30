@@ -1,4 +1,6 @@
 ﻿using System;
+using BEPUphysics;
+using BEPUutilities;
 using EngineTest.Main;
 using EngineTest.Recources;
 using Microsoft.Xna.Framework;
@@ -19,22 +21,29 @@ namespace EngineTest
 
         private bool isActive = true;
 
+        private Space space;
+
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
 
+            space = new Space();
+            space.ForceUpdater.Gravity = new BEPUutilities.Vector3(0,0,-9.81f);
+
             graphics.SynchronizeWithVerticalRetrace = false;
             IsFixedTimeStep = false;
 
-            graphics.PreferredBackBufferWidth = 1280;
-            graphics.PreferredBackBufferHeight = 800;
+            graphics.PreferredBackBufferWidth = GameSettings.g_ScreenWidth;
+            graphics.PreferredBackBufferHeight = GameSettings.g_ScreenHeight;
 
             screenManager = new ScreenManager();
 
             IsMouseVisible = true;
 
             Window.ClientSizeChanged += ClientChangedWindowSize;
+
+            graphics.GraphicsProfile = GraphicsProfile.HiDef;
 
             //_graphics.GraphicsDevice.DeviceLost += new EventHandler<EventArgs>(ClientLostDevice);
 
@@ -57,8 +66,8 @@ namespace EngineTest
 
         private void ClientChangedWindowSize(object sender, EventArgs e)
         {
-            if (GraphicsDevice.Viewport.Width != Window.ClientBounds.Width ||
-                GraphicsDevice.Viewport.Height != Window.ClientBounds.Height)
+            if (GraphicsDevice.Viewport.Width != graphics.PreferredBackBufferWidth ||
+                GraphicsDevice.Viewport.Height != graphics.PreferredBackBufferHeight)
             {
                 if (Window.ClientBounds.Width == 0) return;
                 graphics.PreferredBackBufferWidth = Window.ClientBounds.Width;
@@ -83,7 +92,7 @@ namespace EngineTest
         {
             screenManager.Load(Content, GraphicsDevice);
             // TODO: Add your initialization logic here
-            screenManager.Initialize(GraphicsDevice);
+            screenManager.Initialize(GraphicsDevice, space);
 
             base.Initialize();
         }
@@ -126,6 +135,10 @@ namespace EngineTest
             // TODO: Add your update logic here
 
             screenManager.Update(gameTime, isActive);
+
+            //BEPU
+            if(!GameSettings.Editor_enable && GameSettings.p_Physics)
+            space.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
 
             base.Update(gameTime);
 

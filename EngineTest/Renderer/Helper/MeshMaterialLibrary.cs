@@ -208,12 +208,12 @@ namespace EngineTest.Renderer.Helper
                 BasicEntity entity = entities[index1];
 
                 //If both the camera hasn't changed and the Transformation isn't changed we don't need to update the renderstate
-                if (!hasCameraChanged && !entity.WorldTransform.HasChanged)
+                if (!hasCameraChanged && !entity.WorldTransform.HasChanged)// && entity.PhysicsAttachment == null)
                 {
                     continue;
                 }
 
-                if (entity.WorldTransform.HasChanged)
+                if (entity.WorldTransform.HasChanged)// || entity.PhysicsAttachment != null)
                     entity.ApplyTransformation();
             }
 
@@ -253,6 +253,17 @@ namespace EngineTest.Renderer.Helper
                 SortByDistance();
 
             return hasAnythingChanged;
+        }
+
+
+        public void FrustumCullingStartFrame(List<BasicEntity> entities)
+        {
+            //Set Changed to false
+            for (int index1 = 0; index1 < entities.Count; index1++)
+            {
+                BasicEntity entity = entities[index1];
+                entity.CheckPhysics();
+            }
         }
 
         /// <summary>

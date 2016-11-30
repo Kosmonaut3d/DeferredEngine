@@ -71,10 +71,13 @@ namespace EngineTest.Recources
 
         public Model TestCube;
 
+        public TextureCube TestCubeMap;
+
         public Model EditorArrow;
         public Model EditorArrowRound;
 
         public Model Sphere;
+        public Model IsoSphere;
         public MaterialEffect baseMaterial;
         public MaterialEffect goldMaterial;
         public MaterialEffect emissiveMaterial;
@@ -148,6 +151,7 @@ namespace EngineTest.Recources
             sponza_curtain_metallic = content.Load<Texture2D>("Sponza/textures/sponza_curtain_metallic");
 
             Sphere = content.Load<Model>("Art/default/sphere");
+            IsoSphere = content.Load<Model>("Art/default/isosphere");
 
             Icon_Light = content.Load<Texture2D>("Art/Editor/icon_light");
 
@@ -162,6 +166,8 @@ namespace EngineTest.Recources
             TestTubes = content.Load<Model>("Art/test/tubes");
 
             TestCube = content.Load<Model>("Art/test/cube");
+
+            TestCubeMap = content.Load<TextureCube>("Art/test/OutputCube");
 
             ProcessHelmets();
 
@@ -179,7 +185,7 @@ namespace EngineTest.Recources
 
             emissiveMaterial = CreateMaterial(Color.White, 0.2f, 1, null, null, null, null, null, null, MaterialEffect.MaterialTypes.Emissive, 1.5f);
 
-            emissiveMaterial2 = CreateMaterial(Color.LimeGreen, 0.2f, 1, null, null, null, null, null, null, MaterialEffect.MaterialTypes.Emissive, 0.8f);
+            emissiveMaterial2 = CreateMaterial(Color.LimeGreen, 0.2f, 1, null, null, null, null, null, null, MaterialEffect.MaterialTypes.Emissive, 3.8f);
 
             rockMaterial = CreateMaterial(Color.White, roughness: 1, metallic: 0,
                 albedoMap: content.Load<Texture2D>("Art/test/squarebricks-diffuse"),

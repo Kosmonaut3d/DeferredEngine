@@ -11,3 +11,7 @@ Screen Space Ambient Occlusion
 Light View Space Global Illumination
 
 - have a projector calculate global illumination in its view space - then project onto screen space.
+
+TODO:
+
+- Integrate the physics system better into the lighting system so it doesnot update when the position doesn't change any more.

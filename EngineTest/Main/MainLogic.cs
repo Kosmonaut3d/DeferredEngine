@@ -5,8 +5,16 @@ using System.Net.Mime;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using BEPUphysics;
+using BEPUphysics.BroadPhaseEntries;
+using BEPUphysics.Entities;
+using BEPUphysics.Entities.Prefabs;
+using BEPUphysicsDemos;
+using BEPUutilities;
+using ConversionHelper;
 using EngineTest.Entities;
 using EngineTest.Recources;
+using EngineTest.Recources.Helper;
 using EngineTest.Renderer;
 using EngineTest.Renderer.Helper;
 using Microsoft.Xna.Framework;
@@ -14,6 +22,7 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using DirectionalLight = EngineTest.Recources.DirectionalLight;
+using Vector3 = Microsoft.Xna.Framework.Vector3;
 
 namespace EngineTest.Main
 {
@@ -41,30 +50,54 @@ namespace EngineTest.Main
         private BasicEntity drake;
         private BasicEntity sponza;
 
+        private Space _physicsSpace;
+
+        private Box testBox;
+        private BasicEntity testBoxEntity;
+
         #endregion
         /////////////////////////////////////////////////////// METHODS
         
         //Done after Load
-        public void Initialize(Assets assets)
+        public void Initialize(Assets assets, Space space)
         {
             _assets = assets;
 
-            Camera = new Camera(new Vector3(-80, 0, 10), new Vector3(1, 1, -10));
+            _physicsSpace = space;
+
+            Camera = new Camera(new Vector3(-80, 0, 20), new Vector3(1, 1, 0));
             MeshMaterialLibrary = new MeshMaterialLibrary();
+
+
 
             ////////////////////////////////////////////////////////////////////////
             //Sponza scene
-            
+
             //    //entities
-            sponza = AddEntity(_assets.SponzaModel, Vector3.Zero, Math.PI/2, 0, 0, 0.1f);
+            sponza = AddEntity(model: _assets.SponzaModel, position: Vector3.Zero, angleX: Math.PI/2, angleY: 0, angleZ: 0, scale: 0.1f, PhysicsEntity: null, hasStaticPhysics: true);
+            
             //AddEntity(_assets.TestTubes, _assets.emissiveMaterial2, new Vector3(0, 0, 40), 0,0, 0, 1.8f);
             //drake = AddEntity(_assets.DragonUvSmoothModel, _assets.emissiveMaterial, new Vector3(40, -10, 0), Math.PI / 2, 0, 0, 10);
+            
+            //space.Add(new Box(new BEPUutilities.Vector3(0,0,-0.5f), 1000,1000,1));
 
-            //AddEntity(_assets.Stormtrooper, _assets.stormtrooperMaterial, new Vector3(40, 0, 10), Math.PI / 2, 0, 0, 10);
+            space.Add(testBox = new Box(BEPUutilities.Vector3.Zero, 10, 10, 10, 100));
+            testBoxEntity = AddEntity(_assets.TestCube, _assets.emissiveMaterial, new Vector3(20.2f, 1.1f, 40), Math.PI / 2, 0, 0, 5, testBox);
+            
+            Entity Sphere;
+            space.Add(Sphere = new Sphere(new BEPUutilities.Vector3(20, 0, 40),5,50));
+            AddEntity(_assets.IsoSphere, _assets.baseMaterial, new Vector3(20, 0, 10), Math.PI/2, 0, 0, 5, Sphere);
 
-            AddEntity(_assets.DragonUvSmoothModel, _assets.baseMaterial, new Vector3(30, 10, 0), Math.PI / 2, 0, 0, 10);
+            for (int i = 0; i < 10; i++)
+            {
 
-            AddEntity(_assets.TestCube, _assets.rockMaterial, new Vector3(20, 0, 10), Math.PI / 2, 0, 0, 5);
+                Entity Sphere2;
+                space.Add(Sphere2 = new Sphere(BEPUutilities.Vector3.Zero, 5, 50));
+                AddEntity(_assets.IsoSphere, _assets.baseMaterial,
+                    new Vector3(20 + FastRand.NextSingle(2) - 1, FastRand.NextSingle(2) - 1, 30 + i*10), Math.PI/2, 0, 0,
+                    5, Sphere2);
+
+            }
 
             //AddEntity(_assets.HelmetModel, new Vector3(70, 0, -10), -Math.PI / 2, 0, -Math.PI / 2, 1);
 
@@ -89,7 +122,10 @@ namespace EngineTest.Main
             //entities
             AddEntity(_assets.Plane, assets.metalRough02Material, new Vector3(0, 0, 0), 0, 0, 0, 30);
 
-            AddEntity(_assets.Plane, assets.goldMaterial, new Vector3(80, 0, 0), 0, 0, 0, 30);
+            //AddEntity(_assets.Plane, assets.goldMaterial, new Vector3(80, 0, 0), 0, 0, 0, 30);
+
+            //AddEntity(_assets.Plane, assets.metalRough02Material, new Vector3(0, 0, 0), 0, 0, 0, 800);
+
             //AddEntity(_assets.Plane, assets.metalRough02Material, new Vector3(0, 0, 0), 0, 0, 0, 10);
             //AddEntity(_assets.Plane, assets.silverMaterial, new Vector3(-20, 0, 0), 0, 0, 0, 10);
             //AddEntity(_assets.Plane, assets.metalRough02Material, new Vector3(-40, 0, 0), 0, 0, 0, 10);
@@ -99,10 +135,10 @@ namespace EngineTest.Main
             //AddEntity(_assets.Plane, assets.silverMaterial, new Vector3(-40, 20, 0), 0, 0, 0, 10);
             //AddEntity(_assets.Plane, assets.metalRough02Material, new Vector3(-350, 0, 0), 0, 0, 0, 15);
 
-            AddEntity(_assets.HelmetModel, new Vector3(60, 0, 10), Math.PI/2, 0, Math.PI / 2, 1);
-            
+            //AddEntity(_assets.HelmetModel, new Vector3(60, 0, 10), Math.PI/2, 0, Math.PI / 2, 1);
+
             //Hologram skulls
-            AddEntity(_assets.SkullModel, _assets.hologramMaterial, new Vector3(59, 0, 6.5f), Math.PI / 2, 0, -Math.PI / 2 - 0.3f, 0.9f);
+            //AddEntity(_assets.SkullModel, _assets.hologramMaterial, new Vector3(59, 0, 6.5f), Math.PI / 2, 0, -Math.PI / 2 - 0.3f, 0.9f);
             //AddEntity(_assets.SkullModel, _assets.hologramMaterial, new Vector3(59, -8.5f, 6.5f), Math.PI / 2, 0, -Math.PI / 2 - 0.3f, 0.8f);
 
             //lights
@@ -161,7 +197,7 @@ namespace EngineTest.Main
 
 
 
-        private BasicEntity AddEntity(Model model, Vector3 position, double angleX, double angleY, double angleZ, float scale)
+        private BasicEntity AddEntity(Model model, Vector3 position, double angleX, double angleY, double angleZ, float scale, Entity PhysicsEntity = null, bool hasStaticPhysics = false)
         {
             BasicEntity entity = new BasicEntity(model,
                 null, 
@@ -170,13 +206,16 @@ namespace EngineTest.Main
                 angleX: angleX, 
                 angleY: angleY, 
                 scale: scale,
-                library: MeshMaterialLibrary);
+                library: MeshMaterialLibrary,
+                physicsObject: PhysicsEntity);
             Entities.Add(entity);
+
+            if (hasStaticPhysics) AddStaticPhysics(entity);
 
             return entity;
         }
 
-        private BasicEntity AddEntity(Model model, MaterialEffect materialEffect, Vector3 position, double angleX, double angleY, double angleZ, float scale)
+        private BasicEntity AddEntity(Model model, MaterialEffect materialEffect, Vector3 position, double angleX, double angleY, double angleZ, float scale, Entity PhysicsEntity = null, bool hasStaticPhysics = false )
         {
             BasicEntity entity = new BasicEntity(model,
                 materialEffect,
@@ -185,17 +224,34 @@ namespace EngineTest.Main
                 angleX: angleX,
                 angleY: angleY,
                 scale: scale,
-                library: MeshMaterialLibrary);
+                library: MeshMaterialLibrary,
+                physicsObject: PhysicsEntity);
             Entities.Add(entity);
 
+            if(hasStaticPhysics) AddStaticPhysics(entity);
+
             return entity;
+        }
+
+        private void AddStaticPhysics(BasicEntity entity)
+        {
+            BEPUutilities.Vector3[] vertices;
+            int[] indices;
+            ModelDataExtractor.GetVerticesAndIndicesFromModel(entity.Model, out vertices, out indices);
+            var mesh = new StaticMesh(vertices, indices, new AffineTransform(
+                new BEPUutilities.Vector3(entity.Scale, entity.Scale, entity.Scale), 
+                BEPUutilities.Quaternion.CreateFromRotationMatrix(MathConverter.Convert(entity.RotationMatrix)), 
+                MathConverter.Convert(entity.Position)));
+
+            //entity.PhysicsAttachment = mesh;
+            _physicsSpace.Add(mesh);
         }
 
         //Update per frame
         public void Update(GameTime gameTime, bool isActive)
         {
             Input.Update(gameTime, Camera, isActive);
-
+            
             if (!isActive) return;
             
             float delta = (float) (gameTime.ElapsedGameTime.TotalMilliseconds*60/1000);
