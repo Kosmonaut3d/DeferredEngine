@@ -113,6 +113,14 @@ namespace EngineTest.Renderer.RenderModules
                 LineHelperManager.AddLineStartDir(light.Position - Vector3.UnitY * 10, light.Direction * 10, 1, Color.Black, light.Color);
                 LineHelperManager.AddLineStartDir(light.Position + Vector3.UnitZ * 10, light.Direction * 10, 1, Color.Black, light.Color);
                 LineHelperManager.AddLineStartDir(light.Position - Vector3.UnitZ * 10, light.Direction * 10, 1, Color.Black, light.Color);
+
+                if (light.DrawShadows)
+                {
+                    BoundingFrustum _boundingFrustumShadow = new BoundingFrustum(light.LightViewProjection);
+
+                    LineHelperManager.CreateBoundingBoxLines(_boundingFrustumShadow);
+                }
+
                 //DrawArrow(light.Position, 0,0,0, 2, Color.White, staticViewProjection, EditorLogic.GizmoModes.translation, light.Direction);
             }
         }

@@ -101,5 +101,24 @@ namespace EngineTest.Renderer.Helper
             }
             AdjustTempVertsPoolSize();
         }
+
+        public static void CreateBoundingBoxLines(BoundingFrustum boundingFrustumShadow)
+        {
+            Vector3[] vertices = boundingFrustumShadow.GetCorners();
+            AddLineStartEnd(vertices[0], vertices[1], 1);
+            AddLineStartEnd(vertices[1], vertices[2], 1);
+            AddLineStartEnd(vertices[2], vertices[3], 1);
+            AddLineStartEnd(vertices[3], vertices[0], 1);
+
+            AddLineStartEnd(vertices[0], vertices[4], 1);
+            AddLineStartEnd(vertices[1], vertices[5], 1);
+            AddLineStartEnd(vertices[2], vertices[6], 1);
+            AddLineStartEnd(vertices[3], vertices[7], 1);
+
+            AddLineStartEnd(vertices[4], vertices[5], 1);
+            AddLineStartEnd(vertices[5], vertices[6], 1);
+            AddLineStartEnd(vertices[6], vertices[7], 1);
+            AddLineStartEnd(vertices[7], vertices[4], 1);
+        }
     }
 }

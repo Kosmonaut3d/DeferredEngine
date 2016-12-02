@@ -60,9 +60,7 @@ namespace EngineTest.Main
 
             Camera = new Camera(new Vector3(-80, 0, 20), new Vector3(1, 1, 0));
             MeshMaterialLibrary = new MeshMaterialLibrary();
-
-
-
+            
             ////////////////////////////////////////////////////////////////////////
             //Sponza scene
 
