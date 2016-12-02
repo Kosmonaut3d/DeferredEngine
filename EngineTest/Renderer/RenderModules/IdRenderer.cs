@@ -32,7 +32,7 @@ namespace EngineTest.Renderer.RenderModules
             _assets = assets;
         }
 
-        public void Draw(MeshMaterialLibrary meshMat, List<PointLight> pointLights, Matrix viewProjection, EditorLogic.EditorSendData editorData, bool mouseMoved)
+        public void Draw(MeshMaterialLibrary meshMat, List<PointLightSource> pointLights, List<DirectionalLightSource> dirLights, Matrix viewProjection, EditorLogic.EditorSendData editorData, bool mouseMoved)
         {
             if (editorData.GizmoTransformationMode)
             {
@@ -43,16 +43,16 @@ namespace EngineTest.Renderer.RenderModules
 
             if (mouseMoved)
             {
-                DrawIds(meshMat, pointLights, viewProjection, editorData);
-                DrawOutlines(meshMat, pointLights, viewProjection, true, HoveredId, editorData, mouseMoved);
+                DrawIds(meshMat, pointLights, dirLights, viewProjection, editorData);
+                DrawOutlines(meshMat, viewProjection, true, HoveredId, editorData, mouseMoved);
             }
             else
             {
-                DrawOutlines(meshMat, pointLights, viewProjection, false, HoveredId, editorData, mouseMoved);
+                DrawOutlines(meshMat, viewProjection, false, HoveredId, editorData, mouseMoved);
             }
         }
 
-        public void DrawIds(MeshMaterialLibrary meshMat, List<PointLight> pointLights, Matrix viewProjection, EditorLogic.EditorSendData editorData)
+        public void DrawIds(MeshMaterialLibrary meshMat, List<PointLightSource> pointLights, List<DirectionalLightSource> dirLights, Matrix viewProjection, EditorLogic.EditorSendData editorData)
         {
             
             _graphicsDevice.SetRenderTarget(_idRenderTarget2D);
@@ -67,7 +67,7 @@ namespace EngineTest.Renderer.RenderModules
             DrawGizmos(viewProjection, editorData, _assets);
 
             //Now onto the billboards
-            DrawBillboards(pointLights, viewProjection);
+            DrawBillboards(pointLights, dirLights, viewProjection);
 
             Rectangle sourceRectangle =
             new Rectangle(Mouse.GetState().X, Mouse.GetState().Y, 1, 1);
@@ -79,7 +79,7 @@ namespace EngineTest.Renderer.RenderModules
             HoveredId = IdGenerator.GetIdFromColor(retrievedColor[0]);
         }
 
-        public void DrawBillboards(List<PointLight> lights, Matrix staticViewProjection)
+        public void DrawBillboards(List<PointLightSource> lights, List<DirectionalLightSource> dirLights, Matrix staticViewProjection)
         {
             _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
             _graphicsDevice.SetVertexBuffer(_billboardBuffer.VBuffer);
@@ -98,9 +98,19 @@ namespace EngineTest.Renderer.RenderModules
 
                 _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2);
             }
+
+            foreach (var light in dirLights)
+            {
+                Matrix world = Matrix.CreateTranslation(light.Position);
+                Shaders.BillboardEffectParameter_WorldViewProj.SetValue(world * staticViewProjection);
+                Shaders.BillboardEffectParameter_IdColor.SetValue(IdGenerator.GetColorFromId(light.Id).ToVector3());
+                Shaders.BillboardEffect.CurrentTechnique.Passes[0].Apply();
+
+                _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2);
+            }
         }
 
-        public void DrawBillboardsSelection(List<PointLight> lights, Matrix staticViewProjection, int selectedId, int hoveredId)
+        public void DrawBillboardsSelection(List<PointLightSource> lights, Matrix staticViewProjection, int selectedId, int hoveredId)
         {
             _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
             _graphicsDevice.SetVertexBuffer(_billboardBuffer.VBuffer);
@@ -138,6 +148,11 @@ namespace EngineTest.Renderer.RenderModules
             DrawArrow(position, 0, 0, 0, 0.5f, new Color(1,0,0), staticViewProjection, _assets);
             DrawArrow(position, -Math.PI / 2, 0, 0, 0.5f, new Color(2, 0, 0), staticViewProjection, _assets);
             DrawArrow(position, 0, Math.PI / 2, 0, 0.5f, new Color(3, 0, 0), staticViewProjection, _assets);
+
+            DrawArrow(position, Math.PI, 0, 0, 0.5f, new Color(1, 0, 0), staticViewProjection, _assets);
+            DrawArrow(position, Math.PI / 2, 0, 0, 0.5f, new Color(2, 0, 0), staticViewProjection, _assets);
+            DrawArrow(position, 0, -Math.PI / 2, 0, 0.5f, new Color(3, 0, 0), staticViewProjection, _assets);
+
         }
 
         private void DrawArrow(Vector3 Position, double AngleX, double AngleY, double AngleZ, float Scale, Color color, Matrix staticViewProjection, Assets _assets)
@@ -167,7 +182,7 @@ namespace EngineTest.Renderer.RenderModules
             }
         }
 
-        public void DrawOutlines(MeshMaterialLibrary meshMat, List<PointLight> pointLights, Matrix viewProjection, bool drawAll, int hoveredId, EditorLogic.EditorSendData editorData, bool mouseMoved)
+        public void DrawOutlines(MeshMaterialLibrary meshMat, Matrix viewProjection, bool drawAll, int hoveredId, EditorLogic.EditorSendData editorData, bool mouseMoved)
         {
             _graphicsDevice.SetRenderTarget(_idRenderTarget2D);
             _graphicsDevice.BlendState = BlendState.Opaque;

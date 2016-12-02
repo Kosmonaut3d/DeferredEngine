@@ -54,7 +54,7 @@ namespace EngineTest.Renderer.RenderModules
             _idRenderer.SetUpRenderTarget(width, height);
         }
 
-        public void DrawBillboards(List<PointLight> lights, Matrix staticViewProjection, EditorLogic.EditorSendData sendData)
+        public void DrawBillboards(List<PointLightSource> lights, List<DirectionalLightSource> dirLights, Matrix staticViewProjection, EditorLogic.EditorSendData sendData)
         {
             int hoveredId = GetHoveredId();
 
@@ -68,29 +68,61 @@ namespace EngineTest.Renderer.RenderModules
 
             Shaders.BillboardEffectParameter_IdColor.SetValue(Color.Gray.ToVector3());
 
-            foreach (var light in lights)
+            for (int index = 0; index < lights.Count; index++)
             {
+                var light = lights[index];
                 Matrix world = Matrix.CreateTranslation(light.Position);
                 Shaders.BillboardEffectParameter_WorldViewProj.SetValue(world*staticViewProjection);
 
-                if (light.Id == GetHoveredId()) Shaders.BillboardEffectParameter_IdColor.SetValue(Color.White.ToVector3());
-                if (light.Id == sendData.SelectedObjectId) 
+                if (light.Id == GetHoveredId())
+                    Shaders.BillboardEffectParameter_IdColor.SetValue(Color.White.ToVector3());
+                if (light.Id == sendData.SelectedObjectId)
                     Shaders.BillboardEffectParameter_IdColor.SetValue(Color.Gold.ToVector3());
 
                 Shaders.BillboardEffect.CurrentTechnique.Passes[0].Apply();
 
                 _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2);
 
-                if (light.Id == GetHoveredId() || light.Id == sendData.SelectedObjectId) Shaders.BillboardEffectParameter_IdColor.SetValue(Color.Gray.ToVector3());
+                if (light.Id == GetHoveredId() || light.Id == sendData.SelectedObjectId)
+                    Shaders.BillboardEffectParameter_IdColor.SetValue(Color.Gray.ToVector3());
+            }
+
+            //DirectionalLights
+            foreach(DirectionalLightSource light in dirLights)
+            { 
+                Matrix world = Matrix.CreateTranslation(light.Position);
+                Shaders.BillboardEffectParameter_WorldViewProj.SetValue(world * staticViewProjection);
+
+                if (light.Id == GetHoveredId())
+                    Shaders.BillboardEffectParameter_IdColor.SetValue(Color.White.ToVector3());
+                if (light.Id == sendData.SelectedObjectId)
+                    Shaders.BillboardEffectParameter_IdColor.SetValue(Color.Gold.ToVector3());
+
+                Shaders.BillboardEffect.CurrentTechnique.Passes[0].Apply();
+
+                _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2);
+
+                if (light.Id == GetHoveredId() || light.Id == sendData.SelectedObjectId)
+                    Shaders.BillboardEffectParameter_IdColor.SetValue(Color.Gray.ToVector3());
+
+                LineHelperManager.AddLineStartDir(light.Position, light.Direction*10, 1, Color.Black, light.Color);
+
+                LineHelperManager.AddLineStartDir(light.Position + Vector3.UnitX*10, light.Direction * 10, 1, Color.Black, light.Color);
+                LineHelperManager.AddLineStartDir(light.Position - Vector3.UnitX * 10, light.Direction * 10, 1, Color.Black, light.Color);
+                LineHelperManager.AddLineStartDir(light.Position + Vector3.UnitY * 10, light.Direction * 10, 1, Color.Black, light.Color);
+                LineHelperManager.AddLineStartDir(light.Position - Vector3.UnitY * 10, light.Direction * 10, 1, Color.Black, light.Color);
+                LineHelperManager.AddLineStartDir(light.Position + Vector3.UnitZ * 10, light.Direction * 10, 1, Color.Black, light.Color);
+                LineHelperManager.AddLineStartDir(light.Position - Vector3.UnitZ * 10, light.Direction * 10, 1, Color.Black, light.Color);
+                //DrawArrow(light.Position, 0,0,0, 2, Color.White, staticViewProjection, EditorLogic.GizmoModes.translation, light.Direction);
             }
         }
 
-        public void DrawIds(MeshMaterialLibrary meshMaterialLibrary, List<PointLight>lights, Matrix staticViewProjection, EditorLogic.EditorSendData editorData)
+        public void DrawIds(MeshMaterialLibrary meshMaterialLibrary, List<PointLightSource>lights, List<DirectionalLightSource> dirLights, Matrix staticViewProjection, EditorLogic.EditorSendData editorData)
         {
-            _idRenderer.Draw(meshMaterialLibrary, lights, staticViewProjection, editorData, mouseMovement);
+            _idRenderer.Draw(meshMaterialLibrary, lights, dirLights, staticViewProjection, editorData, mouseMovement);
         }
 
-        public void DrawEditorElements(MeshMaterialLibrary meshMaterialLibrary, List<PointLight> lights, Matrix staticViewProjection, EditorLogic.EditorSendData editorData)
+        public void DrawEditorElements(MeshMaterialLibrary meshMaterialLibrary, List<PointLightSource> lights, List<DirectionalLightSource> dirLights, Matrix staticViewProjection, EditorLogic.EditorSendData editorData)
         {
             _graphicsDevice.SetRenderTarget(null);
             _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
@@ -99,7 +131,7 @@ namespace EngineTest.Renderer.RenderModules
 
 
             DrawGizmo(staticViewProjection, editorData);
-            DrawBillboards(lights, staticViewProjection, editorData);
+            DrawBillboards(lights, dirLights, staticViewProjection, editorData);
         }
 
         public void DrawGizmo(Matrix staticViewProjection, EditorLogic.EditorSendData editorData)
@@ -116,15 +148,29 @@ namespace EngineTest.Renderer.RenderModules
             DrawArrow(position, -Math.PI / 2, 0, 0, GetHoveredId() == 2 ? 1 : 0.5f, Color.Green, staticViewProjection, gizmoMode); //y 2
             DrawArrow(position, 0, Math.PI / 2, 0, GetHoveredId() == 3 ? 1 : 0.5f, Color.Red, staticViewProjection, gizmoMode); //x 3
 
+            DrawArrow(position, Math.PI, 0, 0, GetHoveredId() == 1 ? 1 : 0.5f, Color.Blue, staticViewProjection, gizmoMode); //z 1
+            DrawArrow(position, Math.PI / 2, 0, 0, GetHoveredId() == 2 ? 1 : 0.5f, Color.Green, staticViewProjection, gizmoMode); //y 2
+            DrawArrow(position, 0, -Math.PI / 2, 0, GetHoveredId() == 3 ? 1 : 0.5f, Color.Red, staticViewProjection, gizmoMode); //x 3
             //DrawArrowRound(position, Math.PI, 0, 0, GetHoveredId() == 1 ? 1 : 0.5f, Color.Blue, staticViewProjection); //z 1
             //DrawArrowRound(position, -Math.PI / 2, 0, 0, GetHoveredId() == 2 ? 1 : 0.5f, Color.Green, staticViewProjection); //y 2
             //DrawArrowRound(position, 0, Math.PI / 2, 0, GetHoveredId() == 3 ? 1 : 0.5f, Color.Red, staticViewProjection); //x 3
         }
 
-        private void DrawArrow(Vector3 Position, double AngleX, double AngleY, double AngleZ, float Scale, Color color, Matrix staticViewProjection, EditorLogic.GizmoModes gizmoMode)
+        private void DrawArrow(Vector3 Position, double AngleX, double AngleY, double AngleZ, float Scale, Color color, Matrix staticViewProjection, EditorLogic.GizmoModes gizmoMode, Vector3? direction = null)
         {
-            Matrix Rotation = Matrix.CreateRotationX((float)AngleX) * Matrix.CreateRotationY((float)AngleY) *
-                               Matrix.CreateRotationZ((float)AngleZ);
+            Matrix Rotation;
+            if (direction != null)
+            {
+                Rotation = Matrix.CreateLookAt(Vector3.Zero, (Vector3) direction, Vector3.UnitX);
+              
+
+            }
+            else
+            {
+                Rotation = Matrix.CreateRotationX((float)AngleX) * Matrix.CreateRotationY((float)AngleY) *
+                                   Matrix.CreateRotationZ((float)AngleZ);
+            }
+
             Matrix ScaleMatrix = Matrix.CreateScale(0.75f, 0.75f,Scale*1.5f);
             Matrix WorldViewProj = ScaleMatrix * Rotation * Matrix.CreateTranslation(Position) * staticViewProjection;
 

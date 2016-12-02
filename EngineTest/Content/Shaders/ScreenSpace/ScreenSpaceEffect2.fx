@@ -330,7 +330,7 @@ float4 PixelShaderFunctionTAA(VertexShaderOutput input) : COLOR0
                 output.a *= lerp(0, 1, sampleTexCoord.x * bordermulti);
             }
             
-			output.rgb *= output.a;// *(1 - roughness);
+			output.rgb *= output.a *(1 - roughness);
 			
             break;
         }

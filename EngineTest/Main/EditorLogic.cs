@@ -53,7 +53,7 @@ namespace EngineTest.Main
         /// <param name="gameTime"></param>
         /// <param name="entities"></param>
         /// <param name="data"></param>
-        public void Update(GameTime gameTime, List<BasicEntity> entities, List<PointLight> pointLights, EditorReceivedData data, MeshMaterialLibrary meshMaterialLibrary)
+        public void Update(GameTime gameTime, List<BasicEntity> entities, List<PointLightSource> pointLights, List<DirectionalLightSource> dirLights, EditorReceivedData data, MeshMaterialLibrary meshMaterialLibrary)
         {
             if (!GameSettings.Editor_enable) return;
 
@@ -102,10 +102,20 @@ namespace EngineTest.Main
                 {
                     for (int index = 0; index < pointLights.Count; index++)
                     {
-                        PointLight pointLight = pointLights[index];
-                        if (pointLight.Id == hoveredId)
+                        PointLightSource pointLightSource = pointLights[index];
+                        if (pointLightSource.Id == hoveredId)
                         {
-                            SelectedObject = pointLight;
+                            SelectedObject = pointLightSource;
+                            break;
+                        }
+                    }
+
+                    for (int index = 0; index < dirLights.Count; index++)
+                    {
+                        DirectionalLightSource directionalLightSource = dirLights[index];
+                        if (directionalLightSource.Id == hoveredId)
+                        {
+                            SelectedObject = directionalLightSource;
                             break;
                         }
                     }
@@ -126,10 +136,16 @@ namespace EngineTest.Main
                         SelectedObject = null;
                     }
 
-                    else if (SelectedObject is PointLight)
+                    else if (SelectedObject is PointLightSource)
                     {
-                        pointLights.Remove((PointLight)SelectedObject);
+                        pointLights.Remove((PointLightSource)SelectedObject);
                         
+                        SelectedObject = null;
+                    }
+                    else if (SelectedObject is DirectionalLightSource)
+                    {
+                        dirLights.Remove((DirectionalLightSource)SelectedObject);
+
                         SelectedObject = null;
                     }
             }
@@ -143,12 +159,15 @@ namespace EngineTest.Main
     
                     entities.Add(copy);
                 }
-                else if (SelectedObject is PointLight)
+                else if (SelectedObject is PointLightSource)
                 {
-                    PointLight copy = (PointLight)SelectedObject.Clone;
-                    
-
+                    PointLightSource copy = (PointLightSource)SelectedObject.Clone;
                     pointLights.Add(copy);
+                }
+                else if (SelectedObject is DirectionalLightSource)
+                {
+                    DirectionalLightSource copy = (DirectionalLightSource)SelectedObject.Clone;
+                    dirLights.Add(copy);
                 }
             }
         }

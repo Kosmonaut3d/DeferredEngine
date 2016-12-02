@@ -1,9 +1,12 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+using EngineTest.Entities;
+using EngineTest.Recources.Helper;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace EngineTest.Recources
 {
-    public class DirectionalLight
+    public class DirectionalLightSource : TransformableObject
     {
         public Color Color;
         public float Intensity;
@@ -40,7 +43,7 @@ namespace EngineTest.Recources
         /// <param name="shadowSize"></param>
         /// <param name="shadowDepth"></param>
         /// <param name="shadowResolution"></param>
-        public DirectionalLight(Color color, float intensity, Vector3 direction,Vector3 position = default(Vector3), bool drawShadows = false, float shadowSize = 100, float shadowDepth = 100, int shadowResolution = 512, ShadowFilteringTypes shadowFiltering = ShadowFilteringTypes.Poisson, bool screenspaceshadowblur = false, bool staticshadows = false)
+        public DirectionalLightSource(Color color, float intensity, Vector3 direction,Vector3 position = default(Vector3), bool drawShadows = false, float shadowSize = 100, float shadowDepth = 100, int shadowResolution = 512, ShadowFilteringTypes shadowFiltering = ShadowFilteringTypes.Poisson, bool screenspaceshadowblur = false, bool staticshadows = false)
         {
             Color = color;
             Intensity = intensity;
@@ -62,6 +65,10 @@ namespace EngineTest.Recources
             ShadowFiltering = shadowFiltering;
 
             Position = position;
+
+            Id = IdGenerator.GetNewId();
+
+            TransformDirectionToAngles();
         }
 
         public Vector3 Direction
@@ -74,7 +81,7 @@ namespace EngineTest.Recources
             }
         }
 
-        public Vector3 Position
+        public override Vector3 Position
         {
             get { return _position; }
             set
@@ -82,6 +89,79 @@ namespace EngineTest.Recources
                 _position = value;
                 HasChanged = true;
             }
+        }
+
+        private int _id;
+
+        public override int Id
+        {
+            get { return _id; }
+            set { _id = value; }
+        }
+
+        private double _angleZ = 0;
+        public override double AngleZ {
+            get
+            {
+                return _angleZ;
+            }
+            set
+            {
+                TransformAnglesToDirection(0,0, (float)(value - _angleZ));
+                _angleZ = value;
+            }
+        }
+
+        private double _angleX = 0;
+        public override double AngleX {
+            get
+            {
+                return _angleX;
+            }
+            set
+            {
+                TransformAnglesToDirection((float)(value - _angleX), 0,0);
+                _angleX = value;
+            }
+        }
+
+        private double _angleY = 0;
+
+        public override double AngleY
+        {
+            get
+            {
+                return _angleY;
+            }
+            set
+            {
+                TransformAnglesToDirection(0,(float)(value-_angleY), 0);
+                _angleY = value;
+            }
+        }
+
+        private void TransformAnglesToDirection(float angleX, float angleY, float angleZ)
+        {
+            RotationMatrix = Matrix.CreateRotationX((float)angleX) * Matrix.CreateRotationY((float)angleY) *
+                                  Matrix.CreateRotationZ((float)angleZ);
+
+            
+            Direction = Vector3.Transform(Direction, RotationMatrix);
+            
+            return;
+        }
+
+        private Matrix Trafo;
+        private void TransformDirectionToAngles()
+        {
+            Trafo = Matrix.CreateLookAt(Vector3.Zero, Direction, Vector3.UnitZ);
+        }
+
+        public Matrix RotationMatrix;
+
+        public override TransformableObject Clone
+        {
+            get { return new DirectionalLightSource(Color, Intensity, Direction, Position, DrawShadows, ShadowSize, ShadowDepth, ShadowResolution, ShadowFiltering, false, StaticShadow); }
         }
 
         public virtual void ApplyShader()

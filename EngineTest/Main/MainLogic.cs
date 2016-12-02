@@ -15,7 +15,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using DirectionalLight = EngineTest.Recources.DirectionalLight;
 using Vector3 = Microsoft.Xna.Framework.Vector3;
 
 namespace EngineTest.Main
@@ -34,12 +33,12 @@ namespace EngineTest.Main
         public MeshMaterialLibrary MeshMaterialLibrary;
 
         public List<BasicEntity> Entities = new List<BasicEntity>();
-        public List<PointLight> PointLights = new List<PointLight>();
-        public List<DirectionalLight> DirectionalLights = new List<DirectionalLight>();
+        public List<PointLightSource> PointLights = new List<PointLightSource>();
+        public List<DirectionalLightSource> DirectionalLights = new List<DirectionalLightSource>();
 
         private int _renderModeCycle = 0;
 
-        private PointLight shadowLight;
+        private PointLightSource _shadowLightSource;
 
         private BasicEntity drake;
         private BasicEntity sponza;
@@ -137,14 +136,14 @@ namespace EngineTest.Main
 
             //lights
             AddDirectionalLight(direction: new Vector3(0.2f, -0.2f, -1),
-                intensity: 20,
+                intensity: 40,
                 color: Color.White,
-                position: Vector3.UnitZ * 0,
+                position: Vector3.UnitZ * 2,
                 drawShadows: true,
                 shadowWorldSize: 250,
                 shadowDepth: 180,
                 shadowResolution: 2048,
-                shadowFilteringFiltering: DirectionalLight.ShadowFilteringTypes.SoftPCF3x,
+                shadowFilteringFiltering: DirectionalLightSource.ShadowFilteringTypes.SoftPCF3x,
                 screenspaceShadowBlur: true);
             
         }
@@ -153,9 +152,9 @@ namespace EngineTest.Main
 
         //////////////////////////////////////////// ADD FUNCTIONS ///////////////////////////////////////////////
 
-        private DirectionalLight AddDirectionalLight(Vector3 direction, int intensity, Color color, Vector3 position = default(Vector3), bool drawShadows = false, float shadowWorldSize = 100, float shadowDepth = 100, int shadowResolution = 512, DirectionalLight.ShadowFilteringTypes shadowFilteringFiltering = DirectionalLight.ShadowFilteringTypes.Poisson, bool screenspaceShadowBlur = false, bool staticshadows = false )
+        private DirectionalLightSource AddDirectionalLight(Vector3 direction, int intensity, Color color, Vector3 position = default(Vector3), bool drawShadows = false, float shadowWorldSize = 100, float shadowDepth = 100, int shadowResolution = 512, DirectionalLightSource.ShadowFilteringTypes shadowFilteringFiltering = DirectionalLightSource.ShadowFilteringTypes.Poisson, bool screenspaceShadowBlur = false, bool staticshadows = false )
         {
-            DirectionalLight light = new DirectionalLight(color: color, 
+            DirectionalLightSource lightSource = new DirectionalLightSource(color: color, 
                 intensity: intensity, 
                 direction: direction, 
                 position: position, 
@@ -166,8 +165,8 @@ namespace EngineTest.Main
                 shadowFiltering: shadowFilteringFiltering, 
                 screenspaceshadowblur: screenspaceShadowBlur, 
                 staticshadows: staticshadows);
-            DirectionalLights.Add(light);
-            return light;
+            DirectionalLights.Add(lightSource);
+            return lightSource;
         }
 
         //The function to use for new pointlights
@@ -182,9 +181,9 @@ namespace EngineTest.Main
         /// <param name="shadowResolution">shadow map resolution per face. Optional</param>
         /// <param name="staticShadow">if set to true the shadows will not update at all. Dynamic shadows in contrast update only when needed.</param>
         /// <returns></returns>
-        private PointLight AddPointLight(Vector3 position, float radius, Color color, float intensity, bool castShadows, int shadowResolution = 256, bool staticShadow = false)
+        private PointLightSource AddPointLight(Vector3 position, float radius, Color color, float intensity, bool castShadows, int shadowResolution = 256, bool staticShadow = false)
         {
-            PointLight light = new PointLight(position, radius, color, intensity, castShadows, shadowResolution, staticShadow);
+            PointLightSource light = new PointLightSource(position, radius, color, intensity, castShadows, shadowResolution, staticShadow);
             PointLights.Add(light);
             return light;
         }
@@ -288,19 +287,19 @@ namespace EngineTest.Main
 
             if (Input.keyboardState.IsKeyDown(Keys.Up))
             {
-                shadowLight.Position += Vector3.UnitX * delta;
+                _shadowLightSource.Position += Vector3.UnitX * delta;
             }
             if (Input.keyboardState.IsKeyDown(Keys.Down))
             {
-                shadowLight.Position -= Vector3.UnitX * delta;
+                _shadowLightSource.Position -= Vector3.UnitX * delta;
             }
             if (Input.keyboardState.IsKeyDown(Keys.Left))
             {
-                shadowLight.Position -= Vector3.UnitY * delta;
+                _shadowLightSource.Position -= Vector3.UnitY * delta;
             }
             if (Input.keyboardState.IsKeyDown(Keys.Right))
             {
-                shadowLight.Position += Vector3.UnitY * delta;
+                _shadowLightSource.Position += Vector3.UnitY * delta;
             }
 
             if (Input.WasKeyPressed(Keys.F1))

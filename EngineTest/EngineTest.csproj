@@ -55,7 +55,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Entities\BasicEntity.cs" />
-    <Compile Include="Entities\DirectionalLight.cs" />
+    <Compile Include="Entities\DirectionalLightSource.cs" />
     <Compile Include="Entities\Editor\BillboardBuffer.cs" />
     <Compile Include="Game1.cs" />
     <Compile Include="Main\EditorLogic.cs" />
@@ -75,7 +75,7 @@
     <Compile Include="Recources\MaterialEffect.cs" />
     <Compile Include="Recources\Shaders.cs" />
     <Compile Include="Entities\UNUSED_SpotLight.cs" />
-    <Compile Include="Entities\PointLight.cs" />
+    <Compile Include="Entities\PointLightSource.cs" />
     <Compile Include="Entities\Camera.cs" />
     <Compile Include="Main\DebugScreen.cs" />
     <Compile Include="Renderer\Helper\FastRand.cs" />

@@ -41,8 +41,8 @@ namespace EngineTest.Renderer
         private int _renderModeCycle = 0;
 
         //Light
-        private List<PointLight> pointLights = new List<PointLight>();
-        private List<SpotLight> spotLights = new List<SpotLight>();
+        private List<PointLightSource> pointLights = new List<PointLightSource>();
+        private List<SpotLightSource> spotLights = new List<SpotLightSource>();
 
         //Matrices
         private Matrix _view;
@@ -91,7 +91,7 @@ namespace EngineTest.Renderer
 
         private static int transpLightAmount = 20;
 
-        private PointLight[] Closestarray;
+        private PointLightSource[] Closestarray;
         private Vector3[] pointLightPosition = new Vector3[transpLightAmount];
         private Vector3[] pointLightColor = new Vector3[transpLightAmount];
         private float[] pointLightIntensity = new float[transpLightAmount];
@@ -184,7 +184,7 @@ namespace EngineTest.Renderer
             //pointLights.Add(new PointLight(new Vector3(-20, 0, -20), 80, Color.NavajoWhite, 20, true));
 
 
-            spotLights.Add(new SpotLight(new Vector3(-20, -3, -20), 150, Color.White, 20, -new Vector3(1, 0, 1), true));
+            spotLights.Add(new SpotLightSource(new Vector3(-20, -3, -20), 150, Color.White, 20, -new Vector3(1, 0, 1), true));
 
             //spotLights.Add(new SpotLight(new Vector3(-20, 3, -20), 150, Color.White, 20, -new Vector3(1, 0, 1), true));
             //spotLights.Add(new SpotLight(new Vector3(-3,-3,-10), 150, Color.White, 6, Vector3.UnitX));
@@ -238,7 +238,7 @@ namespace EngineTest.Renderer
             if (dynamicLights)
                 for (var i = 2; i < pointLights.Count; i++)
                 {
-                    PointLight point = pointLights[i];
+                    PointLightSource point = pointLights[i];
                     //point.Position.Z = (float)(Math.Sin(gameTime.TotalGameTime.TotalSeconds * 0.8f + i) * 30 - 30);
                 }
 
@@ -278,7 +278,7 @@ namespace EngineTest.Renderer
 
             if (keyboardState.IsKeyDown(Keys.L))
             {
-                pointLights.Add(new PointLight(new Vector3((float)(random.NextDouble() * 250 - 125), (float)(random.NextDouble() * 50 - 25), (float)(-random.NextDouble() * 10) - 3), 30, new Color(random.Next(255), random.Next(255), random.Next(255)), 4, false, 1024, false));
+                pointLights.Add(new PointLightSource(new Vector3((float)(random.NextDouble() * 250 - 125), (float)(random.NextDouble() * 50 - 25), (float)(-random.NextDouble() * 10) - 3), 30, new Color(random.Next(255), random.Next(255), random.Next(255)), 4, false, 1024, false));
 
                 GetClosestLights();
                 window.Title = pointLights.Count + "";
@@ -287,7 +287,7 @@ namespace EngineTest.Renderer
 
             if (keyboardState.IsKeyDown(Keys.K))
             {
-                spotLights.Add(new SpotLight(new Vector3((float)(random.NextDouble() * 250 - 125), (float)(random.NextDouble() * 50 - 25), (float)(-random.NextDouble() * 10) - 3), 30, new Color(random.Next(255), random.Next(255), random.Next(255)), 2, Vector3.Left, false));
+                spotLights.Add(new SpotLightSource(new Vector3((float)(random.NextDouble() * 250 - 125), (float)(random.NextDouble() * 50 - 25), (float)(-random.NextDouble() * 10) - 3), 30, new Color(random.Next(255), random.Next(255), random.Next(255)), 2, Vector3.Left, false));
 
                 window.Title = pointLights.Count + "";
             }
@@ -443,13 +443,13 @@ namespace EngineTest.Renderer
 
             PrepareSettings();
 
-            foreach (SpotLight light in spotLights)
+            foreach (SpotLightSource light in spotLights)
             {
               if(light.DrawShadow)  
                 CreateShadowMap(light, 1024);
             }
 
-            foreach (PointLight light in pointLights)
+            foreach (PointLightSource light in pointLights)
             {
                 if (light.DrawShadow)
                     CreateShadowMap(light, 1024);
@@ -464,11 +464,11 @@ namespace EngineTest.Renderer
 
         }
 
-        private void CreateShadowMap(PointLight light, int size)
+        private void CreateShadowMap(PointLightSource light, int size)
         {
-            if (light is SpotLight)
+            if (light is SpotLightSource)
             {
-                RenderShadowMap((SpotLight)light, size);
+                RenderShadowMap((SpotLightSource)light, size);
             }
             else
             {
@@ -476,7 +476,7 @@ namespace EngineTest.Renderer
             }
         }
 
-        private void CreateCubeShadowMap(PointLight light, int size)
+        private void CreateCubeShadowMap(PointLightSource light, int size)
         {
 
             if(light.shadowMapCube==null)
@@ -583,7 +583,7 @@ namespace EngineTest.Renderer
         }
 
 
-        private void RenderShadowMap(SpotLight spotlight, int size)
+        private void RenderShadowMap(SpotLightSource spotlight, int size)
         {
 
             Matrix LightView = Matrix.CreateLookAt(spotlight.Position,
@@ -1128,7 +1128,7 @@ namespace EngineTest.Renderer
 
             for (int index = 0; index < pointLights.Count; index++)
             {
-                PointLight light = pointLights[index];
+                PointLightSource light = pointLights[index];
                 DrawPointLight(light);
             }
         }
@@ -1146,14 +1146,14 @@ namespace EngineTest.Renderer
 
             _graphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
 
-            foreach (SpotLight light in spotLights)
+            foreach (SpotLightSource light in spotLights)
             {
                 DrawSpotLight(light);
             }
 
         }
 
-        private void DrawSpotLight(SpotLight light)
+        private void DrawSpotLight(SpotLightSource light)
         {
             Matrix sphereWorldMatrix = Matrix.CreateScale(light.Radius + 2) * Matrix.CreateTranslation(light.Position);
             _deferredSpotLight.Parameters["World"].SetValue(sphereWorldMatrix);
@@ -1198,7 +1198,7 @@ namespace EngineTest.Renderer
             }
         }
 
-        private void DrawPointLight(PointLight light)
+        private void DrawPointLight(PointLightSource light)
         {
 
             Matrix sphereWorldMatrix = Matrix.CreateScale(light.Radius * 1.2f) * Matrix.CreateTranslation(light.Position);

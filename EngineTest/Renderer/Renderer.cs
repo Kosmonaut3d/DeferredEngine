@@ -11,7 +11,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using DirectionalLight = EngineTest.Recources.DirectionalLight;
 
 namespace EngineTest.Renderer
 {
@@ -167,7 +166,7 @@ namespace EngineTest.Renderer
 
         
         //Main Draw!
-        public EditorLogic.EditorReceivedData Draw(Camera camera, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities, List<PointLight> pointLights, List<DirectionalLight> dirLights, EditorLogic.EditorSendData editorData, GameTime gameTime)
+        public EditorLogic.EditorReceivedData Draw(Camera camera, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities, List<PointLightSource> pointLights, List<DirectionalLightSource> dirLights, EditorLogic.EditorSendData editorData, GameTime gameTime)
         {
             //Reset the stat counter
             ResetStats();
@@ -225,7 +224,7 @@ namespace EngineTest.Renderer
 
             CombineTemporalAntialiasing();
                 
-            if(GameSettings.Editor_enable) _editorRender.DrawIds(meshMaterialLibrary, pointLights, _staticViewProjection, editorData);
+            if(GameSettings.Editor_enable) _editorRender.DrawIds(meshMaterialLibrary, pointLights, dirLights, _staticViewProjection, editorData);
             //Show certain buffer stages depending on user input
             RenderMode();
 
@@ -233,7 +232,7 @@ namespace EngineTest.Renderer
             {
                 DrawMapToScreenToFullScreen(_editorRender.GetOutlines(), BlendState.Additive);
 
-                _editorRender.DrawEditorElements(meshMaterialLibrary, pointLights, _staticViewProjection, editorData);
+                _editorRender.DrawEditorElements(meshMaterialLibrary, pointLights, dirLights, _staticViewProjection, editorData);
 
             }
 
@@ -308,7 +307,7 @@ namespace EngineTest.Renderer
 
 
         private void DrawCubeMap(Vector3 origin, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities,
-            List<PointLight> pointLights, List<DirectionalLight> dirLights, float farPlane )
+            List<PointLightSource> pointLights, List<DirectionalLightSource> dirLights, float farPlane )
         {
             if (_renderTargetCubeMap == null) // _renderTargetCubeMap.Dispose();
             {
@@ -651,14 +650,14 @@ namespace EngineTest.Renderer
         #region Shadow Mapping
 
         //todo: don't draw shadows for lights that are not visible
-        private void DrawShadows(MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities, List<PointLight> pointLights, List<DirectionalLight> dirLights, Camera camera)
+        private void DrawShadows(MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities, List<PointLightSource> pointLights, List<DirectionalLightSource> dirLights, Camera camera)
         {
             //Don't render for the first frame, we need a guideline first
             if (_boundingFrustum == null) UpdateViewProjection(camera, meshMaterialLibrary, entities);
 
             _graphicsDevice.DepthStencilState = DepthStencilState.Default;
 
-            foreach (PointLight light in pointLights)
+            foreach (PointLightSource light in pointLights)
             {
                 if (_boundingFrustum.Contains(light.BoundingSphere) == ContainmentType.Disjoint)
                 {
@@ -680,7 +679,7 @@ namespace EngineTest.Renderer
             }
 
             int dirLightShadowed = 0;
-            foreach (DirectionalLight light in dirLights)
+            foreach (DirectionalLightSource light in dirLights)
             {
                 if (light.DrawShadows)
                 {
@@ -711,14 +710,14 @@ namespace EngineTest.Renderer
 
         }
 
-        private void DrawScreenSpaceDirectionalShadow(List<DirectionalLight> dirLights)
+        private void DrawScreenSpaceDirectionalShadow(List<DirectionalLightSource> dirLights)
         { 
             if (viewProjectionHasChanged)
             {
                 Shaders.deferredDirectionalLightParameterViewProjection.SetValue(_viewProjection);
                 Shaders.deferredDirectionalLightParameterInverseViewProjection.SetValue(_inverseViewProjection);
             }
-            foreach (DirectionalLight light in dirLights)
+            foreach (DirectionalLightSource light in dirLights)
             {
                 if (light.DrawShadows && light.ScreenSpaceShadowBlur)
                 {
@@ -749,73 +748,73 @@ namespace EngineTest.Renderer
         }
 
         //Create the shadowMap for our directional Light
-        private void CreateShadowMap(DirectionalLight light, int shadowResolution, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities)
+        private void CreateShadowMap(DirectionalLightSource lightSource, int shadowResolution, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities)
         {
             //Create a renderTarget if we don't have one yet
-            if (light.ShadowMap == null)
+            if (lightSource.ShadowMap == null)
             {
-                if (light.ShadowFiltering != DirectionalLight.ShadowFilteringTypes.VSM)
+                if (lightSource.ShadowFiltering != DirectionalLightSource.ShadowFilteringTypes.VSM)
                 {
-                    light.ShadowMap = new RenderTarget2D(_graphicsDevice, shadowResolution, shadowResolution, false,
+                    lightSource.ShadowMap = new RenderTarget2D(_graphicsDevice, shadowResolution, shadowResolution, false,
                         SurfaceFormat.HalfSingle, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
                 }
                 else //For a VSM shadowMap we need 2 components
                 {
-                    light.ShadowMap = new RenderTarget2D(_graphicsDevice, shadowResolution, shadowResolution, false,
+                    lightSource.ShadowMap = new RenderTarget2D(_graphicsDevice, shadowResolution, shadowResolution, false,
                        SurfaceFormat.Vector2, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
                 }
             }
 
-            MeshMaterialLibrary.RenderType renderType = light.ShadowFiltering == DirectionalLight.ShadowFilteringTypes.VSM
+            MeshMaterialLibrary.RenderType renderType = lightSource.ShadowFiltering == DirectionalLightSource.ShadowFilteringTypes.VSM
                 ? MeshMaterialLibrary.RenderType.shadowVSM
                 : MeshMaterialLibrary.RenderType.shadowDepth;
 
-            if (light.HasChanged)
+            if (lightSource.HasChanged)
             {
-                Matrix LightProjection = Matrix.CreateOrthographic(light.ShadowSize, light.ShadowSize,
-                    -light.ShadowDepth, light.ShadowDepth);
-                Matrix LightView = Matrix.CreateLookAt(light.Position, light.Position + light.Direction, Vector3.Down);
+                Matrix LightProjection = Matrix.CreateOrthographic(lightSource.ShadowSize, lightSource.ShadowSize,
+                    -lightSource.ShadowDepth, lightSource.ShadowDepth);
+                Matrix LightView = Matrix.CreateLookAt(lightSource.Position, lightSource.Position + lightSource.Direction, Vector3.Down);
 
-                light.LightViewProjection = LightView*LightProjection;
+                lightSource.LightViewProjection = LightView*LightProjection;
 
-                _boundingFrustumShadow = new BoundingFrustum(light.LightViewProjection);
+                _boundingFrustumShadow = new BoundingFrustum(lightSource.LightViewProjection);
 
-                _graphicsDevice.SetRenderTarget(light.ShadowMap);
+                _graphicsDevice.SetRenderTarget(lightSource.ShadowMap);
                 _graphicsDevice.Clear(ClearOptions.DepthBuffer, Color.White, 1, 0);
 
-                meshMaterialLibrary.FrustumCulling(entities, _boundingFrustumShadow, true, light.Position);
+                meshMaterialLibrary.FrustumCulling(entities, _boundingFrustumShadow, true, lightSource.Position);
 
                 // Rendering!
 
                 meshMaterialLibrary.Draw(renderType, _graphicsDevice,
-                    light.LightViewProjection, light.HasChanged, false);
+                    lightSource.LightViewProjection, lightSource.HasChanged, false);
             }
             else
             {
-                _boundingFrustumShadow = new BoundingFrustum(light.LightViewProjection);
+                _boundingFrustumShadow = new BoundingFrustum(lightSource.LightViewProjection);
 
-                bool hasAnyObjectMoved = meshMaterialLibrary.FrustumCulling(entities: entities, boundingFrustrum: _boundingFrustumShadow, hasCameraChanged: false, cameraPosition: light.Position);
+                bool hasAnyObjectMoved = meshMaterialLibrary.FrustumCulling(entities: entities, boundingFrustrum: _boundingFrustumShadow, hasCameraChanged: false, cameraPosition: lightSource.Position);
 
                 if (!hasAnyObjectMoved) return;
 
-                meshMaterialLibrary.FrustumCulling(entities: entities, boundingFrustrum: _boundingFrustumShadow, hasCameraChanged: true, cameraPosition: light.Position);
+                meshMaterialLibrary.FrustumCulling(entities: entities, boundingFrustrum: _boundingFrustumShadow, hasCameraChanged: true, cameraPosition: lightSource.Position);
 
-                _graphicsDevice.SetRenderTarget(light.ShadowMap);
+                _graphicsDevice.SetRenderTarget(lightSource.ShadowMap);
                 _graphicsDevice.Clear(ClearOptions.DepthBuffer, Color.White, 1, 0);
 
                 meshMaterialLibrary.Draw(renderType, _graphicsDevice,
-                    light.LightViewProjection, false, true);
+                    lightSource.LightViewProjection, false, true);
             }
 
             //Blur!
-            if (light.ShadowFiltering == DirectionalLight.ShadowFilteringTypes.VSM)
+            if (lightSource.ShadowFiltering == DirectionalLightSource.ShadowFilteringTypes.VSM)
             {
-                light.ShadowMap = _gaussianBlur.DrawGaussianBlur(light.ShadowMap);
+                lightSource.ShadowMap = _gaussianBlur.DrawGaussianBlur(lightSource.ShadowMap);
             }
 
         }
 
-        private void CreateCubeShadowMap(PointLight light, int size, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities )
+        private void CreateCubeShadowMap(PointLightSource light, int size, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities )
         {
             if (light.shadowMapCube == null)
                 light.shadowMapCube = new RenderTargetCube(_graphicsDevice, size, false, SurfaceFormat.Vector2, DepthFormat.Depth24, 0, RenderTargetUsage.PreserveContents);
@@ -1033,7 +1032,7 @@ namespace EngineTest.Renderer
         /// <param name="dirLights"></param>
         /// <param name="cameraOrigin"></param>
         /// <param name="camera"></param>
-        private void DrawLights(List<PointLight> pointLights, List<DirectionalLight> dirLights, Vector3 cameraOrigin)
+        private void DrawLights(List<PointLightSource> pointLights, List<DirectionalLightSource> dirLights, Vector3 cameraOrigin)
         {
             _graphicsDevice.SetRenderTargets(_renderTargetLightBinding);
             _graphicsDevice.Clear(Color.TransparentBlack);
@@ -1050,7 +1049,7 @@ namespace EngineTest.Renderer
             }
         }
 
-        private void DrawDirectionalLights(List<DirectionalLight> dirLights, Vector3 cameraOrigin)
+        private void DrawDirectionalLights(List<DirectionalLightSource> dirLights, Vector3 cameraOrigin)
         {
             if (dirLights.Count < 1) return;
 
@@ -1069,22 +1068,22 @@ namespace EngineTest.Renderer
 
             for (int index = 0; index < dirLights.Count; index++)
             {
-                DirectionalLight light = dirLights[index];
-                DrawDirectionalLight(light);
+                DirectionalLightSource lightSource = dirLights[index];
+                DrawDirectionalLight(lightSource);
             }
         }
 
-        private void DrawDirectionalLight(DirectionalLight light)
+        private void DrawDirectionalLight(DirectionalLightSource lightSource)
         {
-            Shaders.deferredDirectionalLightParameter_LightColor.SetValue(light.Color.ToVector3());
-            Shaders.deferredDirectionalLightParameter_LightDirection.SetValue(light.Direction);
-            Shaders.deferredDirectionalLightParameter_LightIntensity.SetValue(light.Intensity);
-            light.ApplyShader();
+            Shaders.deferredDirectionalLightParameter_LightColor.SetValue(lightSource.Color.ToVector3());
+            Shaders.deferredDirectionalLightParameter_LightDirection.SetValue(lightSource.Direction);
+            Shaders.deferredDirectionalLightParameter_LightIntensity.SetValue(lightSource.Intensity);
+            lightSource.ApplyShader();
             _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
         }
 
         //Draw the pointlights
-        private void DrawPointLights( List<PointLight> pointLights,Vector3 cameraOrigin)
+        private void DrawPointLights( List<PointLightSource> pointLights,Vector3 cameraOrigin)
         {
             _graphicsDevice.BlendState = _lightBlendState;
 
@@ -1100,13 +1099,13 @@ namespace EngineTest.Renderer
 
             for (int index = 0; index < pointLights.Count; index++)
             {
-                PointLight light = pointLights[index];
+                PointLightSource light = pointLights[index];
                 DrawPointLight(light, cameraOrigin);
             }
         }
 
         //Draw each individual Point light
-        private void DrawPointLight(PointLight light, Vector3 cameraOrigin)
+        private void DrawPointLight(PointLightSource light, Vector3 cameraOrigin)
         {
             //todo: Optimize the culling and do it with the HasChanged thing like the models!
             //first let's check if the light is even in bounds
@@ -1276,7 +1275,7 @@ namespace EngineTest.Renderer
         }
 
 
-        private void CheckRenderChanges(List<DirectionalLight> dirLights)
+        private void CheckRenderChanges(List<DirectionalLightSource> dirLights)
         {
             //Check if supersampling has changed
             if (_supersampling != GameSettings.g_supersampling)
@@ -1300,12 +1299,12 @@ namespace EngineTest.Renderer
             {
                 _forceShadowFiltering = GameSettings.g_ShadowForceFiltering;
 
-                foreach (DirectionalLight light in dirLights)
+                foreach (DirectionalLightSource light in dirLights)
                 {
                     if(light.ShadowMap!=null) light.ShadowMap.Dispose();
                     light.ShadowMap = null;
 
-                    light.ShadowFiltering = (DirectionalLight.ShadowFilteringTypes) (_forceShadowFiltering - 1);
+                    light.ShadowFiltering = (DirectionalLightSource.ShadowFilteringTypes) (_forceShadowFiltering - 1);
 
                     light.HasChanged = true;
                 }
@@ -1315,7 +1314,7 @@ namespace EngineTest.Renderer
             {
                 _forceShadowSS = GameSettings.g_ShadowForceScreenSpace;
 
-                foreach (DirectionalLight light in dirLights)
+                foreach (DirectionalLightSource light in dirLights)
                 {
 
                     light.ScreenSpaceShadowBlur = _forceShadowSS;

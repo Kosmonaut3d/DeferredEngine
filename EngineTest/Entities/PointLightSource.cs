@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace EngineTest.Recources
 {
-    public class PointLight : TransformableObject
+    public class PointLightSource : TransformableObject
     {
         private Vector3 _position;
         public float _radius;
@@ -43,7 +43,7 @@ namespace EngineTest.Recources
         /// <param name="shadowResolution">shadow map resolution per face. Optional</param>
         /// <param name="staticShadow">if set to true the shadows will not update at all. Dynamic shadows in contrast update only when needed.</param>
         /// <returns></returns>
-        public PointLight(Vector3 position, float radius, Color color, float intensity, bool drawShadow, int shadowResolution, bool staticShadow)
+        public PointLightSource(Vector3 position, float radius, Color color, float intensity, bool drawShadow, int shadowResolution, bool staticShadow)
         {
             BoundingSphere = new BoundingSphere(position, radius);
             Position = position;
@@ -81,7 +81,7 @@ namespace EngineTest.Recources
 
         public override TransformableObject Clone
         {
-            get { return new PointLight(Position, Radius, Color, Intensity, DrawShadow, ShadowResolution, StaticShadows);}
+            get { return new PointLightSource(Position, Radius, Color, Intensity, DrawShadow, ShadowResolution, StaticShadows);}
         }
 
         public float Radius
@@ -96,7 +96,7 @@ namespace EngineTest.Recources
         }
 
 
-        protected PointLight()
+        protected PointLightSource()
         {
 
         }
