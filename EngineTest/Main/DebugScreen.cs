@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using EngineTest.Main;
 using EngineTest.Recources;
 using Microsoft.Xna.Framework;
@@ -206,6 +204,8 @@ namespace EngineTest.Renderer.Helper
 
                 _spriteBatch.Begin(SpriteSortMode.BackToFront);
 
+                LoadProfilerStrings();
+
                 if (ConsoleOpen)
                 {
                     Color consoleColor = Color.White;
@@ -276,7 +276,7 @@ namespace EngineTest.Renderer.Helper
                     Color.White);
 
                 // HELPERS
-
+            
                 if (GameSettings.ShowDisplayInfo <= 2)
                 {
                     _spriteBatch.End();
@@ -289,6 +289,7 @@ namespace EngineTest.Renderer.Helper
                     + " shadowMaps: " +GameStats.activeShadowMaps + "/"+ GameStats.shadowMaps ),
                     new Vector2(10.0f, 40.0f), Color.White);
 
+
                 _spriteBatch.End();
             }
             else
@@ -299,6 +300,29 @@ namespace EngineTest.Renderer.Helper
 
 
         }
+        
+        /// <summary>
+        /// We want to extract all the strings starting with d_profile
+        /// </summary>
+        private void LoadProfilerStrings()
+        {
+            if (!GameSettings.d_profiler) return;
+
+            FieldInfo[] info2 = typeof(GameStats).GetFields();
+            int foundIndex = 0;
+            for (int index = 0; index < info2.Length; index++)
+            {
+                FieldInfo info = info2[index];
+                if (info.Name.Contains("d_profile"))
+                {
+                    _spriteBatch.DrawString(_sprFont, info.Name +" "+ info.GetValue(null), new Vector2(10.0f, 55.0f + foundIndex*15),
+                        Color.White);
+                    foundIndex++;
+                    //return;
+                }
+            }
+        }
+
 
         public void UpdateResolution()
         {

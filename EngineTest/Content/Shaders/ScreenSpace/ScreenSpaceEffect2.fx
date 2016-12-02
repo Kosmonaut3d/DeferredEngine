@@ -26,7 +26,7 @@ SamplerState texSampler
     AddressV = CLAMP;
     MagFilter = LINEAR;
     MinFilter = LINEAR;
-    Mipfilter = LINEAR;
+    Mipfilter = POINT;
 };
  
 float zfar = 500;
@@ -330,7 +330,7 @@ float4 PixelShaderFunctionTAA(VertexShaderOutput input) : COLOR0
                 output.a *= lerp(0, 1, sampleTexCoord.x * bordermulti);
             }
             
-            output.rgb *= output.a * (1 - roughness);
+			output.rgb *= output.a;// *(1 - roughness);
 			
             break;
         }

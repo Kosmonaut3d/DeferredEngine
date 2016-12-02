@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace EngineTest.Recources
+﻿namespace EngineTest.Recources
 {
     public static class GameSettings
     {
@@ -16,6 +10,8 @@ namespace EngineTest.Recources
         public static bool g_CPU_Culling = true;
 
         public static bool g_BatchByMaterial = false; //Note this must be activated before the application is started.
+
+        public static bool d_profiler = false;
 
         public static bool g_CPU_Sort = true;
         public static bool g_EnvironmentMapping = true;
@@ -31,7 +27,7 @@ namespace EngineTest.Recources
         public static bool g_EmissiveNoise = false;
         public static float g_EmissiveDrawFOVFactor = 2;
 
-        public static bool p_Physics = true;
+        public static bool p_Physics = false;
 
         public static float m_defaultRoughness = 0;
 
@@ -215,7 +211,12 @@ namespace EngineTest.Recources
             g_TemporalAntiAliasing = true;
 
             g_SSReflection = _g_SSReflection;
-            
+
+            /*
+            g_SSReflection = false;
+            g_EmissiveDraw = false;
+            ssao_Active = false;
+            */
 
             SCurveStrength = _sCurveStrength;
             ChromaticAbberationStrength = _chromaticAbberationStrength;

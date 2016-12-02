@@ -1,10 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net.Mime;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml;
 using BEPUphysics;
 using BEPUphysics.BroadPhaseEntries;
 using BEPUphysics.Entities;
@@ -14,7 +9,6 @@ using BEPUutilities;
 using ConversionHelper;
 using EngineTest.Entities;
 using EngineTest.Recources;
-using EngineTest.Recources.Helper;
 using EngineTest.Renderer;
 using EngineTest.Renderer.Helper;
 using Microsoft.Xna.Framework;
@@ -152,7 +146,7 @@ namespace EngineTest.Main
                 shadowResolution: 2048,
                 shadowFilteringFiltering: DirectionalLight.ShadowFilteringTypes.SoftPCF3x,
                 screenspaceShadowBlur: true);
-
+            
         }
 
 

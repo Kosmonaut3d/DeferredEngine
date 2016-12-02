@@ -1,12 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -88,6 +82,7 @@ namespace EngineTest.Recources
         public MaterialEffect metalRough02Material;
 
         public MaterialEffect rockMaterial;
+        
 
         public void Load(ContentManager content, GraphicsDevice graphicsDevice)
         {
@@ -195,7 +190,7 @@ namespace EngineTest.Recources
                 mask: null,
                 displacementMap: content.Load<Texture2D>("Art/test/squarebricks-depth")
             );
-
+            
             //stormtrooperMaterial = CreateMaterial(Color.White, 1, 0,
             //    content.Load<Texture2D>("Art/test/stormtrooper_albedo"),
             //    content.Load<Texture2D>("Art/test/stormtrooper_normal"),

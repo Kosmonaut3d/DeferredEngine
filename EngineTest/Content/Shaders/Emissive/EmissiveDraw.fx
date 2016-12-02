@@ -59,7 +59,7 @@ SamplerState LinearSampler
     AddressV = CLAMP;
     MagFilter = LINEAR;
     MinFilter = LINEAR;
-    Mipfilter = LINEAR;
+    Mipfilter = POINT;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////

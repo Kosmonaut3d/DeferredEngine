@@ -36,7 +36,7 @@ SamplerState blurSamplerLinear
     AddressV = CLAMP;
     MagFilter = LINEAR;
     MinFilter = LINEAR;
-    Mipfilter = LINEAR;
+    Mipfilter = POINT;
 };
        
 float FalloffMin = 0.000001f;

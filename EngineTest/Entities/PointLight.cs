@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using EngineTest.Entities;
+﻿using EngineTest.Entities;
 using EngineTest.Recources.Helper;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;

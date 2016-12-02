@@ -1,15 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using EngineTest.Main;
 using EngineTest.Renderer;
 using EngineTest.Renderer.Helper;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Graphics.PackedVector;
-using Microsoft.Xna.Framework.Input;
 
 namespace EngineTest.Recources.Helper
 {
@@ -138,6 +134,7 @@ namespace EngineTest.Recources.Helper
 
         public void Draw()
         {
+            if (samplePositions.Count <= 0) return;
             LineHelperManager.AddLineStartEnd(startPosition, startPosition+startNormal*10, 1);
             //LineHelperManager.AddLineStartEnd(startPosition, startPosition + reflectVector * 10, 1, Color.AliceBlue, Color.Aqua);
 

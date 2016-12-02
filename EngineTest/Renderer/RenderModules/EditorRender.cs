@@ -1,9 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using EngineTest.Entities;
 using EngineTest.Entities.Editor;
 using EngineTest.Main;
 using EngineTest.Recources;
@@ -100,6 +96,7 @@ namespace EngineTest.Renderer.RenderModules
             _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
             _graphicsDevice.DepthStencilState = DepthStencilState.Default;
             _graphicsDevice.BlendState = BlendState.Opaque;
+
 
             DrawGizmo(staticViewProjection, editorData);
             DrawBillboards(lights, staticViewProjection, editorData);

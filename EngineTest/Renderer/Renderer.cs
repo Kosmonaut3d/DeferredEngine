@@ -1,11 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
+using System.Diagnostics;
 using EngineTest.Entities;
 using EngineTest.Main;
 using EngineTest.Recources;
@@ -32,7 +27,7 @@ namespace EngineTest.Renderer
         private GaussianBlur _gaussianBlur;
         private EditorRender _editorRender;
         private CPURayMarch _cpuRayMarch;
-
+        
         //Checkvariables for change
         private float _supersampling = 1;
         private bool _hologramDraw;
@@ -108,6 +103,12 @@ namespace EngineTest.Renderer
         
         private BlendState _lightBlendState;
         private BlendState _linearBlendState;
+
+        //Performance Profiler
+
+        private Stopwatch _performanceTimer = new Stopwatch();
+        private long _performancePreviousTime = 0;
+
         /////////////////////////////////////////////////////// FUNCTIONS ////////////////////////////////
 
         #region initialize
@@ -248,12 +249,20 @@ namespace EngineTest.Renderer
             //Just some object culling, setting up for the next frame
             meshMaterialLibrary.FrustumCullingFinalizeFrame(entities);
 
+            //Performance Profiler
+            if (GameSettings.d_profiler)
+            {
+                long performanceCurrentTime = _performanceTimer.ElapsedTicks;
+                GameStats.d_profileTotalRender = performanceCurrentTime;
+            }
+
             return new EditorLogic.EditorReceivedData
             {
                 HoveredId =  _editorRender.GetHoveredId(),
                 ViewMatrix =  _view,
                 ProjectionMatrix =  _projection
             };
+
         }
 
 
@@ -286,6 +295,15 @@ namespace EngineTest.Renderer
             _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
 
             //_graphicsDevice.BlendState = BlendState.Opaque;
+
+            //Performance Profiler
+            if (GameSettings.d_profiler)
+            {
+                long performanceCurrentTime = _performanceTimer.ElapsedTicks;
+                GameStats.d_profileCombineTemporalAntialiasing = performanceCurrentTime - _performancePreviousTime;
+
+                _performancePreviousTime = performanceCurrentTime;
+            }
         }
 
 
@@ -382,6 +400,14 @@ namespace EngineTest.Renderer
 
             SetUpRenderTargets(GameSettings.g_ScreenWidth, GameSettings.g_ScreenHeight, false);
 
+            //Performance Profiler
+            if (GameSettings.d_profiler)
+            {
+                long performanceCurrentTime = _performanceTimer.ElapsedTicks;
+                GameStats.d_profileDrawCubeMap = performanceCurrentTime - _performancePreviousTime;
+
+                _performancePreviousTime = performanceCurrentTime;
+            }
         }
 
         private void RenderMode()
@@ -429,7 +455,17 @@ namespace EngineTest.Renderer
                     }
 
                     DrawPostProcessing();
+                    
                     break;
+            }
+
+            //Performance Profiler
+            if (GameSettings.d_profiler)
+            {
+                long performanceCurrentTime = _performanceTimer.ElapsedTicks;
+                GameStats.d_profileDrawFinalRender = performanceCurrentTime - _performancePreviousTime;
+
+                _performancePreviousTime = performanceCurrentTime;
             }
         }
 
@@ -475,6 +511,14 @@ namespace EngineTest.Renderer
                 _spriteBatch.End();
             }
 
+            //Performance Profiler
+            if (GameSettings.d_profiler)
+            {
+                long performanceCurrentTime = _performanceTimer.ElapsedTicks;
+                GameStats.d_profileDrawBilateralBlur = performanceCurrentTime - _performancePreviousTime;
+
+                _performancePreviousTime = performanceCurrentTime;
+            }
         }
 
         private void DrawScreenSpaceEffect(Camera camera)
@@ -498,6 +542,15 @@ namespace EngineTest.Renderer
             //BLUR
 
             //need bilateral upsample
+
+            //Performance Profiler
+            if (GameSettings.d_profiler)
+            {
+                long performanceCurrentTime = _performanceTimer.ElapsedTicks;
+                GameStats.d_profileDrawScreenSpaceEffect = performanceCurrentTime - _performancePreviousTime;
+
+                _performancePreviousTime = performanceCurrentTime;
+            }
         }
 
         private void DrawScreenSpaceReflectionsEffect(Camera camera, GameTime gameTime)
@@ -534,6 +587,13 @@ namespace EngineTest.Renderer
 
             DrawMapToScreenToFullScreen(_renderTargetScreenSpaceEffectReflection);
 
+            if (GameSettings.d_profiler)
+            {
+                long performanceCurrentTime = _performanceTimer.ElapsedTicks;
+                GameStats.d_profileDrawSSR = performanceCurrentTime - _performancePreviousTime;
+
+                _performancePreviousTime = performanceCurrentTime;
+            }
 
         }
 
@@ -576,39 +636,14 @@ namespace EngineTest.Renderer
             Matrix transformedViewProjection = _view*newProjection;
 
             meshMatLib.DrawEmissive(_graphicsDevice, camera, _viewProjection, transformedViewProjection, _inverseViewProjection, _renderTargetEmissive, _renderTargetDiffuse, _renderTargetSpecular, _lightBlendState, _assets.Sphere.Meshes, gameTime);
-
-            //blur
-            /*
-            if (renderedonce && false)
+            //Performance Profiler
+            if (GameSettings.d_profiler)
             {
-                _graphicsDevice.BlendState = BlendState.Opaque;
-                _graphicsDevice.DepthStencilState = DepthStencilState.Default;
-                _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+                long performanceCurrentTime = _performanceTimer.ElapsedTicks;
+                GameStats.d_profileDrawEmissive = performanceCurrentTime - _performancePreviousTime;
 
-                _graphicsDevice.SetRenderTarget(_renderTargetHologram);
-
-                Shaders.ScreenSpaceEffectParameter_SSAOMap.SetValue(_renderTargetDiffuse);
-                Shaders.ScreenSpaceEffect.CurrentTechnique = Shaders.ScreenSpaceEffectTechnique_BlurVertical;
-                Shaders.ScreenSpaceEffect.CurrentTechnique.Passes[0].Apply();
-
-                _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
-
-                _graphicsDevice.SetRenderTarget(_renderTargetDiffuse);
-
-                Shaders.ScreenSpaceEffectParameter_SSAOMap.SetValue(_renderTargetHologram);
-                Shaders.ScreenSpaceEffect.CurrentTechnique = Shaders.ScreenSpaceEffectTechnique_BlurHorizontal;
-                Shaders.ScreenSpaceEffect.CurrentTechnique.Passes[0].Apply();
-
-                _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+                _performancePreviousTime = performanceCurrentTime;
             }
-
-            //_graphicsDevice.SetRenderTarget(null);
-            //_spriteBatch.Begin(0, BlendState.Additive, SamplerState.AnisotropicClamp);
-            //_spriteBatch.Draw(_renderTargetFinal, new Rectangle(0, 0, GameSettings.g_ScreenWidth, GameSettings.g_ScreenHeight), Color.White);
-            //_spriteBatch.End();
-
-            //DrawMapToScreenToFullScreen(_renderTargetHologram);
-             * */
         }
 
         #endregion
@@ -665,6 +700,15 @@ namespace EngineTest.Renderer
                 }
             }
 
+            //Performance Profiler
+            if (GameSettings.d_profiler)
+            {
+                long performanceCurrentTime = _performanceTimer.ElapsedTicks;
+                GameStats.d_profileDrawShadows = performanceCurrentTime - _performancePreviousTime;
+
+                _performancePreviousTime = performanceCurrentTime;
+            }
+
         }
 
         private void DrawScreenSpaceDirectionalShadow(List<DirectionalLight> dirLights)
@@ -692,6 +736,15 @@ namespace EngineTest.Renderer
 
                     _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
                 }
+            }
+
+            //Performance Profiler
+            if (GameSettings.d_profiler)
+            {
+                long performanceCurrentTime = _performanceTimer.ElapsedTicks;
+                GameStats.d_profileDrawScreenSpaceDirectionalShadow = performanceCurrentTime - _performancePreviousTime;
+
+                _performancePreviousTime = performanceCurrentTime;
             }
         }
 
@@ -936,6 +989,15 @@ namespace EngineTest.Renderer
             _graphicsDevice.SetRenderTarget(_renderTargetHologram);
             _graphicsDevice.Clear(Color.Black);
             meshMat.Draw(MeshMaterialLibrary.RenderType.hologram, _graphicsDevice, _viewProjection);
+
+            //Performance Profiler
+            if (GameSettings.d_profiler)
+            {
+                long performanceCurrentTime = _performanceTimer.ElapsedTicks;
+                GameStats.d_profileDrawHolograms = performanceCurrentTime - _performancePreviousTime;
+
+                _performancePreviousTime = performanceCurrentTime;
+            }
         }
 
         private void DrawEnvironmentMap(Vector3 cameraPosition)
@@ -953,6 +1015,15 @@ namespace EngineTest.Renderer
             //    : Shaders.deferredEnvironment.Techniques["Classic"];
             Shaders.deferredEnvironment.CurrentTechnique.Passes[0].Apply();
             _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+
+            //Performance Profiler
+            if (GameSettings.d_profiler)
+            {
+                long performanceCurrentTime = _performanceTimer.ElapsedTicks;
+                GameStats.d_profileDrawEnvironmentMap = performanceCurrentTime - _performancePreviousTime;
+
+                _performancePreviousTime = performanceCurrentTime;
+            }
         }
 
         /// <summary>
@@ -968,6 +1039,15 @@ namespace EngineTest.Renderer
             _graphicsDevice.Clear(Color.TransparentBlack);
             DrawPointLights(pointLights, cameraOrigin);
             DrawDirectionalLights(dirLights, cameraOrigin);
+
+            //Performance Profiler
+            if (GameSettings.d_profiler)
+            {
+                long performanceCurrentTime = _performanceTimer.ElapsedTicks;
+                GameStats.d_profileDrawLights = performanceCurrentTime - _performancePreviousTime;
+
+                _performancePreviousTime = performanceCurrentTime;
+            }
         }
 
         private void DrawDirectionalLights(List<DirectionalLight> dirLights, Vector3 cameraOrigin)
@@ -1116,16 +1196,8 @@ namespace EngineTest.Renderer
         private void Compose()
         {
             _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
-
-            //if (GameSettings.g_TemporalAntiAliasing)
-            //{
-            //    _graphicsDevice.SetRenderTargets(_temporalAAOffFrame ? _renderTargetFinal2Binding : _renderTargetFinalBinding);
-            //}
-            //else
-            //{
+            
                 _graphicsDevice.SetRenderTargets(_renderTargetFinalBinding);
-            //}
-
             //Skull depth
             //_deferredCompose.Parameters["average_skull_depth"].SetValue(Vector3.Distance(camera.Position , new Vector3(29, 0, -6.5f)));
 
@@ -1133,6 +1205,15 @@ namespace EngineTest.Renderer
             //combine!
             Shaders.DeferredCompose.CurrentTechnique.Passes[0].Apply();
             _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+
+            //Performance Profiler
+            if (GameSettings.d_profiler)
+            {
+                long performanceCurrentTime = _performanceTimer.ElapsedTicks;
+                GameStats.d_profileCompose = performanceCurrentTime - _performancePreviousTime;
+
+                _performancePreviousTime = performanceCurrentTime;
+            }
         }
 
         #endregion
@@ -1155,6 +1236,15 @@ namespace EngineTest.Renderer
             _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
 
             meshMaterialLibrary.Draw(renderType: MeshMaterialLibrary.RenderType.opaque, graphicsDevice: _graphicsDevice, viewProjection: _viewProjection, lightViewPointChanged: true);
+
+            //Performance Profiler
+            if (GameSettings.d_profiler)
+            {
+                long performanceCurrentTime = _performanceTimer.ElapsedTicks;
+                GameStats.d_profileDrawGBuffer = performanceCurrentTime - _performancePreviousTime;
+
+                _performancePreviousTime = performanceCurrentTime;
+            }
         }
 
         #endregion
@@ -1172,6 +1262,17 @@ namespace EngineTest.Renderer
             GameStats.activeShadowMaps = 0;
 
             GameStats.EmissiveMeshDraws = 0;
+
+            //Profiler
+            if (GameSettings.d_profiler)
+            {
+                _performanceTimer.Restart();
+                _performancePreviousTime = 0;
+            }
+            else if(_performanceTimer.IsRunning)
+            {
+                _performanceTimer.Stop();
+            }
         }
 
 
@@ -1232,6 +1333,14 @@ namespace EngineTest.Renderer
             }
 
 
+            //Performance Profiler
+            if (GameSettings.d_profiler)
+            {
+                long performanceCurrentTime = _performanceTimer.ElapsedTicks;
+                GameStats.d_profileRenderChanges = performanceCurrentTime - _performancePreviousTime;
+
+                _performancePreviousTime = performanceCurrentTime;
+            }
         }
 
 
@@ -1324,6 +1433,14 @@ namespace EngineTest.Renderer
             //We need to update whether or not entities are in our boundingFrustum and then cull them or not!
             meshMaterialLibrary.FrustumCulling(entities, _boundingFrustum, viewProjectionHasChanged, camera.Position);
 
+            //Performance Profiler
+            if (GameSettings.d_profiler)
+            {
+                long performanceCurrentTime = _performanceTimer.ElapsedTicks;
+                GameStats.d_profileUpdateViewProjection = performanceCurrentTime - _performancePreviousTime;
+
+                _performancePreviousTime = performanceCurrentTime;
+            }
         }
 
         /// <summary>
@@ -1344,6 +1461,15 @@ namespace EngineTest.Renderer
 
             //todo: check if the above is already ccw
             _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+
+            //Performance Profiler
+            if (GameSettings.d_profiler)
+            {
+                long performanceCurrentTime = _performanceTimer.ElapsedTicks;
+                GameStats.d_profileSetupGBuffer = performanceCurrentTime - _performancePreviousTime;
+
+                _performancePreviousTime = performanceCurrentTime;
+            }
         }
 
         #endregion

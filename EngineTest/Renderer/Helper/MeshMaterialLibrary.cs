@@ -1,13 +1,8 @@
 ﻿using System;
-using System.CodeDom.Compiler;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using EngineTest.Entities;
 using EngineTest.Recources;
 using EngineTest.Recources.Helper;
-using EngineTest.Renderer.RenderModules;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -26,6 +21,12 @@ namespace EngineTest.Renderer.Helper
 
         private bool _previousMode = GameSettings.g_CPU_Culling;
         private bool _previousEditorMode = GameSettings.Editor_enable;
+        private BoundingSphere _defaultBoundingSphere;
+
+        public MeshMaterialLibrary()
+        {
+            _defaultBoundingSphere = new BoundingSphere(Vector3.Zero, 0);
+        }
 
         /// <summary>
         /// 
@@ -230,7 +231,7 @@ namespace EngineTest.Renderer.Helper
                 for (int i = 0; i < matLib.Index; i++)
                 {
                     MeshLibrary meshLib = matLib.GetMeshLibrary()[i];
-                    float? distanceSq = meshLib.UpdatePositionAndCheckRender(hasCameraChanged, boundingFrustrum, cameraPosition);
+                    float? distanceSq = meshLib.UpdatePositionAndCheckRender(hasCameraChanged, boundingFrustrum, cameraPosition, _defaultBoundingSphere);
 
                     //If we get a new distance, apply it to the material
                     if (distanceSq != null)
@@ -282,6 +283,7 @@ namespace EngineTest.Renderer.Helper
                 BasicEntity entity = entities[index1];
                 entity.CheckPhysics();
             }
+
         }
 
         /// <summary>
@@ -1007,13 +1009,12 @@ namespace EngineTest.Renderer.Helper
 
         //IF a submesh belongs to an entity that has moved we need to update the BoundingBoxWorld Position!
         //returns the mean distance of all objects iwth that material
-        public float? UpdatePositionAndCheckRender(bool cameraHasChanged, BoundingFrustum viewFrustum, Vector3 cameraPosition)
+        public float? UpdatePositionAndCheckRender(bool cameraHasChanged, BoundingFrustum viewFrustum, Vector3 cameraPosition, BoundingSphere sphere)
         {
             float? distance = null;
 
             bool hasAnythingChanged = false;
 
-            BoundingSphere sphere = new BoundingSphere(Vector3.Zero, 0);
             for (var i = 0; i < Index; i++)
             {
                 TransformMatrix trafoMatrix = _worldMatrices[i];
@@ -1028,7 +1029,7 @@ namespace EngineTest.Renderer.Helper
                 if (trafoMatrix.HasChanged || cameraHasChanged)
                 {
                     sphere.Center = _worldBoundingCenters[i];
-                    sphere.Radius = MeshBoundingSphere.Radius * _worldMatrices[i].Scale;
+                    sphere.Radius = MeshBoundingSphere.Radius * trafoMatrix.Scale;
                     if (viewFrustum.Contains(sphere) == ContainmentType.Disjoint)
                     {
                         Rendered[i] = false;
@@ -1045,7 +1046,7 @@ namespace EngineTest.Renderer.Helper
             }
 
             //We need to calcualte a new average distance
-            if (hasAnythingChanged)
+            if (hasAnythingChanged && GameSettings.g_CPU_Sort)
             {
                 distance = 0;
 
