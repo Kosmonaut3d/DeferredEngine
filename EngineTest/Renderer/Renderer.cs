@@ -184,7 +184,7 @@ namespace EngineTest.Renderer
             //Render EnvironmentMaps
             if ((Input.WasKeyPressed(Keys.C)&&!DebugScreen.ConsoleOpen) || GameSettings.g_EnvironmentMappingEveryFrame || _renderTargetCubeMap == null)
             {
-                DrawCubeMap(camera.Position, meshMaterialLibrary, entities, pointLights, dirLights, 300);
+                DrawCubeMap(camera.Position, meshMaterialLibrary, entities, pointLights, dirLights, 300, gameTime);
                 camera.HasChanged = true;
             }
 
@@ -212,7 +212,7 @@ namespace EngineTest.Renderer
             DrawBilateralBlur();
 
             //Light the scene
-            DrawLights(pointLights, dirLights, camera.Position);
+            DrawLights(pointLights, dirLights, camera.Position, gameTime);
 
             DrawEnvironmentMap(camera.Position);
 
@@ -308,7 +308,7 @@ namespace EngineTest.Renderer
 
 
         private void DrawCubeMap(Vector3 origin, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities,
-            List<PointLightSource> pointLights, List<DirectionalLightSource> dirLights, float farPlane )
+            List<PointLightSource> pointLights, List<DirectionalLightSource> dirLights, float farPlane, GameTime gameTime )
         {
             if (_renderTargetCubeMap == null) // _renderTargetCubeMap.Dispose();
             {
@@ -380,7 +380,7 @@ namespace EngineTest.Renderer
 
                 DrawScreenSpaceDirectionalShadow(dirLights);
 
-                DrawLights(pointLights, dirLights, origin);
+                DrawLights(pointLights, dirLights, origin, gameTime);
 
                 DrawEnvironmentMap(origin);
 
@@ -905,9 +905,10 @@ namespace EngineTest.Renderer
                     // Rendering!
 
                     _graphicsDevice.SetRenderTarget(light.shadowMapCube, cubeMapFace);
-                    _graphicsDevice.Clear(ClearOptions.DepthBuffer, Color.White, 1, 0);
+                    _graphicsDevice.Clear(Color.TransparentBlack);
 
-                    meshMaterialLibrary.Draw(MeshMaterialLibrary.RenderType.shadowVSM, _graphicsDevice, LightViewProjection, true, light.HasChanged);
+                    meshMaterialLibrary.Draw(MeshMaterialLibrary.RenderType.shadowVSM, _graphicsDevice,
+                        LightViewProjection, true, light.HasChanged);
                 }
             }
             else
@@ -915,7 +916,7 @@ namespace EngineTest.Renderer
                 for (int i = 0; i < 6; i++)
                 {
                     // render the scene to all cubemap faces
-                    cubeMapFace = (CubeMapFace)i;
+                    cubeMapFace = (CubeMapFace) i;
 
                     switch (cubeMapFace)
                     {
@@ -957,22 +958,25 @@ namespace EngineTest.Renderer
                     else
                         _boundingFrustumShadow = new BoundingFrustum(LightViewProjection);
 
-                    bool hasAnyObjectMoved = meshMaterialLibrary.FrustumCulling(entities, _boundingFrustumShadow, false, light.Position);
+                    bool hasAnyObjectMoved = meshMaterialLibrary.FrustumCulling(entities, _boundingFrustumShadow, false,
+                        light.Position);
 
                     // Rendering!
 
                     if (!hasAnyObjectMoved) continue;
 
-                    _graphicsDevice.SetRenderTarget(light.shadowMapCube, cubeMapFace);
+                    //_graphicsDevice.SetRenderTarget(light.shadowMapCube, cubeMapFace);
+                    _graphicsDevice.Clear(Color.TransparentBlack);
+                    //_graphicsDevice.Clear(ClearOptions.DepthBuffer, Color.White, 0, 0);
 
-                    meshMaterialLibrary.Draw(renderType: MeshMaterialLibrary.RenderType.shadowVSM, 
+                    meshMaterialLibrary.Draw(renderType: MeshMaterialLibrary.RenderType.shadowVSM,
                         graphicsDevice: _graphicsDevice,
                         viewProjection: LightViewProjection,
                         lightViewPointChanged: light.HasChanged,
                         hasAnyObjectMoved: true);
                 }
 
-            //Culling!
+                //Culling!
 
 
             }
@@ -1033,11 +1037,11 @@ namespace EngineTest.Renderer
         /// <param name="dirLights"></param>
         /// <param name="cameraOrigin"></param>
         /// <param name="camera"></param>
-        private void DrawLights(List<PointLightSource> pointLights, List<DirectionalLightSource> dirLights, Vector3 cameraOrigin)
+        private void DrawLights(List<PointLightSource> pointLights, List<DirectionalLightSource> dirLights, Vector3 cameraOrigin, GameTime gameTime)
         {
             _graphicsDevice.SetRenderTargets(_renderTargetLightBinding);
             _graphicsDevice.Clear(Color.TransparentBlack);
-            DrawPointLights(pointLights, cameraOrigin);
+            DrawPointLights(pointLights, cameraOrigin, gameTime);
             DrawDirectionalLights(dirLights, cameraOrigin);
 
             //Performance Profiler
@@ -1084,7 +1088,7 @@ namespace EngineTest.Renderer
         }
 
         //Draw the pointlights
-        private void DrawPointLights( List<PointLightSource> pointLights,Vector3 cameraOrigin)
+        private void DrawPointLights( List<PointLightSource> pointLights,Vector3 cameraOrigin, GameTime gameTime)
         {
             _graphicsDevice.BlendState = _lightBlendState;
 
@@ -1095,6 +1099,9 @@ namespace EngineTest.Renderer
                 Shaders.deferredPointLightParameterCameraPosition.SetValue(cameraOrigin);
                 Shaders.deferredPointLightParameterInverseViewProjection.SetValue(_inverseViewProjection);
             }
+
+            if (GameSettings.g_VolumetricLights)
+                Shaders.deferredPointLightParameter_Time.SetValue((float)gameTime.TotalGameTime.TotalSeconds % 1000);
 
             _graphicsDevice.DepthStencilState = DepthStencilState.Default;
 

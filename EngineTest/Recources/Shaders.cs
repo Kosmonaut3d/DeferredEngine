@@ -208,6 +208,7 @@ namespace EngineTest.Recources
         public static EffectTechnique deferredPointLightUnshadowed;
         public static EffectTechnique deferredPointLightUnshadowedVolumetric;
         public static EffectTechnique deferredPointLightShadowed;
+        public static EffectTechnique deferredPointLightShadowedVolumetric;
         public static EffectParameter deferredPointLightParameterResolution;
         public static EffectParameter deferredPointLightParameterShadowMap;
         public static EffectParameter deferredPointLightParameterLightViewProjectionPositiveX;
@@ -227,6 +228,8 @@ namespace EngineTest.Recources
         public static EffectParameter deferredPointLightParameter_LightRadius;
         public static EffectParameter deferredPointLightParameter_LightIntensity;
         public static EffectParameter deferredPointLightParameter_Inside;
+        public static EffectParameter deferredPointLightParameter_Time;
+        public static EffectParameter deferredPointLightParameter_LightVolumeDensity;
 
         public static EffectParameter deferredPointLightParameter_AlbedoMap;
         public static EffectParameter deferredPointLightParameter_NormalMap;
@@ -471,6 +474,7 @@ namespace EngineTest.Recources
             deferredPointLightUnshadowed = deferredPointLight.Techniques["Unshadowed"];
             deferredPointLightUnshadowedVolumetric = deferredPointLight.Techniques["UnshadowedVolume"];
             deferredPointLightShadowed = deferredPointLight.Techniques["Shadowed"];
+            deferredPointLightShadowedVolumetric = deferredPointLight.Techniques["ShadowedVolume"];
 
             deferredPointLightParameterShadowMap = deferredPointLight.Parameters["shadowMap"];
 
@@ -495,7 +499,9 @@ namespace EngineTest.Recources
             deferredPointLightParameter_LightPositionVS = deferredPointLight.Parameters["lightPositionVS"];
             deferredPointLightParameter_LightPositionTexCoord = deferredPointLight.Parameters["lightPositionTexCoord"];
             deferredPointLightParameter_Inside = deferredPointLight.Parameters["inside"];
-
+            deferredPointLightParameter_Time = deferredPointLight.Parameters["Time"];
+            deferredPointLightParameter_LightVolumeDensity =
+                deferredPointLight.Parameters["lightVolumeDensity"];
             deferredPointLightParameter_AlbedoMap = deferredPointLight.Parameters["AlbedoMap"];
             deferredPointLightParameter_NormalMap = deferredPointLight.Parameters["NormalMap"];
             deferredPointLightParameter_DepthMap = deferredPointLight.Parameters["DepthMap"];

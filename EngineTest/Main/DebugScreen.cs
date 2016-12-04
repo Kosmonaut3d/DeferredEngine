@@ -238,7 +238,7 @@ namespace EngineTest.Renderer.Helper
                 }
 
 
-                float y = 80f;
+                float y = 65.0f;
                 for (var i = 0; i < StringList.Count; i++)
                 {
                     y += 15f;

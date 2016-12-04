@@ -13,6 +13,8 @@ float lightRadius = 0;
 //control the brightness of the light
 float lightIntensity = 1.0f;
 
+float lightVolumeDensity = 1;
+
 float4 lightPositionVS;
 float2 lightPositionTexCoord;
 
@@ -31,6 +33,7 @@ Texture2D AlbedoMap;
 Texture2D NormalMap;
 
 bool inside = false;
+float Time = 1;
 
 #include "helper.fx"
        
@@ -234,6 +237,7 @@ PixelShaderOutput BasePixelShaderFunction(PixelShaderInput input)
 
 float chebyshevUpperBound(float distance, float3 texCoord)
 {
+	texCoord.z = -texCoord.z;
 		// We retrive the two moments previously stored (depth and depth*depth)
     float2 moments = 1 - shadowCubeMap.Sample(shadowCubeMapSampler, texCoord).rg;
 		
@@ -250,6 +254,19 @@ float chebyshevUpperBound(float distance, float3 texCoord)
     float p_max = variance / (variance + d * d);
 	
     return p_max;
+}
+
+float ShadowCheck(float distance, float3 texCoord)
+{
+	texCoord.z = -texCoord.z;
+	// We retrive the two moments previously stored (depth and depth*depth)
+	float2 moments = 1 - shadowCubeMap.Sample(shadowCubeMapSampler, texCoord).rg;
+
+	// Surface is fully lit. as the current fragment is before the light occluder
+	if (distance > moments.r)
+	    return 0.0f;
+	else
+	return 1;
 }
 
 PixelShaderOutput BasePixelShaderFunctionShadow(PixelShaderInput input)
@@ -408,6 +425,9 @@ float integrateVolume(float d2, float d1, float radius)
 {
 	// 1 - x/r -> x - x^2 / r*2
 	return max(d2 - d2*d2 / (radius*2) - d1 + d1*d1 / (radius*2),0);
+
+	// 1 - x^2 / r^2 -> x - x^3 / r^2*3
+	//return max(d2 - d2*d2*d2 / (radius*radius * 3) - d1 + d1*d1*d1 / (radius*radius * 3), 0);
 }
 
 PixelShaderOutput VolumetricPixelShaderFunction(VertexShaderOutput2 input)
@@ -533,7 +553,7 @@ PixelShaderOutput VolumetricPixelShaderFunction(VertexShaderOutput2 input)
 
 	output.Diffuse = 0;
 	output.Specular = 0;
-	output.Volume = float4((totalVolumePassed * 0.001) * lightColor , 0);
+	output.Volume = float4((totalVolumePassed * 0.0001 *lightIntensity * lightVolumeDensity) * lightColor , 0);
 
 
 	[branch]
@@ -582,6 +602,194 @@ PixelShaderOutput VolumetricPixelShaderFunction(VertexShaderOutput2 input)
 
 }
 
+float getDepthInLS(float4 positionWS, float3 lightVector)
+{
+	matrix lightProjection = LightViewProjectionPositiveX;
+
+	[branch]
+	if (lightVector.z >= abs(lightVector.x) && lightVector.z >= abs(lightVector.y))
+	{
+		lightProjection = LightViewProjectionNegativeZ;
+	}
+	else
+		[branch] if (lightVector.z <= -abs(lightVector.x) && lightVector.z <= -abs(lightVector.y))
+	{
+		lightProjection = LightViewProjectionPositiveZ;
+	}
+		else
+			[branch] if (lightVector.y >= abs(lightVector.x) && lightVector.y >= abs(lightVector.z))
+	{
+		lightProjection = LightViewProjectionPositiveY;
+	}
+			else
+				[branch] if (lightVector.y <= -abs(lightVector.x) && lightVector.y <= -abs(lightVector.z))
+	{
+		lightProjection = LightViewProjectionNegativeY;
+	}
+				else
+					[branch] if (lightVector.x <= -abs(lightVector.y) && lightVector.x <= -abs(lightVector.y))
+	{
+		lightProjection = LightViewProjectionNegativeX;
+	}
+
+	float4 positionInLS = mul(positionWS, lightProjection);
+	float depth = (positionInLS.z / positionInLS.w);
+	return depth;
+}
+
+PixelShaderOutput VolumetricPixelShaderFunctionShadowed(VertexShaderOutput2 input)
+{
+	PixelShaderOutput output;
+
+	output.Diffuse = 0;
+	output.Specular = 0;
+
+	input.ScreenPosition.xyz /= input.ScreenPosition.w;
+	float2 texCoord = 0.5f * (float2(input.ScreenPosition.x, -input.ScreenPosition.y) + 1);
+
+	//read depth
+	float depthVal = 1 - tex2D(depthSampler, texCoord).r;
+
+	//compute screen-space position
+	float4 position;
+	position.xy = input.ScreenPosition.xy;
+	position.z = depthVal;
+	position.w = 1.0f;
+	//transform to world space
+	position = mul(position, InvertViewProjection);
+	position /= position.w;
+
+	//The way our camera is looking
+	float3 cameraDirection = normalize(position.xyz - cameraPosition);
+
+	//Entry into the volumetric field?
+	float insideMult = inside;
+	if (insideMult <= 0)
+		insideMult = -1;
+
+	//If inside = 0 we look from the outside, so we enter into the field
+	float3 toLightCenter = normalize(lightPosition - input.WorldPosition.xyz);
+
+	/*float3 perpVector = cross(toLightCenter, cameraDirection);
+
+	float3 perpVector2 = cross(cameraDirection, perpVector);
+	*/
+
+	float3 cameraToLight = lightPosition - cameraPosition;
+	float distanceLtoC = length(cameraToLight);
+
+	cameraToLight /= distanceLtoC;
+
+	float distanceCtoR = distance(cameraPosition, position.xyz);
+
+	float totalVolumePassed = 0;
+
+	float distanceLtoR = distance(lightPosition, position.xyz);
+
+	float3 lightVector = lightPosition - position.xyz;
+
+	//Raymarch
+
+	float3 start_vector;
+	float3 end_vector;
+
+	if (inside<1)
+	{
+		start_vector = cameraPosition + cameraDirection*(distanceLtoC - lightRadius);
+		end_vector = cameraPosition + cameraDirection*(distanceLtoC + lightRadius);
+	}
+	else
+	{
+		start_vector = cameraPosition;
+		end_vector = input.WorldPosition;
+	}
+
+	float visibility = 0;
+	if (distanceCtoR > distanceLtoC - lightRadius)
+	{
+
+		int steps = 10;
+
+		float3 ray = end_vector - start_vector;
+
+		float noiseX = (frac(sin(dot(texCoord* frac(Time), float2(15.8989f, 76.132f) )) * 46336.23745f));
+
+		[unroll]
+		for (int i = 0; i < steps; i++)
+		{
+			
+			float4 rayPosition = float4(float3(start_vector + ((i + noiseX) / (steps))*ray), 1);
+			float3 lightVectorRay = normalize(lightPosition - rayPosition.xyz);
+
+			float depthLS = getDepthInLS(rayPosition, -lightVectorRay);
+
+			if (distance(rayPosition.xyz, cameraPosition) > distanceCtoR) break;
+			else
+			{
+				float dist = saturate(distance(lightPosition, rayPosition.xyz) / lightRadius) - 1;
+				dist = dist*dist;
+				visibility += ShadowCheck(depthLS, -lightVectorRay) * saturate(dist*dist);//1 - dist*dist / (lightRadius*lightRadius));
+			}
+			
+		}
+
+		visibility /= steps;
+	}
+	//startvector > input.WorldPositionVS
+	//EndVector
+
+
+
+	output.Volume = float4((0.01 * lightIntensity * lightVolumeDensity * visibility) * lightColor, 0);
+
+
+	//get normal data from the NormalMap
+	float4 normalData = tex2D(normalSampler, texCoord);
+	//tranform normal back into [-1,1] range
+	float3 normal = decode(normalData.xyz); //2.0f * normalData.xyz - 1.0f;    //could do mad
+											//get metalness
+	float roughness = normalData.a;
+	//get specular intensity from the AlbedoMap
+	float4 color = tex2D(colorSampler, texCoord);
+
+	float metalness = decodeMetalness(color.a);
+
+	float f0 = lerp(0.04f, color.g * 0.25 + 0.75, metalness);
+
+	//compute attenuation based on distance - linear attenuation
+	float attenuation = saturate(1.0f - distanceLtoR / lightRadius);
+
+	//normalize light vector
+	lightVector /= distanceLtoR;
+													 //compute diffuse light
+	float NdL = saturate(dot(normal, lightVector));
+
+	float depthInLS = getDepthInLS(position, -lightVector);
+
+	float shadowVSM = chebyshevUpperBound(depthInLS, -lightVector);
+
+	float3 diffuseLight = float3(0, 0, 0);
+	float3 specular = float3(0, 0, 0);
+
+	[branch]
+	if (shadowVSM > 0.01f && distanceLtoR < lightRadius)
+	{
+		[branch]
+		if (metalness < 0.99)
+		{
+			diffuseLight = DiffuseOrenNayar(NdL, normal, lightVector, -cameraDirection, lightIntensity, lightColor, roughness); //NdL * lightColor.rgb;
+		}
+		specular = SpecularCookTorrance(NdL, normal, lightVector, -cameraDirection, lightIntensity, lightColor, f0, roughness);
+	}
+
+	//return attenuation * lightIntensity * float4(diffuseLight.rgb, specular);
+	output.Diffuse.rgb = (attenuation * diffuseLight * (1 - f0)) * 0.01f * shadowVSM; //* (1 - f0)) * (f0 + 1) * (f0 + 1);
+	output.Specular.rgb = specular * attenuation * 0.01f * max(shadowVSM - 0.1f, 0);
+
+	return output;
+
+}
+
    
 technique Unshadowed
 {
@@ -603,10 +811,19 @@ technique UnshadowedVolume
 
 technique Shadowed
 {
+	pass Pass1
+	{
+		VertexShader = compile vs_4_0 VertexShaderFunction();
+		PixelShader = compile ps_4_0 PixelShaderFunctionShadowed();
+	}
+}
+
+technique ShadowedVolume
+{
     pass Pass1
     {
-        VertexShader = compile vs_5_0 VertexShaderFunction();
-        PixelShader = compile ps_5_0 PixelShaderFunctionShadowed();
+        VertexShader = compile vs_4_0 VertexShaderFunction2();
+        PixelShader = compile ps_4_0 VolumetricPixelShaderFunctionShadowed();
     }
 }
 

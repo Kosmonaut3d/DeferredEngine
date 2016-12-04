@@ -170,6 +170,11 @@ namespace EngineTest.Main
                     dirLights.Add(copy);
                 }
             }
+
+            if (SelectedObject != null)
+            {
+                DebugScreen.AddString(SelectedObject.Position.ToString());
+            }
         }
 
         private void GizmoControl(int gizmoId, EditorReceivedData data)

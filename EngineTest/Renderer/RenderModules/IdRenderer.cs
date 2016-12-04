@@ -63,12 +63,12 @@ namespace EngineTest.Renderer.RenderModules
 
             meshMat.Draw(MeshMaterialLibrary.RenderType.idRender, _graphicsDevice, viewProjection, false, false);
 
-            //Now onto the gizmos
-            DrawGizmos(viewProjection, editorData, _assets);
-
             //Now onto the billboards
             DrawBillboards(pointLights, dirLights, viewProjection);
 
+            //Now onto the gizmos
+            DrawGizmos(viewProjection, editorData, _assets);
+            
             Rectangle sourceRectangle =
             new Rectangle(Mouse.GetState().X, Mouse.GetState().Y, 1, 1);
 

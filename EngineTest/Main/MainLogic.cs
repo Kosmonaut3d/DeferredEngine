@@ -99,9 +99,10 @@ namespace EngineTest.Main
             //    //lights
             //shadowLight = AddPointLight(position: new Vector3(-80, 2, 20), radius: 50, color: Color.Wheat, intensity: 20, castShadows: true);
 
-            //AddPointLight(position: new Vector3(-20, 0, 40), radius: 120, color: Color.White, intensity: 20, castShadows: false, shadowResolution: 1024, staticShadow: false);
+            AddPointLight(position: new Vector3(-20, 0, 40), radius: 120, color: Color.White, intensity: 20, castShadows: false, shadowResolution: 1024, staticShadow: false);
 
-            AddPointLight(position: new Vector3(-20, 0, 40), radius: 30, color: Color.White, intensity: 20, castShadows: false, shadowResolution: 1024, staticShadow: false, isVolumetric: true);
+            //volumetric light!
+            AddPointLight(position: new Vector3(-4, 40, 33), radius: 60, color: Color.White, intensity: 20, castShadows: true, shadowResolution: 1024, staticShadow: false, isVolumetric: true, volumetricDensity: 2);
 
             //for (int i = 0; i < 10; i++)
             //{
@@ -182,9 +183,9 @@ namespace EngineTest.Main
         /// <param name="shadowResolution">shadow map resolution per face. Optional</param>
         /// <param name="staticShadow">if set to true the shadows will not update at all. Dynamic shadows in contrast update only when needed.</param>
         /// <returns></returns>
-        private PointLightSource AddPointLight(Vector3 position, float radius, Color color, float intensity, bool castShadows, bool isVolumetric = false, int shadowResolution = 256, bool staticShadow = false)
+        private PointLightSource AddPointLight(Vector3 position, float radius, Color color, float intensity, bool castShadows, bool isVolumetric = false, float volumetricDensity = 1, int shadowResolution = 256, bool staticShadow = false)
         {
-            PointLightSource light = new PointLightSource(position, radius, color, intensity, castShadows, isVolumetric, shadowResolution, staticShadow);
+            PointLightSource light = new PointLightSource(position, radius, color, intensity, castShadows, isVolumetric, shadowResolution, staticShadow, volumetricDensity);
             PointLights.Add(light);
             return light;
         }
