@@ -72,23 +72,23 @@ namespace EngineTest.Main
             
             //space.Add(new Box(new BEPUutilities.Vector3(0,0,-0.5f), 1000,1000,1));
 
-            space.Add(testBox = new Box(BEPUutilities.Vector3.Zero, 10, 10, 10, 100));
-            testBoxEntity = AddEntity(_assets.TestCube, _assets.emissiveMaterial, new Vector3(20.2f, 1.1f, 40), Math.PI / 2, 0, 0, 5, testBox);
+            //space.Add(testBox = new Box(BEPUutilities.Vector3.Zero, 10, 10, 10, 100));
+            //testBoxEntity = AddEntity(_assets.TestCube, _assets.emissiveMaterial, new Vector3(20.2f, 1.1f, 40), Math.PI / 2, 0, 0, 5, testBox);
             
             Entity Sphere;
             space.Add(Sphere = new Sphere(new BEPUutilities.Vector3(20, 0, 40),5,50));
             AddEntity(_assets.IsoSphere, _assets.baseMaterial, new Vector3(20, 0, 10), Math.PI/2, 0, 0, 5, Sphere);
 
-            for (int i = 0; i < 10; i++)
-            {
+            //for (int i = 0; i < 10; i++)
+            //{
 
-                Entity Sphere2;
-                space.Add(Sphere2 = new Sphere(BEPUutilities.Vector3.Zero, 5, 50));
-                AddEntity(_assets.IsoSphere, _assets.baseMaterial,
-                    new Vector3(20 + FastRand.NextSingle(2) - 1, FastRand.NextSingle(2) - 1, 30 + i*10), Math.PI/2, 0, 0,
-                    5, Sphere2);
+            //    Entity Sphere2;
+            //    space.Add(Sphere2 = new Sphere(BEPUutilities.Vector3.Zero, 5, 50));
+            //    AddEntity(_assets.IsoSphere, _assets.baseMaterial,
+            //        new Vector3(20 + FastRand.NextSingle(2) - 1, FastRand.NextSingle(2) - 1, 30 + i*10), Math.PI/2, 0, 0,
+            //        5, Sphere2);
 
-            }
+            //}
 
             //AddEntity(_assets.HelmetModel, new Vector3(70, 0, -10), -Math.PI / 2, 0, -Math.PI / 2, 1);
 
@@ -99,7 +99,9 @@ namespace EngineTest.Main
             //    //lights
             //shadowLight = AddPointLight(position: new Vector3(-80, 2, 20), radius: 50, color: Color.Wheat, intensity: 20, castShadows: true);
 
-            AddPointLight(position: new Vector3(-20, 0, 40), radius: 120, color: Color.White, intensity: 20, castShadows: true, shadowResolution: 1024, staticShadow: false);
+            //AddPointLight(position: new Vector3(-20, 0, 40), radius: 120, color: Color.White, intensity: 20, castShadows: false, shadowResolution: 1024, staticShadow: false);
+
+            AddPointLight(position: new Vector3(-20, 0, 40), radius: 30, color: Color.White, intensity: 20, castShadows: false, shadowResolution: 1024, staticShadow: false, isVolumetric: true);
 
             //for (int i = 0; i < 10; i++)
             //{
@@ -143,7 +145,7 @@ namespace EngineTest.Main
                 shadowResolution: 2048,
                 shadowFilteringFiltering: DirectionalLightSource.ShadowFilteringTypes.SoftPCF3x,
                 screenspaceShadowBlur: true);
-            
+
         }
 
 
@@ -176,12 +178,13 @@ namespace EngineTest.Main
         /// <param name="color"></param>
         /// <param name="intensity"></param>
         /// <param name="castShadows">will render shadow maps</param>
+        /// <param name="isVolumetric">does it have a fog volume?</param>
         /// <param name="shadowResolution">shadow map resolution per face. Optional</param>
         /// <param name="staticShadow">if set to true the shadows will not update at all. Dynamic shadows in contrast update only when needed.</param>
         /// <returns></returns>
-        private PointLightSource AddPointLight(Vector3 position, float radius, Color color, float intensity, bool castShadows, int shadowResolution = 256, bool staticShadow = false)
+        private PointLightSource AddPointLight(Vector3 position, float radius, Color color, float intensity, bool castShadows, bool isVolumetric = false, int shadowResolution = 256, bool staticShadow = false)
         {
-            PointLightSource light = new PointLightSource(position, radius, color, intensity, castShadows, shadowResolution, staticShadow);
+            PointLightSource light = new PointLightSource(position, radius, color, intensity, castShadows, isVolumetric, shadowResolution, staticShadow);
             PointLights.Add(light);
             return light;
         }
@@ -270,7 +273,7 @@ namespace EngineTest.Main
 
             if (Input.keyboardState.IsKeyDown(Keys.L))
             {
-                AddPointLight(new Vector3(FastRand.NextSingle() * 250 - 125, FastRand.NextSingle() * 50 - 25, FastRand.NextSingle() * 30 - 19), 30, new Color(FastRand.NextInteger(255), FastRand.NextInteger(255), FastRand.NextInteger(255)), 10, false);
+                AddPointLight(new Vector3(FastRand.NextSingle() * 250 - 125, FastRand.NextSingle() * 50 - 25, FastRand.NextSingle() * 30 - 19), 30, new Color(FastRand.NextInteger(255), FastRand.NextInteger(255), FastRand.NextInteger(255)), 10, false, true);
 
             }
 

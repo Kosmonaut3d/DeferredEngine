@@ -70,7 +70,8 @@ namespace EngineTest.Renderer
         private RenderTarget2D _renderTargetNormal;
         private RenderTarget2D _renderTargetDiffuse;
         private RenderTarget2D _renderTargetSpecular;
-        private RenderTargetBinding[] _renderTargetLightBinding = new RenderTargetBinding[2];
+        private RenderTarget2D _renderTargetVolume;
+        private RenderTargetBinding[] _renderTargetLightBinding = new RenderTargetBinding[3];
 
         private RenderTarget2D _renderTargetFinal;
         private RenderTargetBinding[] _renderTargetFinalBinding = new RenderTargetBinding[1];
@@ -1126,6 +1127,14 @@ namespace EngineTest.Renderer
             Shaders.deferredPointLightParameter_LightIntensity.SetValue(light.Intensity);
             //parameters for specular computations
 
+            //Get ViewSpace position of the light's center
+            Vector4 lightPositionVS = Vector4.Transform(new Vector4(light.Position, 1), _viewProjection);
+            lightPositionVS /= lightPositionVS.W;
+            Shaders.deferredPointLightParameter_LightPositionVS.SetValue(lightPositionVS);
+
+            Vector2 lightPositionTexCoord = 0.5f * (new Vector2(lightPositionVS.X, -lightPositionVS.Y) + Vector2.One);
+            Shaders.deferredPointLightParameter_LightPositionTexCoord.SetValue(lightPositionTexCoord);
+
             float cameraToCenter = Vector3.Distance(cameraOrigin, light.Position);
 
             bool inside = cameraToCenter < light.Radius*1.2f;
@@ -1493,6 +1502,7 @@ namespace EngineTest.Renderer
                 _renderTargetFinal.Dispose();
                 _renderTargetDiffuse.Dispose();
                 _renderTargetSpecular.Dispose();
+                _renderTargetVolume.Dispose();
 
                 _renderTargetScreenSpaceEffectPrepareBlur.Dispose();
 
@@ -1542,8 +1552,12 @@ namespace EngineTest.Renderer
             _renderTargetSpecular = new RenderTarget2D(_graphicsDevice, target_width,
                target_height, false, SurfaceFormat.HalfVector4, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
 
+            _renderTargetVolume = new RenderTarget2D(_graphicsDevice, target_width,
+               target_height, false, SurfaceFormat.HalfVector4, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
+
             _renderTargetLightBinding[0] = new RenderTargetBinding(_renderTargetDiffuse);
             _renderTargetLightBinding[1] = new RenderTargetBinding(_renderTargetSpecular);
+            _renderTargetLightBinding[2] = new RenderTargetBinding(_renderTargetVolume);
 
             _renderTargetFinal = new RenderTarget2D(_graphicsDevice, target_width,
                target_height, false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
@@ -1624,6 +1638,7 @@ namespace EngineTest.Renderer
             Shaders.DeferredComposeEffectParameter_ColorMap.SetValue(_renderTargetAlbedo);
             Shaders.DeferredComposeEffectParameter_diffuseLightMap.SetValue(_renderTargetDiffuse);
             Shaders.DeferredComposeEffectParameter_specularLightMap.SetValue(_renderTargetSpecular);
+            Shaders.DeferredComposeEffectParameter_volumeLightMap.SetValue(_renderTargetVolume);
             Shaders.DeferredComposeEffectParameter_SSAOMap.SetValue(_renderTargetScreenSpaceEffectBlurYFinal);
             Shaders.DeferredComposeEffectParameter_HologramMap.SetValue(_renderTargetHologram);
             Shaders.DeferredComposeEffectParameter_SSRMap.SetValue(_renderTargetScreenSpaceEffectReflection);

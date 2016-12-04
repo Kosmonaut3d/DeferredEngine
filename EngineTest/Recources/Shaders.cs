@@ -163,6 +163,7 @@ namespace EngineTest.Recources
         public static EffectParameter DeferredComposeEffectParameter_ColorMap;
         public static EffectParameter DeferredComposeEffectParameter_diffuseLightMap;
         public static EffectParameter DeferredComposeEffectParameter_specularLightMap;
+        public static EffectParameter DeferredComposeEffectParameter_volumeLightMap;
         public static EffectParameter DeferredComposeEffectParameter_HologramMap;
         public static EffectParameter DeferredComposeEffectParameter_SSAOMap;
         public static EffectParameter DeferredComposeEffectParameter_SSRMap;
@@ -205,6 +206,7 @@ namespace EngineTest.Recources
         //Point Light
         public static Effect deferredPointLight;
         public static EffectTechnique deferredPointLightUnshadowed;
+        public static EffectTechnique deferredPointLightUnshadowedVolumetric;
         public static EffectTechnique deferredPointLightShadowed;
         public static EffectParameter deferredPointLightParameterResolution;
         public static EffectParameter deferredPointLightParameterShadowMap;
@@ -230,6 +232,8 @@ namespace EngineTest.Recources
         public static EffectParameter deferredPointLightParameter_NormalMap;
         public static EffectParameter deferredPointLightParameter_DepthMap;
 
+        public static EffectParameter deferredPointLightParameter_LightPositionVS;
+        public static EffectParameter deferredPointLightParameter_LightPositionTexCoord;
         //DeferredEnvironment
 
 
@@ -420,6 +424,7 @@ namespace EngineTest.Recources
             DeferredComposeEffectParameter_ColorMap = DeferredCompose.Parameters["colorMap"];
             DeferredComposeEffectParameter_diffuseLightMap = DeferredCompose.Parameters["diffuseLightMap"];
             DeferredComposeEffectParameter_specularLightMap = DeferredCompose.Parameters["specularLightMap"];
+            DeferredComposeEffectParameter_volumeLightMap = DeferredCompose.Parameters["volumeLightMap"];
             DeferredComposeEffectParameter_HologramMap = DeferredCompose.Parameters["HologramMap"];
             DeferredComposeEffectParameter_SSAOMap = DeferredCompose.Parameters["SSAOMap"];
             DeferredComposeEffectParameter_SSRMap = DeferredCompose.Parameters["SSRMap"];
@@ -464,6 +469,7 @@ namespace EngineTest.Recources
             deferredPointLight = content.Load<Effect>("Shaders/Deferred/DeferredPointLight");
 
             deferredPointLightUnshadowed = deferredPointLight.Techniques["Unshadowed"];
+            deferredPointLightUnshadowedVolumetric = deferredPointLight.Techniques["UnshadowedVolume"];
             deferredPointLightShadowed = deferredPointLight.Techniques["Shadowed"];
 
             deferredPointLightParameterShadowMap = deferredPointLight.Parameters["shadowMap"];
@@ -486,6 +492,8 @@ namespace EngineTest.Recources
             deferredPointLightParameter_LightColor = deferredPointLight.Parameters["lightColor"];
             deferredPointLightParameter_LightRadius = deferredPointLight.Parameters["lightRadius"];
             deferredPointLightParameter_LightIntensity = deferredPointLight.Parameters["lightIntensity"];
+            deferredPointLightParameter_LightPositionVS = deferredPointLight.Parameters["lightPositionVS"];
+            deferredPointLightParameter_LightPositionTexCoord = deferredPointLight.Parameters["lightPositionTexCoord"];
             deferredPointLightParameter_Inside = deferredPointLight.Parameters["inside"];
 
             deferredPointLightParameter_AlbedoMap = deferredPointLight.Parameters["AlbedoMap"];

@@ -3,6 +3,7 @@ Texture2D colorMap;
 // normals, and specularPower in the alpha channel
 Texture2D diffuseLightMap;
 Texture2D specularLightMap;
+Texture2D volumeLightMap;
 Texture2D SSRMap;
 
 static float2 Resolution = float2(1280, 800);
@@ -148,13 +149,15 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
     float3 diffuseLight = diffuseLightMap.Sample(pointSampler, input.TexCoord).rgb;
     float3 specularLight = specularLightMap.Sample(pointSampler, input.TexCoord).rgb;
 
+	float3 volumeLight = volumeLightMap.Sample(pointSampler, input.TexCoord).rgb;
+
     float3 plasticFinal = diffuseColor.rgb * (diffuseLight) + specularLight;
                   
     float3 metalFinal = specularLight * diffuseColor.rgb;
 
     float3 finalValue = lerp(plasticFinal, metalFinal, metalness) + diffuseContrib;
 
-    return float4(finalValue * ssaoContribution, 1) * exposure;
+    return float4(finalValue * ssaoContribution + volumeLight, 1) * exposure;
 }
 
 float4 PixelShaderSSRFunction(VertexShaderOutput input) : COLOR0
@@ -221,6 +224,8 @@ float4 PixelShaderSSRFunction(VertexShaderOutput input) : COLOR0
     float3 diffuseLight = diffuseLightMap.Sample(pointSampler, input.TexCoord).rgb;
     float3 specularLight = specularLightMap.Sample(pointSampler, input.TexCoord).rgb;
 
+	float3 volumeLight = volumeLightMap.Sample(pointSampler, input.TexCoord).rgb;
+
     float4 ssreflectionMap = SSRMap.Sample(linearSampler, input.TexCoord);
     specularLight += ssreflectionMap.rgb / exposure;
     //lerp(specularLight, ssreflectionMap.rgb / exposure, ssreflectionMap.a);
@@ -231,7 +236,7 @@ float4 PixelShaderSSRFunction(VertexShaderOutput input) : COLOR0
 
     float3 finalValue = lerp(plasticFinal, metalFinal, metalness) + diffuseContrib;
 
-    return float4(finalValue * ssaoContribution, 1) * exposure;
+    return float4(finalValue * ssaoContribution + volumeLight,  1) * exposure;
 }
 
 

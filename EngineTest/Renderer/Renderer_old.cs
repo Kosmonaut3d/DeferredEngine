@@ -278,7 +278,7 @@ namespace EngineTest.Renderer
 
             if (keyboardState.IsKeyDown(Keys.L))
             {
-                pointLights.Add(new PointLightSource(new Vector3((float)(random.NextDouble() * 250 - 125), (float)(random.NextDouble() * 50 - 25), (float)(-random.NextDouble() * 10) - 3), 30, new Color(random.Next(255), random.Next(255), random.Next(255)), 4, false, 1024, false));
+                pointLights.Add(new PointLightSource(new Vector3((float)(random.NextDouble() * 250 - 125), (float)(random.NextDouble() * 50 - 25), (float)(-random.NextDouble() * 10) - 3), 30, new Color(random.Next(255), random.Next(255), random.Next(255)), 4, false, true, 1024, false));
 
                 GetClosestLights();
                 window.Title = pointLights.Count + "";

@@ -31,6 +31,7 @@ namespace EngineTest.Recources
         public BoundingSphere BoundingSphere;
 
         public bool DrawShadow = false;
+        public bool IsVolumetric;
 
         /// <summary>
         /// A point light is a light that shines in all directions
@@ -43,7 +44,7 @@ namespace EngineTest.Recources
         /// <param name="shadowResolution">shadow map resolution per face. Optional</param>
         /// <param name="staticShadow">if set to true the shadows will not update at all. Dynamic shadows in contrast update only when needed.</param>
         /// <returns></returns>
-        public PointLightSource(Vector3 position, float radius, Color color, float intensity, bool drawShadow, int shadowResolution, bool staticShadow)
+        public PointLightSource(Vector3 position, float radius, Color color, float intensity, bool drawShadow, bool isVolumetric, int shadowResolution, bool staticShadow)
         {
             BoundingSphere = new BoundingSphere(position, radius);
             Position = position;
@@ -51,6 +52,7 @@ namespace EngineTest.Recources
             Color = color;
             Intensity = intensity;
             DrawShadow = drawShadow;
+            IsVolumetric = isVolumetric;
 
             ShadowResolution = shadowResolution;
             StaticShadows = staticShadow;
@@ -81,7 +83,7 @@ namespace EngineTest.Recources
 
         public override TransformableObject Clone
         {
-            get { return new PointLightSource(Position, Radius, Color, Intensity, DrawShadow, ShadowResolution, StaticShadows);}
+            get { return new PointLightSource(Position, Radius, Color, Intensity, DrawShadow, IsVolumetric, ShadowResolution, StaticShadows);}
         }
 
         public float Radius
@@ -120,7 +122,14 @@ namespace EngineTest.Recources
             }
             else
             {
-                Shaders.deferredPointLightUnshadowed.Passes[0].Apply();
+                if (IsVolumetric && GameSettings.g_VolumetricLights)
+                {
+                    Shaders.deferredPointLightUnshadowedVolumetric.Passes[0].Apply();
+                }
+                else
+                {
+                    Shaders.deferredPointLightUnshadowed.Passes[0].Apply();
+                }
             }
         }
     }

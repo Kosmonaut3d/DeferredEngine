@@ -124,6 +124,7 @@
 
         private static bool _g_SSReflection_Taa = true;
         public static bool g_SSReflectionNoise = true;
+        public static bool g_VolumetricLights = true;
 
         public static bool g_SSReflectionTaa
         {
@@ -212,11 +213,11 @@
 
             g_SSReflection = _g_SSReflection;
 
-            /*
+            
             g_SSReflection = false;
             g_EmissiveDraw = false;
             ssao_Active = false;
-            */
+            
 
             SCurveStrength = _sCurveStrength;
             ChromaticAbberationStrength = _chromaticAbberationStrength;
