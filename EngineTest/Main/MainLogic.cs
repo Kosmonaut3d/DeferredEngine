@@ -81,10 +81,11 @@ namespace EngineTest.Main
 
             //    //entities
             sponza = AddEntity(model: _assets.SponzaModel, position: Vector3.Zero, angleX: Math.PI/2, angleY: 0, angleZ: 0, scale: 0.1f, PhysicsEntity: null, hasStaticPhysics: true);
-            
+
+            AddEntity(_assets.Trabant, new Vector3(0, 0, 40), 0, 0, 0, 1.8f);
             //AddEntity(_assets.TestTubes, _assets.emissiveMaterial2, new Vector3(0, 0, 40), 0,0, 0, 1.8f);
             //drake = AddEntity(_assets.DragonUvSmoothModel, _assets.emissiveMaterial, new Vector3(40, -10, 0), Math.PI / 2, 0, 0, 10);
-            
+
             space.Add(new Box(new BEPUutilities.Vector3(0,0,-0.5f), 1000,1000,1));
 
             space.Add(testBox = new Box(BEPUutilities.Vector3.Zero, 10, 10, 10, 100));

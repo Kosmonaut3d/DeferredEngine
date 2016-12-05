@@ -65,12 +65,15 @@ namespace EngineTest.Recources
 
         public Model TestCube;
 
+        public Model Trabant;
+
         public TextureCube TestCubeMap;
 
         public Model EditorArrow;
         public Model EditorArrowRound;
 
         public Model Sphere;
+        public ModelMeshPart SphereMeshPart;
         public Model IsoSphere;
         public MaterialEffect baseMaterial;
         public MaterialEffect goldMaterial;
@@ -94,6 +97,8 @@ namespace EngineTest.Recources
             SponzaModel = content.Load<Model>("Sponza/Sponza");
             HelmetModel = content.Load<Model>("Art/default/daft_helmets");
             SkullModel = content.Load<Model>("Art/default/skull");
+
+            Trabant = content.Load<Model>("Art/test/source/trabant_realtime_v3");
 
             //JackJean = content.Load<Model>("Art/Skinned/JackJean");
             //JackJean = ProcessModel(JackJean);
@@ -146,6 +151,7 @@ namespace EngineTest.Recources
             sponza_curtain_metallic = content.Load<Texture2D>("Sponza/textures/sponza_curtain_metallic");
 
             Sphere = content.Load<Model>("Art/default/sphere");
+            SphereMeshPart = Sphere.Meshes[0].MeshParts[0];
             IsoSphere = content.Load<Model>("Art/default/isosphere");
 
             Icon_Light = content.Load<Texture2D>("Art/Editor/icon_light");

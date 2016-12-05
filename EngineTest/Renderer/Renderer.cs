@@ -1091,6 +1091,8 @@ namespace EngineTest.Renderer
         {
             _graphicsDevice.BlendState = _lightBlendState;
 
+            if (pointLights.Count < 1) return;
+
             //If nothing has changed we don't need to update
             if (viewProjectionHasChanged)
             {
@@ -1120,18 +1122,15 @@ namespace EngineTest.Renderer
                 !_boundingFrustum.Intersects(light.BoundingSphere))
                 return;
 
+            //For our stats
             GameStats.LightsDrawn ++;
-
-            Matrix sphereWorldMatrix = Matrix.CreateScale(light.Radius * 1.1f) * Matrix.CreateTranslation(light.Position);
-            Shaders.deferredPointLightParameter_World.SetValue(sphereWorldMatrix);
-
-            //light position
+            
+            //Send the light parameters to the shader
+            Shaders.deferredPointLightParameter_World.SetValue(light.WorldMatrix);
             Shaders.deferredPointLightParameter_LightPosition.SetValue(light.Position);
-            //set the color, radius and Intensity
-            Shaders.deferredPointLightParameter_LightColor.SetValue(light.Color.ToVector3());
+            Shaders.deferredPointLightParameter_LightColor.SetValue(light.ColorV3);
             Shaders.deferredPointLightParameter_LightRadius.SetValue(light.Radius);
             Shaders.deferredPointLightParameter_LightIntensity.SetValue(light.Intensity);
-            //parameters for specular computations
 
             if (light.IsVolumetric)
             {
@@ -1144,29 +1143,25 @@ namespace EngineTest.Renderer
                 Shaders.deferredPointLightParameter_LightPositionTexCoord.SetValue(lightPositionTexCoord);
             }
 
+            //Compute whether we are inside or outside and use 
             float cameraToCenter = Vector3.Distance(cameraOrigin, light.Position);
-
             int inside = cameraToCenter < light.Radius*1.2f ? 1 : -1;
-
-            //If we are inside the sphere we need to render it differently
             Shaders.deferredPointLightParameter_Inside.SetValue(inside);
 
+            //If we are inside compute the backfaces, otherwise frontfaces of the sphere
             _graphicsDevice.RasterizerState = inside > 0 ? RasterizerState.CullClockwise : RasterizerState.CullCounterClockwise;
             
-            foreach (ModelMesh mesh in _assets.Sphere.Meshes)
-            {
-                foreach (ModelMeshPart meshpart in mesh.MeshParts)
-                {
-                    light.ApplyShader();
-                    _graphicsDevice.SetVertexBuffer(meshpart.VertexBuffer);
-                    _graphicsDevice.Indices = (meshpart.IndexBuffer);
-                    int primitiveCount = meshpart.PrimitiveCount;
-                    int vertexOffset = meshpart.VertexOffset;
-                    int startIndex = meshpart.StartIndex;
+            //Draw the sphere
+            ModelMeshPart meshpart = _assets.SphereMeshPart;
+            light.ApplyShader();
+            _graphicsDevice.SetVertexBuffer(meshpart.VertexBuffer);
+            _graphicsDevice.Indices = (meshpart.IndexBuffer);
+            int primitiveCount = meshpart.PrimitiveCount;
+            int vertexOffset = meshpart.VertexOffset;
+            int startIndex = meshpart.StartIndex;
 
-                    _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset, startIndex, primitiveCount);
-                }
-            }
+            _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset, startIndex, primitiveCount);
+                
         }
 
         private void DrawMapToScreenToCube(RenderTarget2D map, RenderTargetCube target, CubeMapFace? face)

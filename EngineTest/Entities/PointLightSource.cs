@@ -7,9 +7,11 @@ namespace EngineTest.Recources
 {
     public class PointLightSource : TransformableObject
     {
-        private Vector3 _position;
-        public float _radius;
-        public Color Color;
+        private Vector3 _position = Vector3.Zero;
+        public Matrix WorldMatrix;
+        public float _radius = 0;
+        private Color _color;
+        public Vector3 ColorV3;
         public float Intensity;
 
         public bool HasChanged = true;
@@ -33,6 +35,8 @@ namespace EngineTest.Recources
         public bool DrawShadow = false;
         public bool IsVolumetric;
         public float LightVolumeDensity = 1;
+
+
 
         /// <summary>
         /// A point light is a light that shines in all directions
@@ -63,6 +67,16 @@ namespace EngineTest.Recources
 
         }
 
+        public Color Color
+        {
+            get { return _color; }
+            set
+            {
+                _color = value;
+                ColorV3 = _color.ToVector3();
+            }
+        }
+
         public override Vector3 Position
         {
             get { return _position; }
@@ -70,6 +84,18 @@ namespace EngineTest.Recources
             {
                 _position = value;
                 BoundingSphere.Center = value;
+                WorldMatrix = Matrix.CreateScale(Radius * 1.1f) * Matrix.CreateTranslation(Position);
+                HasChanged = true;
+            }
+        }
+        public float Radius
+        {
+            get { return _radius; }
+            set
+            {
+                _radius = value;
+                BoundingSphere.Radius = value;
+                WorldMatrix = Matrix.CreateScale(Radius * 1.1f) * Matrix.CreateTranslation(Position);
                 HasChanged = true;
             }
         }
@@ -88,16 +114,6 @@ namespace EngineTest.Recources
             get { return new PointLightSource(Position, Radius, Color, Intensity, DrawShadow, IsVolumetric, ShadowResolution, StaticShadows);}
         }
 
-        public float Radius
-        {
-            get { return _radius; }
-            set
-            {
-                _radius = value;
-                BoundingSphere.Radius = value;
-                HasChanged = true;
-            }
-        }
 
 
         protected PointLightSource()
