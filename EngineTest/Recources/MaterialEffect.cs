@@ -18,9 +18,9 @@ namespace EngineTest.Recources
         public bool HasShadow = true;
 
         public bool HasDiffuse = false;
-        public bool HasRoughness = false;
+        public bool HasRoughnessMap = false;
         public bool HasMask = false;
-        public bool HasNormal = false;
+        public bool HasNormalMap = false;
         public bool HasMetallic = false;
         public bool HasDisplacement = false;
 
@@ -51,7 +51,7 @@ namespace EngineTest.Recources
             {
                 if (value == null) return; 
                 _roughnessMap = value;
-                HasRoughness = true;
+                HasRoughnessMap = true;
             }
         }
 
@@ -73,7 +73,7 @@ namespace EngineTest.Recources
             {
                 if (value == null) return; 
                 _normalMap = value;
-                HasNormal = true;
+                HasNormalMap = true;
             }
         }
 
@@ -164,13 +164,13 @@ namespace EngineTest.Recources
 
             if (HasDiffuse != b.HasDiffuse) return false;
 
-            if (HasRoughness != b.HasRoughness) return false;
+            if (HasRoughnessMap != b.HasRoughnessMap) return false;
 
             if (IsTransparent != b.IsTransparent) return false;
 
             if (HasMask != b.HasMask) return false;
 
-            if (HasNormal != b.HasNormal) return false;
+            if (HasNormalMap != b.HasNormalMap) return false;
 
             if (HasShadow != b.HasShadow) return false;
 

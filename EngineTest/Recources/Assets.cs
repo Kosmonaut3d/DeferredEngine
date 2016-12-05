@@ -32,9 +32,9 @@ namespace EngineTest.Recources
         private Texture2D sponza_flagpole_spec;
         private Texture2D sponza_floor_a_spec;
         private Texture2D sponza_floor_a_ddn;
-        private Texture2D sponza_thorn_ddn;
-        private Texture2D sponza_thorn_mask;
-        private Texture2D sponza_thorn_spec;
+        public static Texture2D sponza_thorn_ddn;
+        public static Texture2D sponza_thorn_mask;
+        public static Texture2D sponza_thorn_spec;
         private Texture2D vase_ddn;
         private Texture2D vase_plant_mask;
         private Texture2D vase_plant_spec;

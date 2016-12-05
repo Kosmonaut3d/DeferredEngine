@@ -58,6 +58,21 @@ namespace EngineTest.Main
 
             _physicsSpace = space;
 
+            //testSetup
+
+            int sides = 8;
+            float distance = 10;
+            Vector3 startPosition = new Vector3(-30,30,1);
+
+
+            for (int x = 0; x < sides * 2; x++)
+                for (int y = 0; y < sides; y++)
+                    for (int z = 0; z < sides; z++)
+                    {
+                        Vector3 position = new Vector3(x, -y, z) * distance + startPosition;
+                        AddPointLight(position, distance, Color.White, 50, false);
+                    }
+
             Camera = new Camera(new Vector3(-80, 0, 20), new Vector3(1, 1, 0));
             MeshMaterialLibrary = new MeshMaterialLibrary();
             
@@ -70,10 +85,10 @@ namespace EngineTest.Main
             //AddEntity(_assets.TestTubes, _assets.emissiveMaterial2, new Vector3(0, 0, 40), 0,0, 0, 1.8f);
             //drake = AddEntity(_assets.DragonUvSmoothModel, _assets.emissiveMaterial, new Vector3(40, -10, 0), Math.PI / 2, 0, 0, 10);
             
-            //space.Add(new Box(new BEPUutilities.Vector3(0,0,-0.5f), 1000,1000,1));
+            space.Add(new Box(new BEPUutilities.Vector3(0,0,-0.5f), 1000,1000,1));
 
-            //space.Add(testBox = new Box(BEPUutilities.Vector3.Zero, 10, 10, 10, 100));
-            //testBoxEntity = AddEntity(_assets.TestCube, _assets.emissiveMaterial, new Vector3(20.2f, 1.1f, 40), Math.PI / 2, 0, 0, 5, testBox);
+            space.Add(testBox = new Box(BEPUutilities.Vector3.Zero, 10, 10, 10, 100));
+            testBoxEntity = AddEntity(_assets.TestCube, _assets.emissiveMaterial, new Vector3(20.2f, 1.1f, 40), Math.PI / 2, 0, 0, 5, testBox);
             
             Entity Sphere;
             space.Add(Sphere = new Sphere(new BEPUutilities.Vector3(20, 0, 40),5,50));
@@ -99,22 +114,22 @@ namespace EngineTest.Main
             //    //lights
             //shadowLight = AddPointLight(position: new Vector3(-80, 2, 20), radius: 50, color: Color.Wheat, intensity: 20, castShadows: true);
 
-            AddPointLight(position: new Vector3(-20, 0, 40), radius: 120, color: Color.White, intensity: 20, castShadows: false, shadowResolution: 1024, staticShadow: false);
+            //AddPointLight(position: new Vector3(-20, 0, 40), radius: 120, color: Color.White, intensity: 20, castShadows: false, shadowResolution: 1024, staticShadow: false);
 
             //volumetric light!
-            AddPointLight(position: new Vector3(-4, 40, 33), radius: 60, color: Color.White, intensity: 20, castShadows: true, shadowResolution: 1024, staticShadow: false, isVolumetric: true, volumetricDensity: 2);
+            //AddPointLight(position: new Vector3(-4, 40, 33), radius: 80, color: Color.White, intensity: 20, castShadows: true, shadowResolution: 1024, staticShadow: false, isVolumetric: true, volumetricDensity: 2);
 
             //for (int i = 0; i < 10; i++)
             //{
             //    AddPointLight(new Vector3(FastRand.NextSingle() * 250 - 125, FastRand.NextSingle() * 40 - 20, FastRand.NextSingle() * 10 - 13), 40, new Color(FastRand.NextInteger(255), FastRand.NextInteger(255), FastRand.NextInteger(255)), 20, true);
             //}
-            //AddPointLight(position: new Vector3(+20, -10, -20), radius: 50, color: Color.Orange, intensity: 20, castShadows: true);
+            //AddPointLight(position: new Vector3(+20, -10, 20), radius: 50, color: Color.Orange, intensity: 20, castShadows: true);
 
             ///////////////////////////////////////////////////////////////////////////////
             //Base scene
 
             //entities
-            AddEntity(_assets.Plane, assets.metalRough02Material, new Vector3(0, 0, 0), 0, 0, 0, 30);
+            //AddEntity(_assets.Plane, assets.metalRough02Material, new Vector3(0, 0, 0), 0, 0, 0, 30);
 
             //AddEntity(_assets.Plane, assets.goldMaterial, new Vector3(80, 0, 0), 0, 0, 0, 30);
 
@@ -136,16 +151,16 @@ namespace EngineTest.Main
             //AddEntity(_assets.SkullModel, _assets.hologramMaterial, new Vector3(59, -8.5f, 6.5f), Math.PI / 2, 0, -Math.PI / 2 - 0.3f, 0.8f);
 
             //lights
-            AddDirectionalLight(direction: new Vector3(0.2f, -0.2f, -1),
-                intensity: 40,
-                color: Color.White,
-                position: Vector3.UnitZ * 2,
-                drawShadows: true,
-                shadowWorldSize: 250,
-                shadowDepth: 180,
-                shadowResolution: 2048,
-                shadowFilteringFiltering: DirectionalLightSource.ShadowFilteringTypes.SoftPCF3x,
-                screenspaceShadowBlur: true);
+            //AddDirectionalLight(direction: new Vector3(0.2f, -0.2f, -1),
+            //    intensity: 40,
+            //    color: Color.White,
+            //    position: Vector3.UnitZ * 2,
+            //    drawShadows: false,
+            //    shadowWorldSize: 250,
+            //    shadowDepth: 180,
+            //    shadowResolution: 2048,
+            //    shadowFilteringFiltering: DirectionalLightSource.ShadowFilteringTypes.SoftPCF3x,
+            //    screenspaceShadowBlur: true);
 
         }
 
@@ -274,7 +289,7 @@ namespace EngineTest.Main
 
             if (Input.keyboardState.IsKeyDown(Keys.L))
             {
-                AddPointLight(new Vector3(FastRand.NextSingle() * 250 - 125, FastRand.NextSingle() * 50 - 25, FastRand.NextSingle() * 30 - 19), 30, new Color(FastRand.NextInteger(255), FastRand.NextInteger(255), FastRand.NextInteger(255)), 10, false, true);
+                AddPointLight(new Vector3(FastRand.NextSingle() * 250 - 125, FastRand.NextSingle() * 50 - 25, FastRand.NextSingle() * 30 - 19), 20, new Color(FastRand.NextInteger(255), FastRand.NextInteger(255), FastRand.NextInteger(255)), 10, false, true);
 
             }
 

@@ -38,7 +38,7 @@ namespace EngineTest.Renderer
 
         //View Projection
         private bool viewProjectionHasChanged;
-
+        Vector3 _inverseResolution = new Vector3(1.0f / GameSettings.g_ScreenWidth, 1.0f / GameSettings.g_ScreenHeight, 0);
         private bool _temporalAAOffFrame = true;
         private int _temporalAAFrame = 0;
 
@@ -175,14 +175,14 @@ namespace EngineTest.Renderer
 
             meshMaterialLibrary.FrustumCullingStartFrame(entities);
 
-            //Check if we changed some drastic stuff for which we need to reload some elements
+                //Check if we changed some drastic stuff for which we need to reload some elements
             CheckRenderChanges(dirLights);
 
-            //Render ShadowMaps
+                //Render ShadowMaps
             DrawShadows(meshMaterialLibrary, entities, pointLights, dirLights, camera);
 
             //Render EnvironmentMaps
-            if ((Input.WasKeyPressed(Keys.C)&&!DebugScreen.ConsoleOpen) || GameSettings.g_EnvironmentMappingEveryFrame || _renderTargetCubeMap == null)
+            if ((Input.WasKeyPressed(Keys.C) && !DebugScreen.ConsoleOpen) || GameSettings.g_EnvironmentMappingEveryFrame || _renderTargetCubeMap == null)
             {
                 DrawCubeMap(camera.Position, meshMaterialLibrary, entities, pointLights, dirLights, 300, gameTime);
                 camera.HasChanged = true;
@@ -193,10 +193,10 @@ namespace EngineTest.Renderer
                 Shaders.deferredEnvironment.Parameters["ReflectionCubeMap"].SetValue(_assets.TestCubeMap);
             }
 
-            //Update our view projection matrices if the camera moved
+                //Update our view projection matrices if the camera moved
             UpdateViewProjection(camera, meshMaterialLibrary, entities);
 
-            //Set up our deferred renderer
+                //Set up our deferred renderer
             SetUpGBuffer();
 
             DrawGBuffer(meshMaterialLibrary, entities);
@@ -204,14 +204,14 @@ namespace EngineTest.Renderer
             DrawHolograms(meshMaterialLibrary);
 
 
-            //Custom Effect
+                //Custom Effect
             DrawScreenSpaceEffect(camera);
 
             DrawScreenSpaceDirectionalShadow(dirLights);
 
             DrawBilateralBlur();
 
-            //Light the scene
+                //Light the scene
             DrawLights(pointLights, dirLights, camera.Position, gameTime);
 
             DrawEnvironmentMap(camera.Position);
@@ -220,13 +220,13 @@ namespace EngineTest.Renderer
 
             DrawScreenSpaceReflectionsEffect(camera, gameTime);
 
-            //Combine the buffers
+                //Combine the buffers
             Compose();
 
             CombineTemporalAntialiasing();
                 
             if(GameSettings.Editor_enable) _editorRender.DrawIds(meshMaterialLibrary, pointLights, dirLights, _staticViewProjection, editorData);
-            //Show certain buffer stages depending on user input
+                //Show certain buffer stages depending on user input
             RenderMode();
 
             if (GameSettings.Editor_enable)
@@ -239,14 +239,11 @@ namespace EngineTest.Renderer
 
             //DrawScreenSpaceReflectionsEffect(camera);
 
-            if(Input.WasKeyPressed(Keys.K))
-            _cpuRayMarch.Calculate(_renderTargetDepth, _renderTargetNormal, _inverseViewProjection, _viewProjection, camera);
-
-            _cpuRayMarch.Draw();
+            //CPURayMarch(camera);
 
             LineHelperManager.Draw(_graphicsDevice, _staticViewProjection);
 
-            //Just some object culling, setting up for the next frame
+                //Just some object culling, setting up for the next frame
             meshMaterialLibrary.FrustumCullingFinalizeFrame(entities);
 
             //Performance Profiler
@@ -599,6 +596,8 @@ namespace EngineTest.Renderer
 
         private void DrawPostProcessing()
         {
+            if (!GameSettings.g_PostProcessing) return;
+
             RenderTarget2D baseRenderTarget;
 
             if (GameSettings.g_TemporalAntiAliasing)
@@ -1123,7 +1122,7 @@ namespace EngineTest.Renderer
 
             GameStats.LightsDrawn ++;
 
-            Matrix sphereWorldMatrix = Matrix.CreateScale(light.Radius * 1.2f) * Matrix.CreateTranslation(light.Position);
+            Matrix sphereWorldMatrix = Matrix.CreateScale(light.Radius * 1.1f) * Matrix.CreateTranslation(light.Position);
             Shaders.deferredPointLightParameter_World.SetValue(sphereWorldMatrix);
 
             //light position
@@ -1134,23 +1133,26 @@ namespace EngineTest.Renderer
             Shaders.deferredPointLightParameter_LightIntensity.SetValue(light.Intensity);
             //parameters for specular computations
 
-            //Get ViewSpace position of the light's center
-            Vector4 lightPositionVS = Vector4.Transform(new Vector4(light.Position, 1), _viewProjection);
-            lightPositionVS /= lightPositionVS.W;
-            Shaders.deferredPointLightParameter_LightPositionVS.SetValue(lightPositionVS);
+            if (light.IsVolumetric)
+            {
+                //Get ViewSpace position of the light's center
+                Vector4 lightPositionVS = Vector4.Transform(new Vector4(light.Position, 1), _viewProjection);
+                lightPositionVS /= lightPositionVS.W;
+                Shaders.deferredPointLightParameter_LightPositionVS.SetValue(lightPositionVS);
 
-            Vector2 lightPositionTexCoord = 0.5f * (new Vector2(lightPositionVS.X, -lightPositionVS.Y) + Vector2.One);
-            Shaders.deferredPointLightParameter_LightPositionTexCoord.SetValue(lightPositionTexCoord);
+                Vector2 lightPositionTexCoord = 0.5f*(new Vector2(lightPositionVS.X, -lightPositionVS.Y) + Vector2.One);
+                Shaders.deferredPointLightParameter_LightPositionTexCoord.SetValue(lightPositionTexCoord);
+            }
 
             float cameraToCenter = Vector3.Distance(cameraOrigin, light.Position);
 
-            bool inside = cameraToCenter < light.Radius*1.2f;
+            int inside = cameraToCenter < light.Radius*1.2f ? 1 : -1;
+
+            //If we are inside the sphere we need to render it differently
             Shaders.deferredPointLightParameter_Inside.SetValue(inside);
 
-            _graphicsDevice.RasterizerState = inside ? RasterizerState.CullClockwise : RasterizerState.CullCounterClockwise;
+            _graphicsDevice.RasterizerState = inside > 0 ? RasterizerState.CullClockwise : RasterizerState.CullCounterClockwise;
             
-            Shaders.deferredPointLight.CurrentTechnique.Passes[0].Apply();
-
             foreach (ModelMesh mesh in _assets.Sphere.Meshes)
             {
                 foreach (ModelMeshPart meshpart in mesh.MeshParts)
@@ -1417,7 +1419,7 @@ namespace EngineTest.Renderer
                                           Matrix.CreateTranslation(new Vector3(translation / GameSettings.g_ScreenWidth,
                                               translation / GameSettings.g_ScreenHeight, 0));
                     }
-                    else
+                    else if (GameSettings.g_TemporalAntiAliasingJitterMode == 1)
                     {
                         //Create a random direction!
                         float randomAngle = FastRand.NextAngle();
@@ -1427,6 +1429,12 @@ namespace EngineTest.Renderer
                         _viewProjection = _viewProjection *
                                           Matrix.CreateTranslation(translation);
 
+                    }
+                    else if (GameSettings.g_TemporalAntiAliasingJitterMode == 2)
+                    {
+                        Vector3 translation = GetHaltonSequence();
+                        _viewProjection = _viewProjection *
+                                          Matrix.CreateTranslation(translation);
                     }
                 }
 
@@ -1458,6 +1466,47 @@ namespace EngineTest.Renderer
             }
         }
 
+        private Vector3[] HaltonSequence;
+        private int HaltonSequenceIndex = -1;
+        private const int HaltonSequenceLength = 16;
+        //Halton 2,3 sequence
+        private Vector3 GetHaltonSequence()
+        {
+            //First time? Create the sequence
+            if (HaltonSequence == null)
+            {
+                HaltonSequence = new Vector3[HaltonSequenceLength];
+                for (int index = 0; index < HaltonSequenceLength; index++)
+                {
+                    for (int baseValue = 2; baseValue <= 3; baseValue++)
+                    {
+                        float result = 0;
+                        float f = 1;
+                        int i = index+1;
+
+                        while (i > 0)
+                        {
+                            f = f/baseValue;
+                            result = result + f*(i%baseValue);
+                            i = i/baseValue; //floor / int()
+                        }
+
+                        if (baseValue == 2)
+                            HaltonSequence[index].X = (result - 0.5f)*2 * _inverseResolution.X;
+                        else
+                            HaltonSequence[index].Y = (result - 0.5f)*2 * _inverseResolution.Y;
+                    }
+                }
+
+                
+            }
+
+            HaltonSequenceIndex++;
+            if (HaltonSequenceIndex >= HaltonSequenceLength) HaltonSequenceIndex = 0;
+
+            return HaltonSequence[HaltonSequenceIndex];
+        }
+
         /// <summary>
         /// Initialize our GBuffer
         /// </summary>
@@ -1470,14 +1519,14 @@ namespace EngineTest.Renderer
             _graphicsDevice.DepthStencilState = DepthStencilState.Default;
             //_graphicsDevice.Clear(ClearOptions.Stencil | ClearOptions.Target | ClearOptions.DepthBuffer, Color.DarkOrange, 1.0f, 0);
 
-            //Clear the GBuffer
-            Shaders.ClearGBufferEffect.CurrentTechnique.Passes[0].Apply();
-            _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+            ////Clear the GBuffer
+            if (GameSettings.g_ClearGBuffer)
+            {
+                Shaders.ClearGBufferEffect.CurrentTechnique.Passes[0].Apply();
+                _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One*-1, Vector2.One);
+            }
 
-            //todo: check if the above is already ccw
-            _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
-
-            //Performance Profiler
+            ////Performance Profiler
             if (GameSettings.d_profiler)
             {
                 long performanceCurrentTime = _performanceTimer.ElapsedTicks;
@@ -1491,9 +1540,11 @@ namespace EngineTest.Renderer
 
         #region RenderTargetControl
 
-
         public void UpdateResolution()
         {
+            _inverseResolution = new Vector3(1.0f / GameSettings.g_ScreenWidth, 1.0f / GameSettings.g_ScreenHeight, 0);
+            HaltonSequence = null;
+
             SetUpRenderTargets(GameSettings.g_ScreenWidth, GameSettings.g_ScreenHeight, false);
         }
 
@@ -1666,6 +1717,17 @@ namespace EngineTest.Renderer
         }
 
         #endregion
+
+        private void CPURayMarch(Camera camera)
+        {
+            if(GameSettings.e_CPURayMarch)
+
+            if (Input.WasKeyPressed(Keys.K))
+                _cpuRayMarch.Calculate(_renderTargetDepth, _renderTargetNormal, _inverseViewProjection, _viewProjection,
+                    camera);
+
+            _cpuRayMarch.Draw();
+        }
 
     }
 }

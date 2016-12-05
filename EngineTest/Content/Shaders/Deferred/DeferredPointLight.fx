@@ -32,7 +32,7 @@ Texture2D AlbedoMap;
 // normals, and specularPower in the alpha channel
 Texture2D NormalMap;
 
-bool inside = false;
+int inside = -1;
 float Time = 1;
 
 #include "helper.fx"
@@ -103,6 +103,7 @@ struct PixelShaderInput
 {
     float4 Position : POSITION0;
     float2 TexCoord : TEXCOORD0;
+	float Depth : TEXCOORD1;
     //float3 viewDirection : TEXCOORD1;
 };
 
@@ -117,7 +118,6 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
     //processing geometry coordinates
     float4 worldPosition = mul(float4(input.Position.rgb, 1), World);
     output.Position = mul(worldPosition, ViewProjection);
-    //need t
     output.ScreenPosition = output.Position;
 
     //output.viewDirection = normalize(cameraPosition - worldPosition.xyz);
@@ -127,7 +127,8 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 
 PixelShaderInput BaseCalculations(VertexShaderOutput input)
 {
-    
+	PixelShaderInput output;
+
      //obtain screen position
     input.ScreenPosition.xyz /= input.ScreenPosition.w;
     //obtain textureCoordinates corresponding to the current pixel
@@ -138,40 +139,21 @@ PixelShaderInput BaseCalculations(VertexShaderOutput input)
     /////////////////////////////////////////
 
     //read depth
-    float depthVal = 1 - tex2D(depthSampler, texCoord).r;
+    output.Depth = 1 - tex2D(depthSampler, texCoord).r;
 
         //compute screen-space position
     float4 position;
     position.xy = input.ScreenPosition.xy;
-    position.z = depthVal;
+    position.z = output.Depth;
     position.w = 1.0f;
     //transform to world space
     position = mul(position, InvertViewProjection);
     position /= position.w;
 
     //////////////////////////////////////
-
-    PixelShaderInput output;
     output.Position = position;
     output.TexCoord = texCoord;
     //output.viewDirection = input.viewDirection;
-
-        /////////////////////////////////////
-    //CULL?
-    float lightDepth = input.ScreenPosition.z;
-
-    float insideMult = inside;
-    if (insideMult <= 0)
-        insideMult = -1;
-
-    [branch]
-   // if(lightDepth*inside < depthVal*inside)
-    if (lightDepth * insideMult < depthVal * insideMult)
-    {
-        clip(-1);
-        return output;
-    }
-
 
     return output;
 }
@@ -378,28 +360,50 @@ PixelShaderOutput BasePixelShaderFunctionShadow(PixelShaderInput input)
 
 }
 
-PixelShaderOutput PixelShaderFunction(VertexShaderOutput input) : SV_TARGET
-{
+PixelShaderOutput PixelShaderFunction(VertexShaderOutput input)
+{  
     PixelShaderInput p_input = BaseCalculations(input);
  
     PixelShaderOutput Output;
 
-    Output = BasePixelShaderFunction(p_input);
+	float lightDepth = input.ScreenPosition.z / input.ScreenPosition.w;
 
-    return Output;
+	[branch]
+	if (lightDepth * inside < p_input.Depth * inside)
+	{
+		clip(-1);
+		return Output;
+	}
+	else
+	{
+		Output = BasePixelShaderFunction(p_input);
+
+		return Output;
+	}
+
 }
 
 
-PixelShaderOutput PixelShaderFunctionShadowed(VertexShaderOutput input) : SV_TARGET
+PixelShaderOutput PixelShaderFunctionShadowed(VertexShaderOutput input)
 {
-    PixelShaderInput p_input = BaseCalculations(input);
+	PixelShaderInput p_input = BaseCalculations(input);
 
+	PixelShaderOutput Output;
 
-    PixelShaderOutput Output;
+	float lightDepth = input.ScreenPosition.z;
 
-    Output = BasePixelShaderFunctionShadow(p_input);
+	//[branch]
+	if (lightDepth * inside < p_input.Depth * inside)
+	{
+		clip(-1);
+		return Output;
+	}
+	else
+	{
+		Output = BasePixelShaderFunctionShadow(p_input);
 
-    return Output;
+		return Output;
+	}
 }
 
 ///VOLUMETRIC
@@ -450,11 +454,6 @@ PixelShaderOutput VolumetricPixelShaderFunction(VertexShaderOutput2 input)
 
 	//The way our camera is looking
 	float3 cameraDirection = normalize(position.xyz - cameraPosition);
-
-	//Entry into the volumetric field?
-	float insideMult = inside;
-	if (insideMult <= 0)
-		insideMult = -1;
 
 	//If inside = 0 we look from the outside, so we enter into the field
 	float3 toLightCenter = normalize(lightPosition - input.WorldPosition.xyz);
@@ -662,11 +661,6 @@ PixelShaderOutput VolumetricPixelShaderFunctionShadowed(VertexShaderOutput2 inpu
 	//The way our camera is looking
 	float3 cameraDirection = normalize(position.xyz - cameraPosition);
 
-	//Entry into the volumetric field?
-	float insideMult = inside;
-	if (insideMult <= 0)
-		insideMult = -1;
-
 	//If inside = 0 we look from the outside, so we enter into the field
 	float3 toLightCenter = normalize(lightPosition - input.WorldPosition.xyz);
 
@@ -701,7 +695,7 @@ PixelShaderOutput VolumetricPixelShaderFunctionShadowed(VertexShaderOutput2 inpu
 	else
 	{
 		start_vector = cameraPosition;
-		end_vector = input.WorldPosition;
+		end_vector = input.WorldPosition.xyz;
 	}
 
 	float visibility = 0;

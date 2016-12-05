@@ -91,58 +91,58 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 
     float albedoColorProp = diffuseColor.a;
 
-    float pixelsize = pixelsize_intended;
-    
-    float2 hologramTexCoord = trunc(input.TexCoord * Resolution / pixelsize / 2) / Resolution * pixelsize * 2;
-       
-    
 
     float materialType = decodeMattype(albedoColorProp);
 
     float metalness = decodeMetalness(albedoColorProp);
                 
     float3 diffuseContrib = float3(0, 0, 0);
+	float ssaoContribution = 1;
 
-    //
-    [branch]
-    if(useGauss)
-    {
-        [branch]
-        if (abs(materialType - 2) < 0.1f)
-        {
-          float4 hologramColor = GaussianSampler(input.TexCoord, 3);
-    //    float2 pixel = trunc(input.TexCoord * Resolution);
+  //  //
+  //  [branch]
+  //  if(useGauss)
+  //  {
+  //      [branch]
+  //      if (abs(materialType - 2) < 0.1f)
+  //      {
+  //        float4 hologramColor = GaussianSampler(input.TexCoord, 3);
+  //  //    float2 pixel = trunc(input.TexCoord * Resolution);
 
-    //    float pixelsize2 = 2 * pixelsize;
-    //    if (pixel.x % pixelsize2 <= pixelsize && pixel.y % pixelsize2 <= pixelsize)
-            diffuseContrib = float3(0, hologramColor.x * 0.49, hologramColor.x * 0.95f) * 0.06f ;
-        }
-    }
-    else
-    {
-        float hologramColor = HologramMap.Sample(linearSampler, hologramTexCoord).r;
-        if (abs(materialType - 2) < 0.1f)
-        {
-        float2 pixel = trunc(input.TexCoord * Resolution);
+  //  //    float pixelsize2 = 2 * pixelsize;
+  //  //    if (pixel.x % pixelsize2 <= pixelsize && pixel.y % pixelsize2 <= pixelsize)
+  //          diffuseContrib = float3(0, hologramColor.x * 0.49, hologramColor.x * 0.95f) * 0.06f ;
+  //      }
+  //  }
+  //  else
+  //  {
+		//float pixelsize = pixelsize_intended;
 
-        float pixelsize2 = 2 * pixelsize;
-        if (pixel.x % pixelsize2 <= pixelsize && pixel.y % pixelsize2 <= pixelsize)
-                diffuseContrib = float3(0, hologramColor * 0.49, hologramColor * 0.95f) * 0.06f;
+		//float2 hologramTexCoord = trunc(input.TexCoord * Resolution / pixelsize / 2) / Resolution * pixelsize * 2;
 
-        }
-    }
 
-    if (abs(materialType - 3) < 0.1f)
-    {
-        return diffuseColor;
-    }
-        
-    //SSAO
-    float ssaoContribution = 1;
-    if(useSSAO)
-    {
-        ssaoContribution = SSAOMap.Sample(linearSampler, input.TexCoord).r;
-    }
+  //      float hologramColor = HologramMap.Sample(linearSampler, hologramTexCoord).r;
+  //      if (abs(materialType - 2) < 0.1f)
+  //      {
+  //      float2 pixel = trunc(input.TexCoord * Resolution);
+
+  //      float pixelsize2 = 2 * pixelsize;
+  //      if (pixel.x % pixelsize2 <= pixelsize && pixel.y % pixelsize2 <= pixelsize)
+  //              diffuseContrib = float3(0, hologramColor * 0.49, hologramColor * 0.95f) * 0.06f;
+
+  //      }
+  //  }
+
+  //  if (abs(materialType - 3) < 0.1f)
+  //  {
+  //      return diffuseColor;
+  //  }
+  //      
+  //  //SSAO
+  //  if(useSSAO)
+  //  {
+  //      ssaoContribution = SSAOMap.Sample(linearSampler, input.TexCoord).r;
+  //  }
 
     float f0 = lerp(0.04f, diffuseColor.g * 0.25 + 0.75, metalness);
     
@@ -166,10 +166,6 @@ float4 PixelShaderSSRFunction(VertexShaderOutput input) : COLOR0
 
     float albedoColorProp = diffuseColor.a;
 
-    float pixelsize = pixelsize_intended;
-    
-    float2 hologramTexCoord = trunc(input.TexCoord * Resolution / pixelsize / 2) / Resolution * pixelsize * 2;
-       
     
 
     float materialType = decodeMattype(albedoColorProp);
@@ -195,6 +191,10 @@ float4 PixelShaderSSRFunction(VertexShaderOutput input) : COLOR0
     }
     else
     {
+		float pixelsize = pixelsize_intended;
+
+		float2 hologramTexCoord = trunc(input.TexCoord * Resolution / pixelsize / 2) / Resolution * pixelsize * 2;
+
         float hologramColor = HologramMap.Sample(linearSampler, hologramTexCoord).r;
         if (abs(materialType - 2) < 0.1f)
         {

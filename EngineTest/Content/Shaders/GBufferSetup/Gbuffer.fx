@@ -23,22 +23,11 @@ float   Metallic = 0;
 
 int MaterialType = 0;
 
-float CLIP_VALUE = 0.99;
+const float CLIP_VALUE = 0.99;
 
 float4 DiffuseColor = float4(0.8f, 0.8f, 0.8f, 1);
 
-Texture2D<float4> Texture : register(t0); 
-sampler TextureSampler : register(s0)
-{
-    Texture = (Texture);
-
-    Filter = Anisotropic;
-
-    MaxAnisotropy = 16;
-
-    AddressU = Wrap;
-    AddressV = Wrap;
-};
+Texture2D<float4> Texture;
 
 Texture2D<float4> MetallicMap;
 
@@ -49,6 +38,33 @@ Texture2D<float4> DisplacementMap;
 Texture2D<float4> Mask;
 
 Texture2D<float4> NormalMap;
+
+sampler TextureSampler
+{
+	Texture = (Texture);
+
+	Filter = Anisotropic;
+
+	MaxAnisotropy = 8;
+
+	AddressU = Wrap;
+	AddressV = Wrap;
+};
+
+sampler TextureSamplerTrilinear
+{
+	Texture = (NormalMap);
+
+	/*Filter = Anisotropic;
+
+	MaxAnisotropy = 2;*/
+
+	MagFilter = LINEAR;
+	MinFilter = LINEAR;
+	Mipfilter = LINEAR;
+	AddressU = Wrap;
+	AddressV = Wrap;
+};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  STRUCT DEFINITIONS
@@ -82,7 +98,6 @@ struct DrawNormals_VSOut
     float4 Position : SV_POSITION0;
     float3x3 WorldToTangentSpace : TEXCOORD3;
     float2 TexCoord : TEXCOORD1;
-    float4 WorldPos : TEXCOORD2;
     float2 Depth : TEXCOORD0;
 };
 
@@ -135,6 +150,12 @@ DrawNormals_VSOut DrawNormals_VertexShader(DrawNormals_VSIn input)
     return Output;
 }
 
+float3 GetNormalMap(float2 TexCoord)
+{
+	//This gets normalized anyways, so it doesn't matter that it's technically only half the length
+	return NormalMap.Sample(TextureSamplerTrilinear, TexCoord).rgb - float3(0.5f, 0.5f, 0.5f);
+}
+
 
 PixelShaderOutput Lighting(Render_IN input)
 {
@@ -156,13 +177,13 @@ PixelShaderOutput Lighting(Render_IN input)
 
     Out.Normal.a = input.roughness;
 
-    Out.Depth = 1- input.Depth.x / input.Depth.y;
+    Out.Depth = (1- input.Depth.x / input.Depth.y);
 
     return Out;
 }
 
 [earlydepthstencil]      //experimental
-PixelShaderOutput DrawTexture_PixelShader(DrawBasic_VSOut input) : SV_TARGET
+PixelShaderOutput DrawTexture_PixelShader(DrawBasic_VSOut input)
 {
     Render_IN renderParams;
 
@@ -180,7 +201,7 @@ PixelShaderOutput DrawTexture_PixelShader(DrawBasic_VSOut input) : SV_TARGET
 }
 
 [earlydepthstencil]      //experimental
-PixelShaderOutput DrawTextureSpecular_PixelShader(DrawBasic_VSOut input) : SV_TARGET
+PixelShaderOutput DrawTextureSpecular_PixelShader(DrawBasic_VSOut input) 
 {
     Render_IN renderParams;
 
@@ -200,7 +221,7 @@ PixelShaderOutput DrawTextureSpecular_PixelShader(DrawBasic_VSOut input) : SV_TA
 }
 
 [earlydepthstencil]      //experimental
-PixelShaderOutput DrawTextureSpecularMetallic_PixelShader(DrawBasic_VSOut input) : SV_TARGET
+PixelShaderOutput DrawTextureSpecularMetallic_PixelShader(DrawBasic_VSOut input) 
 {
     Render_IN renderParams;
 
@@ -221,7 +242,7 @@ PixelShaderOutput DrawTextureSpecularMetallic_PixelShader(DrawBasic_VSOut input)
 }
 
 [earlydepthstencil]      //experimental
-PixelShaderOutput DrawTextureSpecularNormal_PixelShader(DrawNormals_VSOut input) : SV_TARGET
+PixelShaderOutput DrawTextureSpecularNormal_PixelShader(DrawNormals_VSOut input) 
 {
     Render_IN renderParams;
 
@@ -233,7 +254,7 @@ PixelShaderOutput DrawTextureSpecularNormal_PixelShader(DrawNormals_VSOut input)
     float RoughnessTexture = RoughnessMap.Sample(TextureSampler, input.TexCoord).r;
 
     // NORMAL MAP ////
-    float3 normalMap = 1 * NormalMap.Sample(TextureSampler, (input.TexCoord)).rgb - float3(0.5f, 0.5f, 0.5f);
+	float3 normalMap = GetNormalMap(input.TexCoord);
     normalMap = normalize(mul(normalMap, worldSpace));
   
     renderParams.Position = input.Position;
@@ -247,7 +268,7 @@ PixelShaderOutput DrawTextureSpecularNormal_PixelShader(DrawNormals_VSOut input)
 }
 
 [earlydepthstencil]      //experimental
-PixelShaderOutput DrawTextureSpecularNormalMetallic_PixelShader(DrawNormals_VSOut input) : SV_TARGET
+PixelShaderOutput DrawTextureSpecularNormalMetallic_PixelShader(DrawNormals_VSOut input) 
 {
     Render_IN renderParams;
 
@@ -259,7 +280,7 @@ PixelShaderOutput DrawTextureSpecularNormalMetallic_PixelShader(DrawNormals_VSOu
     float RoughnessTexture = RoughnessMap.Sample(TextureSampler, input.TexCoord).r;
     float metallicTexture = MetallicMap.Sample(TextureSampler, input.TexCoord).r;
     // NORMAL MAP ////
-    float3 normalMap = 1 * NormalMap.Sample(TextureSampler, (input.TexCoord)).rgb - float3(0.5f, 0.5f, 0.5f);
+    float3 normalMap = GetNormalMap(input.TexCoord);
     normalMap = normalize(mul(normalMap, worldSpace));
   
     renderParams.Position = input.Position;
@@ -275,7 +296,7 @@ PixelShaderOutput DrawTextureSpecularNormalMetallic_PixelShader(DrawNormals_VSOu
 
 
 [earlydepthstencil]      //experimental
-PixelShaderOutput DrawTextureNormal_PixelShader(DrawNormals_VSOut input) : SV_TARGET
+PixelShaderOutput DrawTextureNormal_PixelShader(DrawNormals_VSOut input) 
 {
     Render_IN renderParams;
 
@@ -285,7 +306,7 @@ PixelShaderOutput DrawTextureNormal_PixelShader(DrawNormals_VSOut input) : SV_TA
     float3x3 worldSpace = input.WorldToTangentSpace;
 
     // NORMAL MAP ////
-    float3 normalMap = 1 * NormalMap.Sample(TextureSampler, (input.TexCoord)).rgb - float3(0.5f, 0.5f, 0.5f);
+    float3 normalMap = GetNormalMap(input.TexCoord);
     normalMap = normalize(mul(normalMap, worldSpace));
   
     renderParams.Position = input.Position;
@@ -299,7 +320,7 @@ PixelShaderOutput DrawTextureNormal_PixelShader(DrawNormals_VSOut input) : SV_TA
 }
 
       //experimental
-PixelShaderOutput DrawTextureMask_PixelShader(DrawBasic_VSOut input) : SV_TARGET
+PixelShaderOutput DrawTextureMask_PixelShader(DrawBasic_VSOut input) 
 {
     Render_IN renderParams;
 
@@ -321,19 +342,19 @@ PixelShaderOutput DrawTextureMask_PixelShader(DrawBasic_VSOut input) : SV_TARGET
 }
 
 
-PixelShaderOutput DrawTextureSpecularMask_PixelShader(DrawBasic_VSOut input) : SV_TARGET
+PixelShaderOutput DrawTextureSpecularMask_PixelShader(DrawBasic_VSOut input) 
 {
     Render_IN renderParams;
+
+	float mask = Mask.Sample(TextureSampler, input.TexCoord).r;
+	if (mask < CLIP_VALUE)
+	clip(-1);
 
     float4 textureColor = Texture.Sample(TextureSampler, input.TexCoord);
     float4 outputColor = textureColor; //* input.Color;
 
     float RoughnessTexture = RoughnessMap.Sample(TextureSampler, input.TexCoord).r;
 
-    float mask = Mask.Sample(TextureSampler, input.TexCoord).r;
-    if (mask < CLIP_VALUE)
-        clip(-1);
-  
     renderParams.Position = input.Position;
     renderParams.Color = outputColor;
     renderParams.Normal = normalize(input.Normal);
@@ -345,9 +366,13 @@ PixelShaderOutput DrawTextureSpecularMask_PixelShader(DrawBasic_VSOut input) : S
 }
 
       //experimental
-PixelShaderOutput DrawTextureSpecularNormalMask_PixelShader(DrawNormals_VSOut input) : SV_TARGET
+PixelShaderOutput DrawTextureSpecularNormalMask_PixelShader(DrawNormals_VSOut input) 
 {
     Render_IN renderParams;
+
+	float mask = Mask.Sample(TextureSampler, input.TexCoord).r;
+	if (mask < CLIP_VALUE)
+	clip(-1);
 
     float4 textureColor = Texture.Sample(TextureSampler, input.TexCoord);
     float4 outputColor = textureColor; //* input.Color;
@@ -356,12 +381,9 @@ PixelShaderOutput DrawTextureSpecularNormalMask_PixelShader(DrawNormals_VSOut in
 
     float RoughnessTexture = RoughnessMap.Sample(TextureSampler, input.TexCoord).r;
 
-    float mask = Mask.Sample(TextureSampler, input.TexCoord).r;
-    if (mask < CLIP_VALUE)
-        clip(-1);
 
     // NORMAL MAP ////
-    float3 normalMap = 1 * NormalMap.Sample(TextureSampler, (input.TexCoord)).rgb - float3(0.5f, 0.5f, 0.5f);
+    float3 normalMap = GetNormalMap(input.TexCoord);
     normalMap = normalize(mul(normalMap, worldSpace));
   
     renderParams.Position = input.Position;
@@ -375,31 +397,36 @@ PixelShaderOutput DrawTextureSpecularNormalMask_PixelShader(DrawNormals_VSOut in
 }
 
     //experimental
-PixelShaderOutput DrawTextureNormalMask_PixelShader(DrawNormals_VSOut input) : SV_TARGET
+PixelShaderOutput DrawTextureNormalMask_PixelShader(DrawNormals_VSOut input) 
 {
     Render_IN renderParams;
 
-    float4 textureColor = Texture.Sample(TextureSampler, input.TexCoord);
-    float4 outputColor = textureColor; //* input.Color;
+	float mask = Mask.Sample(TextureSampler, input.TexCoord).r;
 
-    float3x3 worldSpace = input.WorldToTangentSpace;
+	//Branching has shown to make no difference here
+	if (mask < CLIP_VALUE)
+	{
+		clip(-1);
+	}
 
-    float mask = Mask.Sample(TextureSampler, input.TexCoord).r;
-    if (mask < CLIP_VALUE)
-        clip(-1);
+	float4 textureColor = Texture.Sample(TextureSampler, input.TexCoord);
+	float4 outputColor = textureColor; //* input.Color;
 
-    // NORMAL MAP ////
-    float3 normalMap = 1 * NormalMap.Sample(TextureSampler, (input.TexCoord)).rgb - float3(0.5f, 0.5f, 0.5f);
-    normalMap = normalize(mul(normalMap, worldSpace));
-  
-    renderParams.Position = input.Position;
-    renderParams.Color = outputColor;
-    renderParams.Normal = normalMap;
-    renderParams.Depth = input.Depth;
-    renderParams.Metallic = Metallic;
-    renderParams.roughness = Roughness;
-    
-    return Lighting(renderParams);
+	float3x3 worldSpace = input.WorldToTangentSpace;
+
+
+	// NORMAL MAP ////
+	float3 normalMap = GetNormalMap(input.TexCoord);
+	normalMap = normalize(mul(normalMap, worldSpace));
+
+	renderParams.Position = input.Position;
+	renderParams.Color = outputColor;
+	renderParams.Normal = normalMap;
+	renderParams.Depth = input.Depth;
+	renderParams.Metallic = Metallic;
+	renderParams.roughness = Roughness;
+
+	return Lighting(renderParams);
 }
 
 PixelShaderOutput DrawBasic_PixelShader(DrawBasic_VSOut input)
@@ -420,8 +447,8 @@ PixelShaderOutput DrawBasic_PixelShader(DrawBasic_VSOut input)
 }
 
 
-[earlydepthstencil]     //DISPLACEMENT / POM
-PixelShaderOutput DrawTextureDisplacement_PixelShader(DrawNormals_VSOut input) : SV_TARGET
+//DISPLACEMENT / POM
+PixelShaderOutput DrawTextureDisplacement_PixelShader(DrawNormals_VSOut input) 
 {
     Render_IN renderParams;
 
@@ -445,7 +472,7 @@ PixelShaderOutput DrawTextureDisplacement_PixelShader(DrawNormals_VSOut input) :
     float4 outputColor = textureColor; //* input.Color;
 
     // NORMAL MAP ////
-    float3 normalMap = 1 * NormalMap.Sample(TextureSampler, texCoordPOM).rgb - float3(0.5f, 0.5f, 0.5f);
+    float3 normalMap = GetNormalMap(input.TexCoord);
     normalMap = normalize(mul(normalMap, worldToTangent));
 
    

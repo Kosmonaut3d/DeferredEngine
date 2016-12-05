@@ -71,7 +71,7 @@
         public static bool g_HologramDraw = true;
 
         public static bool g_TemporalAntiAliasing = true;
-        public static int g_TemporalAntiAliasingJitterMode = 1;
+        public static int g_TemporalAntiAliasingJitterMode = 2;
         public static bool Editor_enable = false;
         public static bool h_DrawLines = true;
 
@@ -125,6 +125,10 @@
         private static bool _g_SSReflection_Taa = true;
         public static bool g_SSReflectionNoise = true;
         public static bool g_VolumetricLights = true;
+        public static bool e_CPURayMarch = false;
+        public static bool g_ClearGBuffer = true;
+        public static bool d_defaultMaterial = false;
+        public static bool g_PostProcessing = true;
 
         public static bool g_SSReflectionTaa
         {
@@ -209,16 +213,15 @@
         {
             ApplySSAO();
             
-            g_TemporalAntiAliasing = true;
-
             g_SSReflection = _g_SSReflection;
 
-            
-            g_SSReflection = false;
-            g_EmissiveDraw = false;
-            ssao_Active = false;
-            
+            //g_SSReflection = false;
+            //g_EmissiveDraw = false;
+            //ssao_Active = false;
+            //g_PostProcessing = false;
+            //g_TemporalAntiAliasing = false;
 
+            d_defaultMaterial = false;
             SCurveStrength = _sCurveStrength;
             ChromaticAbberationStrength = _chromaticAbberationStrength;
             
