@@ -95,7 +95,7 @@ VertexShaderOutputBlur VertexShaderBlurFunction(VertexShaderInput input)
 
 float linearizeDepth(float depth)
 {
-    return (Projection._43 / (depth - Projection._33));
+	return (Projection._43 / (depth - Projection._33));
 }
 
 float localDepth(float lindepth)

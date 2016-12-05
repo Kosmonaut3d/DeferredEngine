@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using EngineTest.Entities;
 using EngineTest.Main;
 using EngineTest.Recources;
@@ -102,7 +103,6 @@ namespace EngineTest.Renderer
         //BlendStates
         
         private BlendState _lightBlendState;
-        private BlendState _linearBlendState;
 
         //Performance Profiler
 
@@ -126,9 +126,7 @@ namespace EngineTest.Renderer
 
             _cpuRayMarch = new CPURayMarch();
             _cpuRayMarch.Initialize(_graphicsDevice);
-
-            //SetUpRenderTargets(_graphicsDevice.PresentationParameters.BackBufferWidth, _graphicsDevice.PresentationParameters.BackBufferHeight);
-
+            
             _assets = assets;
 
             GameSettings.ApplySettings();
@@ -153,26 +151,25 @@ namespace EngineTest.Renderer
                 ColorDestinationBlend = Blend.One,
                 AlphaDestinationBlend = Blend.One
             };
-
-            _linearBlendState = new BlendState
-            {
-                AlphaSourceBlend = Blend.BlendFactor,
-                ColorSourceBlend = Blend.BlendFactor,
-                ColorDestinationBlend = Blend.BlendFactor,
-                AlphaDestinationBlend = Blend.BlendFactor,
-                BlendFactor = new Color(0.5f, 0.5f, 0.5f, 0.5f)
-            };
         }
-#endregion
-
+        #endregion
         
-        //Main Draw!
+        /// <summary>
+        /// Main Draw function of the game
+        /// </summary>
+        /// <param name="camera"></param>
+        /// <param name="meshMaterialLibrary"></param>
+        /// <param name="entities"></param>
+        /// <param name="pointLights"></param>
+        /// <param name="dirLights"></param>
+        /// <param name="editorData"></param>
+        /// <param name="gameTime"></param>
+        /// <returns></returns>
         public EditorLogic.EditorReceivedData Draw(Camera camera, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities, List<PointLightSource> pointLights, List<DirectionalLightSource> dirLights, EditorLogic.EditorSendData editorData, GameTime gameTime)
         {
             //Reset the stat counter
             ResetStats();
-
-
+            
             meshMaterialLibrary.FrustumCullingStartFrame(entities);
 
                 //Check if we changed some drastic stuff for which we need to reload some elements
@@ -237,8 +234,6 @@ namespace EngineTest.Renderer
 
             }
 
-            //DrawScreenSpaceReflectionsEffect(camera);
-
             //CPURayMarch(camera);
 
             LineHelperManager.Draw(_graphicsDevice, _staticViewProjection);
@@ -265,34 +260,18 @@ namespace EngineTest.Renderer
 
         private void CombineTemporalAntialiasing()
         {
-             //if offframe we have drawn to rendertarget2
-
             if (!GameSettings.g_TemporalAntiAliasing) return;
-
             
-            //NAIVE
-            /*
-            _spriteBatch.Begin(SpriteSortMode.Deferred, _linearBlendState);
-            _spriteBatch.Draw(_temporalAAOffFrame ? _renderTargetFinal : _renderTargetFinal2, new Rectangle(0, 0, (int) (GameSettings.g_ScreenWidth * GameSettings.g_supersampling), (int) (GameSettings.g_ScreenHeight * GameSettings.g_supersampling)), Color.White);
-            _spriteBatch.End(); 
-            */
-
             _graphicsDevice.SetRenderTarget(_temporalAAOffFrame ? _renderTargetTAA_2 : _renderTargetTAA_1);
-            //_graphicsDevice.BlendState = _linearBlendState;
             _graphicsDevice.BlendState = BlendState.Opaque;
 
             Shaders.TemporalAntiAliasingEffect_AccumulationMap.SetValue(_temporalAAOffFrame ? _renderTargetTAA_1 : _renderTargetTAA_2);
             Shaders.TemporalAntiAliasingEffect_UpdateMap.SetValue(_renderTargetFinal);
             Shaders.TemporalAntiAliasingEffect_CurrentToPrevious.SetValue(_currentToPrevious);
-
-            //Shaders.TemporalAntiAliasingEffect_CurrentToPrevious.SetValue(_inverseViewProjection);
-            //Shaders.TemporalAntiAliasingEffect.Parameters["PreviousViewProjection"].SetValue(_previousViewProjection);
-
+            
             Shaders.TemporalAntiAliasingEffect.CurrentTechnique.Passes[0].Apply();
             _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
-
-            //_graphicsDevice.BlendState = BlendState.Opaque;
-
+            
             //Performance Profiler
             if (GameSettings.d_profiler)
             {
@@ -315,16 +294,12 @@ namespace EngineTest.Renderer
                 Shaders.deferredEnvironment.Parameters["ReflectionCubeMap"].SetValue(_renderTargetCubeMap);
             }
             SetUpRenderTargets(512, 512, true);
-
             Shaders.DeferredCompose.Parameters["useSSAO"].SetValue(false);
-
             _projection = Matrix.CreatePerspectiveFieldOfView((float) (Math.PI/2), 1, 1, farPlane);
-
             for (int i = 0; i < 6; i++)
             {
                 // render the scene to all cubemap faces
                 CubeMapFace cubeMapFace = (CubeMapFace) i;
-
                 switch (cubeMapFace)
                 {
                     case CubeMapFace.NegativeX:
@@ -361,40 +336,28 @@ namespace EngineTest.Renderer
 
                 _viewProjection = _view*_projection;
                 _inverseViewProjection = Matrix.Invert(_viewProjection);
-
                 viewProjectionHasChanged = true;
-
                 if (_boundingFrustum != null)
                     _boundingFrustum.Matrix = _viewProjection;
                 else
                     _boundingFrustum = new BoundingFrustum(_viewProjection);
                 //cull
                 meshMaterialLibrary.FrustumCulling(entities, _boundingFrustum, true, origin);
-
                 SetUpGBuffer();
-
                 DrawGBuffer(meshMaterialLibrary, entities);
-
                 DrawScreenSpaceDirectionalShadow(dirLights);
-
                 DrawLights(pointLights, dirLights, origin, gameTime);
-
                 DrawEnvironmentMap(origin);
-
+                //We don't use temporal AA obviously for the cubemap
                 bool tempAA = GameSettings.g_TemporalAntiAliasing;
-
                 GameSettings.g_TemporalAntiAliasing = false;
-
                 Compose();
-
                 GameSettings.g_TemporalAntiAliasing = tempAA;
-
                 DrawMapToScreenToCube(_renderTargetFinal, _renderTargetCubeMap, cubeMapFace);
-
             }
-
             Shaders.DeferredCompose.Parameters["useSSAO"].SetValue(GameSettings.ssao_Active);
 
+            //Change RTs back to normal
             SetUpRenderTargets(GameSettings.g_ScreenWidth, GameSettings.g_ScreenHeight, false);
 
             //Performance Profiler
@@ -450,9 +413,7 @@ namespace EngineTest.Renderer
                     {
                         DrawMapToScreenToFullScreen(_renderTargetFinal);
                     }
-
                     DrawPostProcessing();
-                    
                     break;
             }
 
@@ -1105,7 +1066,7 @@ namespace EngineTest.Renderer
                 Shaders.deferredPointLightParameter_Time.SetValue((float)gameTime.TotalGameTime.TotalSeconds % 1000);
 
             _graphicsDevice.DepthStencilState = DepthStencilState.Default;
-
+            
             for (int index = 0; index < pointLights.Count; index++)
             {
                 PointLightSource light = pointLights[index];
@@ -1116,7 +1077,6 @@ namespace EngineTest.Renderer
         //Draw each individual Point light
         private void DrawPointLight(PointLightSource light, Vector3 cameraOrigin)
         {
-            //todo: Optimize the culling and do it with the HasChanged thing like the models!
             //first let's check if the light is even in bounds
             if (_boundingFrustum.Contains(light.BoundingSphere) == ContainmentType.Disjoint ||
                 !_boundingFrustum.Intersects(light.BoundingSphere))
@@ -1163,7 +1123,7 @@ namespace EngineTest.Renderer
             _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset, startIndex, primitiveCount);
                 
         }
-
+    
         private void DrawMapToScreenToCube(RenderTarget2D map, RenderTargetCube target, CubeMapFace? face)
         {
 
@@ -1209,10 +1169,7 @@ namespace EngineTest.Renderer
         {
             _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
             
-                _graphicsDevice.SetRenderTargets(_renderTargetFinalBinding);
-            //Skull depth
-            //_deferredCompose.Parameters["average_skull_depth"].SetValue(Vector3.Distance(camera.Position , new Vector3(29, 0, -6.5f)));
-
+            _graphicsDevice.SetRenderTargets(_renderTargetFinalBinding);
 
             //combine!
             Shaders.DeferredCompose.CurrentTechnique.Passes[0].Apply();
@@ -1383,7 +1340,7 @@ namespace EngineTest.Renderer
                 _projection = Matrix.CreatePerspectiveFieldOfView(camera.FieldOfView,
                     GameSettings.g_ScreenWidth / (float)GameSettings.g_ScreenHeight, 1, GameSettings.g_FarPlane);
 
-                Shaders.GBufferEffectParameter_View.SetValue(_view);
+                //Shaders.GBufferEffectParameter_View.SetValue(_view);
                 Shaders.GBufferEffectParameter_Camera.SetValue(camera.Position);
                 
                 _viewProjection = _view*_projection;

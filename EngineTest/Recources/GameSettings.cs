@@ -215,11 +215,12 @@
             
             g_SSReflection = _g_SSReflection;
 
-            //g_SSReflection = false;
-            //g_EmissiveDraw = false;
-            //ssao_Active = false;
-            //g_PostProcessing = false;
-            //g_TemporalAntiAliasing = false;
+            g_SSReflection = false;
+            g_EmissiveDraw = false;
+            ssao_Active = false;
+            g_PostProcessing = false;
+            g_TemporalAntiAliasing = false;
+            g_EnvironmentMapping = false;
 
             d_defaultMaterial = false;
             SCurveStrength = _sCurveStrength;

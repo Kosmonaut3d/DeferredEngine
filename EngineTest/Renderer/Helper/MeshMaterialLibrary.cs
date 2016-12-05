@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using EngineTest.Entities;
 using EngineTest.Recources;
 using EngineTest.Recources.Helper;
@@ -221,34 +222,38 @@ namespace EngineTest.Renderer.Helper
 
             bool hasAnythingChanged = false;
             //Ok we applied the transformation to all the entities, now update the submesh boundingboxes!
-            for (int index1 = 0; index1 < Index; index1++)
-            {
-                float distance = 0;
-                int counter = 0;
-
-
-                MaterialLibrary matLib = GameSettings.g_CPU_Sort ? MaterialLib[MaterialLibPointer[index1]] : MaterialLib[index1];
-                for (int i = 0; i < matLib.Index; i++)
+            Parallel.For(0, Index, index1 =>
+                //for (int index1 = 0; index1 < Index; index1++)
                 {
-                    MeshLibrary meshLib = matLib.GetMeshLibrary()[i];
-                    float? distanceSq = meshLib.UpdatePositionAndCheckRender(hasCameraChanged, boundingFrustrum, cameraPosition, _defaultBoundingSphere);
+                    float distance = 0;
+                    int counter = 0;
 
-                    //If we get a new distance, apply it to the material
-                    if (distanceSq != null)
+
+                    MaterialLibrary matLib = GameSettings.g_CPU_Sort
+                        ? MaterialLib[MaterialLibPointer[index1]]
+                        : MaterialLib[index1];
+                    for (int i = 0; i < matLib.Index; i++)
                     {
-                        distance += (float)distanceSq;
-                        counter++;
-                        hasAnythingChanged = true;
-                    }
-                }
+                        MeshLibrary meshLib = matLib.GetMeshLibrary()[i];
+                        float? distanceSq = meshLib.UpdatePositionAndCheckRender(hasCameraChanged, boundingFrustrum,
+                            cameraPosition, _defaultBoundingSphere);
 
-                if (distance != 0)
-                {
-                    distance /= counter;
-                    matLib.distanceSquared = distance;
-                    matLib.hasChangedThisFrame = true;
-                }
-            }
+                        //If we get a new distance, apply it to the material
+                        if (distanceSq != null)
+                        {
+                            distance += (float) distanceSq;
+                            counter++;
+                            hasAnythingChanged = true;
+                        }
+                    }
+
+                    if (distance != 0)
+                    {
+                        distance /= counter;
+                        matLib.distanceSquared = distance;
+                        matLib.hasChangedThisFrame = true;
+                    }
+                });
 
             //finally sort the materials by distance. Bubble sort should in theory be fast here since little changes.
             if (hasAnythingChanged)
@@ -495,7 +500,7 @@ namespace EngineTest.Renderer.Helper
                         {
                             if (material.HasNormalMap && material.HasRoughnessMap)
                             {
-                                Shaders.GBufferEffectParameter_Material_Mask.SetValue(material.Mask);
+                                Shaders.GBufferEffectParameter_Material_MaskMap.SetValue(material.Mask);
                                 Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
                                 Shaders.GBufferEffectParameter_Material_NormalMap.SetValue(material.NormalMap);
                                 Shaders.GBufferEffectParameter_Material_RoughnessMap.SetValue(material.RoughnessMap);
@@ -505,7 +510,7 @@ namespace EngineTest.Renderer.Helper
 
                             else if (material.HasNormalMap)
                             {
-                                Shaders.GBufferEffectParameter_Material_Mask.SetValue(material.Mask);
+                                Shaders.GBufferEffectParameter_Material_MaskMap.SetValue(material.Mask);
                                 Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
                                 Shaders.GBufferEffectParameter_Material_NormalMap.SetValue(material.NormalMap);
                                 Shaders.GBufferEffect.CurrentTechnique =
@@ -514,7 +519,7 @@ namespace EngineTest.Renderer.Helper
 
                             else if (material.HasRoughnessMap)
                             {
-                                Shaders.GBufferEffectParameter_Material_Mask.SetValue(material.Mask);
+                                Shaders.GBufferEffectParameter_Material_MaskMap.SetValue(material.Mask);
                                 Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
                                 Shaders.GBufferEffectParameter_Material_RoughnessMap.SetValue(material.RoughnessMap);
                                 Shaders.GBufferEffect.CurrentTechnique =
@@ -522,7 +527,7 @@ namespace EngineTest.Renderer.Helper
                             }
                             else
                             {
-                                Shaders.GBufferEffectParameter_Material_Mask.SetValue(material.Mask);
+                                Shaders.GBufferEffectParameter_Material_MaskMap.SetValue(material.Mask);
                                 Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
                                 Shaders.GBufferEffect.CurrentTechnique =
                                     Shaders.GBufferEffectTechniques_DrawTextureSpecularMask;

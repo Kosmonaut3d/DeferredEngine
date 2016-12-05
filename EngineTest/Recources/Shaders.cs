@@ -137,7 +137,7 @@ namespace EngineTest.Recources
         public static EffectParameter GBufferEffectParameter_Material_MetallicMap;
         public static EffectParameter GBufferEffectParameter_Material_DiffuseColor;
         public static EffectParameter GBufferEffectParameter_Material_Roughness;
-        public static EffectParameter GBufferEffectParameter_Material_Mask;
+        public static EffectParameter GBufferEffectParameter_Material_MaskMap;
         public static EffectParameter GBufferEffectParameter_Material_Texture;
         public static EffectParameter GBufferEffectParameter_Material_NormalMap;
         public static EffectParameter GBufferEffectParameter_Material_DisplacementMap;
@@ -394,7 +394,7 @@ namespace EngineTest.Recources
             GBufferEffectParameter_Material_DiffuseColor = GBufferEffect.Parameters["DiffuseColor"];
             GBufferEffectParameter_Material_Roughness = GBufferEffect.Parameters["Roughness"];
 
-            GBufferEffectParameter_Material_Mask = GBufferEffect.Parameters["Mask"];
+            GBufferEffectParameter_Material_MaskMap = GBufferEffect.Parameters["Mask"];
             GBufferEffectParameter_Material_Texture = GBufferEffect.Parameters["Texture"];
             GBufferEffectParameter_Material_NormalMap = GBufferEffect.Parameters["NormalMap"];
             GBufferEffectParameter_Material_RoughnessMap = GBufferEffect.Parameters["RoughnessMap"];

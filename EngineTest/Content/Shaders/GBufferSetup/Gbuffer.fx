@@ -2,25 +2,19 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  VARIABLES
-//      PROJECTION  
-
-matrix  View;
-matrix  World;
-matrix  WorldViewProj;
-
-float4 FogColor = float4(1, 0.375, 0, 1);
-
-float3 Camera;
-
-float2 Resolution;
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "helper.fx"
 
+float4x4  World;
+float4x4  WorldViewProj;
+float3x3  WorldViewIT; //Inverse Transposed
 
-//      MATERIAL
-float   Roughness = 0.3f; // 0 : smooth, 1: rough
-float   Metallic = 0;
+float3 Camera;
+float2 Resolution;
 
+float Roughness = 0.3f;
+float Metallic = 0;
 int MaterialType = 0;
 
 const float CLIP_VALUE = 0.99;
@@ -28,6 +22,8 @@ const float CLIP_VALUE = 0.99;
 float4 DiffuseColor = float4(0.8f, 0.8f, 0.8f, 1);
 
 Texture2D<float4> Texture;
+
+Texture2D<float4> NormalMap;
 
 Texture2D<float4> MetallicMap;
 
@@ -37,16 +33,11 @@ Texture2D<float4> DisplacementMap;
 
 Texture2D<float4> Mask;
 
-Texture2D<float4> NormalMap;
-
 sampler TextureSampler
 {
 	Texture = (Texture);
-
 	Filter = Anisotropic;
-
 	MaxAnisotropy = 8;
-
 	AddressU = Wrap;
 	AddressV = Wrap;
 };
@@ -54,11 +45,6 @@ sampler TextureSampler
 sampler TextureSamplerTrilinear
 {
 	Texture = (NormalMap);
-
-	/*Filter = Anisotropic;
-
-	MaxAnisotropy = 2;*/
-
 	MagFilter = LINEAR;
 	MinFilter = LINEAR;
 	Mipfilter = LINEAR;
@@ -118,11 +104,6 @@ struct PixelShaderOutput
     float4 Depth : COLOR2;
 };
 
-struct PixelShaderOutputVSM
-{
-    float4 Position : SV_POSITION0;
-    float2 Depth : TEXCOORD2;
-};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  FUNCTION DEFINITIONS

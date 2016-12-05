@@ -95,16 +95,16 @@ namespace EngineTest.Main
             space.Add(Sphere = new Sphere(new BEPUutilities.Vector3(20, 0, 40),5,50));
             AddEntity(_assets.IsoSphere, _assets.baseMaterial, new Vector3(20, 0, 10), Math.PI/2, 0, 0, 5, Sphere);
 
-            //for (int i = 0; i < 10; i++)
-            //{
+            for (int i = 0; i < 10; i++)
+            {
 
-            //    Entity Sphere2;
-            //    space.Add(Sphere2 = new Sphere(BEPUutilities.Vector3.Zero, 5, 50));
-            //    AddEntity(_assets.IsoSphere, _assets.baseMaterial,
-            //        new Vector3(20 + FastRand.NextSingle(2) - 1, FastRand.NextSingle(2) - 1, 30 + i*10), Math.PI/2, 0, 0,
-            //        5, Sphere2);
+                Entity Sphere2;
+                space.Add(Sphere2 = new Sphere(BEPUutilities.Vector3.Zero, 5, 50));
+                AddEntity(_assets.IsoSphere, _assets.baseMaterial,
+                    new Vector3(20 + FastRand.NextSingle(2) - 1, FastRand.NextSingle(2) - 1, 30 + i * 10), Math.PI / 2, 0, 0,
+                    5, Sphere2);
 
-            //}
+            }
 
             //AddEntity(_assets.HelmetModel, new Vector3(70, 0, -10), -Math.PI / 2, 0, -Math.PI / 2, 1);
 
