@@ -42,6 +42,7 @@ namespace EngineTest.Recources
         public static EffectParameter TemporalAntiAliasingEffect_CurrentToPrevious;
         public static EffectParameter TemporalAntiAliasingEffect_Resolution;
         public static EffectParameter TemporalAntiAliasingEffect_FrustumCorners;
+        public static EffectParameter TemporalAntiAliasingEffect_Threshold;
 
         //Vignette and CA
 
@@ -249,6 +250,7 @@ namespace EngineTest.Recources
         public static EffectParameter deferredEnvironmentParameter_DepthMap;
         public static EffectParameter deferredEnvironmentParameterCameraPosition;
         public static EffectParameter deferredEnvironmentParameterInverseViewProjection;
+        public static EffectParameter deferredEnvironmentParameterInvertView;
 
         //SHADOW MAPPING
 
@@ -307,6 +309,7 @@ namespace EngineTest.Recources
             TemporalAntiAliasingEffect_CurrentToPrevious = TemporalAntiAliasingEffect.Parameters["CurrentToPrevious"];
             TemporalAntiAliasingEffect_Resolution = TemporalAntiAliasingEffect.Parameters["Resolution"];
             TemporalAntiAliasingEffect_FrustumCorners = TemporalAntiAliasingEffect.Parameters["FrustumCorners"];
+            TemporalAntiAliasingEffect_Threshold = TemporalAntiAliasingEffect.Parameters["Threshold"];
 
             //Post
 
@@ -521,6 +524,7 @@ namespace EngineTest.Recources
 
             deferredEnvironmentParameterCameraPosition = deferredEnvironment.Parameters["cameraPosition"];
             deferredEnvironmentParameterInverseViewProjection = deferredEnvironment.Parameters["InvertViewProjection"];
+            deferredEnvironmentParameterInvertView = deferredEnvironment.Parameters["InvertView"];
 
             //VSM
 

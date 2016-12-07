@@ -1,4 +1,6 @@
-﻿namespace EngineTest.Recources
+﻿using System;
+
+namespace EngineTest.Recources
 {
     public static class GameSettings
     {
@@ -231,6 +233,36 @@
             }
         }
 
+        private static float minThickness = 70;
+        public static float g_SSReflections_MinThickness
+        {
+            get { return minThickness; }
+            set
+            {
+                minThickness = value;
+                Shaders.ScreenSpaceReflectionEffect.Parameters["MinimumThickness"].SetValue(minThickness);
+            }
+        }
+
+        private static float _g_TemporalAntiAliasingThreshold = 0.9f;
+
+        public static float g_TemporalAntiAliasingThreshold
+        {
+            get
+            {
+                return _g_TemporalAntiAliasingThreshold;
+            }
+
+            set
+            {
+                if (Math.Abs(_g_TemporalAntiAliasingThreshold - value) > 0.0001f)
+                {
+                    _g_TemporalAntiAliasingThreshold = value;
+                    Shaders.TemporalAntiAliasingEffect_Threshold.SetValue(_g_TemporalAntiAliasingThreshold);
+                }
+            }
+        }
+
         public static void ApplySettings()
         {
             ApplySSAO();
@@ -241,7 +273,7 @@
             ssao_Active = false;
             g_PostProcessing = true;
             g_TemporalAntiAliasing = true;
-            g_EnvironmentMapping = false;
+            g_EnvironmentMapping = true;
             g_SSReflection = true;
 
             d_defaultMaterial = false;

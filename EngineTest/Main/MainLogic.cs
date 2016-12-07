@@ -90,7 +90,7 @@ namespace EngineTest.Main
             space.Add(new Box(new BEPUutilities.Vector3(0,0,-0.5f), 1000,1000,1));
 
             space.Add(testBox = new Box(BEPUutilities.Vector3.Zero, 10, 10, 10, 100));
-            testBoxEntity = AddEntity(_assets.TestCube, _assets.emissiveMaterial, new Vector3(20.2f, 1.1f, 40), Math.PI / 2, 0, 0, 5, testBox);
+            testBoxEntity = AddEntity(_assets.TestCube, _assets.silverMaterial, new Vector3(20.2f, 1.1f, 40), Math.PI / 2, 0, 0, 5, testBox);
             
             Entity Sphere;
             space.Add(Sphere = new Sphere(new BEPUutilities.Vector3(20, 0, 40),5,50));
@@ -101,7 +101,7 @@ namespace EngineTest.Main
 
                 Entity Sphere2;
                 space.Add(Sphere2 = new Sphere(BEPUutilities.Vector3.Zero, 5, 50));
-                AddEntity(_assets.IsoSphere, _assets.baseMaterial,
+                AddEntity(_assets.IsoSphere, _assets.silverMaterial,
                     new Vector3(20 + FastRand.NextSingle(2) - 1, FastRand.NextSingle(2) - 1, 30 + i * 10), Math.PI / 2, 0, 0,
                     5, Sphere2);
 

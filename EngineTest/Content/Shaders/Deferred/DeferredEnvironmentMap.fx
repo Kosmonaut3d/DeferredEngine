@@ -2,6 +2,7 @@
 float3 cameraPosition;
 //this is used to compute the world-position
 float4x4 InvertViewProjection;
+float4x4 InvertView;
 
 #include "helper.fx"
 
@@ -163,6 +164,10 @@ PixelShaderOutput PixelShaderFunctionClassic(VertexShaderOutput input)
 
     float3 reflectionVector = reflect(incident, normal);
 
+	float4 reflectionVectortrafo = mul(float4(reflectionVector,0), InvertView);
+
+	reflectionVector = reflectionVectortrafo.xyz / reflectionVectortrafo.w;
+
     float VdotH = saturate(dot(normal, incident));
     float fresnel = pow(1.0 - VdotH, 5.0);
     fresnel *= (1.0 - f0);
@@ -184,8 +189,8 @@ PixelShaderOutput PixelShaderFunctionClassic(VertexShaderOutput input)
 
     float ssreflectionMap = ReflectionMap.Sample(normalSampler, input.TexCoord).a;
 
-    output.Diffuse = float4(DiffuseReflectColor.xyz, 0) * 0.01;
-    output.Specular = float4(ReflectColor.xyz, 0) * 0.02 * (1-ssreflectionMap);
+    output.Diffuse = float4(DiffuseReflectColor.xyz, 0) * 0.1;
+    output.Specular = float4(ReflectColor.xyz, 0) * 2.2 * (1-ssreflectionMap);
 
     return output;
 }

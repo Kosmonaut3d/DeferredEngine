@@ -19,6 +19,8 @@ float Time = 0;
 const int Samples = 3;
 const int SecondarySamples = 3;
 
+const float MinimumThickness = 70;
+
 const float border = 0.2f;
 float2 resolution = float2(1280, 800);
 
@@ -160,9 +162,8 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	//extend the ray so it crosses the whole screen once
 	float xMultiplier = (rayStep.x > 0 ? (1 - texCoord.x) : -texCoord.x) / rayStep.x;
 	float yMultiplier = (rayStep.y > 0 ? (1 - texCoord.y) : -texCoord.y) / rayStep.y;
-	float multiplier = min(xMultiplier, yMultiplier);
+	float multiplier = min(xMultiplier, yMultiplier) / samples;
 	rayStep *= multiplier;
-	rayStep /= samples;
 
 	//Some variables we need later when precising the hit point
 	float startingDepth = rayOrigin.z;
@@ -178,29 +179,42 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	}
 
 	//Add some noise
-	float noise = NoiseMap.Sample(texSampler, frac(( (texCoord ) * resolution + temporalComponent) / 64)).r; // + frac(input.TexCoord* Projection)).r;
-
+	float noise = NoiseMap.Sample(texSampler, frac(((texCoord)* resolution + temporalComponent) / 64)).r; // + frac(input.TexCoord* Projection)).r;
+	
 	//Raymarching the depth buffer
 	[loop]
 	for (int i = 1; i <= samples; i++)
 	{
-		//We don't consider rays coming out of the screeen
-		//if (rayStep.z < 0) break;
-
 		//March a step
 		float3 rayPosition = rayOrigin + (i - 0.5f + noise)*rayStep;
 
+		//We don't consider rays coming out of the screeen
 		if (rayPosition.z < 0 || rayPosition.z>1) break;
 
 		//Get the depth at our new position
 		int3 texCoordInt = int3(rayPosition.xy * resolution, 0);
-		float sampleDepth = TransformDepth(DepthMap.Load(texCoordInt).r * -FarClip, Projection);
+
+		float linearDepth = DepthMap.Load(texCoordInt).r * -FarClip;
+		float sampleDepth = TransformDepth(linearDepth, Projection);
 
 		float depthDifference = sampleDepth - rayPosition.z;
 
+		//needs normal looking to it!
+
+		//Coming towards us, let's go back to linear depth!
+		[branch]
+		if (rayStep.z < 0 && depthDifference < 0)
+		{
+			//Where are we currently in linDepth, note - in VS is + in VPS
+			float depthMinusThickness = TransformDepth(linearDepth + MinimumThickness, Projection);
+			
+			if (depthMinusThickness < rayPosition.z)
+				continue;
+		}
+
 		//March backwards, idea -> binary searcH?
 		[branch]
-		if (depthDifference < 0) //sample < rayPosition.z
+		if (depthDifference <= 0 && sampleDepth >= startingDepth-rayStep.z*0.5f) //sample < rayPosition.z
 		{
 			hitPosition = rayPosition;
 
@@ -220,20 +234,26 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 
 				texCoordInt = int3(rayPosition.xy * resolution, 0);
 
-				sampleDepth = TransformDepth(DepthMap.Load(texCoordInt).r * -FarClip, Projection);
+				sampleDepth = TransformDepth(DepthMap.Load(texCoordInt).r * -FarClip - 50.0f, Projection);
 
 				//Looks like we don't hit anything any more?
 				[branch]
-				if (sampleDepth > rayPosition.z)
+				if (sampleDepth >= rayPosition.z)
 				{
 					//only z is relevant
-					float prevZ = 0; // rayPositionVSPrevious.z;
-					float d = rayPositionFirstHit.z - rayPosition.z;
 
-					float /*depthPrev*/ b = sampleDepthFirstHit - rayPosition.z;
-					float /*depth*/ a = sampleDepth - rayPosition.z;
+					float origin = rayPositionFirstHit.z;
+					
+					//should be smaller
+					float r = rayPosition.z - origin;
 
-					float x = -b / (b - a) * (1 / (-d - 1 / (b - a))) / d;
+					//y = r * x + c, c = 0
+					//y = (b-a)*x + a
+					float a = sampleDepthFirstHit - origin;
+
+					float b = sampleDepth - origin;
+
+					float x = (a) / (r - b + a);
 
 					float sampleDepthLerped = lerp(sampleDepth, sampleDepthFirstHit, x);
 
@@ -241,10 +261,14 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 
 					hitTexCoord = lerp(rayPosition.xy, rayPositionFirstHit.xy, x);
 
-					if (sampleDepthLerped >= hitPosition.z)
-					{
-						hit = false;
-					}
+					hitTexCoord = rayPosition.xy;
+
+					////In front
+					//if (sampleDepthFirstHit <= rayPositionFirstHit.z - rayStep.z*j/samples2)
+					//{
+					//	hit = false;
+					//}
+
 					break;
 				}
 
@@ -259,7 +283,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 			int3 hitCoordInt = int3(hitTexCoord.xy * resolution, 0);
 
 			float4 albedoColor = TargetMap.Load(hitCoordInt);
-			output = albedoColor;
+			output.rgb = albedoColor;
 			output.a = 1;
 
 			//Fade out to the edges
@@ -287,10 +311,12 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 			float fade = saturate(1 - reflectVector.z);
 
 			output.rgb *= output.a * (1 - roughness) * fade;
+
 			break;
 		}
 		startingDepth = rayPosition.z;
 	}
+
 	return output;
 }
 

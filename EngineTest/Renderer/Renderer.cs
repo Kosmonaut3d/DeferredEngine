@@ -52,16 +52,18 @@ namespace EngineTest.Renderer
         private Vector3[] _cornersViewSpace = new Vector3[8];
         private Vector3[] _currentFrustumCorners = new Vector3[4];
 
-        private Matrix _currentToPrevious;
+        private Matrix _currentViewToPreviousViewProjection;
 
         private Matrix _view;
         private Matrix _inverseView;
         private Matrix _projection;
+        private Matrix _inverseProjection;
         private Matrix _viewProjection;
         private Matrix _staticViewProjection;
         private Matrix _inverseViewProjection;
         private Matrix _previousViewProjection;
-        
+        private Matrix _previousStaticViewProjection;
+
         private BoundingFrustum _boundingFrustum;
         private BoundingFrustum _boundingFrustumShadow;
 
@@ -275,13 +277,21 @@ namespace EngineTest.Renderer
         private void CombineTemporalAntialiasing()
         {
             if (!GameSettings.g_TemporalAntiAliasing) return;
-            
+
+            //TEST
+            //RenderTargetBinding[] testAA = new RenderTargetBinding[2];
+            //testAA[0] = new RenderTargetBinding(_temporalAAOffFrame ? _renderTargetTAA_2 : _renderTargetTAA_1);
+            //testAA[1] = new RenderTargetBinding(_renderTargetScreenSpaceEffectPrepareBlur);
+            //_graphicsDevice.SetRenderTargets(testAA);
+
             _graphicsDevice.SetRenderTarget(_temporalAAOffFrame ? _renderTargetTAA_2 : _renderTargetTAA_1);
             _graphicsDevice.BlendState = BlendState.Opaque;
 
+            _graphicsDevice.Clear(Color.TransparentBlack);
+
             Shaders.TemporalAntiAliasingEffect_AccumulationMap.SetValue(_temporalAAOffFrame ? _renderTargetTAA_1 : _renderTargetTAA_2);
             Shaders.TemporalAntiAliasingEffect_UpdateMap.SetValue(_renderTargetFinal);
-            Shaders.TemporalAntiAliasingEffect_CurrentToPrevious.SetValue(_currentToPrevious);
+            Shaders.TemporalAntiAliasingEffect_CurrentToPrevious.SetValue(_currentViewToPreviousViewProjection);
             
             Shaders.TemporalAntiAliasingEffect.CurrentTechnique.Passes[0].Apply();
             _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
@@ -990,9 +1000,9 @@ namespace EngineTest.Renderer
 
             _graphicsDevice.DepthStencilState = DepthStencilState.Default;
             _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
-            Shaders.deferredEnvironmentParameterInverseViewProjection.SetValue(_inverseViewProjection);
-
-           Shaders.deferredEnvironmentParameterCameraPosition.SetValue(cameraPosition);
+            Shaders.deferredEnvironmentParameterInverseViewProjection.SetValue(_inverseProjection);
+            Shaders.deferredEnvironmentParameterInvertView.SetValue(_inverseView);
+            Shaders.deferredEnvironmentParameterCameraPosition.SetValue(cameraPosition);
 
             //Shaders.deferredEnvironment.CurrentTechnique = GameSettings.g_SSReflection
             //    ? Shaders.deferredEnvironment.Techniques["g_SSR"]
@@ -1374,17 +1384,18 @@ namespace EngineTest.Renderer
                 _projection = Matrix.CreatePerspectiveFieldOfView(camera.FieldOfView,
                     GameSettings.g_ScreenWidth / (float)GameSettings.g_ScreenHeight, 1, GameSettings.g_FarPlane);
 
+                _inverseProjection = Matrix.Invert(_projection);
+
                 //Shaders.GBufferEffectParameter_View.SetValue(_view);
                 Shaders.GBufferEffectParameter_Camera.SetValue(camera.Position);
                 
                 _viewProjection = _view*_projection;
                 _staticViewProjection = _viewProjection;
 
-                _currentToPrevious = Matrix.Invert(_view)*_previousViewProjection;
+                _currentViewToPreviousViewProjection = Matrix.Invert(_view)*_previousViewProjection;
+
                 //_currentToPrevious = Matrix.Invert(_previousViewProjection) * _viewProjection;
 
-                _previousViewProjection = _viewProjection;
-                
                 if (GameSettings.g_TemporalAntiAliasing)
                 {
                     if (GameSettings.g_TemporalAntiAliasingJitterMode == 0)
@@ -1426,6 +1437,9 @@ namespace EngineTest.Renderer
                         
                     }
                 }
+
+                _previousViewProjection = _viewProjection;
+                _previousStaticViewProjection = _staticViewProjection;
 
                 _inverseViewProjection = Matrix.Invert(_viewProjection);
                 

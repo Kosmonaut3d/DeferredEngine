@@ -108,7 +108,7 @@ namespace EngineTest.Recources
                 normalMap: content.Load<Texture2D>("Art/test/textures/big_parts_nor"),
                 roughnessMap: content.Load<Texture2D>("Art/test/textures/big_parts_rough"));
 
-            MaterialEffect TrabantWindow = CreateMaterial(Color.White, roughness: 0.04f, metallic: 0);
+            MaterialEffect TrabantWindow = CreateMaterial(Color.White, roughness: 0.04f, metallic: 0.5f);
 
             MaterialEffect TrabantSmallParts = CreateMaterial(Color.White, roughness: 1, metallic: 0,
                 albedoMap: content.Load<Texture2D>("Art/test/textures/small_parts_col"),
