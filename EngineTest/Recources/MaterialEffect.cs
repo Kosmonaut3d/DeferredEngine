@@ -27,12 +27,13 @@ namespace EngineTest.Recources
 
         public Vector3 DiffuseColor = Color.Gray.ToVector3();
 
-        public float Roughness = 0.5f;
+        public float _roughness = 0.5f;
 
         public float Metallic = 0;
         public float EmissiveStrength = 0;
 
-
+        public float Roughness { get { return _roughness;} set { _roughness = Math.Max(value, 0.001f); } }
+        
         public Texture2D AlbedoMap
         {
             get { return _albedoMap; }

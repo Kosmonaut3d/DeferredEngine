@@ -32,7 +32,7 @@ namespace EngineTest.Renderer.RenderModules
             _assets = assets;
         }
 
-        public void Draw(MeshMaterialLibrary meshMat, List<PointLightSource> pointLights, List<DirectionalLightSource> dirLights, Matrix viewProjection, EditorLogic.EditorSendData editorData, bool mouseMoved)
+        public void Draw(MeshMaterialLibrary meshMat, List<PointLightSource> pointLights, List<DirectionalLightSource> dirLights, Matrix viewProjection, Matrix view, EditorLogic.EditorSendData editorData, bool mouseMoved)
         {
             if (editorData.GizmoTransformationMode)
             {
@@ -43,7 +43,7 @@ namespace EngineTest.Renderer.RenderModules
 
             if (mouseMoved)
             {
-                DrawIds(meshMat, pointLights, dirLights, viewProjection, editorData);
+                DrawIds(meshMat, pointLights, dirLights, viewProjection, view, editorData);
                 DrawOutlines(meshMat, viewProjection, true, HoveredId, editorData, mouseMoved);
             }
             else
@@ -52,7 +52,7 @@ namespace EngineTest.Renderer.RenderModules
             }
         }
 
-        public void DrawIds(MeshMaterialLibrary meshMat, List<PointLightSource> pointLights, List<DirectionalLightSource> dirLights, Matrix viewProjection, EditorLogic.EditorSendData editorData)
+        public void DrawIds(MeshMaterialLibrary meshMat, List<PointLightSource> pointLights, List<DirectionalLightSource> dirLights, Matrix viewProjection, Matrix view, EditorLogic.EditorSendData editorData)
         {
             
             _graphicsDevice.SetRenderTarget(_idRenderTarget2D);
@@ -64,7 +64,7 @@ namespace EngineTest.Renderer.RenderModules
             meshMat.Draw(MeshMaterialLibrary.RenderType.idRender, _graphicsDevice, viewProjection, false, false);
 
             //Now onto the billboards
-            DrawBillboards(pointLights, dirLights, viewProjection);
+            DrawBillboards(pointLights, dirLights, viewProjection, view);
 
             //Now onto the gizmos
             DrawGizmos(viewProjection, editorData, _assets);
@@ -79,7 +79,7 @@ namespace EngineTest.Renderer.RenderModules
             HoveredId = IdGenerator.GetIdFromColor(retrievedColor[0]);
         }
 
-        public void DrawBillboards(List<PointLightSource> lights, List<DirectionalLightSource> dirLights, Matrix staticViewProjection)
+        public void DrawBillboards(List<PointLightSource> lights, List<DirectionalLightSource> dirLights, Matrix staticViewProjection, Matrix view)
         {
             _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
             _graphicsDevice.SetVertexBuffer(_billboardBuffer.VBuffer);
@@ -93,6 +93,7 @@ namespace EngineTest.Renderer.RenderModules
             {
                 Matrix world = Matrix.CreateTranslation(light.Position);
                 Shaders.BillboardEffectParameter_WorldViewProj.SetValue(world * staticViewProjection);
+                Shaders.BillboardEffectParameter_WorldView.SetValue(world * view);
                 Shaders.BillboardEffectParameter_IdColor.SetValue(IdGenerator.GetColorFromId(light.Id).ToVector3());
                 Shaders.BillboardEffect.CurrentTechnique.Passes[0].Apply();
 
@@ -103,6 +104,7 @@ namespace EngineTest.Renderer.RenderModules
             {
                 Matrix world = Matrix.CreateTranslation(light.Position);
                 Shaders.BillboardEffectParameter_WorldViewProj.SetValue(world * staticViewProjection);
+                Shaders.BillboardEffectParameter_WorldView.SetValue(world * view);
                 Shaders.BillboardEffectParameter_IdColor.SetValue(IdGenerator.GetColorFromId(light.Id).ToVector3());
                 Shaders.BillboardEffect.CurrentTechnique.Passes[0].Apply();
 
@@ -110,7 +112,7 @@ namespace EngineTest.Renderer.RenderModules
             }
         }
 
-        public void DrawBillboardsSelection(List<PointLightSource> lights, Matrix staticViewProjection, int selectedId, int hoveredId)
+        public void DrawBillboardsSelection(List<PointLightSource> lights, Matrix staticViewProjection, Matrix view, int selectedId, int hoveredId)
         {
             _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
             _graphicsDevice.SetVertexBuffer(_billboardBuffer.VBuffer);
@@ -128,6 +130,7 @@ namespace EngineTest.Renderer.RenderModules
                     light.Id == hoveredId ? Color.Gray.ToVector3() : Color.DarkOrange.ToVector3());
                 Matrix world = Matrix.CreateTranslation(light.Position);
                 Shaders.BillboardEffectParameter_WorldViewProj.SetValue(world * staticViewProjection);
+                Shaders.BillboardEffectParameter_WorldView.SetValue(world * view);
                 Shaders.BillboardEffect.CurrentTechnique.Passes[0].Apply();
 
                 _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2);

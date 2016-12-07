@@ -27,13 +27,15 @@ namespace EngineTest.Renderer
         private GaussianBlur _gaussianBlur;
         private EditorRender _editorRender;
         private CPURayMarch _cpuRayMarch;
-        
+
         //Checkvariables for change
+        private float _g_FarClip;
         private float _supersampling = 1;
         private bool _hologramDraw;
         private int _forceShadowFiltering = 0;
         private bool _forceShadowSS = false;
         private bool _SSR = true;
+        private bool _g_SSReflectionNoise;
 
         private Assets _assets;
 
@@ -42,17 +44,24 @@ namespace EngineTest.Renderer
         Vector3 _inverseResolution = new Vector3(1.0f / GameSettings.g_ScreenWidth, 1.0f / GameSettings.g_ScreenHeight, 0);
         private bool _temporalAAOffFrame = true;
         private int _temporalAAFrame = 0;
+        private Vector3[] HaltonSequence;
+        private int HaltonSequenceIndex = -1;
+        private const int HaltonSequenceLength = 16;
+        
+        private Vector3[] _cornersWorldSpace = new Vector3[8];
+        private Vector3[] _cornersViewSpace = new Vector3[8];
+        private Vector3[] _currentFrustumCorners = new Vector3[4];
 
         private Matrix _currentToPrevious;
 
         private Matrix _view;
+        private Matrix _inverseView;
         private Matrix _projection;
         private Matrix _viewProjection;
         private Matrix _staticViewProjection;
         private Matrix _inverseViewProjection;
-
         private Matrix _previousViewProjection;
-
+        
         private BoundingFrustum _boundingFrustum;
         private BoundingFrustum _boundingFrustumShadow;
 
@@ -129,6 +138,8 @@ namespace EngineTest.Renderer
             
             _assets = assets;
 
+            Shaders.ScreenSpaceReflectionParameter_NoiseMap.SetValue(_assets.NoiseMap);
+
             GameSettings.ApplySettings();
 
             SetUpRenderTargets(GameSettings.g_ScreenWidth, GameSettings.g_ScreenHeight, false);
@@ -151,6 +162,7 @@ namespace EngineTest.Renderer
                 ColorDestinationBlend = Blend.One,
                 AlphaDestinationBlend = Blend.One
             };
+            
         }
         #endregion
         
@@ -222,7 +234,7 @@ namespace EngineTest.Renderer
 
             CombineTemporalAntialiasing();
                 
-            if(GameSettings.Editor_enable) _editorRender.DrawIds(meshMaterialLibrary, pointLights, dirLights, _staticViewProjection, editorData);
+            if(GameSettings.Editor_enable) _editorRender.DrawIds(meshMaterialLibrary, pointLights, dirLights, _staticViewProjection, _view, editorData);
                 //Show certain buffer stages depending on user input
             RenderMode();
 
@@ -230,11 +242,11 @@ namespace EngineTest.Renderer
             {
                 DrawMapToScreenToFullScreen(_editorRender.GetOutlines(), BlendState.Additive);
 
-                _editorRender.DrawEditorElements(meshMaterialLibrary, pointLights, dirLights, _staticViewProjection, editorData);
+                _editorRender.DrawEditorElements(meshMaterialLibrary, pointLights, dirLights, _staticViewProjection, _view, editorData);
 
             }
 
-            //CPURayMarch(camera);
+            CPURayMarch(camera);
 
             LineHelperManager.Draw(_graphicsDevice, _staticViewProjection);
 
@@ -334,6 +346,8 @@ namespace EngineTest.Renderer
                     }
                 }
 
+                _inverseView = Matrix.Invert(_view);
+                Shaders.ScreenSpaceEffectParameter_InverseViewProjection.SetValue(_inverseView);
                 _viewProjection = _view*_projection;
                 _inverseViewProjection = Matrix.Invert(_viewProjection);
                 viewProjectionHasChanged = true;
@@ -534,10 +548,10 @@ namespace EngineTest.Renderer
             if (GameSettings.g_SSReflectionNoise)
                 Shaders.ScreenSpaceReflectionParameter_Time.SetValue((float)gameTime.TotalGameTime.TotalSeconds % 1000);
 
-            Shaders.ScreenSpaceReflectionParameter_InverseViewProjection.SetValue(_inverseViewProjection);
+            
+            //Shaders.ScreenSpaceReflectionParameter_InverseProjection.SetValue(_inverseViewProjection);
             //Shaders.ScreenSpaceReflectionParameter_Projection.SetValue(_projection);
-            Shaders.ScreenSpaceReflectionParameter_ViewProjection.SetValue(_viewProjection);
-            Shaders.ScreenSpaceReflectionParameter_CameraPosition.SetValue(camera.Position);
+            Shaders.ScreenSpaceReflectionParameter_Projection.SetValue(_projection);
 
             //Shaders.ScreenSpaceEffect.CurrentTechnique = Shaders.ScreenSpaceEffectTechnique_SSAO;
             Shaders.ScreenSpaceReflectionEffect.CurrentTechnique.Passes[0].Apply();
@@ -618,8 +632,9 @@ namespace EngineTest.Renderer
 
             _graphicsDevice.DepthStencilState = DepthStencilState.Default;
 
-            foreach (PointLightSource light in pointLights)
+            for (int index = 0; index < pointLights.Count; index++)
             {
+                PointLightSource light = pointLights[index];
                 if (_boundingFrustum.Contains(light.BoundingSphere) == ContainmentType.Disjoint)
                 {
                     continue;
@@ -1055,12 +1070,12 @@ namespace EngineTest.Renderer
             if (pointLights.Count < 1) return;
 
             //If nothing has changed we don't need to update
-            if (viewProjectionHasChanged)
-            {
-                Shaders.deferredPointLightParameterViewProjection.SetValue(_viewProjection);
-                Shaders.deferredPointLightParameterCameraPosition.SetValue(cameraOrigin);
-                Shaders.deferredPointLightParameterInverseViewProjection.SetValue(_inverseViewProjection);
-            }
+            //if (viewProjectionHasChanged)
+            //{
+            //    //Shaders.deferredPointLightParameter_WorldViewProjection.SetValue(_viewProjection);
+            //    //Shaders.deferredPointLightParameterCameraPosition.SetValue(cameraOrigin);
+            //    //Shaders.deferredPointLightParameterInverseViewProjection.SetValue(_inverseViewProjection);
+            //}
 
             if (GameSettings.g_VolumetricLights)
                 Shaders.deferredPointLightParameter_Time.SetValue((float)gameTime.TotalGameTime.TotalSeconds % 1000);
@@ -1086,23 +1101,19 @@ namespace EngineTest.Renderer
             GameStats.LightsDrawn ++;
             
             //Send the light parameters to the shader
-            Shaders.deferredPointLightParameter_World.SetValue(light.WorldMatrix);
-            Shaders.deferredPointLightParameter_LightPosition.SetValue(light.Position);
+            if (viewProjectionHasChanged)
+            {
+                light.LightViewSpace = light.WorldMatrix*_view;
+                light.LightWorldViewProj = light.WorldMatrix*_viewProjection;
+            }
+
+            Shaders.deferredPointLightParameter_WorldView.SetValue(light.LightViewSpace);
+            Shaders.deferredPointLightParameter_WorldViewProjection.SetValue(light.LightWorldViewProj);
+            Shaders.deferredPointLightParameter_LightPosition.SetValue(light.LightViewSpace.Translation);
             Shaders.deferredPointLightParameter_LightColor.SetValue(light.ColorV3);
             Shaders.deferredPointLightParameter_LightRadius.SetValue(light.Radius);
             Shaders.deferredPointLightParameter_LightIntensity.SetValue(light.Intensity);
-
-            if (light.IsVolumetric)
-            {
-                //Get ViewSpace position of the light's center
-                Vector4 lightPositionVS = Vector4.Transform(new Vector4(light.Position, 1), _viewProjection);
-                lightPositionVS /= lightPositionVS.W;
-                Shaders.deferredPointLightParameter_LightPositionVS.SetValue(lightPositionVS);
-
-                Vector2 lightPositionTexCoord = 0.5f*(new Vector2(lightPositionVS.X, -lightPositionVS.Y) + Vector2.One);
-                Shaders.deferredPointLightParameter_LightPositionTexCoord.SetValue(lightPositionTexCoord);
-            }
-
+            
             //Compute whether we are inside or outside and use 
             float cameraToCenter = Vector3.Distance(cameraOrigin, light.Position);
             int inside = cameraToCenter < light.Radius*1.2f ? 1 : -1;
@@ -1113,7 +1124,7 @@ namespace EngineTest.Renderer
             
             //Draw the sphere
             ModelMeshPart meshpart = _assets.SphereMeshPart;
-            light.ApplyShader();
+            light.ApplyShader(_inverseView);
             _graphicsDevice.SetVertexBuffer(meshpart.VertexBuffer);
             _graphicsDevice.Indices = (meshpart.IndexBuffer);
             int primitiveCount = meshpart.PrimitiveCount;
@@ -1204,7 +1215,7 @@ namespace EngineTest.Renderer
 
             _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
 
-            meshMaterialLibrary.Draw(renderType: MeshMaterialLibrary.RenderType.opaque, graphicsDevice: _graphicsDevice, viewProjection: _viewProjection, lightViewPointChanged: true);
+            meshMaterialLibrary.Draw(renderType: MeshMaterialLibrary.RenderType.opaque, graphicsDevice: _graphicsDevice, viewProjection: _viewProjection, lightViewPointChanged: true, view: _view);
 
             //Performance Profiler
             if (GameSettings.d_profiler)
@@ -1247,6 +1258,21 @@ namespace EngineTest.Renderer
 
         private void CheckRenderChanges(List<DirectionalLightSource> dirLights)
         {
+            if (_g_FarClip != GameSettings.g_FarPlane)
+            {
+                _g_FarClip = GameSettings.g_FarPlane;
+                Shaders.GBufferEffectParameter_FarClip.SetValue(_g_FarClip);
+                Shaders.deferredPointLightParameter_FarClip.SetValue(_g_FarClip);
+                Shaders.BillboardEffectParameter_FarClip.SetValue(_g_FarClip);
+                Shaders.ScreenSpaceReflectionParameter_FarClip.SetValue(_g_FarClip);
+            }
+
+            if (_g_SSReflectionNoise != GameSettings.g_SSReflectionNoise)
+            {
+                _g_SSReflectionNoise = GameSettings.g_SSReflectionNoise;
+                if(!_g_SSReflectionNoise) Shaders.ScreenSpaceReflectionParameter_Time.SetValue(0.0f);
+            }
+
             //Check if supersampling has changed
             if (_supersampling != GameSettings.g_supersampling)
             {
@@ -1300,8 +1326,7 @@ namespace EngineTest.Renderer
 
                 _SSR = GameSettings.g_SSReflection;
             }
-
-
+            
             //Performance Profiler
             if (GameSettings.d_profiler)
             {
@@ -1334,8 +1359,12 @@ namespace EngineTest.Renderer
             if (viewProjectionHasChanged)
             {
                 camera.HasChanged = false;
-
+                
                 _view = Matrix.CreateLookAt(camera.Position, camera.Lookat, camera.Up);
+
+                _inverseView = Matrix.Invert(_view);
+
+                Shaders.deferredPointLightParameter_InverseView.SetValue(_inverseView);
 
                 _projection = Matrix.CreatePerspectiveFieldOfView(camera.FieldOfView,
                     GameSettings.g_ScreenWidth / (float)GameSettings.g_ScreenHeight, 1, GameSettings.g_FarPlane);
@@ -1350,7 +1379,7 @@ namespace EngineTest.Renderer
                 //_currentToPrevious = Matrix.Invert(_previousViewProjection) * _viewProjection;
 
                 _previousViewProjection = _viewProjection;
-
+                
                 if (GameSettings.g_TemporalAntiAliasing)
                 {
                     if (GameSettings.g_TemporalAntiAliasingJitterMode == 0)
@@ -1387,22 +1416,18 @@ namespace EngineTest.Renderer
                         Vector3 translation = GetHaltonSequence();
                         _viewProjection = _viewProjection *
                                           Matrix.CreateTranslation(translation);
+
+                        Matrix test = _staticViewProjection - _viewProjection;
+                        
                     }
                 }
 
                 _inverseViewProjection = Matrix.Invert(_viewProjection);
-
-
-                if (_boundingFrustum == null)
-                {
-                    _boundingFrustum = new BoundingFrustum(_viewProjection);
-                }
-                else
-                {
-                    _boundingFrustum.Matrix = _viewProjection;
-                }
-
-
+                
+                if (_boundingFrustum == null) _boundingFrustum = new BoundingFrustum(_staticViewProjection);
+                else _boundingFrustum.Matrix = _staticViewProjection;
+                
+                ComputeFrustumCorners(_boundingFrustum);
             }
 
             //We need to update whether or not entities are in our boundingFrustum and then cull them or not!
@@ -1418,9 +1443,6 @@ namespace EngineTest.Renderer
             }
         }
 
-        private Vector3[] HaltonSequence;
-        private int HaltonSequenceIndex = -1;
-        private const int HaltonSequenceLength = 16;
         //Halton 2,3 sequence
         private Vector3 GetHaltonSequence()
         {
@@ -1457,6 +1479,31 @@ namespace EngineTest.Renderer
             if (HaltonSequenceIndex >= HaltonSequenceLength) HaltonSequenceIndex = 0;
 
             return HaltonSequence[HaltonSequenceIndex];
+        }
+
+        /// <summary>
+        /// From https://jcoluna.wordpress.com/2011/01/18/xna-4-0-light-pre-pass/
+        /// Compute the frustum corners for a camera.
+        /// Its used to reconstruct the pixel position using only the depth value.
+        /// Read here for more information
+        /// http://mynameismjp.wordpress.com/2009/03/10/reconstructing-position-from-depth/
+        /// </summary>
+        /// <param name="camera"> Current rendering camera </param>
+        private void ComputeFrustumCorners(BoundingFrustum cameraFrustum)
+        {
+            cameraFrustum.GetCorners(_cornersWorldSpace);
+            //this is the inverse of our camera transform
+            Vector3.Transform(_cornersWorldSpace, ref _view, _cornersViewSpace); //put the frustum into view space
+            for (int i = 0; i < 4; i++) //take only the 4 farthest points
+            {
+                _currentFrustumCorners[i] = _cornersViewSpace[i + 4];
+            }
+            Vector3 temp = _currentFrustumCorners[3];
+            _currentFrustumCorners[3] = _currentFrustumCorners[2];
+            _currentFrustumCorners[2] = temp;
+
+            Shaders.ScreenSpaceReflectionParameter_FrustumCorners.SetValue(_currentFrustumCorners);
+            Shaders.TemporalAntiAliasingEffect_FrustumCorners.SetValue(_currentFrustumCorners);
         }
 
         /// <summary>
@@ -1675,8 +1722,8 @@ namespace EngineTest.Renderer
             if(GameSettings.e_CPURayMarch)
 
             if (Input.WasKeyPressed(Keys.K))
-                _cpuRayMarch.Calculate(_renderTargetDepth, _renderTargetNormal, _inverseViewProjection, _viewProjection,
-                    camera);
+                _cpuRayMarch.Calculate(_renderTargetDepth, _renderTargetNormal, _projection, _inverseView, _inverseViewProjection,
+                    camera, _currentFrustumCorners);
 
             _cpuRayMarch.Draw();
         }

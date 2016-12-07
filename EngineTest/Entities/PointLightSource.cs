@@ -30,12 +30,14 @@ namespace EngineTest.Recources
         public Matrix LightViewProjectionPositiveZ;
         public Matrix LightViewProjectionNegativeZ;
 
+        public Matrix LightViewSpace;
+        public Matrix LightWorldViewProj;
+
         public BoundingSphere BoundingSphere;
 
         public bool DrawShadow = false;
         public bool IsVolumetric;
         public float LightVolumeDensity = 1;
-
 
 
         /// <summary>
@@ -121,20 +123,20 @@ namespace EngineTest.Recources
 
         }
 
-        public virtual void ApplyShader()
+        public virtual void ApplyShader(Matrix inverseView)
         {
             if (shadowMapCube != null)
             {
                 Shaders.deferredPointLightParameterShadowMap.SetValue(shadowMapCube);
 
-                Shaders.deferredPointLightParameterLightViewProjectionPositiveX.SetValue(LightViewProjectionPositiveX);
-                Shaders.deferredPointLightParameterLightViewProjectionNegativeX.SetValue(LightViewProjectionNegativeX);
+                Shaders.deferredPointLightParameterLightViewProjectionPositiveX.SetValue(inverseView * LightViewProjectionPositiveX);
+                Shaders.deferredPointLightParameterLightViewProjectionNegativeX.SetValue(inverseView * LightViewProjectionNegativeX);
 
-                Shaders.deferredPointLightParameterLightViewProjectionPositiveY.SetValue(LightViewProjectionPositiveY);
-                Shaders.deferredPointLightParameterLightViewProjectionNegativeY.SetValue(LightViewProjectionNegativeY);
+                Shaders.deferredPointLightParameterLightViewProjectionPositiveY.SetValue(inverseView * LightViewProjectionPositiveY);
+                Shaders.deferredPointLightParameterLightViewProjectionNegativeY.SetValue(inverseView * LightViewProjectionNegativeY);
 
-                Shaders.deferredPointLightParameterLightViewProjectionPositiveZ.SetValue(LightViewProjectionPositiveZ);
-                Shaders.deferredPointLightParameterLightViewProjectionNegativeZ.SetValue(LightViewProjectionNegativeZ);
+                Shaders.deferredPointLightParameterLightViewProjectionPositiveZ.SetValue(inverseView * LightViewProjectionPositiveZ);
+                Shaders.deferredPointLightParameterLightViewProjectionNegativeZ.SetValue(inverseView * LightViewProjectionNegativeZ);
 
                 if (IsVolumetric && GameSettings.g_VolumetricLights)
                 {

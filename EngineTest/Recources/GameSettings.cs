@@ -125,7 +125,7 @@
         private static bool _g_SSReflection_Taa = true;
         public static bool g_SSReflectionNoise = true;
         public static bool g_VolumetricLights = true;
-        public static bool e_CPURayMarch = false;
+        public static bool e_CPURayMarch = true;
         public static bool g_ClearGBuffer = true;
         public static bool d_defaultMaterial = false;
         public static bool g_PostProcessing = true;
@@ -208,18 +208,38 @@
             }
         }
 
+        private static int msamples = 3;
+        public static int ssr_msamples
+        {
+            get { return msamples; }
+            set
+            {
+                msamples = value;
+                Shaders.ScreenSpaceReflectionEffect.Parameters["Samples"].SetValue(msamples);
+            }
+        }
+
+        private static int ssamples = 3;
+        public static int ssr_ssamples
+        {
+            get { return ssamples; }
+            set
+            {
+                ssamples = value;
+                Shaders.ScreenSpaceReflectionEffect.Parameters["SecondarySamples"].SetValue(ssamples);
+            }
+        }
 
         public static void ApplySettings()
         {
             ApplySSAO();
             
             g_SSReflection = _g_SSReflection;
-
-            g_SSReflection = false;
+            
             g_EmissiveDraw = false;
             ssao_Active = false;
-            g_PostProcessing = false;
-            g_TemporalAntiAliasing = false;
+            g_PostProcessing = true;
+            g_TemporalAntiAliasing = true;
             g_EnvironmentMapping = false;
 
             d_defaultMaterial = false;

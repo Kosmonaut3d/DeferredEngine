@@ -42,6 +42,8 @@ struct VertexShaderOutput
     float2 TexCoord : TEXCOORD0;
 };
 
+float3 FrustumCorners[4]; //In Viewspace!
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  FUNCTION DEFINITIONS
 
@@ -66,6 +68,20 @@ float overlapFunction(float3 x, float3 y)
     return dot(x / y, float3(1, 1, 1)) / 3;
 }
 
+float3 GetFrustumRay2(float2 texCoord)
+{
+	float3 x1 = lerp(FrustumCorners[0], FrustumCorners[1], texCoord.x);
+	float3 x2 = lerp(FrustumCorners[2], FrustumCorners[3], texCoord.x);
+	float3 outV = lerp(x1, x2, texCoord.y);
+	return outV;
+}
+
+float3 GetFrustumRay(float2 texCoord)
+{
+	float index = texCoord.x + (texCoord.y * 2);
+	return FrustumCorners[index];
+}
+
 
 float4 PixelShaderFunction(VertexShaderOutput input) : SV_Target
 {
@@ -75,7 +91,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : SV_Target
 
     float2 texCoord = float2(input.TexCoord);
     
-    float depthVal = 1 - DepthMap.Sample(texSampler, texCoord).r;
+    float depthVal = DepthMap.Sample(texSampler, texCoord).r;
 
     positionVS.w = 1.0f;
     positionVS.z = depthVal;

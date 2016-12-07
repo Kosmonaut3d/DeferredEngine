@@ -1,9 +1,11 @@
 ﻿        
 // Camera parameters.
 float4x4 WorldViewProj;
+float4x4 WorldView;
 
 //Will be overwritten
 float AspectRatio = 1.777;
+float FarClip;
 
 // Particle texture and sampler.
 Texture2D Texture;
@@ -51,13 +53,15 @@ VertexShaderOutput BillboardVertexShader(VertexShaderInput input)
     output.Position = mul(input.Position, WorldViewProj);
     output.Position /= output.Position.w;
 
+	float4 PositionVS = mul(input.Position, WorldView);
+
     float2 texCoord = 0.5f * (float2(output.Position.x, -output.Position.y) + 1);
         
-    float vDepthMap = 1-DepthMap.SampleLevel(DepthSampler, texCoord, 0).r;
-    vDepthMap += 1 - DepthMap.SampleLevel(DepthSampler, texCoord + float2(0.01f, 0), 0).r;
-    vDepthMap += 1 - DepthMap.SampleLevel(DepthSampler, texCoord - float2(0.01f, 0), 0).r;
+    float vDepthMap = DepthMap.SampleLevel(DepthSampler, texCoord, 0).r;
+    vDepthMap += DepthMap.SampleLevel(DepthSampler, texCoord + float2(0.01f, 0), 0).r;
+    vDepthMap += DepthMap.SampleLevel(DepthSampler, texCoord - float2(0.01f, 0), 0).r;
     vDepthMap /= 3;
-    float vLocalDepth = output.Position.z / output.Position.w;
+    float vLocalDepth = PositionVS.z /- FarClip;
        
     if (vLocalDepth < vDepthMap)
     {

@@ -22,7 +22,7 @@ namespace EngineTest.Recources
             DrawShadow = drawShadow;
         }
 
-        public override void ApplyShader()
+        public override void ApplyShader(Matrix InverseView)
         {
             throw new NotImplementedException();
 

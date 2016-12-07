@@ -43,6 +43,8 @@ namespace EngineTest.Recources
 
         private Texture2D sponza_curtain_metallic;
 
+        public Texture2D NoiseMap;
+
         public static Texture2D BaseTex;
 
         public Texture2D Icon_Light;
@@ -66,6 +68,7 @@ namespace EngineTest.Recources
         public Model TestCube;
 
         public Model Trabant;
+        public MaterialEffect TrabantBigParts;
 
         public TextureCube TestCubeMap;
 
@@ -100,6 +103,21 @@ namespace EngineTest.Recources
 
             Trabant = content.Load<Model>("Art/test/source/trabant_realtime_v3");
 
+            TrabantBigParts = CreateMaterial(Color.White, roughness: 1, metallic: 0,
+                albedoMap: content.Load<Texture2D>("Art/test/textures/big_parts_col"),
+                normalMap: content.Load<Texture2D>("Art/test/textures/big_parts_nor"),
+                roughnessMap: content.Load<Texture2D>("Art/test/textures/big_parts_rough"));
+
+            MaterialEffect TrabantWindow = CreateMaterial(Color.White, roughness: 0.04f, metallic: 0);
+
+            MaterialEffect TrabantSmallParts = CreateMaterial(Color.White, roughness: 1, metallic: 0,
+                albedoMap: content.Load<Texture2D>("Art/test/textures/small_parts_col"),
+                normalMap: null,
+                roughnessMap: content.Load<Texture2D>("Art/test/textures/small_parts_rough"));
+
+            Trabant.Meshes[0].MeshParts[0].Effect = TrabantWindow;
+            Trabant.Meshes[1].MeshParts[0].Effect = TrabantBigParts;
+            Trabant.Meshes[3].MeshParts[0].Effect = TrabantSmallParts;
             //JackJean = content.Load<Model>("Art/Skinned/JackJean");
             //JackJean = ProcessModel(JackJean);
 
@@ -107,7 +125,7 @@ namespace EngineTest.Recources
             // HOW TO ADD NEW MODELS WITH PRE-EXISTING ALBEDO TEXTURES
 
             // HelmetModel = ProcessModel(HelmetModel);
-            
+
             SponzaTextures.Add(background_ddn = content.Load<Texture2D>("Sponza/textures/background_ddn"));
             SponzaTextures.Add(chain_texture_ddn = content.Load<Texture2D>("Sponza/textures/chain_texture_ddn"));
             SponzaTextures.Add(chain_texture_mask = content.Load<Texture2D>("Sponza/textures/chain_texture_mask"));
@@ -136,8 +154,8 @@ namespace EngineTest.Recources
             SponzaTextures.Add(sponza_details_spec = content.Load<Texture2D>("Sponza/textures/sponza_details_spec"));
             SponzaTextures.Add(sponza_flagpole_spec = content.Load<Texture2D>("Sponza/textures/sponza_flagpole_spec"));
 
-            SponzaTextures.Add(sponza_floor_a_spec = content.Load<Texture2D>("Sponza/textures/sponza_floor_a_spec"));
-            SponzaTextures.Add(sponza_floor_a_ddn = content.Load<Texture2D>("Sponza/textures/sponza_floor_a_ddn"));
+            //SponzaTextures.Add(sponza_floor_a_spec = content.Load<Texture2D>("Sponza/textures/sponza_floor_a_spec"));
+            //SponzaTextures.Add(sponza_floor_a_ddn = content.Load<Texture2D>("Sponza/textures/sponza_floor_a_ddn"));
 
             SponzaTextures.Add(sponza_thorn_ddn = content.Load<Texture2D>("Sponza/textures/sponza_thorn_ddn"));
             SponzaTextures.Add(sponza_thorn_mask = content.Load<Texture2D>("Sponza/textures/sponza_thorn_mask"));
@@ -149,6 +167,8 @@ namespace EngineTest.Recources
             SponzaTextures.Add(vase_round_spec = content.Load<Texture2D>("Sponza/textures/vase_round_spec"));
 
             sponza_curtain_metallic = content.Load<Texture2D>("Sponza/textures/sponza_curtain_metallic");
+
+            NoiseMap = content.Load<Texture2D>("Shaders/noise_blur");
 
             Sphere = content.Load<Model>("Art/default/sphere");
             SphereMeshPart = Sphere.Meshes[0].MeshParts[0];

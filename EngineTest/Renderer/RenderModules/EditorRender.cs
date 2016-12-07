@@ -54,7 +54,7 @@ namespace EngineTest.Renderer.RenderModules
             _idRenderer.SetUpRenderTarget(width, height);
         }
 
-        public void DrawBillboards(List<PointLightSource> lights, List<DirectionalLightSource> dirLights, Matrix staticViewProjection, EditorLogic.EditorSendData sendData)
+        public void DrawBillboards(List<PointLightSource> lights, List<DirectionalLightSource> dirLights, Matrix staticViewProjection, Matrix view, EditorLogic.EditorSendData sendData)
         {
             int hoveredId = GetHoveredId();
 
@@ -73,6 +73,7 @@ namespace EngineTest.Renderer.RenderModules
                 var light = lights[index];
                 Matrix world = Matrix.CreateTranslation(light.Position);
                 Shaders.BillboardEffectParameter_WorldViewProj.SetValue(world*staticViewProjection);
+                Shaders.BillboardEffectParameter_WorldView.SetValue(world *view);
 
                 if (light.Id == GetHoveredId())
                     Shaders.BillboardEffectParameter_IdColor.SetValue(Color.White.ToVector3());
@@ -92,6 +93,7 @@ namespace EngineTest.Renderer.RenderModules
             { 
                 Matrix world = Matrix.CreateTranslation(light.Position);
                 Shaders.BillboardEffectParameter_WorldViewProj.SetValue(world * staticViewProjection);
+                Shaders.BillboardEffectParameter_WorldView.SetValue(world * view);
 
                 if (light.Id == GetHoveredId())
                     Shaders.BillboardEffectParameter_IdColor.SetValue(Color.White.ToVector3());
@@ -125,21 +127,20 @@ namespace EngineTest.Renderer.RenderModules
             }
         }
 
-        public void DrawIds(MeshMaterialLibrary meshMaterialLibrary, List<PointLightSource>lights, List<DirectionalLightSource> dirLights, Matrix staticViewProjection, EditorLogic.EditorSendData editorData)
+        public void DrawIds(MeshMaterialLibrary meshMaterialLibrary, List<PointLightSource>lights, List<DirectionalLightSource> dirLights, Matrix staticViewProjection, Matrix view, EditorLogic.EditorSendData editorData)
         {
-            _idRenderer.Draw(meshMaterialLibrary, lights, dirLights, staticViewProjection, editorData, mouseMovement);
+            _idRenderer.Draw(meshMaterialLibrary, lights, dirLights, staticViewProjection, view, editorData, mouseMovement);
         }
 
-        public void DrawEditorElements(MeshMaterialLibrary meshMaterialLibrary, List<PointLightSource> lights, List<DirectionalLightSource> dirLights, Matrix staticViewProjection, EditorLogic.EditorSendData editorData)
+        public void DrawEditorElements(MeshMaterialLibrary meshMaterialLibrary, List<PointLightSource> lights, List<DirectionalLightSource> dirLights, Matrix staticViewProjection, Matrix view, EditorLogic.EditorSendData editorData)
         {
             _graphicsDevice.SetRenderTarget(null);
             _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
             _graphicsDevice.DepthStencilState = DepthStencilState.Default;
             _graphicsDevice.BlendState = BlendState.Opaque;
-
-
+            
             DrawGizmo(staticViewProjection, editorData);
-            DrawBillboards(lights, dirLights, staticViewProjection, editorData);
+            DrawBillboards(lights, dirLights, staticViewProjection, view, editorData);
         }
 
         public void DrawGizmo(Matrix staticViewProjection, EditorLogic.EditorSendData editorData)

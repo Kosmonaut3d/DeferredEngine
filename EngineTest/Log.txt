@@ -15,3 +15,7 @@ Light View Space Global Illumination
 TODO:
 
 - Integrate the physics system better into the lighting system so it doesnot update when the position doesn't change any more.
+
+-http://aras-p.info/texts/CompactNormalStorage.html
+
+https://github.com/kode80/kode80SSR/blob/master/Assets/Resources/Shaders/SSR.shader

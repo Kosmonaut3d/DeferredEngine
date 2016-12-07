@@ -13,7 +13,7 @@ bool useGauss = true;
 
 #include "helper.fx"
 
-float exposure = 20;
+float exposure = 2;
 
 Texture2D SSAOMap;
 
@@ -227,7 +227,7 @@ float4 PixelShaderSSRFunction(VertexShaderOutput input) : COLOR0
 	float3 volumeLight = volumeLightMap.Sample(pointSampler, input.TexCoord).rgb;
 
     float4 ssreflectionMap = SSRMap.Sample(linearSampler, input.TexCoord);
-    specularLight += ssreflectionMap.rgb / exposure;
+    specularLight += ssreflectionMap.rgb / exposure / 2;
     //lerp(specularLight, ssreflectionMap.rgb / exposure, ssreflectionMap.a);
 
     float3 plasticFinal = diffuseColor.rgb * (diffuseLight) + specularLight;

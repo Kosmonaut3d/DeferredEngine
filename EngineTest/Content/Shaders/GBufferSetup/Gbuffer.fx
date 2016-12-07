@@ -6,12 +6,13 @@
 
 #include "helper.fx"
 
-float4x4  World;
+float4x4  WorldView;
 float4x4  WorldViewProj;
 float3x3  WorldViewIT; //Inverse Transposed
 
 float3 Camera;
 float2 Resolution;
+float FarClip = 200;
 
 float Roughness = 0.3f;
 float Metallic = 0;
@@ -67,7 +68,7 @@ struct DrawBasic_VSOut
     float4 Position : SV_POSITION0;
     float3 Normal : NORMAL0;
     float2 TexCoord : TEXCOORD1;
-    float2 Depth : TEXCOORD2;
+    float Depth : TEXCOORD2;
 };
 
 struct DrawNormals_VSIn
@@ -84,7 +85,7 @@ struct DrawNormals_VSOut
     float4 Position : SV_POSITION0;
     float3x3 WorldToTangentSpace : TEXCOORD3;
     float2 TexCoord : TEXCOORD1;
-    float2 Depth : TEXCOORD0;
+    float Depth : TEXCOORD0;
 };
 
 struct Render_IN
@@ -113,9 +114,11 @@ DrawBasic_VSOut DrawBasic_VertexShader(DrawBasic_VSIn input)
 {
     DrawBasic_VSOut Output;
     Output.Position = mul(input.Position, WorldViewProj);
-    Output.Normal = mul(float4(input.Normal, 0), World).xyz;
+	Output.Normal = mul(input.Normal, WorldViewIT);//mul(float4(input.Normal, 0), World).xyz;
     Output.TexCoord = input.TexCoord;
-    Output.Depth = float2(Output.Position.z, Output.Position.w);
+
+	//Linear Depth buffer instead of Z / W
+	Output.Depth = mul(input.Position, WorldView).z / -FarClip;//float2(Output.Position.z, Output.Position.w);
     return Output;
 }
 
@@ -123,11 +126,13 @@ DrawNormals_VSOut DrawNormals_VertexShader(DrawNormals_VSIn input)
 {
     DrawNormals_VSOut Output;
     Output.Position = mul(input.Position, WorldViewProj);
-    Output.WorldToTangentSpace[0] = mul(normalize(float4(input.Tangent, 0)), World).xyz;
-    Output.WorldToTangentSpace[1] = mul(normalize(float4(input.Binormal, 0)), World).xyz;
-    Output.WorldToTangentSpace[2] = mul(normalize(float4(input.Normal, 0)), World).xyz;
+	Output.WorldToTangentSpace[0] = mul(input.Tangent, WorldViewIT);//mul(normalize(float4(input.Tangent, 0)), World).xyz;
+    Output.WorldToTangentSpace[1] = mul(input.Binormal, WorldViewIT);//mul(normalize(float4(input.Binormal, 0)), World).xyz;
+    Output.WorldToTangentSpace[2] = mul(input.Normal, WorldViewIT);//mul(normalize(float4(input.Normal, 0)), World).xyz;
     Output.TexCoord = input.TexCoord;
-    Output.Depth = float2(Output.Position.z, Output.Position.w);
+
+	//Linear Depth buffer instead of Z / W
+	Output.Depth = mul(input.Position, WorldView).z / -FarClip;//float2(Output.Position.z, Output.Position.w);
     return Output;
 }
 
@@ -158,7 +163,7 @@ PixelShaderOutput Lighting(Render_IN input)
 
     Out.Normal.a = input.roughness;
 
-    Out.Depth = (1- input.Depth.x / input.Depth.y);
+	Out.Depth = input.Depth.x;// (1 - input.Depth.x / input.Depth.y);
 
     return Out;
 }

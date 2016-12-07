@@ -222,8 +222,8 @@ namespace EngineTest.Renderer.Helper
 
             bool hasAnythingChanged = false;
             //Ok we applied the transformation to all the entities, now update the submesh boundingboxes!
-            Parallel.For(0, Index, index1 =>
-                //for (int index1 = 0; index1 < Index; index1++)
+            //Parallel.For(0, Index, index1 =>
+                for (int index1 = 0; index1 < Index; index1++)
                 {
                     float distance = 0;
                     int counter = 0;
@@ -253,7 +253,7 @@ namespace EngineTest.Renderer.Helper
                         matLib.distanceSquared = distance;
                         matLib.hasChangedThisFrame = true;
                     }
-                });
+                }
 
             //finally sort the materials by distance. Bubble sort should in theory be fast here since little changes.
             if (hasAnythingChanged)
@@ -325,7 +325,7 @@ namespace EngineTest.Renderer.Helper
             idOutline,
         };
 
-        public void Draw(RenderType renderType, GraphicsDevice graphicsDevice, Matrix viewProjection, bool lightViewPointChanged = false, bool hasAnyObjectMoved = false, bool outlined = false, int outlineId = 0)
+        public void Draw(RenderType renderType, GraphicsDevice graphicsDevice, Matrix viewProjection, bool lightViewPointChanged = false, bool hasAnyObjectMoved = false, bool outlined = false, int outlineId = 0, Matrix? view = null)
         {
             if (renderType != RenderType.alpha)
             {
@@ -644,8 +644,12 @@ namespace EngineTest.Renderer.Helper
                         Matrix localWorldMatrix = meshLib.GetWorldMatrices()[index].World;
                         if (renderType == RenderType.opaque || renderType == RenderType.alpha)
                         {
-                            Shaders.GBufferEffectParameter_World.SetValue(localWorldMatrix);
+                            Matrix WorldView = localWorldMatrix*(Matrix)view;
+                            Shaders.GBufferEffectParameter_WorldView.SetValue(WorldView);
                             Shaders.GBufferEffectParameter_WorldViewProj.SetValue(localWorldMatrix * viewProjection);
+
+                            WorldView = Matrix.Transpose(Matrix.Invert(WorldView));
+                            Shaders.GBufferEffectParameter_WorldViewIT.SetValue(WorldView);
 
                             shader.CurrentTechnique.Passes[0].Apply();
                         }

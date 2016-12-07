@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using BEPUphysics;
 using BEPUphysics.BroadPhaseEntries;
 using BEPUphysics.Entities;
@@ -65,13 +66,13 @@ namespace EngineTest.Main
             Vector3 startPosition = new Vector3(-30,30,1);
 
 
-            for (int x = 0; x < sides * 2; x++)
-                for (int y = 0; y < sides; y++)
-                    for (int z = 0; z < sides; z++)
-                    {
-                        Vector3 position = new Vector3(x, -y, z) * distance + startPosition;
-                        AddPointLight(position, distance, Color.White, 50, false);
-                    }
+            //for (int x = 0; x < sides * 2; x++)
+            //    for (int y = 0; y < sides; y++)
+            //        for (int z = 0; z < sides; z++)
+            //        {
+            //            Vector3 position = new Vector3(x, -y, z) * distance + startPosition;
+            //            AddPointLight(position, distance, Color.White, 50, false);
+            //        }
 
             Camera = new Camera(new Vector3(-80, 0, 20), new Vector3(1, 1, 0));
             MeshMaterialLibrary = new MeshMaterialLibrary();
@@ -82,7 +83,7 @@ namespace EngineTest.Main
             //    //entities
             sponza = AddEntity(model: _assets.SponzaModel, position: Vector3.Zero, angleX: Math.PI/2, angleY: 0, angleZ: 0, scale: 0.1f, PhysicsEntity: null, hasStaticPhysics: true);
 
-            AddEntity(_assets.Trabant, new Vector3(0, 0, 40), 0, 0, 0, 1.8f);
+            AddEntity(_assets.Trabant, new Vector3(0, 0, 40), 0, 0, 0, 5);
             //AddEntity(_assets.TestTubes, _assets.emissiveMaterial2, new Vector3(0, 0, 40), 0,0, 0, 1.8f);
             //drake = AddEntity(_assets.DragonUvSmoothModel, _assets.emissiveMaterial, new Vector3(40, -10, 0), Math.PI / 2, 0, 0, 10);
 
@@ -115,7 +116,7 @@ namespace EngineTest.Main
             //    //lights
             //shadowLight = AddPointLight(position: new Vector3(-80, 2, 20), radius: 50, color: Color.Wheat, intensity: 20, castShadows: true);
 
-            //AddPointLight(position: new Vector3(-20, 0, 40), radius: 120, color: Color.White, intensity: 20, castShadows: false, shadowResolution: 1024, staticShadow: false);
+            AddPointLight(position: new Vector3(-20, 0, 40), radius: 120, color: Color.White, intensity: 20, castShadows: true, shadowResolution: 1024, staticShadow: false, isVolumetric: true, volumetricDensity: 1.2f);
 
             //volumetric light!
             //AddPointLight(position: new Vector3(-4, 40, 33), radius: 80, color: Color.White, intensity: 20, castShadows: true, shadowResolution: 1024, staticShadow: false, isVolumetric: true, volumetricDensity: 2);

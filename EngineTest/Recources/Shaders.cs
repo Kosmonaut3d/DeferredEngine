@@ -18,7 +18,9 @@ namespace EngineTest.Recources
 
         public static Effect BillboardEffect;
         public static EffectParameter BillboardEffectParameter_WorldViewProj;
+        public static EffectParameter BillboardEffectParameter_WorldView;
         public static EffectParameter BillboardEffectParameter_AspectRatio;
+        public static EffectParameter BillboardEffectParameter_FarClip;
         public static EffectParameter BillboardEffectParameter_Texture;
         public static EffectParameter BillboardEffectParameter_DepthMap;
         public static EffectParameter BillboardEffectParameter_IdColor;
@@ -39,6 +41,7 @@ namespace EngineTest.Recources
         public static EffectParameter TemporalAntiAliasingEffect_UpdateMap;
         public static EffectParameter TemporalAntiAliasingEffect_CurrentToPrevious;
         public static EffectParameter TemporalAntiAliasingEffect_Resolution;
+        public static EffectParameter TemporalAntiAliasingEffect_FrustumCorners;
 
         //Vignette and CA
 
@@ -86,14 +89,14 @@ namespace EngineTest.Recources
         public static EffectParameter ScreenSpaceReflectionParameter_DepthMap;
         public static EffectParameter ScreenSpaceReflectionParameter_TargetMap;
         public static EffectParameter ScreenSpaceReflectionParameter_NormalMap;
-        public static EffectParameter ScreenSpaceReflectionParameter_ViewProjection;
-        public static EffectParameter ScreenSpaceReflectionParameter_InverseViewProjection;
-        public static EffectParameter ScreenSpaceReflectionParameter_CameraPosition;
+        public static EffectParameter ScreenSpaceReflectionParameter_Projection;
         public static EffectParameter ScreenSpaceReflectionParameter_Resolution;
         public static EffectParameter ScreenSpaceReflectionParameter_Time;
-
+        public static EffectParameter ScreenSpaceReflectionParameter_FrustumCorners;
+        public static EffectParameter ScreenSpaceReflectionParameter_FarClip;
         public static EffectTechnique ScreenSpaceReflectionTechnique_Default;
         public static EffectTechnique ScreenSpaceReflectionTechnique_Taa;
+        public static EffectParameter ScreenSpaceReflectionParameter_NoiseMap;
 
         //Screen Space Effect
 
@@ -128,10 +131,11 @@ namespace EngineTest.Recources
         //GBuffer
         public static Effect GBufferEffect;
 
-        public static EffectParameter GBufferEffectParameter_World;
+        public static EffectParameter GBufferEffectParameter_WorldView;
         public static EffectParameter GBufferEffectParameter_WorldViewProj;
-        public static EffectParameter GBufferEffectParameter_View;
+        public static EffectParameter GBufferEffectParameter_WorldViewIT;
         public static EffectParameter GBufferEffectParameter_Camera;
+        public static EffectParameter GBufferEffectParameter_FarClip;
 
         public static EffectParameter GBufferEffectParameter_Material_Metallic;
         public static EffectParameter GBufferEffectParameter_Material_MetallicMap;
@@ -218,28 +222,25 @@ namespace EngineTest.Recources
         public static EffectParameter deferredPointLightParameterLightViewProjectionPositiveZ;
         public static EffectParameter deferredPointLightParameterLightViewProjectionNegativeZ;
 
-        public static EffectParameter deferredPointLightParameterViewProjection;
-        public static EffectParameter deferredPointLightParameterCameraPosition;
-        public static EffectParameter deferredPointLightParameterInverseViewProjection;
+        public static EffectParameter deferredPointLightParameter_WorldView;
+        public static EffectParameter deferredPointLightParameter_WorldViewProjection;
+        public static EffectParameter deferredPointLightParameter_InverseView;
 
-        public static EffectParameter deferredPointLightParameter_World;
         public static EffectParameter deferredPointLightParameter_LightPosition;
         public static EffectParameter deferredPointLightParameter_LightColor;
         public static EffectParameter deferredPointLightParameter_LightRadius;
         public static EffectParameter deferredPointLightParameter_LightIntensity;
         public static EffectParameter deferredPointLightParameter_Inside;
         public static EffectParameter deferredPointLightParameter_Time;
+        public static EffectParameter deferredPointLightParameter_FarClip;
         public static EffectParameter deferredPointLightParameter_LightVolumeDensity;
 
         public static EffectParameter deferredPointLightParameter_AlbedoMap;
         public static EffectParameter deferredPointLightParameter_NormalMap;
         public static EffectParameter deferredPointLightParameter_DepthMap;
 
-        public static EffectParameter deferredPointLightParameter_LightPositionVS;
-        public static EffectParameter deferredPointLightParameter_LightPositionTexCoord;
         //DeferredEnvironment
-
-
+        
         public static Effect deferredEnvironment;
         public static EffectParameter deferredEnvironmentParameter_AlbedoMap;
         public static EffectParameter deferredEnvironmentParameter_NormalMap;
@@ -254,7 +255,6 @@ namespace EngineTest.Recources
         public static EffectParameter virtualShadowMappingEffectParameter_WorldViewProj;
         public static EffectTechnique virtualShadowMappingEffect_Technique_Depth;
         public static EffectTechnique virtualShadowMappingEffect_Technique_VSM;
-        
 
 
         //SSR
@@ -283,7 +283,9 @@ namespace EngineTest.Recources
 
             BillboardEffect = content.Load<Effect>("Shaders/Editor/BillboardEffect");
             BillboardEffectParameter_WorldViewProj = BillboardEffect.Parameters["WorldViewProj"];
+            BillboardEffectParameter_WorldView = BillboardEffect.Parameters["WorldView"];
             BillboardEffectParameter_AspectRatio = BillboardEffect.Parameters["AspectRatio"];
+            BillboardEffectParameter_FarClip = BillboardEffect.Parameters["FarClip"];
             BillboardEffectParameter_Texture = BillboardEffect.Parameters["Texture"];
             BillboardEffectParameter_DepthMap = BillboardEffect.Parameters["DepthMap"];
             BillboardEffectParameter_IdColor = BillboardEffect.Parameters["IdColor"];
@@ -303,6 +305,8 @@ namespace EngineTest.Recources
             TemporalAntiAliasingEffect_DepthMap = TemporalAntiAliasingEffect.Parameters["DepthMap"];
             TemporalAntiAliasingEffect_CurrentToPrevious = TemporalAntiAliasingEffect.Parameters["CurrentToPrevious"];
             TemporalAntiAliasingEffect_Resolution = TemporalAntiAliasingEffect.Parameters["Resolution"];
+            TemporalAntiAliasingEffect_FrustumCorners = TemporalAntiAliasingEffect.Parameters["FrustumCorners"];
+
             //Post
 
             PostProcessing = content.Load<Effect>("Shaders/PostProcessing/PostProcessing");
@@ -345,11 +349,12 @@ namespace EngineTest.Recources
             ScreenSpaceReflectionParameter_DepthMap = ScreenSpaceReflectionEffect.Parameters["DepthMap"];
             ScreenSpaceReflectionParameter_NormalMap = ScreenSpaceReflectionEffect.Parameters["NormalMap"];
             ScreenSpaceReflectionParameter_TargetMap = ScreenSpaceReflectionEffect.Parameters["TargetMap"];
-            ScreenSpaceReflectionParameter_CameraPosition = ScreenSpaceReflectionEffect.Parameters["CameraPosition"];
             ScreenSpaceReflectionParameter_Resolution = ScreenSpaceReflectionEffect.Parameters["resolution"];
-            ScreenSpaceReflectionParameter_ViewProjection = ScreenSpaceReflectionEffect.Parameters["ViewProjection"];
-            ScreenSpaceReflectionParameter_InverseViewProjection = ScreenSpaceReflectionEffect.Parameters["InverseViewProjection"];
+            ScreenSpaceReflectionParameter_Projection = ScreenSpaceReflectionEffect.Parameters["Projection"];
             ScreenSpaceReflectionParameter_Time = ScreenSpaceReflectionEffect.Parameters["Time"];
+            ScreenSpaceReflectionParameter_FrustumCorners = ScreenSpaceReflectionEffect.Parameters["FrustumCorners"];
+            ScreenSpaceReflectionParameter_FarClip = ScreenSpaceReflectionEffect.Parameters["FarClip"];
+            ScreenSpaceReflectionParameter_NoiseMap = ScreenSpaceReflectionEffect.Parameters["NoiseMap"];
 
             ScreenSpaceReflectionTechnique_Default = ScreenSpaceReflectionEffect.Techniques["Default"];
             ScreenSpaceReflectionTechnique_Taa = ScreenSpaceReflectionEffect.Techniques["TAA"];
@@ -384,10 +389,11 @@ namespace EngineTest.Recources
             //Gbuffer
             GBufferEffect = content.Load<Effect>("Shaders/GbufferSetup/GBuffer");
 
-            GBufferEffectParameter_World = GBufferEffect.Parameters["World"];
+            GBufferEffectParameter_WorldView = GBufferEffect.Parameters["WorldView"];
             GBufferEffectParameter_WorldViewProj = GBufferEffect.Parameters["WorldViewProj"];
-            GBufferEffectParameter_View = GBufferEffect.Parameters["View"];
+            GBufferEffectParameter_WorldViewIT = GBufferEffect.Parameters["WorldViewIT"];
             GBufferEffectParameter_Camera = GBufferEffect.Parameters["Camera"];
+            GBufferEffectParameter_FarClip = GBufferEffect.Parameters["FarClip"];
 
             GBufferEffectParameter_Material_Metallic = GBufferEffect.Parameters["Metallic"];
             GBufferEffectParameter_Material_MetallicMap = GBufferEffect.Parameters["MetallicMap"];
@@ -487,19 +493,17 @@ namespace EngineTest.Recources
             deferredPointLightParameterLightViewProjectionNegativeZ = deferredPointLight.Parameters["LightViewProjectionNegativeZ"];
 
             deferredPointLightParameterResolution = deferredPointLight.Parameters["Resolution"];
-            deferredPointLightParameterViewProjection = deferredPointLight.Parameters["ViewProjection"];
-            deferredPointLightParameterCameraPosition = deferredPointLight.Parameters["cameraPosition"];
-            deferredPointLightParameterInverseViewProjection = deferredPointLight.Parameters["InvertViewProjection"];
-
-            deferredPointLightParameter_World = deferredPointLight.Parameters["World"];
+            deferredPointLightParameter_WorldView = deferredPointLight.Parameters["WorldView"];
+            deferredPointLightParameter_WorldViewProjection = deferredPointLight.Parameters["WorldViewProj"];
+            deferredPointLightParameter_InverseView = deferredPointLight.Parameters["InverseView"];
+            
             deferredPointLightParameter_LightPosition = deferredPointLight.Parameters["lightPosition"];
             deferredPointLightParameter_LightColor = deferredPointLight.Parameters["lightColor"];
             deferredPointLightParameter_LightRadius = deferredPointLight.Parameters["lightRadius"];
             deferredPointLightParameter_LightIntensity = deferredPointLight.Parameters["lightIntensity"];
-            deferredPointLightParameter_LightPositionVS = deferredPointLight.Parameters["lightPositionVS"];
-            deferredPointLightParameter_LightPositionTexCoord = deferredPointLight.Parameters["lightPositionTexCoord"];
             deferredPointLightParameter_Inside = deferredPointLight.Parameters["inside"];
             deferredPointLightParameter_Time = deferredPointLight.Parameters["Time"];
+            deferredPointLightParameter_FarClip = deferredPointLight.Parameters["FarClip"];
             deferredPointLightParameter_LightVolumeDensity =
                 deferredPointLight.Parameters["lightVolumeDensity"];
             deferredPointLightParameter_AlbedoMap = deferredPointLight.Parameters["AlbedoMap"];
