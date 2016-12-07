@@ -8,6 +8,8 @@ Texture2D UpdateMap;
 
 float2 Resolution = { 1280, 800 };
 
+float3 FrustumCorners[4]; //In Viewspace!
+
 SamplerState texSampler
 {
     AddressU = CLAMP;
@@ -40,18 +42,24 @@ struct VertexShaderOutput
 {
     float4 Position : POSITION0;
     float2 TexCoord : TEXCOORD0;
+	float3 ViewRay : TEXCOORD1;
 };
 
-float3 FrustumCorners[4]; //In Viewspace!
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  FUNCTION DEFINITIONS
+
+float3 GetFrustumRay(float2 texCoord)
+{
+	float index = texCoord.x + (texCoord.y * 2);
+	return FrustumCorners[index];
+}
 
 VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 {
     VertexShaderOutput output;
     output.Position = float4(input.Position, 1);
-    //align texture coordinates
+	output.ViewRay = GetFrustumRay(input.TexCoord);
     output.TexCoord = input.TexCoord;
     return output;
 }
@@ -76,26 +84,23 @@ float3 GetFrustumRay2(float2 texCoord)
 	return outV;
 }
 
-float3 GetFrustumRay(float2 texCoord)
-{
-	float index = texCoord.x + (texCoord.y * 2);
-	return FrustumCorners[index];
-}
-
-
 float4 PixelShaderFunction(VertexShaderOutput input) : SV_Target
 {
-    float4 positionVS;
-    positionVS.x = input.TexCoord.x * 2.0f - 1.0f;
-    positionVS.y = -(input.TexCoord.y * 2.0f - 1.0f);
-
+   
     float2 texCoord = float2(input.TexCoord);
     
-    float depthVal = DepthMap.Sample(texSampler, texCoord).r;
+    float linearDepth = DepthMap.Sample(texSampler, texCoord).r;
 
+	/*float4 positionVS;
+	positionVS.x = input.TexCoord.x * 2.0f - 1.0f;
+	positionVS.y = -(input.TexCoord.y * 2.0f - 1.0f);
     positionVS.w = 1.0f;
-    positionVS.z = depthVal;
-    float4 previousPositionVS = mul(positionVS, CurrentToPrevious);
+    positionVS.z = depthVal;*/
+
+	float3 positionVS = input.ViewRay * linearDepth;
+
+
+    float4 previousPositionVS = mul(float4(positionVS,1), CurrentToPrevious);
     previousPositionVS /= previousPositionVS.w;
 
     //float4 PositionWS = mul(positionVS, CurrentToPrevious);
@@ -170,8 +175,8 @@ float4 PixelShaderFunction(VertexShaderOutput input) : SV_Target
     //if (!foundOverlap)
     //    alpha = alpha/2;
 
-    if (abs(previousPositionVS.z - depthVal) > 0.00001 || depthVal >= 0.999999f)
-        alpha = 0;
+    /*if (abs(previousPositionVS.z - depthVal) > 0.00001 || depthVal >= 0.999999f)
+        alpha = 0;*/
     //if ()
     //    alpha = 0;
 

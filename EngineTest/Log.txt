@@ -12,10 +12,13 @@ Light View Space Global Illumination
 
 - have a projector calculate global illumination in its view space - then project onto screen space.
 
+- blur the VSM shadows once per frame until blurred enough...
+
 TODO:
 
 - Integrate the physics system better into the lighting system so it doesnot update when the position doesn't change any more.
 
 -http://aras-p.info/texts/CompactNormalStorage.html
+
 
 https://github.com/kode80/kode80SSR/blob/master/Assets/Resources/Shaders/SSR.shader

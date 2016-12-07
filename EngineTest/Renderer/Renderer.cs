@@ -1380,7 +1380,7 @@ namespace EngineTest.Renderer
                 _viewProjection = _view*_projection;
                 _staticViewProjection = _viewProjection;
 
-                _currentToPrevious = Matrix.Invert(_viewProjection)*_previousViewProjection;
+                _currentToPrevious = Matrix.Invert(_view)*_previousViewProjection;
                 //_currentToPrevious = Matrix.Invert(_previousViewProjection) * _viewProjection;
 
                 _previousViewProjection = _viewProjection;

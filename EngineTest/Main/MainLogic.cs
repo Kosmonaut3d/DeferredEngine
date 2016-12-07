@@ -116,7 +116,7 @@ namespace EngineTest.Main
             //    //lights
             //shadowLight = AddPointLight(position: new Vector3(-80, 2, 20), radius: 50, color: Color.Wheat, intensity: 20, castShadows: true);
 
-            //AddPointLight(position: new Vector3(-20, 0, 40), radius: 120, color: Color.White, intensity: 20, castShadows: true, shadowResolution: 1024, staticShadow: false, isVolumetric: true, volumetricDensity: 1.2f);
+            AddPointLight(position: new Vector3(-20, 0, 40), radius: 120, color: Color.White, intensity: 20, castShadows: true, shadowResolution: 1024, staticShadow: false, isVolumetric: true, volumetricDensity: 1.2f);
 
             //volumetric light!
             AddPointLight(position: new Vector3(-4, 40, 33), radius: 80, color: Color.White, intensity: 20, castShadows: true, shadowResolution: 1024, staticShadow: false, isVolumetric: true, volumetricDensity: 2);
