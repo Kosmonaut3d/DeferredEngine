@@ -377,7 +377,8 @@ namespace EngineTest.Renderer.Helper
 
                 if (discardFrame) return;
 
-                graphicsDevice.Clear(new Color(0.51f, 0.501f, 0, 0));
+                //graphicsDevice.Clear(new Color(0.51f, 0.501f, 0, 0));
+                graphicsDevice.Clear(Color.TransparentBlack);
             }
 
             if (renderType == RenderType.shadowVSM || renderType == RenderType.shadowDepth) GameStats.activeShadowMaps++;

@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.Xna.Framework;
 
 namespace EngineTest.Renderer.Helper
 {
@@ -83,6 +84,15 @@ namespace EngineTest.Renderer.Helper
         public static float NextAngle()
         {
             return NextSingle((float)Math.PI * -1f, (float)Math.PI);
+        }
+
+        /// <summary>
+        /// Gets the next random Color
+        /// </summary>
+        /// <returns></returns>
+        public static Color NextColor()
+        {
+            return new Color(FastRand.NextInteger(255), FastRand.NextInteger(255), FastRand.NextInteger(255));
         }
 
         public static float NextAngle(float maxAngle)

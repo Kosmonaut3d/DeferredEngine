@@ -70,7 +70,8 @@ namespace EngineTest.Renderer
             SSAO,
             Emissive,
             DirectionalShadow,
-            SSR
+            SSR,
+            Volumetric
         };
 
         private RenderTarget2D _renderTargetAlbedo;
@@ -139,6 +140,7 @@ namespace EngineTest.Renderer
             _assets = assets;
 
             Shaders.ScreenSpaceReflectionParameter_NoiseMap.SetValue(_assets.NoiseMap);
+            //Shaders.deferredPointLightParameter_NoiseMap.SetValue(_assets.NoiseMap);
 
             GameSettings.ApplySettings();
 
@@ -402,6 +404,9 @@ namespace EngineTest.Renderer
                     break;
                case RenderModes.Specular:
                     DrawMapToScreenToFullScreen(_renderTargetSpecular);
+                    break;
+                case RenderModes.Volumetric:
+                    DrawMapToScreenToFullScreen(_renderTargetVolume);
                     break;
                 case RenderModes.SSAO:
                     DrawMapToScreenToFullScreen(_renderTargetSSAOEffect);
@@ -940,8 +945,8 @@ namespace EngineTest.Renderer
 
                     if (!hasAnyObjectMoved) continue;
 
-                    //_graphicsDevice.SetRenderTarget(light.shadowMapCube, cubeMapFace);
-                    _graphicsDevice.Clear(Color.TransparentBlack);
+                    _graphicsDevice.SetRenderTarget(light.shadowMapCube, cubeMapFace);
+                    //_graphicsDevice.Clear(Color.TransparentBlack);
                     //_graphicsDevice.Clear(ClearOptions.DepthBuffer, Color.White, 0, 0);
 
                     meshMaterialLibrary.Draw(renderType: MeshMaterialLibrary.RenderType.shadowVSM,

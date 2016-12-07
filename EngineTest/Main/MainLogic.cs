@@ -61,9 +61,9 @@ namespace EngineTest.Main
 
             //testSetup
 
-            int sides = 8;
-            float distance = 10;
-            Vector3 startPosition = new Vector3(-30,30,1);
+            //int sides = 4;
+            //float distance = 20;
+            //Vector3 startPosition = new Vector3(-30,30,1);
 
 
             //for (int x = 0; x < sides * 2; x++)
@@ -71,10 +71,10 @@ namespace EngineTest.Main
             //        for (int z = 0; z < sides; z++)
             //        {
             //            Vector3 position = new Vector3(x, -y, z) * distance + startPosition;
-            //            AddPointLight(position, distance, Color.White, 50, false);
+            //            AddPointLight(position, distance, FastRand.NextColor(), 50, false, true, 0.9f);
             //        }
 
-            Camera = new Camera(new Vector3(-80, 0, 20), new Vector3(1, 1, 0));
+            Camera = new Camera(new Vector3(-80, 0, 20), new Vector3(1, 1, 15));
             MeshMaterialLibrary = new MeshMaterialLibrary();
             
             ////////////////////////////////////////////////////////////////////////
@@ -116,10 +116,10 @@ namespace EngineTest.Main
             //    //lights
             //shadowLight = AddPointLight(position: new Vector3(-80, 2, 20), radius: 50, color: Color.Wheat, intensity: 20, castShadows: true);
 
-            AddPointLight(position: new Vector3(-20, 0, 40), radius: 120, color: Color.White, intensity: 20, castShadows: true, shadowResolution: 1024, staticShadow: false, isVolumetric: true, volumetricDensity: 1.2f);
+            //AddPointLight(position: new Vector3(-20, 0, 40), radius: 120, color: Color.White, intensity: 20, castShadows: true, shadowResolution: 1024, staticShadow: false, isVolumetric: true, volumetricDensity: 1.2f);
 
             //volumetric light!
-            //AddPointLight(position: new Vector3(-4, 40, 33), radius: 80, color: Color.White, intensity: 20, castShadows: true, shadowResolution: 1024, staticShadow: false, isVolumetric: true, volumetricDensity: 2);
+            AddPointLight(position: new Vector3(-4, 40, 33), radius: 80, color: Color.White, intensity: 20, castShadows: true, shadowResolution: 1024, staticShadow: false, isVolumetric: true, volumetricDensity: 2);
 
             //for (int i = 0; i < 10; i++)
             //{
@@ -291,7 +291,7 @@ namespace EngineTest.Main
 
             if (Input.keyboardState.IsKeyDown(Keys.L))
             {
-                AddPointLight(new Vector3(FastRand.NextSingle() * 250 - 125, FastRand.NextSingle() * 50 - 25, FastRand.NextSingle() * 30 - 19), 20, new Color(FastRand.NextInteger(255), FastRand.NextInteger(255), FastRand.NextInteger(255)), 10, false, true);
+                AddPointLight(new Vector3(FastRand.NextSingle() * 250 - 125, FastRand.NextSingle() * 50 - 25, FastRand.NextSingle() * 30 - 19), 20, FastRand.NextColor(), 10, false, true);
 
             }
 
@@ -324,7 +324,7 @@ namespace EngineTest.Main
             if (Input.WasKeyPressed(Keys.F1))
             {
                 _renderModeCycle++;
-                if (_renderModeCycle > 10) _renderModeCycle = 0;
+                if (_renderModeCycle > 11) _renderModeCycle = 0;
 
                 switch (_renderModeCycle)
                 {
@@ -347,18 +347,21 @@ namespace EngineTest.Main
                         GameSettings.g_RenderMode = Renderer.Renderer.RenderModes.Specular;
                         break;
                     case 6:
-                        GameSettings.g_RenderMode = Renderer.Renderer.RenderModes.SSAO;
+                        GameSettings.g_RenderMode = Renderer.Renderer.RenderModes.Volumetric;
                         break;
                     case 7:
-                        GameSettings.g_RenderMode = Renderer.Renderer.RenderModes.Hologram;
+                        GameSettings.g_RenderMode = Renderer.Renderer.RenderModes.SSAO;
                         break;
                     case 8:
-                        GameSettings.g_RenderMode = Renderer.Renderer.RenderModes.Emissive;
+                        GameSettings.g_RenderMode = Renderer.Renderer.RenderModes.Hologram;
                         break;
                     case 9:
-                        GameSettings.g_RenderMode = Renderer.Renderer.RenderModes.DirectionalShadow;
+                        GameSettings.g_RenderMode = Renderer.Renderer.RenderModes.Emissive;
                         break;
                     case 10:
+                        GameSettings.g_RenderMode = Renderer.Renderer.RenderModes.DirectionalShadow;
+                        break;
+                    case 11:
                         GameSettings.g_RenderMode = Renderer.Renderer.RenderModes.SSR;
                         break;
 

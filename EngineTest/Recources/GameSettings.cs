@@ -208,8 +208,9 @@
             }
         }
 
+        //5 and 5 are good, 3 and 3 are cheap
         private static int msamples = 3;
-        public static int ssr_msamples
+        public static int g_SSReflections_Samples
         {
             get { return msamples; }
             set
@@ -220,7 +221,7 @@
         }
 
         private static int ssamples = 3;
-        public static int ssr_ssamples
+        public static int g_SSReflections_RefinementSamples
         {
             get { return ssamples; }
             set
@@ -238,9 +239,10 @@
             
             g_EmissiveDraw = false;
             ssao_Active = false;
-            g_PostProcessing = true;
-            g_TemporalAntiAliasing = true;
+            g_PostProcessing = false;
+            g_TemporalAntiAliasing = false;
             g_EnvironmentMapping = false;
+            g_SSReflection = false;
 
             d_defaultMaterial = false;
             SCurveStrength = _sCurveStrength;

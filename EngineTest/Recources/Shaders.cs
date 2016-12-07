@@ -235,6 +235,7 @@ namespace EngineTest.Recources
         public static EffectParameter deferredPointLightParameter_FarClip;
         public static EffectParameter deferredPointLightParameter_LightVolumeDensity;
 
+        public static EffectParameter deferredPointLightParameter_NoiseMap;
         public static EffectParameter deferredPointLightParameter_AlbedoMap;
         public static EffectParameter deferredPointLightParameter_NormalMap;
         public static EffectParameter deferredPointLightParameter_DepthMap;
@@ -506,6 +507,7 @@ namespace EngineTest.Recources
             deferredPointLightParameter_FarClip = deferredPointLight.Parameters["FarClip"];
             deferredPointLightParameter_LightVolumeDensity =
                 deferredPointLight.Parameters["lightVolumeDensity"];
+            deferredPointLightParameter_NoiseMap = deferredPointLight.Parameters["NoiseMap"];
             deferredPointLightParameter_AlbedoMap = deferredPointLight.Parameters["AlbedoMap"];
             deferredPointLightParameter_NormalMap = deferredPointLight.Parameters["NormalMap"];
             deferredPointLightParameter_DepthMap = deferredPointLight.Parameters["DepthMap"];

@@ -185,7 +185,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	for (int i = 1; i <= samples; i++)
 	{
 		//We don't consider rays coming out of the screeen
-		if (rayStep.z < 0) break;
+		//if (rayStep.z < 0) break;
 
 		//March a step
 		float3 rayPosition = rayOrigin + (i - 0.5f + noise)*rayStep;
