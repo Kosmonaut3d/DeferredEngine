@@ -239,10 +239,10 @@
             
             g_EmissiveDraw = false;
             ssao_Active = false;
-            g_PostProcessing = false;
-            g_TemporalAntiAliasing = false;
+            g_PostProcessing = true;
+            g_TemporalAntiAliasing = true;
             g_EnvironmentMapping = false;
-            g_SSReflection = false;
+            g_SSReflection = true;
 
             d_defaultMaterial = false;
             SCurveStrength = _sCurveStrength;

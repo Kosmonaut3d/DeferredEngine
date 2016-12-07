@@ -99,7 +99,6 @@ float4 PixelShaderFunction(VertexShaderOutput input) : SV_Target
 
 	float3 positionVS = input.ViewRay * linearDepth;
 
-
     float4 previousPositionVS = mul(float4(positionVS,1), CurrentToPrevious);
     previousPositionVS /= previousPositionVS.w;
 

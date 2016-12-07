@@ -190,6 +190,8 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 		//March a step
 		float3 rayPosition = rayOrigin + (i - 0.5f + noise)*rayStep;
 
+		if (rayPosition.z < 0 || rayPosition.z>1) break;
+
 		//Get the depth at our new position
 		int3 texCoordInt = int3(rayPosition.xy * resolution, 0);
 		float sampleDepth = TransformDepth(DepthMap.Load(texCoordInt).r * -FarClip, Projection);
@@ -279,7 +281,12 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 			{
 				output.a *= lerp(0, 1, hitTexCoord.x * bordermulti);
 			}
-			output.rgb *= output.a * (1 - roughness);
+
+			//Fade out to the front
+			
+			float fade = saturate(1 - reflectVector.z);
+
+			output.rgb *= output.a * (1 - roughness) * fade;
 			break;
 		}
 		startingDepth = rayPosition.z;
