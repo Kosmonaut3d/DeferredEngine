@@ -247,7 +247,7 @@ namespace EngineTest.Recources
         public static EffectParameter deferredEnvironmentParameter_AlbedoMap;
         public static EffectParameter deferredEnvironmentParameter_NormalMap;
         public static EffectParameter deferredEnvironmentParameter_SSRMap;
-        public static EffectParameter deferredEnvironmentParameter_DepthMap;
+        public static EffectParameter deferredEnvironmentParameter_FrustumCorners;
         public static EffectParameter deferredEnvironmentParameterCameraPosition;
         public static EffectParameter deferredEnvironmentParameterInverseViewProjection;
         public static EffectParameter deferredEnvironmentParameterInvertView;
@@ -519,7 +519,7 @@ namespace EngineTest.Recources
             deferredEnvironment = content.Load<Effect>("Shaders/Deferred/DeferredEnvironmentMap");
             deferredEnvironmentParameter_AlbedoMap = deferredEnvironment.Parameters["AlbedoMap"];
             deferredEnvironmentParameter_NormalMap = deferredEnvironment.Parameters["NormalMap"];
-            deferredEnvironmentParameter_DepthMap = deferredEnvironment.Parameters["DepthMap"];
+            deferredEnvironmentParameter_FrustumCorners = deferredEnvironment.Parameters["FrustumCorners"];
             deferredEnvironmentParameter_SSRMap = deferredEnvironment.Parameters["ReflectionMap"];
 
             deferredEnvironmentParameterCameraPosition = deferredEnvironment.Parameters["cameraPosition"];

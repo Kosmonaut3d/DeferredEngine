@@ -83,9 +83,9 @@ namespace EngineTest.Main
             //    //entities
             sponza = AddEntity(model: _assets.SponzaModel, position: Vector3.Zero, angleX: Math.PI/2, angleY: 0, angleZ: 0, scale: 0.1f, PhysicsEntity: null, hasStaticPhysics: true);
 
-            AddEntity(_assets.Trabant, new Vector3(0, 0, 40), 0, 0, 0, 5);
+           // AddEntity(_assets.Trabant, new Vector3(0, 0, 40), 0, 0, 0, 5);
             //AddEntity(_assets.TestTubes, _assets.emissiveMaterial2, new Vector3(0, 0, 40), 0,0, 0, 1.8f);
-            //drake = AddEntity(_assets.DragonUvSmoothModel, _assets.emissiveMaterial, new Vector3(40, -10, 0), Math.PI / 2, 0, 0, 10);
+            drake = AddEntity(_assets.DragonUvSmoothModel, _assets.goldMaterial, new Vector3(40, -10, 0), Math.PI / 2, 0, 0, 10);
 
             space.Add(new Box(new BEPUutilities.Vector3(0,0,-0.5f), 1000,1000,1));
 
@@ -96,16 +96,16 @@ namespace EngineTest.Main
             space.Add(Sphere = new Sphere(new BEPUutilities.Vector3(20, 0, 40),5,50));
             AddEntity(_assets.IsoSphere, _assets.baseMaterial, new Vector3(20, 0, 10), Math.PI/2, 0, 0, 5, Sphere);
 
-            for (int i = 0; i < 10; i++)
-            {
+            //for (int i = 0; i < 10; i++)
+            //{
 
-                Entity Sphere2;
-                space.Add(Sphere2 = new Sphere(BEPUutilities.Vector3.Zero, 5, 50));
-                AddEntity(_assets.IsoSphere, _assets.silverMaterial,
-                    new Vector3(20 + FastRand.NextSingle(2) - 1, FastRand.NextSingle(2) - 1, 30 + i * 10), Math.PI / 2, 0, 0,
-                    5, Sphere2);
+            //    Entity Sphere2;
+            //    space.Add(Sphere2 = new Sphere(BEPUutilities.Vector3.Zero, 5, 50));
+            //    AddEntity(_assets.IsoSphere, _assets.silverMaterial,
+            //        new Vector3(20 + FastRand.NextSingle(2) - 1, FastRand.NextSingle(2) - 1, 30 + i * 10), Math.PI / 2, 0, 0,
+            //        5, Sphere2);
 
-            }
+            //}
 
             //AddEntity(_assets.HelmetModel, new Vector3(70, 0, -10), -Math.PI / 2, 0, -Math.PI / 2, 1);
 
@@ -131,9 +131,9 @@ namespace EngineTest.Main
             //Base scene
 
             //entities
-            //AddEntity(_assets.Plane, assets.metalRough02Material, new Vector3(0, 0, 0), 0, 0, 0, 30);
+            AddEntity(_assets.Plane, assets.metalRough01Material, new Vector3(0, 0, 0), 0, 0, 0, 30);
 
-            //AddEntity(_assets.Plane, assets.goldMaterial, new Vector3(80, 0, 0), 0, 0, 0, 30);
+            AddEntity(_assets.Plane, assets.goldMaterial, new Vector3(80, 0, 0), 0, 0, 0, 30);
 
             //AddEntity(_assets.Plane, assets.metalRough02Material, new Vector3(0, 0, 0), 0, 0, 0, 800);
 

@@ -85,7 +85,7 @@ namespace EngineTest.Recources
         public MaterialEffect silverMaterial;
         public MaterialEffect hologramMaterial;
         public MaterialEffect metalRough03Material;
-        public MaterialEffect metalRough02Material;
+        public MaterialEffect metalRough01Material;
 
         public MaterialEffect rockMaterial;
         
@@ -154,8 +154,8 @@ namespace EngineTest.Recources
             SponzaTextures.Add(sponza_details_spec = content.Load<Texture2D>("Sponza/textures/sponza_details_spec"));
             SponzaTextures.Add(sponza_flagpole_spec = content.Load<Texture2D>("Sponza/textures/sponza_flagpole_spec"));
 
-            //SponzaTextures.Add(sponza_floor_a_spec = content.Load<Texture2D>("Sponza/textures/sponza_floor_a_spec"));
-            //SponzaTextures.Add(sponza_floor_a_ddn = content.Load<Texture2D>("Sponza/textures/sponza_floor_a_ddn"));
+            SponzaTextures.Add(sponza_floor_a_spec = content.Load<Texture2D>("Sponza/textures/sponza_floor_a_spec"));
+            SponzaTextures.Add(sponza_floor_a_ddn = content.Load<Texture2D>("Sponza/textures/sponza_floor_a_ddn"));
 
             SponzaTextures.Add(sponza_thorn_ddn = content.Load<Texture2D>("Sponza/textures/sponza_thorn_ddn"));
             SponzaTextures.Add(sponza_thorn_mask = content.Load<Texture2D>("Sponza/textures/sponza_thorn_mask"));
@@ -200,7 +200,7 @@ namespace EngineTest.Recources
             baseMaterial = CreateMaterial(Color.Red, 0.3f, 0);
 
             metalRough03Material = CreateMaterial(Color.Silver, 0.3f, 1);
-            metalRough02Material = CreateMaterial(Color.Silver, 0.2f, 1);
+            metalRough01Material = CreateMaterial(Color.Silver, 0.1f, 1);
 
             hologramMaterial = CreateMaterial(Color.White, 0.2f, 1, null, null, null, null, null, null, MaterialEffect.MaterialTypes.Hologram, 1);
 

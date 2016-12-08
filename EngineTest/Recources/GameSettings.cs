@@ -276,6 +276,9 @@ namespace EngineTest.Recources
             g_EnvironmentMapping = true;
             g_SSReflection = true;
 
+            g_SSReflections_Samples = 13;
+
+
             d_defaultMaterial = false;
             SCurveStrength = _sCurveStrength;
             ChromaticAbberationStrength = _chromaticAbberationStrength;

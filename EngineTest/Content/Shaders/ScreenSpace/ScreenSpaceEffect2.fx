@@ -116,6 +116,7 @@ float TransformDepth(float depth, matrix trafoMatrix)
 		//  Main Raymarching algorithm
 		////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+//Basic
 float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 {
 	const float border2 = 1 - border;
@@ -320,21 +321,237 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	return output;
 }
 
+//Temporal
+
+float4 PixelShaderFunctionTAA(VertexShaderOutput input) : COLOR0
+{
+	const float border2 = 1 - border;
+	const float bordermulti = 1 / border;
+	int samples = Samples;
+
+	float4 output = 0;
+
+	//Just a bit shorter
+	float2 texCoord = float2(input.TexCoord);
+
+	//Get our current Position in viewspace
+	float linearDepth = DepthMap.Sample(texSampler, texCoord).r;
+	float3 positionVS = input.ViewRay * linearDepth; //GetFrustumRay2(texCoord) * linearDepth;
+
+													 //Sample the normal map
+	float4 normalData = NormalMap.Sample(texSampler, texCoord);
+	//tranform normal back into [-1,1] range
+	float3 normal = decode(normalData.xyz);
+	float roughness = normalData.a;
+
+	//Exit if material is not reflective
+	[branch]
+	if (normalData.x + normalData.y <= 0.001f || roughness > 0.8f) //Out of range
+	{
+		return float4(0, 0, 0, 0);
+	}
+
+	//Where does our ray start, where does it go?
+	float3 incident = normalize(positionVS);
+
+	float temporalComponent = 0;
+
+	[branch]
+	if (Time > 0)
+	{
+		temporalComponent = Time * 10 * normal.x / positionVS.y / normal.z; // frac(sin(Time * 3.2157) * 46336.23745f);
+	}
+	//Add some noise
+	float noise = NoiseMap.Sample(texSampler, frac(((texCoord)* resolution + temporalComponent) / 64)).r; // + frac(input.TexCoord* Projection)).r;
+
+	float3 randNor = randomNormal(frac(mul(input.TexCoord, noise).xy)) * -randomNormal(frac(mul(1 - input.TexCoord, noise).xy)); //
+
+		//hemisphere
+	if (dot(randNor, normal) < 0)
+			randNor *= -1;
+
+	normal = normalize(lerp(normal, randNor, roughness));
+
+	float3 reflectVector = reflect(incident, normal);
+
+	//Transform to WVP to get the uv's for our ray
+	float4 reflectVectorVPS = mul(float4(positionVS + reflectVector, 1), Projection);
+	reflectVectorVPS.xyz /= reflectVectorVPS.w;
+
+	//transform to UV coordinates
+	float2 reflectVectorUV = 0.5f * (float2(reflectVectorVPS.x, -reflectVectorVPS.y) + float2(1, 1));
+
+	// raymarch, transform depth to z/w depth so we march equal distances on screen (no perspective distortion)
+	float3 rayOrigin = float3(texCoord, TransformDepth(positionVS.z, Projection));
+	float3 rayStep = float3(reflectVectorUV - texCoord, reflectVectorVPS.z - rayOrigin.z);
+
+	//extend the ray so it crosses the whole screen once
+	float xMultiplier = (rayStep.x > 0 ? (1 - texCoord.x) : -texCoord.x) / rayStep.x;
+	float yMultiplier = (rayStep.y > 0 ? (1 - texCoord.y) : -texCoord.y) / rayStep.y;
+	float multiplier = min(xMultiplier, yMultiplier) / samples;
+	rayStep *= multiplier;
+
+	//Some variables we need later when precising the hit point
+	float startingDepth = rayOrigin.z;
+	float3 hitPosition;
+	float2 hitTexCoord = 0;
+
+	float offsetTaa = -frac(Time * normal.x * Time) + 0.5f;
+
+	//Raymarching the depth buffer
+	[loop]
+	for (int i = 1; i <= samples; i++)
+	{
+		//March a step
+		float3 rayPosition = rayOrigin + (i + offsetTaa)*rayStep;
+
+		//We don't consider rays coming out of the screeen
+		if (rayPosition.z < 0 || rayPosition.z>1) break;
+
+		//Get the depth at our new position
+		int3 texCoordInt = int3(rayPosition.xy * resolution, 0);
+
+		float linearDepth = DepthMap.Load(texCoordInt).r * -FarClip;
+		float sampleDepth = TransformDepth(linearDepth, Projection);
+
+		float depthDifference = sampleDepth - rayPosition.z;
+
+		//needs normal looking to it!
+
+		//Coming towards us, let's go back to linear depth!
+		[branch]
+		if (rayStep.z < 0 && depthDifference < 0)
+		{
+			//Where are we currently in linDepth, note - in VS is + in VPS
+			float depthMinusThickness = TransformDepth(linearDepth + MinimumThickness, Projection);
+
+			if (depthMinusThickness < rayPosition.z)
+				continue;
+		}
+
+		//March backwards, idea -> binary searcH?
+		[branch]
+		if (depthDifference <= 0 && sampleDepth >= startingDepth - rayStep.z*0.5f) //sample < rayPosition.z
+		{
+			hitPosition = rayPosition;
+
+			//Less samples when already going far ... is this good?
+			int samples2 = SecondarySamples;//samples + 1 - i;
+
+			bool hit = false;
+
+			float sampleDepthFirstHit = sampleDepth;
+			float3 rayPositionFirstHit = rayPosition;
+
+			//March backwards until we are outside again
+			[loop]
+			for (int j = 1; j <= samples2; j++)
+			{
+				rayPosition = hitPosition - rayStep * j / (samples2);
+
+				texCoordInt = int3(rayPosition.xy * resolution, 0);
+
+				sampleDepth = TransformDepth(DepthMap.Load(texCoordInt).r * -FarClip - 50.0f, Projection);
+
+				//Looks like we don't hit anything any more?
+				[branch]
+				if (sampleDepth >= rayPosition.z)
+				{
+					//only z is relevant
+
+					float origin = rayPositionFirstHit.z;
+
+					//should be smaller
+					float r = rayPosition.z - origin;
+
+					//y = r * x + c, c = 0
+					//y = (b-a)*x + a
+					float a = sampleDepthFirstHit - origin;
+
+					float b = sampleDepth - origin;
+
+					float x = (a) / (r - b + a);
+
+					float sampleDepthLerped = lerp(sampleDepth, sampleDepthFirstHit, x);
+
+					hit = true;
+
+					hitTexCoord = lerp(rayPosition.xy, rayPositionFirstHit.xy, x);
+
+					hitTexCoord = rayPosition.xy;
+
+					////In front
+					//if (sampleDepthFirstHit <= rayPositionFirstHit.z - rayStep.z*j/samples2)
+					//{
+					//	hit = false;
+					//}
+
+					break;
+				}
+
+				sampleDepthFirstHit = sampleDepth;
+				rayPositionFirstHit = rayPosition;
+			}
+
+			//We haven't hit anything we can travel further
+			if (!hit)
+				continue;
+
+			int3 hitCoordInt = int3(hitTexCoord.xy * resolution, 0);
+
+			float4 albedoColor = TargetMap.Load(hitCoordInt);
+			output.rgb = albedoColor;
+			output.a = 1;
+
+			//Fade out to the edges
+			[branch]
+			if (rayPosition.y > border2)
+			{
+				output.a = lerp(1, 0, (hitTexCoord.y - border2) * bordermulti);
+			}
+			else if (rayPosition.y < border)
+			{
+				output.a = lerp(0, 1, hitTexCoord.y * bordermulti);
+			}
+			[branch]
+			if (rayPosition.x > border2)
+			{
+				output.a *= lerp(1, 0, (hitTexCoord.x - border2) * bordermulti);
+			}
+			else if (rayPosition.x < border)
+			{
+				output.a *= lerp(0, 1, hitTexCoord.x * bordermulti);
+			}
+
+			//Fade out to the front
+
+			float fade = saturate(1 - reflectVector.z);
+
+			output.rgb *= output.a * (1 - roughness) * fade;
+
+			break;
+		}
+		startingDepth = rayPosition.z;
+	}
+
+return output;
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  TECHNIQUES
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-//technique TAA
-//{
-//    pass Pass1
-//    {
-//        VertexShader = compile vs_5_0 VertexShaderFunction();
-//        PixelShader = compile ps_5_0 PixelShaderFunctionTAA();
-//    }
-//}
-//
+technique TAA
+{
+    pass Pass1
+    {
+        VertexShader = compile vs_5_0 VertexShaderFunction();
+        PixelShader = compile ps_5_0 PixelShaderFunctionTAA();
+    }
+}
+
 technique Default
 {
     pass Pass1

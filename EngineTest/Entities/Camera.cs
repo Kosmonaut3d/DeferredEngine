@@ -11,6 +11,7 @@ namespace EngineTest.Renderer
         private float fieldOfView = (float) Math.PI/4;
 
         public bool HasChanged = true;
+        public bool HasMoved = false;
 
         public Camera(Vector3 position, Vector3 lookat)
         {
@@ -31,6 +32,7 @@ namespace EngineTest.Renderer
                 {
                     _position = value;
                     HasChanged = true;
+                    HasMoved = true;
                 }
             }
         }

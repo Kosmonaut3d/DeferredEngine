@@ -10,7 +10,7 @@ float2 Resolution = { 1280, 800 };
 
 float3 FrustumCorners[4]; //In Viewspace!
 
-float Threshold = 0.1f;
+float Threshold = 0;
 
 SamplerState texSampler
 {
@@ -18,7 +18,6 @@ SamplerState texSampler
     AddressV = CLAMP;
     MagFilter = POINT;
     MinFilter = POINT;
-    Mipfilter = POINT;
 };
 
 SamplerState linearSampler
@@ -50,7 +49,7 @@ struct VertexShaderOutput
 struct PixelShaderOutput
 {
 	float4 Combine : COLOR0;
-	//float4 Coherence : COLOR1;
+	float4 Coherence : COLOR1;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -107,8 +106,9 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input) : SV_Target
     float2 sampleTexCoord = 0.5f * (float2(previousPositionVS.x, -previousPositionVS.y) + 1);
 
     //Check how much they match
+	int3 TexCoordInt = int3(texCoord * Resolution, 0);
 
-    float4 updatedColorSample = UpdateMap.Sample(texSampler, texCoord);
+    float4 updatedColorSample = UpdateMap.Load(TexCoordInt);
 
     int3 sampleTexCoordInt = int3(sampleTexCoord * Resolution, 0);
 
@@ -216,6 +216,9 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input) : SV_Target
 
  //   //alpha = 1 - 0.1f;
 	alpha = min(1 - 1 / (1 / (1 - alpha) + 1), 0.9375);
+/*
+	if (Threshold > 0) alpha = 0.6f;*/
+	if (linearDepth >= 0.999999) alpha = 0.5f;
 
 	/*float2 diff = texCoord - sampleTexCoord;
 	output.Coherence = float4(alpha, 0, 0, 0);*/
@@ -234,27 +237,29 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input) : SV_Target
 	//float depthOutput = alpha > 0 ? lerp(linearDepth, previousDepth, alpha) : linearDepth;
 
 	float3 rgbout = lerp(updatedColorSample.rgb, accumulationColorSample.rgb, alpha);
-	float3 colorDiff = abs(rgbout - updatedColorSample.rgb);
 
-	if (alpha != 0)
+	/*float3 colorDiff = abs(accumulationColorSample.rgb - updatedColorSample.rgb);
+
+	if (rgbout.r < Threshold / 255)
 	{
-		//float3 colorDiff = abs(rgbout - updatedColorSample.rgb);
-
-		float limit8bit = 1 / 255.0f;
-		if (colorDiff.r <= limit8bit) {
-			rgbout.r = updatedColorSample.r;
-		}
-		if (colorDiff.g <= limit8bit) {
-			rgbout.g = updatedColorSample.g;
-		}
-		if (colorDiff.b <= limit8bit) {
-			rgbout.b = updatedColorSample.b;
-		}
+		rgbout.r = updatedColorSample.r;
 	}
+	if (rgbout.g < Threshold / 255)
+	{
+		rgbout.g = updatedColorSample.g;
+	}
+	if (rgbout.b < Threshold / 255)
+	{
+		rgbout.b = updatedColorSample.b;
+	}*/
+
+	/*
+	if (texCoord.x < texCoord.y)
+		output.Combine = float4(updatedColorSample.rgb, alpha);
+*/
+	output.Coherence = float4(sampleTexCoord, 0, 0);
 
 	output.Combine = float4(rgbout, alpha);
-
-	//output.Coherence = float4(alpha,alpha,alpha, 0);
 
 	return output;
 
@@ -267,6 +272,6 @@ technique TAA
     pass Pass1
     {
         VertexShader = compile vs_4_0 VertexShaderFunction();
-        PixelShader = compile ps_4_0 PixelShaderFunction();
+        PixelShader = compile ps_5_0 PixelShaderFunction();
     }
 }

@@ -41,6 +41,7 @@ namespace EngineTest.Renderer
 
         //View Projection
         private bool viewProjectionHasChanged;
+        private bool viewProjectionHasMoved;
         Vector3 _inverseResolution = new Vector3(1.0f / GameSettings.g_ScreenWidth, 1.0f / GameSettings.g_ScreenHeight, 0);
         private bool _temporalAAOffFrame = true;
         private int _temporalAAFrame = 0;
@@ -62,7 +63,6 @@ namespace EngineTest.Renderer
         private Matrix _staticViewProjection;
         private Matrix _inverseViewProjection;
         private Matrix _previousViewProjection;
-        private Matrix _previousStaticViewProjection;
 
         private BoundingFrustum _boundingFrustum;
         private BoundingFrustum _boundingFrustumShadow;
@@ -195,7 +195,7 @@ namespace EngineTest.Renderer
             DrawShadows(meshMaterialLibrary, entities, pointLights, dirLights, camera);
 
             //Render EnvironmentMaps
-            if ((Input.WasKeyPressed(Keys.C) && !DebugScreen.ConsoleOpen) || GameSettings.g_EnvironmentMappingEveryFrame || _renderTargetCubeMap == null)
+            if ((Input.WasKeyPressed(Keys.B) && !DebugScreen.ConsoleOpen) || GameSettings.g_EnvironmentMappingEveryFrame || _renderTargetCubeMap == null)
             {
                 DrawCubeMap(camera.Position, meshMaterialLibrary, entities, pointLights, dirLights, 300, gameTime);
                 camera.HasChanged = true;
@@ -215,12 +215,13 @@ namespace EngineTest.Renderer
             DrawGBuffer(meshMaterialLibrary, entities);
 
             DrawHolograms(meshMaterialLibrary);
+            
+            DrawScreenSpaceReflectionsEffect(camera, gameTime);
 
-
-                //Custom Effect
+            //Custom Effect
             DrawScreenSpaceEffect(camera);
 
-            DrawScreenSpaceDirectionalShadow(dirLights);
+            //DrawScreenSpaceDirectionalShadow(dirLights);
 
             DrawBilateralBlur();
 
@@ -231,9 +232,7 @@ namespace EngineTest.Renderer
 
             DrawEmissiveEffect(entities, camera, meshMaterialLibrary, gameTime);
 
-            DrawScreenSpaceReflectionsEffect(camera, gameTime);
-
-                //Combine the buffers
+            //Combine the buffers
             Compose();
 
             CombineTemporalAntialiasing();
@@ -279,20 +278,20 @@ namespace EngineTest.Renderer
             if (!GameSettings.g_TemporalAntiAliasing) return;
 
             //TEST
-            //RenderTargetBinding[] testAA = new RenderTargetBinding[2];
-            //testAA[0] = new RenderTargetBinding(_temporalAAOffFrame ? _renderTargetTAA_2 : _renderTargetTAA_1);
-            //testAA[1] = new RenderTargetBinding(_renderTargetScreenSpaceEffectPrepareBlur);
-            //_graphicsDevice.SetRenderTargets(testAA);
+            RenderTargetBinding[] testAA = new RenderTargetBinding[2];
+            testAA[0] = new RenderTargetBinding(_temporalAAOffFrame ? _renderTargetTAA_2 : _renderTargetTAA_1);
+            testAA[1] = new RenderTargetBinding(_renderTargetScreenSpaceEffectPrepareBlur);
+            _graphicsDevice.SetRenderTargets(testAA);
 
-            _graphicsDevice.SetRenderTarget(_temporalAAOffFrame ? _renderTargetTAA_2 : _renderTargetTAA_1);
+            //_graphicsDevice.SetRenderTarget(_temporalAAOffFrame ? _renderTargetTAA_2 : _renderTargetTAA_1);
             _graphicsDevice.BlendState = BlendState.Opaque;
-
-            _graphicsDevice.Clear(Color.TransparentBlack);
-
+            
             Shaders.TemporalAntiAliasingEffect_AccumulationMap.SetValue(_temporalAAOffFrame ? _renderTargetTAA_1 : _renderTargetTAA_2);
             Shaders.TemporalAntiAliasingEffect_UpdateMap.SetValue(_renderTargetFinal);
             Shaders.TemporalAntiAliasingEffect_CurrentToPrevious.SetValue(_currentViewToPreviousViewProjection);
-            
+
+            _graphicsDevice.Clear(Color.White);
+
             Shaders.TemporalAntiAliasingEffect.CurrentTechnique.Passes[0].Apply();
             _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
             
@@ -317,8 +316,10 @@ namespace EngineTest.Renderer
 
                 Shaders.deferredEnvironment.Parameters["ReflectionCubeMap"].SetValue(_renderTargetCubeMap);
             }
-            SetUpRenderTargets(512, 512, true);
+            SetUpRenderTargets(512, 512, false);
             Shaders.DeferredCompose.Parameters["useSSAO"].SetValue(false);
+
+            
             _projection = Matrix.CreatePerspectiveFieldOfView((float) (Math.PI/2), 1, 1, farPlane);
             for (int i = 0; i < 6; i++)
             {
@@ -360,24 +361,35 @@ namespace EngineTest.Renderer
 
                 _inverseView = Matrix.Invert(_view);
                 Shaders.ScreenSpaceEffectParameter_InverseViewProjection.SetValue(_inverseView);
+                Shaders.deferredPointLightParameter_InverseView.SetValue(_inverseView);
                 _viewProjection = _view*_projection;
                 _inverseViewProjection = Matrix.Invert(_viewProjection);
+
                 viewProjectionHasChanged = true;
-                if (_boundingFrustum != null)
-                    _boundingFrustum.Matrix = _viewProjection;
-                else
-                    _boundingFrustum = new BoundingFrustum(_viewProjection);
+                if (_boundingFrustum == null) _boundingFrustum = new BoundingFrustum(_viewProjection);
+                else _boundingFrustum.Matrix = _viewProjection;
                 //cull
+
+                ComputeFrustumCorners(_boundingFrustum);
+                
                 meshMaterialLibrary.FrustumCulling(entities, _boundingFrustum, true, origin);
                 SetUpGBuffer();
                 DrawGBuffer(meshMaterialLibrary, entities);
-                DrawScreenSpaceDirectionalShadow(dirLights);
+
+                //DrawScreenSpaceDirectionalShadow(dirLights);
+
                 DrawLights(pointLights, dirLights, origin, gameTime);
-                DrawEnvironmentMap(origin);
+
+                //DrawEnvironmentMap(origin);
+
                 //We don't use temporal AA obviously for the cubemap
                 bool tempAA = GameSettings.g_TemporalAntiAliasing;
                 GameSettings.g_TemporalAntiAliasing = false;
+                Shaders.DeferredCompose.CurrentTechnique = Shaders.DeferredComposeTechnique_1;
                 Compose();
+                Shaders.DeferredCompose.CurrentTechnique = GameSettings.g_SSReflection
+                    ? Shaders.DeferredComposeTechnique_SSR
+                    : Shaders.DeferredComposeTechnique_1;
                 GameSettings.g_TemporalAntiAliasing = tempAA;
                 DrawMapToScreenToCube(_renderTargetFinal, _renderTargetCubeMap, cubeMapFace);
             }
@@ -571,9 +583,7 @@ namespace EngineTest.Renderer
             //Shaders.ScreenSpaceEffect.CurrentTechnique = Shaders.ScreenSpaceEffectTechnique_SSAO;
             Shaders.ScreenSpaceReflectionEffect.CurrentTechnique.Passes[0].Apply();
             _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
-
-            DrawMapToScreenToFullScreen(_renderTargetScreenSpaceEffectReflection);
-
+            
             if (GameSettings.d_profiler)
             {
                 long performanceCurrentTime = _performanceTimer.ElapsedTicks;
@@ -1001,7 +1011,7 @@ namespace EngineTest.Renderer
             _graphicsDevice.DepthStencilState = DepthStencilState.Default;
             _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
             Shaders.deferredEnvironmentParameterInverseViewProjection.SetValue(_inverseProjection);
-            Shaders.deferredEnvironmentParameterInvertView.SetValue(_inverseView);
+            Shaders.deferredEnvironmentParameterInvertView.SetValue(Matrix.Transpose(_view));
             Shaders.deferredEnvironmentParameterCameraPosition.SetValue(cameraPosition);
 
             //Shaders.deferredEnvironment.CurrentTechnique = GameSettings.g_SSReflection
@@ -1196,6 +1206,7 @@ namespace EngineTest.Renderer
             _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
             
             _graphicsDevice.SetRenderTargets(_renderTargetFinalBinding);
+            _graphicsDevice.BlendState = BlendState.Opaque;
 
             //combine!
             Shaders.DeferredCompose.CurrentTechnique.Passes[0].Apply();
@@ -1374,6 +1385,10 @@ namespace EngineTest.Renderer
             if (viewProjectionHasChanged)
             {
                 camera.HasChanged = false;
+
+                viewProjectionHasMoved = camera.HasMoved;
+
+                camera.HasMoved = false;
                 
                 _view = Matrix.CreateLookAt(camera.Position, camera.Lookat, camera.Up);
 
@@ -1391,7 +1406,6 @@ namespace EngineTest.Renderer
                 
                 _viewProjection = _view*_projection;
                 _staticViewProjection = _viewProjection;
-
                 _currentViewToPreviousViewProjection = Matrix.Invert(_view)*_previousViewProjection;
 
                 //_currentToPrevious = Matrix.Invert(_previousViewProjection) * _viewProjection;
@@ -1400,18 +1414,7 @@ namespace EngineTest.Renderer
                 {
                     if (GameSettings.g_TemporalAntiAliasingJitterMode == 0)
                     {
-                        //float x = 0.5f/GameSettings.g_ScreenWidth;
-                        //float y = 0.5f/GameSettings.g_ScreenHeight;
-
-                        //Vector3 translation = new Vector3(
-                        //    x: _temporalAAFrame > 1 ? x : -x,
-                        //    y: _temporalAAFrame %2 ==0 ? y : -y, z: 0);
-
-                        //_viewProjection = _viewProjection*
-                        //                  Matrix.CreateTranslation(translation);
-
                         float translation = _temporalAAOffFrame ? 0.5f : -0.5f;
-
                         _viewProjection = _viewProjection *
                                           Matrix.CreateTranslation(new Vector3(translation / GameSettings.g_ScreenWidth,
                                               translation / GameSettings.g_ScreenHeight, 0));
@@ -1420,9 +1423,7 @@ namespace EngineTest.Renderer
                     {
                         //Create a random direction!
                         float randomAngle = FastRand.NextAngle();
-
                         Vector3 translation = new Vector3((float)Math.Sin(randomAngle) / GameSettings.g_ScreenWidth, (float)Math.Cos(randomAngle) / GameSettings.g_ScreenHeight, 0) * 0.5f;
-
                         _viewProjection = _viewProjection *
                                           Matrix.CreateTranslation(translation);
 
@@ -1432,14 +1433,10 @@ namespace EngineTest.Renderer
                         Vector3 translation = GetHaltonSequence();
                         _viewProjection = _viewProjection *
                                           Matrix.CreateTranslation(translation);
-
-                        Matrix test = _staticViewProjection - _viewProjection;
-                        
                     }
                 }
 
                 _previousViewProjection = _viewProjection;
-                _previousStaticViewProjection = _staticViewProjection;
 
                 _inverseViewProjection = Matrix.Invert(_viewProjection);
                 
@@ -1521,6 +1518,7 @@ namespace EngineTest.Renderer
             _currentFrustumCorners[3] = _currentFrustumCorners[2];
             _currentFrustumCorners[2] = temp;
 
+            Shaders.deferredEnvironmentParameter_FrustumCorners.SetValue(_currentFrustumCorners);
             Shaders.ScreenSpaceReflectionParameter_FrustumCorners.SetValue(_currentFrustumCorners);
             Shaders.TemporalAntiAliasingEffect_FrustumCorners.SetValue(_currentFrustumCorners);
         }
@@ -1631,6 +1629,8 @@ namespace EngineTest.Renderer
             _renderTargetVolume = new RenderTarget2D(_graphicsDevice, target_width,
                target_height, false, SurfaceFormat.HalfVector4, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
 
+            Shaders.deferredPointLightParameterResolution.SetValue(new Vector2(target_width, target_height));
+
             _renderTargetLightBinding[0] = new RenderTargetBinding(_renderTargetDiffuse);
             _renderTargetLightBinding[1] = new RenderTargetBinding(_renderTargetSpecular);
             _renderTargetLightBinding[2] = new RenderTargetBinding(_renderTargetVolume);
@@ -1652,7 +1652,6 @@ namespace EngineTest.Renderer
                 
                 Shaders.TemporalAntiAliasingEffect_Resolution.SetValue(new Vector2(target_width, target_height));
                 // Shaders.SSReflectionEffectParameter_Resolution.SetValue(new Vector2(target_width, target_height));
-                Shaders.deferredPointLightParameterResolution.SetValue(new Vector2(target_width, target_height));
                 Shaders.EmissiveEffectParameter_Resolution.SetValue(new Vector2(target_width, target_height));
 
                 _renderTargetEmissive = new RenderTarget2D(_graphicsDevice, target_width,
@@ -1717,7 +1716,7 @@ namespace EngineTest.Renderer
             Shaders.DeferredComposeEffectParameter_volumeLightMap.SetValue(_renderTargetVolume);
             Shaders.DeferredComposeEffectParameter_SSAOMap.SetValue(_renderTargetScreenSpaceEffectBlurYFinal);
             Shaders.DeferredComposeEffectParameter_HologramMap.SetValue(_renderTargetHologram);
-            Shaders.DeferredComposeEffectParameter_SSRMap.SetValue(_renderTargetScreenSpaceEffectReflection);
+           // Shaders.DeferredComposeEffectParameter_SSRMap.SetValue(_renderTargetScreenSpaceEffectReflection);
 
             Shaders.ScreenSpaceEffectParameter_NormalMap.SetValue(_renderTargetNormal);
             Shaders.ScreenSpaceEffectParameter_DepthMap.SetValue(_renderTargetDepth);

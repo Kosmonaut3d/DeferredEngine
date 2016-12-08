@@ -2,7 +2,9 @@
 float3 cameraPosition;
 //this is used to compute the world-position
 float4x4 InvertViewProjection;
-float4x4 InvertView;
+float3x3 InvertView;
+
+float3 FrustumCorners[4]; //In Viewspace!
 
 #include "helper.fx"
 
@@ -89,6 +91,12 @@ struct PixelShaderOutput
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  FUNCTION DEFINITIONS
 
+float3 GetFrustumRay(float2 texCoord)
+{
+	float index = texCoord.x + (texCoord.y * 2);
+	return FrustumCorners[index];
+}
+
  //  DEFAULT LIGHT SHADER FOR MODELS
 VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 {
@@ -96,27 +104,27 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
     output.Position = float4(input.Position, 1);
     //align texture coordinates
     output.TexCoord = input.TexCoord;
-    output.viewDir = normalize(mul(output.Position, InvertViewProjection).xyz);
+    output.viewDir = GetFrustumRay(input.TexCoord);
     return output;
 
 }
-
-float GetNormalVariance(float2 texCoord, float3 baseNormal, float offset)
-{
-    float variance = 0;
-
-    float3 normalTest;
-    for (int i = 0; i < SAMPLE_COUNT; i++)
-    {
-        normalTest = NormalMap.Sample(normalSampler, texCoord.xy + offset*
-                     SampleOffsets[i] * InverseResolution).rgb;
-        normalTest = decode(normalTest.xyz);
-
-        variance += 1-dot(baseNormal, normalTest);
-    }
-
-    return variance/SAMPLE_COUNT;
-}
+//
+//float GetNormalVariance(float2 texCoord, float3 baseNormal, float offset)
+//{
+//    float variance = 0;
+//
+//    float3 normalTest;
+//    for (int i = 0; i < SAMPLE_COUNT; i++)
+//    {
+//        normalTest = NormalMap.Sample(normalSampler, texCoord.xy + offset*
+//                     SampleOffsets[i] * InverseResolution).rgb;
+//        normalTest = decode(normalTest.xyz);
+//
+//        variance += 1-dot(baseNormal, normalTest);
+//    }
+//
+//    return variance/SAMPLE_COUNT;
+//}
 
 
 PixelShaderOutput PixelShaderFunctionClassic(VertexShaderOutput input)
@@ -164,9 +172,11 @@ PixelShaderOutput PixelShaderFunctionClassic(VertexShaderOutput input)
 
     float3 reflectionVector = reflect(incident, normal);
 
-	float4 reflectionVectortrafo = mul(float4(reflectionVector,0), InvertView);
+	//float4 reflectionVectortrafo = mul(float4(reflectionVector,1), InvertView);
 
-	reflectionVector = reflectionVectortrafo.xyz / reflectionVectortrafo.w;
+	//reflectionVector = reflectionVectortrafo.xyz / reflectionVectortrafo.w;
+
+	reflectionVector = mul(reflectionVector, InvertView);
 
     float VdotH = saturate(dot(normal, incident));
     float fresnel = pow(1.0 - VdotH, 5.0);
@@ -187,10 +197,12 @@ PixelShaderOutput PixelShaderFunctionClassic(VertexShaderOutput input)
 
     float4 DiffuseReflectColor = ReflectionCubeMap.SampleLevel(ReflectionCubeMapSampler, reflectionVector, 9) * fresnel; //* NdotC * NdotC * NdotC;
 
-    float ssreflectionMap = ReflectionMap.Sample(normalSampler, input.TexCoord).a;
+
+    float4 ssreflectionMap = ReflectionMap.Sample(normalSampler, input.TexCoord);
+	if (ssreflectionMap.a > 0) ReflectColor.rgb = ssreflectionMap.rgb;
 
     output.Diffuse = float4(DiffuseReflectColor.xyz, 0) * 0.1;
-    output.Specular = float4(ReflectColor.xyz, 0) * 2.2 * (1-ssreflectionMap);
+    output.Specular = float4(ReflectColor.xyz, 0) * 0.4;
 
     return output;
 }
