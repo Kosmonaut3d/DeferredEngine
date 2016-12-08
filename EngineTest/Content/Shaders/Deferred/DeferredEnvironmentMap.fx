@@ -1,23 +1,23 @@
-﻿
-float3 cameraPosition;
-//this is used to compute the world-position
-float4x4 InvertViewProjection;
-float3x3 InvertView;
+﻿//Environment cube maps, TheKosmonaut 2016
 
-float3 FrustumCorners[4]; //In Viewspace!
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//  VARIABLES
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "helper.fx"
 
+//We want to get from VS to WS. Usually this would mean an inverted VS. To get to 3x3 it's useful to use TI on this one.
+//So it's T I I = T
+float3x3 TransposeView;
+float3 FrustumCorners[4];
+
 Texture2D AlbedoMap;
-// normals, and specularPower in the alpha channel
 Texture2D NormalMap;
-
 Texture2D ReflectionMap;
-//depth
-Texture2D DepthMap;
-sampler colorSampler = sampler_state
+
+sampler PointSampler
 {
-    Texture = (AlbedoMap);
+    Texture = <AlbedoMap>;
     AddressU = CLAMP;
     AddressV = CLAMP;
     MagFilter = POINT;
@@ -25,28 +25,10 @@ sampler colorSampler = sampler_state
     Mipfilter = POINT;
 };
 
-sampler reflectionSampler = sampler_state
+//It won't compile without this? Need to investigate why I can't use PointSampler1
+sampler PointSampler2
 {
-    Texture = (AlbedoMap);
-    AddressU = CLAMP;
-    AddressV = CLAMP;
-    MagFilter = LINEAR;
-    MinFilter = ANISOTROPIC;
-    Mipfilter = LINEAR;
-};
-
-sampler depthSampler = sampler_state
-{
-    Texture = (DepthMap);
-    AddressU = CLAMP;
-    AddressV = CLAMP;
-    MagFilter = POINT;
-    MinFilter = POINT;
-    Mipfilter = POINT;
-};
-sampler normalSampler = sampler_state
-{
-    Texture = (NormalMap);
+    Texture = <NormalMap>;
     AddressU = CLAMP;
     AddressV = CLAMP;
     MagFilter = POINT;
@@ -55,19 +37,19 @@ sampler normalSampler = sampler_state
 };
 
 TextureCube ReflectionCubeMap;
-sampler ReflectionCubeMapSampler = sampler_state
+SamplerState ReflectionCubeMapSampler
 {
     texture = <ReflectionCubeMap>;
     AddressU = CLAMP;
     AddressV = CLAMP;
     MagFilter = LINEAR;
-    MinFilter = ANISOTROPIC;
+    MinFilter = LINEAR;
     Mipfilter = LINEAR;
 };
 
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//  STRUCT DEFINITIONS
+//  STRUCTS
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct VertexShaderInput
 {
@@ -78,7 +60,7 @@ struct VertexShaderOutput
 {
     float4 Position : POSITION0;
     float2 TexCoord : TEXCOORD0;
-    float3 viewDir : TEXCOORD1;
+    float3 ViewDir : TEXCOORD1;
 };
 
 struct PixelShaderOutput
@@ -89,7 +71,12 @@ struct PixelShaderOutput
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//  FUNCTION DEFINITIONS
+//  FUNCTIONS
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//  VERTEX SHADER
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 float3 GetFrustumRay(float2 texCoord)
 {
@@ -97,18 +84,23 @@ float3 GetFrustumRay(float2 texCoord)
 	return FrustumCorners[index];
 }
 
- //  DEFAULT LIGHT SHADER FOR MODELS
 VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 {
     VertexShaderOutput output;
     output.Position = float4(input.Position, 1);
-    //align texture coordinates
     output.TexCoord = input.TexCoord;
-    output.viewDir = GetFrustumRay(input.TexCoord);
+    output.ViewDir = GetFrustumRay(input.TexCoord);
     return output;
-
 }
-//
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//  PIXEL SHADER
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		//  HELPER FUNCTIONS
+		////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 //float GetNormalVariance(float2 texCoord, float3 baseNormal, float offset)
 //{
 //    float variance = 0;
@@ -126,29 +118,32 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 //    return variance/SAMPLE_COUNT;
 //}
 
+		////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		//  BASE FUNCTIONS
+		////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-PixelShaderOutput PixelShaderFunctionClassic(VertexShaderOutput input)
+PixelShaderOutput PixelShaderFunctionBasic(VertexShaderOutput input)
 {
     PixelShaderOutput output;
     float2 texCoord = float2(input.TexCoord);
     
     //get normal data from the NormalMap
-    float4 normalData = tex2D(normalSampler, texCoord);
+    float4 normalData = tex2D(PointSampler2, texCoord);
     //tranform normal back into [-1,1] range
     float3 normal = decode(normalData.xyz); //2.0f * normalData.xyz - 1.0f;    //could do mad
 
-    
-    //If x and y
-    if (normalData.x + normalData.y <= 0.001f) //Out of range
+	//We use this to fake a sky color in the specular component
+    if (normalData.x + normalData.y <= 0.001f)
     {
             output.Diffuse = float4(0, 0, 0, 0);
             output.Specular = float4(0.6706f, 0.8078f, 0.9216f,0)*0.05f; //float4(0, 0.4431f, 0.78, 0) * 0.05f;
             return output;
     }
+
     //get metalness
     float roughness = normalData.a;
     //get specular intensity from the AlbedoMap
-    float4 color = tex2D(colorSampler, texCoord);
+    float4 color = tex2D(PointSampler, texCoord);
 
     float metalness = decodeMetalness(color.a);
     
@@ -163,42 +158,38 @@ PixelShaderOutput PixelShaderFunctionClassic(VertexShaderOutput input)
         matMultiplier = 1;
     }
 
+	//Probably obsolete now, only for testing purposes
     if (abs(materialType - 3) < 0.1f)
     {
         matMultiplier = 2;
     }
 
-    float3 incident = normalize(input.viewDir);
+	//The incoming vector from the camera
+    float3 incident = normalize(input.ViewDir);
 
+	//The reflected vector which points to our cube map
     float3 reflectionVector = reflect(incident, normal);
 
-	//float4 reflectionVectortrafo = mul(float4(reflectionVector,1), InvertView);
+	//Transform the reflectionVector from VS to WS
+	reflectionVector = mul(reflectionVector, TransposeView);
 
-	//reflectionVector = reflectionVectortrafo.xyz / reflectionVectortrafo.w;
-
-	reflectionVector = mul(reflectionVector, InvertView);
-
+	//Fresnel
     float VdotH = saturate(dot(normal, incident));
     float fresnel = pow(1.0 - VdotH, 5.0);
     fresnel *= (1.0 - f0);
     fresnel += f0;
 
-    //float NdotC = saturate(dot(-incident, normal));
-
     reflectionVector.z = -reflectionVector.z;
 
-    //float3 ReflectColor = ReflectionCubeMap.Sample(ReflectionCubeMapSampler, reflectionVector) * (1 - roughness) * (1 + matMultiplier); //* NdotC * NdotC * NdotC;
-
-    //roughness from 0.05 to 0.5
+    //roughness from 0.05 to 0.5, coarsest of approximations
     float mip = roughness / 0.04f;
-
 
     float4 ReflectColor = ReflectionCubeMap.SampleLevel(ReflectionCubeMapSampler, reflectionVector, mip) * (1 - roughness) * (1 + matMultiplier) * fresnel; //* NdotC * NdotC * NdotC;
 
     float4 DiffuseReflectColor = ReflectionCubeMap.SampleLevel(ReflectionCubeMapSampler, reflectionVector, 9) * fresnel; //* NdotC * NdotC * NdotC;
 
-
-    float4 ssreflectionMap = ReflectionMap.Sample(normalSampler, input.TexCoord);
+	//Sample our screen space reflection map and use the environment map only as fallback
+    float4 ssreflectionMap = ReflectionMap.Sample(PointSampler, input.TexCoord);
 	if (ssreflectionMap.a > 0) ReflectColor.rgb = ssreflectionMap.rgb;
 
     output.Diffuse = float4(DiffuseReflectColor.xyz, 0) * 0.1;
@@ -207,12 +198,16 @@ PixelShaderOutput PixelShaderFunctionClassic(VertexShaderOutput input)
     return output;
 }
 
-technique Classic
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//  TECHNIQUES
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+technique Basic
 {
     pass Pass1
     {
-        VertexShader = compile vs_4_0 VertexShaderFunction();
-        PixelShader = compile ps_4_0 PixelShaderFunctionClassic();
+        VertexShader = compile vs_5_0 VertexShaderFunction();
+        PixelShader = compile ps_5_0 PixelShaderFunctionBasic();
     }
 }
 

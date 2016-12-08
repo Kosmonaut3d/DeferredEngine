@@ -89,7 +89,6 @@ struct VertexShaderOutput
     float4 Position : POSITION0;
     float4 ScreenPosition : TEXCOORD0;
 	float4 PositionVS : TEXCOORD1;
-    //float3 viewDirection : TEXCOORD1;
 };
 
 struct PixelShaderOutput
@@ -104,7 +103,6 @@ struct PixelShaderInput
     float3 PositionVS : POSITION0;
     float2 TexCoord : TEXCOORD0;
 	float Depth : TEXCOORD1;
-    //float3 viewDirection : TEXCOORD1;
 };
 
 
@@ -721,7 +719,9 @@ PixelShaderOutput VolumetricPixelShaderFunctionShadowed(VertexShaderOutput input
 	return output;
 
 }
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//  FUNCTIONS
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 technique Unshadowed
 {

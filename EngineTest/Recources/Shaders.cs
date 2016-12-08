@@ -249,8 +249,7 @@ namespace EngineTest.Recources
         public static EffectParameter deferredEnvironmentParameter_SSRMap;
         public static EffectParameter deferredEnvironmentParameter_FrustumCorners;
         public static EffectParameter deferredEnvironmentParameterCameraPosition;
-        public static EffectParameter deferredEnvironmentParameterInverseViewProjection;
-        public static EffectParameter deferredEnvironmentParameterInvertView;
+        public static EffectParameter deferredEnvironmentParameterTransposeView;
 
         //SHADOW MAPPING
 
@@ -521,10 +520,8 @@ namespace EngineTest.Recources
             deferredEnvironmentParameter_NormalMap = deferredEnvironment.Parameters["NormalMap"];
             deferredEnvironmentParameter_FrustumCorners = deferredEnvironment.Parameters["FrustumCorners"];
             deferredEnvironmentParameter_SSRMap = deferredEnvironment.Parameters["ReflectionMap"];
-
-            deferredEnvironmentParameterCameraPosition = deferredEnvironment.Parameters["cameraPosition"];
-            deferredEnvironmentParameterInverseViewProjection = deferredEnvironment.Parameters["InvertViewProjection"];
-            deferredEnvironmentParameterInvertView = deferredEnvironment.Parameters["InvertView"];
+            
+            deferredEnvironmentParameterTransposeView = deferredEnvironment.Parameters["TransposeView"];
 
             //VSM
 

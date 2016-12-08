@@ -1010,9 +1010,7 @@ namespace EngineTest.Renderer
 
             _graphicsDevice.DepthStencilState = DepthStencilState.Default;
             _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
-            Shaders.deferredEnvironmentParameterInverseViewProjection.SetValue(_inverseProjection);
-            Shaders.deferredEnvironmentParameterInvertView.SetValue(Matrix.Transpose(_view));
-            Shaders.deferredEnvironmentParameterCameraPosition.SetValue(cameraPosition);
+            Shaders.deferredEnvironmentParameterTransposeView.SetValue(Matrix.Transpose(_view));
 
             //Shaders.deferredEnvironment.CurrentTechnique = GameSettings.g_SSReflection
             //    ? Shaders.deferredEnvironment.Techniques["g_SSR"]
