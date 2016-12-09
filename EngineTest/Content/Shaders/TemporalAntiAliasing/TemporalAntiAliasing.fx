@@ -49,7 +49,7 @@ struct VertexShaderOutput
 struct PixelShaderOutput
 {
 	float4 Combine : COLOR0;
-	float4 Coherence : COLOR1;
+	//float4 Coherence : COLOR1;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -257,7 +257,7 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input) : SV_Target
 	if (texCoord.x < texCoord.y)
 		output.Combine = float4(updatedColorSample.rgb, alpha);
 */
-	output.Coherence = float4(sampleTexCoord, 0, 0);
+	//output.Coherence = float4(sampleTexCoord, 0, 0);
 
 	output.Combine = float4(rgbout, alpha);
 
