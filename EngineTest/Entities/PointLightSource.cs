@@ -1,25 +1,23 @@
-﻿using EngineTest.Entities;
+﻿using EngineTest.Recources;
 using EngineTest.Recources.Helper;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace EngineTest.Recources
+namespace EngineTest.Entities
 {
     public class PointLightSource : TransformableObject
     {
         private Vector3 _position = Vector3.Zero;
         public Matrix WorldMatrix;
-        public float _radius = 0;
+        private float _radius;
         private Color _color;
         public Vector3 ColorV3;
         public float Intensity;
 
         public bool HasChanged = true;
 
-        public int ShadowResolution;
-        public bool StaticShadows;
-
-        private int _id;
+        public readonly int ShadowResolution;
+        public readonly bool StaticShadows;
 
         public RenderTargetCube shadowMapCube;
 
@@ -35,9 +33,9 @@ namespace EngineTest.Recources
 
         public BoundingSphere BoundingSphere;
 
-        public bool DrawShadow = false;
-        public bool IsVolumetric;
-        public float LightVolumeDensity = 1;
+        public bool DrawShadow;
+        private readonly bool _isVolumetric;
+        private readonly float _lightVolumeDensity = 1;
 
 
         /// <summary>
@@ -47,9 +45,11 @@ namespace EngineTest.Recources
         /// <param name="radius"></param>
         /// <param name="color"></param>
         /// <param name="intensity"></param>
-        /// <param name="drawShadows">will render shadow maps</param>
+        /// <param name="isVolumetric"></param>
         /// <param name="shadowResolution">shadow map resolution per face. Optional</param>
         /// <param name="staticShadow">if set to true the shadows will not update at all. Dynamic shadows in contrast update only when needed.</param>
+        /// <param name="drawShadow"></param>
+        /// <param name="volumeDensity"></param>
         /// <returns></returns>
         public PointLightSource(Vector3 position, float radius, Color color, float intensity, bool drawShadow, bool isVolumetric, int shadowResolution, bool staticShadow, float volumeDensity = 1)
         {
@@ -59,11 +59,11 @@ namespace EngineTest.Recources
             Color = color;
             Intensity = intensity;
             DrawShadow = drawShadow;
-            IsVolumetric = isVolumetric;
+            _isVolumetric = isVolumetric;
 
             ShadowResolution = shadowResolution;
             StaticShadows = staticShadow;
-            LightVolumeDensity = volumeDensity;
+            _lightVolumeDensity = volumeDensity;
 
             Id = IdGenerator.GetNewId();
 
@@ -102,22 +102,17 @@ namespace EngineTest.Recources
             }
         }
 
-        public override int Id
-        {
-            get { return _id; }
-            set { _id = value; }
-        }
+        public override int Id { get; set; }
+
         public override double AngleZ { get; set; }
         public override double AngleX { get; set; }
         public override double AngleY { get; set; }
 
         public override TransformableObject Clone
         {
-            get { return new PointLightSource(Position, Radius, Color, Intensity, DrawShadow, IsVolumetric, ShadowResolution, StaticShadows);}
+            get { return new PointLightSource(Position, Radius, Color, Intensity, DrawShadow, _isVolumetric, ShadowResolution, StaticShadows);}
         }
-
-
-
+        
         protected PointLightSource()
         {
 
@@ -138,9 +133,9 @@ namespace EngineTest.Recources
                 Shaders.deferredPointLightParameterLightViewProjectionPositiveZ.SetValue(inverseView * LightViewProjectionPositiveZ);
                 Shaders.deferredPointLightParameterLightViewProjectionNegativeZ.SetValue(inverseView * LightViewProjectionNegativeZ);
 
-                if (IsVolumetric && GameSettings.g_VolumetricLights)
+                if (_isVolumetric && GameSettings.g_VolumetricLights)
                 {
-                    Shaders.deferredPointLightParameter_LightVolumeDensity.SetValue(LightVolumeDensity);
+                    Shaders.deferredPointLightParameter_LightVolumeDensity.SetValue(_lightVolumeDensity);
                     Shaders.deferredPointLightShadowedVolumetric.Passes[0].Apply();
                 }
                 else
@@ -150,9 +145,9 @@ namespace EngineTest.Recources
             }
             else
             {
-                if (IsVolumetric && GameSettings.g_VolumetricLights)
+                if (_isVolumetric && GameSettings.g_VolumetricLights)
                 {
-                    Shaders.deferredPointLightParameter_LightVolumeDensity.SetValue(LightVolumeDensity);
+                    Shaders.deferredPointLightParameter_LightVolumeDensity.SetValue(_lightVolumeDensity);
                     Shaders.deferredPointLightUnshadowedVolumetric.Passes[0].Apply();
                 }
                 else

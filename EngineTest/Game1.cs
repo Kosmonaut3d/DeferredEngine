@@ -5,6 +5,7 @@ using EngineTest.Recources;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Vector3 = BEPUutilities.Vector3;
 
 namespace EngineTest
 {
@@ -20,7 +21,7 @@ namespace EngineTest
 
         private bool _isActive = true;
 
-        private Space _physicsSpace;
+        private readonly Space _physicsSpace;
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////
         //  FUNCTIONS
@@ -38,7 +39,7 @@ namespace EngineTest
             //Initialize our physics and give it gravity
             _physicsSpace = new Space
             {
-                ForceUpdater = { Gravity = new BEPUutilities.Vector3(0, 0, -9.81f) }
+                ForceUpdater = { Gravity = new Vector3(0, 0, -9.81f) }
             };
 
             //Set up graphics properties, no vsync, no framelock

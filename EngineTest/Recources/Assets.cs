@@ -8,12 +8,11 @@ namespace EngineTest.Recources
 {
     public class Assets
     {
-
-        List<Texture2D> SponzaTextures = new List<Texture2D>();
+        readonly List<Texture2D> _sponzaTextures = new List<Texture2D>();
         private Texture2D background_ddn;
         private Texture2D chain_texture_ddn;
         private Texture2D chain_texture_mask;
-        public Texture2D lion_ddn;
+        private Texture2D lion_ddn;
         private Texture2D lion2_ddn;
         private Texture2D spnza_bricks_a_ddn;
         private Texture2D spnza_bricks_a_spec;
@@ -32,9 +31,9 @@ namespace EngineTest.Recources
         private Texture2D sponza_flagpole_spec;
         private Texture2D sponza_floor_a_spec;
         private Texture2D sponza_floor_a_ddn;
-        public static Texture2D sponza_thorn_ddn;
-        public static Texture2D sponza_thorn_mask;
-        public static Texture2D sponza_thorn_spec;
+        private Texture2D sponza_thorn_ddn;
+        private Texture2D sponza_thorn_mask;
+        private Texture2D sponza_thorn_spec;
         private Texture2D vase_ddn;
         private Texture2D vase_plant_mask;
         private Texture2D vase_plant_spec;
@@ -47,7 +46,7 @@ namespace EngineTest.Recources
 
         public static Texture2D BaseTex;
 
-        public Texture2D Icon_Light;
+        public Texture2D IconLight;
 
         //public Model JackJean;
 
@@ -63,8 +62,6 @@ namespace EngineTest.Recources
 
         public Model Plane;
 
-        public Model TestTubes { get; set; }
-
         public Model TestCube;
 
         public Model Trabant;
@@ -78,17 +75,17 @@ namespace EngineTest.Recources
         public Model Sphere;
         public ModelMeshPart SphereMeshPart;
         public Model IsoSphere;
-        public MaterialEffect baseMaterial;
-        public MaterialEffect goldMaterial;
-        public MaterialEffect emissiveMaterial;
-        public MaterialEffect emissiveMaterial2;
-        public MaterialEffect silverMaterial;
-        public MaterialEffect hologramMaterial;
-        public MaterialEffect metalRough03Material;
-        public MaterialEffect metalRough01Material;
+        public MaterialEffect BaseMaterial;
+        public MaterialEffect GoldMaterial;
+        public MaterialEffect EmissiveMaterial;
+        public MaterialEffect EmissiveMaterial2;
+        public MaterialEffect SilverMaterial;
+        public MaterialEffect HologramMaterial;
+        public MaterialEffect MetalRough03Material;
+        public MaterialEffect MetalRough01Material;
 
-        public MaterialEffect rockMaterial;
-        
+        public MaterialEffect RockMaterial;
+
 
         public void Load(ContentManager content, GraphicsDevice graphicsDevice)
         {
@@ -126,45 +123,45 @@ namespace EngineTest.Recources
 
             // HelmetModel = ProcessModel(HelmetModel);
 
-            SponzaTextures.Add(background_ddn = content.Load<Texture2D>("Sponza/textures/background_ddn"));
-            SponzaTextures.Add(chain_texture_ddn = content.Load<Texture2D>("Sponza/textures/chain_texture_ddn"));
-            SponzaTextures.Add(chain_texture_mask = content.Load<Texture2D>("Sponza/textures/chain_texture_mask"));
-            SponzaTextures.Add(lion_ddn = content.Load<Texture2D>("Sponza/textures/lion_ddn"));
-            SponzaTextures.Add(lion2_ddn = content.Load<Texture2D>("Sponza/textures/lion2_ddn"));
-            SponzaTextures.Add(spnza_bricks_a_ddn = content.Load<Texture2D>("Sponza/textures/spnza_bricks_a_ddn"));
-            SponzaTextures.Add(spnza_bricks_a_spec = content.Load<Texture2D>("Sponza/textures/spnza_bricks_a_spec"));
-            SponzaTextures.Add(sponza_arch_ddn = content.Load<Texture2D>("Sponza/textures/sponza_arch_ddn"));
-            SponzaTextures.Add(sponza_arch_spec = content.Load<Texture2D>("Sponza/textures/sponza_arch_spec"));
-            SponzaTextures.Add(sponza_ceiling_a_spec = content.Load<Texture2D>("Sponza/textures/sponza_ceiling_a_spec"));
-            SponzaTextures.Add(sponza_column_a_ddn = content.Load<Texture2D>("Sponza/textures/sponza_column_a_ddn"));
-            SponzaTextures.Add(sponza_column_a_spec = content.Load<Texture2D>("Sponza/textures/sponza_column_a_spec"));
-            SponzaTextures.Add(sponza_column_b_spec = content.Load<Texture2D>("Sponza/textures/sponza_column_b_spec"));
-            SponzaTextures.Add(sponza_column_b_ddn = content.Load<Texture2D>("Sponza/textures/sponza_column_b_ddn"));
-            SponzaTextures.Add(sponza_column_c_spec = content.Load<Texture2D>("Sponza/textures/sponza_column_c_spec"));
-            SponzaTextures.Add(sponza_column_c_ddn = content.Load<Texture2D>("Sponza/textures/sponza_column_c_ddn"));
+            _sponzaTextures.Add(background_ddn = content.Load<Texture2D>("Sponza/textures/background_ddn"));
+            _sponzaTextures.Add(chain_texture_ddn = content.Load<Texture2D>("Sponza/textures/chain_texture_ddn"));
+            _sponzaTextures.Add(chain_texture_mask = content.Load<Texture2D>("Sponza/textures/chain_texture_mask"));
+            _sponzaTextures.Add(lion_ddn = content.Load<Texture2D>("Sponza/textures/lion_ddn"));
+            _sponzaTextures.Add(lion2_ddn = content.Load<Texture2D>("Sponza/textures/lion2_ddn"));
+            _sponzaTextures.Add(spnza_bricks_a_ddn = content.Load<Texture2D>("Sponza/textures/spnza_bricks_a_ddn"));
+            _sponzaTextures.Add(spnza_bricks_a_spec = content.Load<Texture2D>("Sponza/textures/spnza_bricks_a_spec"));
+            _sponzaTextures.Add(sponza_arch_ddn = content.Load<Texture2D>("Sponza/textures/sponza_arch_ddn"));
+            _sponzaTextures.Add(sponza_arch_spec = content.Load<Texture2D>("Sponza/textures/sponza_arch_spec"));
+            _sponzaTextures.Add(sponza_ceiling_a_spec = content.Load<Texture2D>("Sponza/textures/sponza_ceiling_a_spec"));
+            _sponzaTextures.Add(sponza_column_a_ddn = content.Load<Texture2D>("Sponza/textures/sponza_column_a_ddn"));
+            _sponzaTextures.Add(sponza_column_a_spec = content.Load<Texture2D>("Sponza/textures/sponza_column_a_spec"));
+            _sponzaTextures.Add(sponza_column_b_spec = content.Load<Texture2D>("Sponza/textures/sponza_column_b_spec"));
+            _sponzaTextures.Add(sponza_column_b_ddn = content.Load<Texture2D>("Sponza/textures/sponza_column_b_ddn"));
+            _sponzaTextures.Add(sponza_column_c_spec = content.Load<Texture2D>("Sponza/textures/sponza_column_c_spec"));
+            _sponzaTextures.Add(sponza_column_c_ddn = content.Load<Texture2D>("Sponza/textures/sponza_column_c_ddn"));
 
-            SponzaTextures.Add(sponza_fabric_spec = content.Load<Texture2D>("Sponza/textures/sponza_fabric_spec"));
+            _sponzaTextures.Add(sponza_fabric_spec = content.Load<Texture2D>("Sponza/textures/sponza_fabric_spec"));
 
-            SponzaTextures.Add(sponza_fabric_metallic = content.Load<Texture2D>("Sponza/textures/sponza_fabric_metallic"));
+            _sponzaTextures.Add(sponza_fabric_metallic = content.Load<Texture2D>("Sponza/textures/sponza_fabric_metallic"));
 
-            SponzaTextures.Add(content.Load<Texture2D>("Sponza/textures/sponza_curtain_green_spec"));
-            SponzaTextures.Add(content.Load<Texture2D>("Sponza/textures/sponza_curtain_blue_spec"));
-            SponzaTextures.Add(content.Load<Texture2D>("Sponza/textures/sponza_curtain_spec"));
+            _sponzaTextures.Add(content.Load<Texture2D>("Sponza/textures/sponza_curtain_green_spec"));
+            _sponzaTextures.Add(content.Load<Texture2D>("Sponza/textures/sponza_curtain_blue_spec"));
+            _sponzaTextures.Add(content.Load<Texture2D>("Sponza/textures/sponza_curtain_spec"));
 
-            SponzaTextures.Add(sponza_details_spec = content.Load<Texture2D>("Sponza/textures/sponza_details_spec"));
-            SponzaTextures.Add(sponza_flagpole_spec = content.Load<Texture2D>("Sponza/textures/sponza_flagpole_spec"));
+            _sponzaTextures.Add(sponza_details_spec = content.Load<Texture2D>("Sponza/textures/sponza_details_spec"));
+            _sponzaTextures.Add(sponza_flagpole_spec = content.Load<Texture2D>("Sponza/textures/sponza_flagpole_spec"));
 
-            SponzaTextures.Add(sponza_floor_a_spec = content.Load<Texture2D>("Sponza/textures/sponza_floor_a_spec"));
-            SponzaTextures.Add(sponza_floor_a_ddn = content.Load<Texture2D>("Sponza/textures/sponza_floor_a_ddn"));
+            _sponzaTextures.Add(sponza_floor_a_spec = content.Load<Texture2D>("Sponza/textures/sponza_floor_a_spec"));
+            _sponzaTextures.Add(sponza_floor_a_ddn = content.Load<Texture2D>("Sponza/textures/sponza_floor_a_ddn"));
 
-            SponzaTextures.Add(sponza_thorn_ddn = content.Load<Texture2D>("Sponza/textures/sponza_thorn_ddn"));
-            SponzaTextures.Add(sponza_thorn_mask = content.Load<Texture2D>("Sponza/textures/sponza_thorn_mask"));
-            SponzaTextures.Add(sponza_thorn_spec = content.Load<Texture2D>("Sponza/textures/sponza_thorn_spec"));
-            SponzaTextures.Add(vase_ddn = content.Load<Texture2D>("Sponza/textures/vase_ddn"));
-            SponzaTextures.Add(vase_plant_mask = content.Load<Texture2D>("Sponza/textures/vase_plant_mask"));
-            SponzaTextures.Add(vase_plant_spec = content.Load<Texture2D>("Sponza/textures/vase_plant_spec"));
-            SponzaTextures.Add(vase_round_ddn = content.Load<Texture2D>("Sponza/textures/vase_round_ddn"));
-            SponzaTextures.Add(vase_round_spec = content.Load<Texture2D>("Sponza/textures/vase_round_spec"));
+            _sponzaTextures.Add(sponza_thorn_ddn = content.Load<Texture2D>("Sponza/textures/sponza_thorn_ddn"));
+            _sponzaTextures.Add(sponza_thorn_mask = content.Load<Texture2D>("Sponza/textures/sponza_thorn_mask"));
+            _sponzaTextures.Add(sponza_thorn_spec = content.Load<Texture2D>("Sponza/textures/sponza_thorn_spec"));
+            _sponzaTextures.Add(vase_ddn = content.Load<Texture2D>("Sponza/textures/vase_ddn"));
+            _sponzaTextures.Add(vase_plant_mask = content.Load<Texture2D>("Sponza/textures/vase_plant_mask"));
+            _sponzaTextures.Add(vase_plant_spec = content.Load<Texture2D>("Sponza/textures/vase_plant_spec"));
+            _sponzaTextures.Add(vase_round_ddn = content.Load<Texture2D>("Sponza/textures/vase_round_ddn"));
+            _sponzaTextures.Add(vase_round_spec = content.Load<Texture2D>("Sponza/textures/vase_round_spec"));
 
             sponza_curtain_metallic = content.Load<Texture2D>("Sponza/textures/sponza_curtain_metallic");
 
@@ -174,7 +171,7 @@ namespace EngineTest.Recources
             SphereMeshPart = Sphere.Meshes[0].MeshParts[0];
             IsoSphere = content.Load<Model>("Art/default/isosphere");
 
-            Icon_Light = content.Load<Texture2D>("Art/Editor/icon_light");
+            IconLight = content.Load<Texture2D>("Art/Editor/icon_light");
 
             ProcessSponza();
 
@@ -184,7 +181,7 @@ namespace EngineTest.Recources
                     DiffuseColor = Color.MonoGameOrange.ToVector3()
                 };
 
-            TestTubes = content.Load<Model>("Art/test/tubes");
+            content.Load<Model>("Art/test/tubes");
 
             TestCube = content.Load<Model>("Art/test/cube");
 
@@ -197,18 +194,18 @@ namespace EngineTest.Recources
             EditorArrow = content.Load<Model>("Art/Editor/Arrow");
             EditorArrowRound = content.Load<Model>("Art/Editor/ArrowRound");
 
-            baseMaterial = CreateMaterial(Color.Red, 0.3f, 0);
+            BaseMaterial = CreateMaterial(Color.Red, 0.3f, 0);
 
-            metalRough03Material = CreateMaterial(Color.Silver, 0.3f, 1);
-            metalRough01Material = CreateMaterial(Color.Silver, 0.1f, 1);
+            MetalRough03Material = CreateMaterial(Color.Silver, 0.3f, 1);
+            MetalRough01Material = CreateMaterial(Color.Silver, 0.1f, 1);
 
-            hologramMaterial = CreateMaterial(Color.White, 0.2f, 1, null, null, null, null, null, null, MaterialEffect.MaterialTypes.Hologram, 1);
+            HologramMaterial = CreateMaterial(Color.White, 0.2f, 1, null, null, null, null, null, null, MaterialEffect.MaterialTypes.Hologram, 1);
 
-            emissiveMaterial = CreateMaterial(Color.White, 0.2f, 1, null, null, null, null, null, null, MaterialEffect.MaterialTypes.Emissive, 1.5f);
+            EmissiveMaterial = CreateMaterial(Color.White, 0.2f, 1, null, null, null, null, null, null, MaterialEffect.MaterialTypes.Emissive, 1.5f);
 
-            emissiveMaterial2 = CreateMaterial(Color.LimeGreen, 0.2f, 1, null, null, null, null, null, null, MaterialEffect.MaterialTypes.Emissive, 3.8f);
+            EmissiveMaterial2 = CreateMaterial(Color.LimeGreen, 0.2f, 1, null, null, null, null, null, null, MaterialEffect.MaterialTypes.Emissive, 3.8f);
 
-            rockMaterial = CreateMaterial(Color.White, roughness: 1, metallic: 0,
+            RockMaterial = CreateMaterial(Color.White, roughness: 1, metallic: 0,
                 albedoMap: content.Load<Texture2D>("Art/test/squarebricks-diffuse"),
                 normalMap: content.Load<Texture2D>("Art/test/squarebricks-normal"),
                 roughnessMap: null,
@@ -216,7 +213,7 @@ namespace EngineTest.Recources
                 mask: null,
                 displacementMap: content.Load<Texture2D>("Art/test/squarebricks-depth")
             );
-            
+
             //stormtrooperMaterial = CreateMaterial(Color.White, 1, 0,
             //    content.Load<Texture2D>("Art/test/stormtrooper_albedo"),
             //    content.Load<Texture2D>("Art/test/stormtrooper_normal"),
@@ -226,9 +223,9 @@ namespace EngineTest.Recources
             //    MaterialEffect.MaterialTypes.Basic
             //);
 
-            goldMaterial = CreateMaterial(Color.Gold, 0.2f, 1);
+            GoldMaterial = CreateMaterial(Color.Gold, 0.2f, 1);
 
-            silverMaterial = CreateMaterial(Color.Silver, 0.05f, 1);
+            SilverMaterial = CreateMaterial(Color.Silver, 0.05f, 1);
         }
 
         /// <summary>
@@ -433,7 +430,7 @@ namespace EngineTest.Recources
                             compare = compare.Replace("_diff", "");
                         }
 
-                        foreach (Texture2D tex2d in SponzaTextures)
+                        foreach (Texture2D tex2d in _sponzaTextures)
                         {
                             if (tex2d.Name.Contains(compare))
                             {
@@ -468,11 +465,7 @@ namespace EngineTest.Recources
 
 
                     }
-
                     meshPart.Effect = matEffect;
-
-
-
                 }
 
 

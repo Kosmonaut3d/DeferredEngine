@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading.Tasks;
 using EngineTest.Entities;
 using EngineTest.Main;
 using EngineTest.Recources;
@@ -46,7 +45,6 @@ namespace EngineTest.Renderer
         private int _haltonSequenceIndex = -1;
         private const int HaltonSequenceLength = 16;
         
-
         //Projection Matrices and derivates used in shaders
         private Matrix _view;
         private Matrix _inverseView;
@@ -82,7 +80,7 @@ namespace EngineTest.Renderer
             DirectionalShadow,
             SSR,
             Volumetric
-        };
+        }
 
         //Render targets
         private RenderTarget2D _renderTargetAlbedo;
@@ -123,8 +121,8 @@ namespace EngineTest.Renderer
 
         //Performance Profiler
 
-        private Stopwatch _performanceTimer = new Stopwatch();
-        private long _performancePreviousTime = 0;
+        private readonly Stopwatch _performanceTimer = new Stopwatch();
+        private long _performancePreviousTime;
 
         #endregion
 
@@ -247,13 +245,13 @@ namespace EngineTest.Renderer
             SetUpGBuffer();
 
             //Draw our meshes to the G Buffer
-            DrawGBuffer(meshMaterialLibrary, entities);
+            DrawGBuffer(meshMaterialLibrary);
 
             //Draw Hologram projections to a different render target
             DrawHolograms(meshMaterialLibrary);
             
             //Draw Screen Space reflections to a different render target
-            DrawScreenSpaceReflections(camera, gameTime);
+            DrawScreenSpaceReflections(gameTime);
 
             //SSAO
             DrawScreenSpaceAmbientOcclusion(camera);
@@ -268,10 +266,10 @@ namespace EngineTest.Renderer
             DrawLights(pointLights, directionalLights, camera.Position, gameTime);
 
             //Draw the environment cube map as a fullscreen effect on all meshes
-            DrawEnvironmentMap(camera.Position);
+            DrawEnvironmentMap();
 
             //Draw emissive materials on an offscreen render target
-            DrawEmissiveEffect(entities, camera, meshMaterialLibrary, gameTime);
+            DrawEmissiveEffect(camera, meshMaterialLibrary, gameTime);
 
             //Compose the scene by combining our lighting data with the gbuffer data
             Compose();
@@ -404,7 +402,7 @@ namespace EngineTest.Renderer
                 //Base stuff, for description look in Draw()
                 meshMaterialLibrary.FrustumCulling(entities, _boundingFrustum, true, origin);
                 SetUpGBuffer();
-                DrawGBuffer(meshMaterialLibrary, entities);
+                DrawGBuffer(meshMaterialLibrary);
                 DrawLights(pointLights, dirLights, origin, gameTime);
 
                 //We don't use temporal AA obviously for the cubemap
@@ -473,7 +471,7 @@ namespace EngineTest.Renderer
         /// <param name="dirLights"></param>
         private void CheckRenderChanges(List<DirectionalLightSource> dirLights)
         {
-            if (_g_FarClip != GameSettings.g_FarPlane)
+            if (Math.Abs(_g_FarClip - GameSettings.g_FarPlane) > 0.0001f)
             {
                 _g_FarClip = GameSettings.g_FarPlane;
                 Shaders.GBufferEffectParameter_FarClip.SetValue(_g_FarClip);
@@ -489,7 +487,7 @@ namespace EngineTest.Renderer
             }
 
             //Check if supersampling has changed
-            if (_supersampling != GameSettings.g_supersampling)
+            if (Math.Abs(_supersampling - GameSettings.g_supersampling) > 0.0001f)
             {
                 _supersampling = GameSettings.g_supersampling;
                 SetUpRenderTargets(GameSettings.g_ScreenWidth, GameSettings.g_ScreenHeight, false);
@@ -711,7 +709,7 @@ namespace EngineTest.Renderer
 
                     _graphicsDevice.SetRenderTarget(light.shadowMapCube, cubeMapFace);
                     _graphicsDevice.Clear(Color.TransparentBlack);
-                    meshMaterialLibrary.Draw(renderType: MeshMaterialLibrary.RenderType.shadowVSM, 
+                    meshMaterialLibrary.Draw(renderType: MeshMaterialLibrary.RenderType.ShadowVsm, 
                         graphicsDevice: _graphicsDevice,
                         viewProjection: lightViewProjection, 
                         lightViewPointChanged: true, 
@@ -758,7 +756,7 @@ namespace EngineTest.Renderer
                     //_graphicsDevice.Clear(Color.TransparentBlack);
                     //_graphicsDevice.Clear(ClearOptions.DepthBuffer, Color.White, 0, 0);
 
-                    meshMaterialLibrary.Draw(renderType: MeshMaterialLibrary.RenderType.shadowVSM,
+                    meshMaterialLibrary.Draw(renderType: MeshMaterialLibrary.RenderType.ShadowVsm,
                         graphicsDevice: _graphicsDevice,
                         viewProjection: lightViewProjection,
                         lightViewPointChanged: light.HasChanged,
@@ -792,16 +790,16 @@ namespace EngineTest.Renderer
             }
 
             MeshMaterialLibrary.RenderType renderType = lightSource.ShadowFiltering == DirectionalLightSource.ShadowFilteringTypes.VSM
-                ? MeshMaterialLibrary.RenderType.shadowVSM
-                : MeshMaterialLibrary.RenderType.shadowDepth;
+                ? MeshMaterialLibrary.RenderType.ShadowVsm
+                : MeshMaterialLibrary.RenderType.ShadowDepth;
 
             if (lightSource.HasChanged)
             {
-                Matrix LightProjection = Matrix.CreateOrthographic(lightSource.ShadowSize, lightSource.ShadowSize,
+                Matrix lightProjection = Matrix.CreateOrthographic(lightSource.ShadowSize, lightSource.ShadowSize,
                     -lightSource.ShadowDepth, lightSource.ShadowDepth);
-                Matrix LightView = Matrix.CreateLookAt(lightSource.Position, lightSource.Position + lightSource.Direction, Vector3.Down);
+                Matrix lightView = Matrix.CreateLookAt(lightSource.Position, lightSource.Position + lightSource.Direction, Vector3.Down);
 
-                lightSource.LightViewProjection = LightView * LightProjection;
+                lightSource.LightViewProjection = lightView * lightProjection;
 
                 _boundingFrustumShadow = new BoundingFrustum(lightSource.LightViewProjection);
 
@@ -1035,11 +1033,10 @@ namespace EngineTest.Renderer
         /// Draw all our meshes to the GBuffer - albedo, normal, depth - for further computation
         /// </summary>
         /// <param name="meshMaterialLibrary"></param>
-        /// <param name="entities"></param>
-        public void DrawGBuffer(MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities)
+        private void DrawGBuffer(MeshMaterialLibrary meshMaterialLibrary)
         {
             _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
-            meshMaterialLibrary.Draw(renderType: MeshMaterialLibrary.RenderType.opaque, graphicsDevice: _graphicsDevice, viewProjection: _viewProjection, lightViewPointChanged: true, view: _view);
+            meshMaterialLibrary.Draw(renderType: MeshMaterialLibrary.RenderType.Opaque, graphicsDevice: _graphicsDevice, viewProjection: _viewProjection, lightViewPointChanged: true, view: _view);
 
             //Performance Profiler
             if (GameSettings.d_profiler)
@@ -1060,7 +1057,7 @@ namespace EngineTest.Renderer
             if (!GameSettings.g_HologramDraw) return;
             _graphicsDevice.SetRenderTarget(_renderTargetHologram);
             _graphicsDevice.Clear(Color.Black);
-            meshMat.Draw(MeshMaterialLibrary.RenderType.hologram, _graphicsDevice, _viewProjection);
+            meshMat.Draw(MeshMaterialLibrary.RenderType.Hologram, _graphicsDevice, _viewProjection);
 
             //Performance Profiler
             if (GameSettings.d_profiler)
@@ -1075,9 +1072,8 @@ namespace EngineTest.Renderer
         /// <summary>
         /// Draw Screen Space Reflections
         /// </summary>
-        /// <param name="camera"></param>
         /// <param name="gameTime"></param>
-        private void DrawScreenSpaceReflections(Camera camera, GameTime gameTime)
+        private void DrawScreenSpaceReflections(GameTime gameTime)
         {
             if (!GameSettings.g_SSReflection) return;
 
@@ -1381,8 +1377,7 @@ namespace EngineTest.Renderer
         /// <summary>
         /// Apply our environment cubemap to the renderer
         /// </summary>
-        /// <param name="cameraPosition"></param>
-        private void DrawEnvironmentMap(Vector3 cameraPosition)
+        private void DrawEnvironmentMap()
         {
             if (!GameSettings.g_EnvironmentMapping) return;
 
@@ -1409,11 +1404,10 @@ namespace EngineTest.Renderer
         /// <summary>
         /// Emissive materials have some screen space lighting properties
         /// </summary>
-        /// <param name="entities"></param>
         /// <param name="camera"></param>
         /// <param name="meshMatLib"></param>
         /// <param name="gameTime"></param>
-        private void DrawEmissiveEffect(List<BasicEntity> entities, Camera camera, MeshMaterialLibrary meshMatLib, GameTime gameTime)
+        private void DrawEmissiveEffect(Camera camera, MeshMaterialLibrary meshMatLib, GameTime gameTime)
         {
             if (!GameSettings.g_EmissiveDraw) return;
 
@@ -1643,19 +1637,19 @@ namespace EngineTest.Renderer
 
             float ssmultiplier = _supersampling;
 
-            int target_width = (int)(width * ssmultiplier);
-            int target_height = (int)(height * ssmultiplier);
+            int targetWidth = (int)(width * ssmultiplier);
+            int targetHeight = (int)(height * ssmultiplier);
 
-            Shaders.BillboardEffectParameter_AspectRatio.SetValue((float)target_width / target_height);
+            Shaders.BillboardEffectParameter_AspectRatio.SetValue((float)targetWidth / targetHeight);
 
-            _renderTargetAlbedo = new RenderTarget2D(_graphicsDevice, target_width,
-                target_height, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+            _renderTargetAlbedo = new RenderTarget2D(_graphicsDevice, targetWidth,
+                targetHeight, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
 
-            _renderTargetNormal = new RenderTarget2D(_graphicsDevice, target_width,
-                target_height, false, SurfaceFormat.HalfVector4, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
+            _renderTargetNormal = new RenderTarget2D(_graphicsDevice, targetWidth,
+                targetHeight, false, SurfaceFormat.HalfVector4, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
 
-            _renderTargetDepth = new RenderTarget2D(_graphicsDevice, target_width,
-                target_height, false, SurfaceFormat.Single, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
+            _renderTargetDepth = new RenderTarget2D(_graphicsDevice, targetWidth,
+                targetHeight, false, SurfaceFormat.Single, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
 
             //Half res!
 
@@ -1663,68 +1657,69 @@ namespace EngineTest.Renderer
             _renderTargetBinding[1] = new RenderTargetBinding(_renderTargetNormal);
             _renderTargetBinding[2] = new RenderTargetBinding(_renderTargetDepth);
 
-            _renderTargetDiffuse = new RenderTarget2D(_graphicsDevice, target_width,
-               target_height, false, SurfaceFormat.HalfVector4, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
+            _renderTargetDiffuse = new RenderTarget2D(_graphicsDevice, targetWidth,
+               targetHeight, false, SurfaceFormat.HalfVector4, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
 
-            _renderTargetSpecular = new RenderTarget2D(_graphicsDevice, target_width,
-               target_height, false, SurfaceFormat.HalfVector4, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
+            _renderTargetSpecular = new RenderTarget2D(_graphicsDevice, targetWidth,
+               targetHeight, false, SurfaceFormat.HalfVector4, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
 
-            _renderTargetVolume = new RenderTarget2D(_graphicsDevice, target_width,
-               target_height, false, SurfaceFormat.HalfVector4, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
+            _renderTargetVolume = new RenderTarget2D(_graphicsDevice, targetWidth,
+               targetHeight, false, SurfaceFormat.HalfVector4, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
 
-            Shaders.deferredPointLightParameterResolution.SetValue(new Vector2(target_width, target_height));
+            Shaders.deferredPointLightParameterResolution.SetValue(new Vector2(targetWidth, targetHeight));
 
             _renderTargetLightBinding[0] = new RenderTargetBinding(_renderTargetDiffuse);
             _renderTargetLightBinding[1] = new RenderTargetBinding(_renderTargetSpecular);
             _renderTargetLightBinding[2] = new RenderTargetBinding(_renderTargetVolume);
 
-            _renderTargetFinal = new RenderTarget2D(_graphicsDevice, target_width,
-               target_height, false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
+            _renderTargetFinal = new RenderTarget2D(_graphicsDevice, targetWidth,
+               targetHeight, false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
 
             _renderTargetFinalBinding[0] = new RenderTargetBinding(_renderTargetFinal);
 
-            _renderTargetScreenSpaceEffectUpsampleBlurVertical = new RenderTarget2D(_graphicsDevice, target_width,
-                target_height, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+            _renderTargetScreenSpaceEffectUpsampleBlurVertical = new RenderTarget2D(_graphicsDevice, targetWidth,
+                targetHeight, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
 
             if (!onlyEssentials)
             {
                 _editorRender.SetUpRenderTarget(width, height);
 
-                _renderTargetTAA_1 = new RenderTarget2D(_graphicsDevice, target_width, target_height, false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
-                _renderTargetTAA_2 = new RenderTarget2D(_graphicsDevice, target_width, target_height, false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
+                _renderTargetTAA_1 = new RenderTarget2D(_graphicsDevice, targetWidth, targetHeight, false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
+                _renderTargetTAA_2 = new RenderTarget2D(_graphicsDevice, targetWidth, targetHeight, false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
 
-                Shaders.TemporalAntiAliasingEffect_Resolution.SetValue(new Vector2(target_width, target_height));
+                Shaders.TemporalAntiAliasingEffect_Resolution.SetValue(new Vector2(targetWidth, targetHeight));
                 // Shaders.SSReflectionEffectParameter_Resolution.SetValue(new Vector2(target_width, target_height));
-                Shaders.EmissiveEffectParameter_Resolution.SetValue(new Vector2(target_width, target_height));
+                Shaders.EmissiveEffectParameter_Resolution.SetValue(new Vector2(targetWidth, targetHeight));
 
-                _renderTargetEmissive = new RenderTarget2D(_graphicsDevice, target_width,
-                    target_height, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+                _renderTargetEmissive = new RenderTarget2D(_graphicsDevice, targetWidth,
+                    targetHeight, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
 
-                _renderTargetScreenSpaceEffectUpsampleBlurHorizontal = new RenderTarget2D(_graphicsDevice, target_width,
-                    target_height, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+                _renderTargetScreenSpaceEffectUpsampleBlurHorizontal = new RenderTarget2D(_graphicsDevice, targetWidth,
+                    targetHeight, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
 
-                _renderTargetScreenSpaceEffectBlurFinal = new RenderTarget2D(_graphicsDevice, target_width,
-                    target_height, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+                _renderTargetScreenSpaceEffectBlurFinal = new RenderTarget2D(_graphicsDevice, targetWidth,
+                    targetHeight, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
 
-                Shaders.ScreenSpaceEffectParameter_InverseResolution.SetValue(new Vector2(1.0f / target_width,
-                    1.0f / target_height));
+                Shaders.ScreenSpaceEffectParameter_InverseResolution.SetValue(new Vector2(1.0f / targetWidth,
+                    1.0f / targetHeight));
 
-                Shaders.ScreenSpaceReflectionParameter_Resolution.SetValue(new Vector2(target_width, target_height));
-                _renderTargetScreenSpaceEffectReflection = new RenderTarget2D(_graphicsDevice, target_width,
-                    target_height, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+                Shaders.ScreenSpaceReflectionParameter_Resolution.SetValue(new Vector2(targetWidth, targetHeight));
+                _renderTargetScreenSpaceEffectReflection = new RenderTarget2D(_graphicsDevice, targetWidth,
+                    targetHeight, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+                
                 ///////////////////
-                /// HALF RESOLUTION
+                // HALF RESOLUTION
 
-                target_width /= 2;
-                target_height /= 2;
+                targetWidth /= 2;
+                targetHeight /= 2;
 
-                _renderTargetSSAOEffect = new RenderTarget2D(_graphicsDevice, target_width,
-                    target_height, false, SurfaceFormat.HalfSingle, DepthFormat.None, 0,
+                _renderTargetSSAOEffect = new RenderTarget2D(_graphicsDevice, targetWidth,
+                    targetHeight, false, SurfaceFormat.HalfSingle, DepthFormat.None, 0,
                     RenderTargetUsage.DiscardContents);
 
 
-                _renderTargetHologram = new RenderTarget2D(_graphicsDevice, target_width,
-                    target_height, false, SurfaceFormat.Single, DepthFormat.Depth24, 0,
+                _renderTargetHologram = new RenderTarget2D(_graphicsDevice, targetWidth,
+                    targetHeight, false, SurfaceFormat.Single, DepthFormat.Depth24, 0,
                     RenderTargetUsage.PreserveContents);
             }
 
@@ -1816,7 +1811,7 @@ namespace EngineTest.Renderer
                 }
             }
             _graphicsDevice.SetRenderTarget(null);
-            _spriteBatch.Begin(0, blendState, _supersampling>1 ? SamplerState.LinearWrap : SamplerState.PointClamp, null, null);
+            _spriteBatch.Begin(0, blendState, _supersampling>1 ? SamplerState.LinearWrap : SamplerState.PointClamp);
             _spriteBatch.Draw(map, new Rectangle(0, 0, width, height), Color.White);
             _spriteBatch.End();
         }

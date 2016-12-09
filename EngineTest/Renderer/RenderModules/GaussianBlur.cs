@@ -1,9 +1,10 @@
 ﻿using System;
 using EngineTest.Recources;
+using EngineTest.Renderer.Helper;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace EngineTest.Renderer.Helper
+namespace EngineTest.Renderer.RenderModules
 {
     public class GaussianBlur
     {

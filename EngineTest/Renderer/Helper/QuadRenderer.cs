@@ -6,13 +6,13 @@ using Microsoft.Xna.Framework.Graphics;
 
 #endregion
 
-namespace EngineTest.Renderer
+namespace EngineTest.Renderer.Helper
 {
     public class QuadRenderer
     {
         //buffers for rendering the quad
-        private VertexPositionTexture[] _vertexBuffer = null;
-        private short[] _indexBuffer = null;
+        private readonly VertexPositionTexture[] _vertexBuffer;
+        private readonly short[] _indexBuffer;
 
         public QuadRenderer()
         {
@@ -39,7 +39,7 @@ namespace EngineTest.Renderer
             _vertexBuffer[3].Position.X = v2.X;
             _vertexBuffer[3].Position.Y = v1.Y;
 
-            graphicsDevice.DrawUserIndexedPrimitives<VertexPositionTexture>
+            graphicsDevice.DrawUserIndexedPrimitives
                 (PrimitiveType.TriangleList, _vertexBuffer, 0, 4, _indexBuffer, 0, 2);
         }
 

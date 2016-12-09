@@ -2,7 +2,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace EngineTest.Recources
+namespace EngineTest.Entities
 {
     public class SpotLightSource : PointLightSource
     {
@@ -12,7 +12,7 @@ namespace EngineTest.Recources
         public RenderTargetBinding[] RenderTargetShadowMapBinding = new RenderTargetBinding[1];
         public Matrix LightViewProjection;
 
-        public SpotLightSource(Vector3 position, float radius, Color color, float intensity, Vector3 direction, bool drawShadow) : base()
+        public SpotLightSource(Vector3 position, float radius, Color color, float intensity, Vector3 direction, bool drawShadow)
         {
             Position = position;
             Radius = radius;

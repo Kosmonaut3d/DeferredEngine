@@ -10,22 +10,22 @@ namespace EngineTest.Main
 {
     public class EditorLogic
     {
-        private int _selectedId = 0;
+        //private int _selectedId = 0;
+        
+        private bool _gizmoTransformationMode;
+        private Vector3 _gizmoPosition;
+        private int _gizmoId;
+        private GizmoModes _gizmoMode = GizmoModes.Translation;
 
-        private bool gizmoTransformationMode = false;
-        private Vector3 gizmoPosition;
-        private int gizmoId = 0;
-        private GizmoModes gizmoMode = GizmoModes.translation;
-
-        public TransformableObject SelectedObject;
+        private TransformableObject SelectedObject;
 
         private GraphicsDevice _graphicsDevice;
 
         public enum GizmoModes
         {
-            translation,
-            rotation
-        };
+            Translation,
+            Rotation
+        }
 
         public struct EditorReceivedData
         {
@@ -57,26 +57,26 @@ namespace EngineTest.Main
         {
             if (!GameSettings.Editor_enable) return;
 
-            if(Input.WasKeyPressed(Keys.R)) gizmoMode = GizmoModes.rotation;
-            if (Input.WasKeyPressed(Keys.T)) gizmoMode = GizmoModes.translation;
+            if(Input.WasKeyPressed(Keys.R)) _gizmoMode = GizmoModes.Rotation;
+            if (Input.WasKeyPressed(Keys.T)) _gizmoMode = GizmoModes.Translation;
 
             int hoveredId = data.HoveredId;
 
-            if (gizmoTransformationMode)
+            if (_gizmoTransformationMode)
             {
                 if (Input.mouseState.LeftButton == ButtonState.Pressed)
                 {
-                    GizmoControl(gizmoId, data);
+                    GizmoControl(_gizmoId, data);
                 }
-                else gizmoTransformationMode = false;
+                else _gizmoTransformationMode = false;
             }
             else if (Input.WasLMBPressed())
             {
                 //Gizmos
                 if (hoveredId >= 1 && hoveredId <= 3)
                 {
-                    gizmoId = hoveredId;
-                    GizmoControl(gizmoId, data);
+                    _gizmoId = hoveredId;
+                    GizmoControl(_gizmoId, data);
                     return;
                 }
 
@@ -194,7 +194,7 @@ namespace EngineTest.Main
 
             Plane plane = new Plane();
 
-            if (gizmoMode == GizmoModes.translation)
+            if (_gizmoMode == GizmoModes.Translation)
             {
                 if (gizmoId == 1)
                 {
@@ -239,17 +239,17 @@ namespace EngineTest.Main
 
             Vector3 hitPoint = pos1 + (pos2 - pos1)*f;
 
-            if (gizmoTransformationMode == false)
+            if (_gizmoTransformationMode == false)
             {
-                gizmoTransformationMode = true;
-                gizmoPosition = hitPoint;
+                _gizmoTransformationMode = true;
+                _gizmoPosition = hitPoint;
                 return;
             }
             
             //Get the difference
-            Vector3 diff = hitPoint - gizmoPosition;
+            Vector3 diff = hitPoint - _gizmoPosition;
 
-            if (gizmoMode == GizmoModes.translation)
+            if (_gizmoMode == GizmoModes.Translation)
             {
                 diff.Z *= gizmoId == 1 ? 1 : 0;
                 diff.Y *= gizmoId == 2 ? 1 : 0;
@@ -282,20 +282,20 @@ namespace EngineTest.Main
             }
 
 
-            gizmoPosition = hitPoint;
+            _gizmoPosition = hitPoint;
 
         }
 
         public EditorSendData GetEditorData()
         {
             if (SelectedObject == null)
-                return new EditorSendData() {SelectedObjectId = 0, SelectedObjectPosition = Vector3.Zero};
-            return new EditorSendData()
+                return new EditorSendData {SelectedObjectId = 0, SelectedObjectPosition = Vector3.Zero};
+            return new EditorSendData
             {
                 SelectedObjectId = SelectedObject.Id,
                 SelectedObjectPosition = SelectedObject.Position,
-                GizmoTransformationMode = gizmoTransformationMode,
-                GizmoMode =  gizmoMode
+                GizmoTransformationMode = _gizmoTransformationMode,
+                GizmoMode =  _gizmoMode
             };
         }
 

@@ -1,6 +1,6 @@
 ﻿using System;
+using EngineTest.Entities;
 using EngineTest.Recources;
-using EngineTest.Renderer;
 using EngineTest.Renderer.Helper;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;

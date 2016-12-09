@@ -2,14 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using EngineTest.Main;
 using EngineTest.Recources;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
-namespace EngineTest.Renderer.Helper
+namespace EngineTest.Main
 {
     public class DebugScreen
     {
@@ -37,9 +36,8 @@ namespace EngineTest.Renderer.Helper
         // Console
         public static bool ConsoleOpen;
         private string _consoleString = "";
-        private List<string> _consoleStringSuggestion = new List<string>();
-        private Comparer<string> stringCompare = new SampleComparator();
-        public static int ActiveLights = 0;
+        private readonly List<string> _consoleStringSuggestion = new List<string>();
+        private readonly Comparer<string> stringCompare = new SampleComparator();
 
         private float _consoleErrorTimer;
         private const float ConsoleErrorTimerMax = 500;
@@ -55,11 +53,6 @@ namespace EngineTest.Renderer.Helper
         public void LoadContent(ContentManager content)
         {
             _sprFont = content.Load<SpriteFont>("Fonts/defaultFont");
-        }
-
-        public void UnloadContent()
-        {
-
         }
 
         public void Update(GameTime gameTime)
@@ -155,7 +148,7 @@ namespace EngineTest.Renderer.Helper
                 {
                     if (propinfo != null)
                     {
-                        string type = propinfo.PropertyType.ToString();
+                        //string type = propinfo.PropertyType.ToString();
                         value = ConvertStringToType(cmds[1], propinfo.PropertyType);
                     }
                 }
@@ -272,7 +265,7 @@ namespace EngineTest.Renderer.Helper
 
                 long totalmemory = GC.GetTotalMemory(false);
                 if (_maxGcMemory < totalmemory) _maxGcMemory = totalmemory;
-                _spriteBatch.DrawString(_sprFont, GameSettings.g_ScreenWidth +" x " + GameSettings.g_ScreenHeight + " " + GameSettings.g_RenderMode.ToString() + " | Memory (GC): " + totalmemory / 1024 + " ... " + _maxGcMemory / 1024, new Vector2(10, 25),
+                _spriteBatch.DrawString(_sprFont, GameSettings.g_ScreenWidth +" x " + GameSettings.g_ScreenHeight + " " + GameSettings.g_RenderMode + " | Memory (GC): " + totalmemory / 1024 + " ... " + _maxGcMemory / 1024, new Vector2(10, 25),
                     Color.White);
 
                 // HELPERS
@@ -324,10 +317,10 @@ namespace EngineTest.Renderer.Helper
         }
 
 
-        public void UpdateResolution()
-        {
-            //
-        }
+        //public void UpdateResolution()
+        //{
+        //    //
+        //}
 
         public struct StringColor
         {
@@ -353,7 +346,7 @@ namespace EngineTest.Renderer.Helper
             }
         }
 
-        private static List<StringColorPosition> _aiStringColorPosition = new List<StringColorPosition>();
+        private static readonly List<StringColorPosition> _aiStringColorPosition = new List<StringColorPosition>();
         private GraphicsDevice _graphicsDevice;
 
         public static void AddAiString(string info, Color color)

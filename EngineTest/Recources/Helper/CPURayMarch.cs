@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using BEPUphysics.Constraints.SolverGroups;
+using EngineTest.Entities;
 using EngineTest.Main;
-using EngineTest.Renderer;
 using EngineTest.Renderer.Helper;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -18,8 +17,8 @@ namespace EngineTest.Recources.Helper
         private Vector3 startNormal;
         private Vector3 reflectVector;
 
-        List<Vector3> samplePositions = new List<Vector3>();
-        List<Vector3> sampleTests = new List<Vector3>();
+        readonly List<Vector3> samplePositions = new List<Vector3>();
+        readonly List<Vector3> sampleTests = new List<Vector3>();
 
         public void Initialize(GraphicsDevice graphics)
         {
@@ -107,8 +106,8 @@ namespace EngineTest.Recources.Helper
 
             int samples = 10;
 
-            float xMultiplier = 0;
-            float yMultiplier = 0;
+            float xMultiplier;
+            float yMultiplier;
             if (rayUV.X > 0)
             {
                 xMultiplier = (1 - texCoord.X) / rayUV.X;
@@ -142,15 +141,14 @@ namespace EngineTest.Recources.Helper
                 float sampleDepth = SampleFloat(depthMap, new Vector2(rayPositionUV.X, rayPositionUV.Y));
 
                 Vector3 rayHit = GetFrustumRay(new Vector2(rayPositionUV.X, rayPositionUV.Y), currentCorners) * sampleDepth;
-                Vector3 rayHit2 = GetFrustumRay(new Vector2(rayPositionUV.X, rayPositionUV.Y), currentCorners) * 
-                                  GetLinDepth(rayPositionUV.Z, Projection) / -GameSettings.g_FarPlane;
+                //Vector3 rayHit2 = GetFrustumRay(new Vector2(rayPositionUV.X, rayPositionUV.Y), currentCorners) * 
+                //                  GetLinDepth(rayPositionUV.Z, Projection) / -GameSettings.g_FarPlane;
 
                 
+                //Vector4 test3 = Vector4.Transform(new Vector4(rayHit, 1), Projection);
+                //test3 /= test3.W;
 
-                Vector4 test3 = Vector4.Transform(new Vector4(rayHit, 1), Projection);
-                test3 /= test3.W;
-
-                float test4 = GetZWDepth(sampleDepth *-GameSettings.g_FarPlane, Projection);
+                //float test4 = GetZWDepth(sampleDepth *-GameSettings.g_FarPlane, Projection);
 
                 //samplePositions.Add(Vector3.Transform(rayHit2, inverseViewMatrix));
                 //sampleTests.Add(Vector3.Transform(rayHit, inverseViewMatrix));
@@ -212,8 +210,8 @@ namespace EngineTest.Recources.Helper
 
             Vector4 Offset = (samplePositionVS - positionVS);
 
-            float xMultiplier = 1;
-            float yMultiplier = 1;
+            float xMultiplier;
+            float yMultiplier;
             //Lets go to the end of the screen
             if (Offset.X > 0)
             {
@@ -243,7 +241,7 @@ namespace EngineTest.Recources.Helper
 
             Offset *= multiplier;
 
-            float maxOffset = Math.Max(Math.Abs(Offset.X), Math.Abs(Offset.Y));
+            //float maxOffset = Math.Max(Math.Abs(Offset.X), Math.Abs(Offset.Y));
 
 
             int samples = 10;//(int)(maxOffset*10);
@@ -313,7 +311,7 @@ namespace EngineTest.Recources.Helper
 
             float[] retrievedColor = new float[1];
 
-            tex.GetData<float>(0, sourceRectangle, retrievedColor, 0, 1);
+            tex.GetData(0, sourceRectangle, retrievedColor, 0, 1);
 
             return retrievedColor[0]; //retrievedColor[0].ToVector4();
         }
@@ -326,7 +324,7 @@ namespace EngineTest.Recources.Helper
 
             HalfVector4[] retrievedColor = new HalfVector4[1];
 
-            tex.GetData<HalfVector4>(0, sourceRectangle, retrievedColor, 0, 1);
+            tex.GetData(0, sourceRectangle, retrievedColor, 0, 1);
 
             return retrievedColor[0]; //retrievedColor[0].ToVector4();
         }

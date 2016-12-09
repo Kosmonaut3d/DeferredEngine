@@ -32,12 +32,12 @@ namespace EngineTest.Entities.Editor
             vBufferArray[ 3].TextureCoordinate = new Vector2(1, 0);
             vBufferArray[3].Color = color;
 
-            iBufferArray[ 0] = (ushort) ( 0);
-            iBufferArray[ 1] = (ushort) ( 1);
-            iBufferArray[ 2] = (ushort) ( 2);
-            iBufferArray[ 3] = (ushort) ( 2);
-            iBufferArray[ 4] = (ushort) ( 3);
-            iBufferArray[ 5] = (ushort) ( 0);
+            iBufferArray[ 0] = 0;
+            iBufferArray[ 1] = 1;
+            iBufferArray[ 2] = 2;
+            iBufferArray[ 3] = 2;
+            iBufferArray[ 4] = 3;
+            iBufferArray[ 5] = 0;
 
             VBuffer.SetData(vBufferArray);
             IBuffer.SetData(iBufferArray);

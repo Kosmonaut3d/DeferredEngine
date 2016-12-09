@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using EngineTest.Entities;
 using EngineTest.Entities.Editor;
 using EngineTest.Main;
 using EngineTest.Recources;
@@ -17,10 +18,10 @@ namespace EngineTest.Renderer.RenderModules
 
         private RenderTarget2D _idRenderTarget2D;
 
-        public int HoveredId = 0;
+        public int HoveredId;
 
-        private Vector4 hoveredColor = Color.White.ToVector4();
-        private Vector4 selectedColor = Color.Yellow.ToVector4();
+        private readonly Vector4 _hoveredColor = Color.White.ToVector4();
+        private readonly Vector4 _selectedColor = Color.Yellow.ToVector4();
 
         private BillboardBuffer _billboardBuffer;
         private Assets _assets;
@@ -44,12 +45,9 @@ namespace EngineTest.Renderer.RenderModules
             if (mouseMoved)
             {
                 DrawIds(meshMat, pointLights, dirLights, viewProjection, view, editorData);
-                DrawOutlines(meshMat, viewProjection, true, HoveredId, editorData, mouseMoved);
             }
-            else
-            {
-                DrawOutlines(meshMat, viewProjection, false, HoveredId, editorData, mouseMoved);
-            }
+
+            DrawOutlines(meshMat, viewProjection, mouseMoved, HoveredId, editorData, mouseMoved);
         }
 
         public void DrawIds(MeshMaterialLibrary meshMat, List<PointLightSource> pointLights, List<DirectionalLightSource> dirLights, Matrix viewProjection, Matrix view, EditorLogic.EditorSendData editorData)
@@ -61,7 +59,7 @@ namespace EngineTest.Renderer.RenderModules
             _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
             _graphicsDevice.DepthStencilState = DepthStencilState.Default;
 
-            meshMat.Draw(MeshMaterialLibrary.RenderType.idRender, _graphicsDevice, viewProjection, false, false);
+            meshMat.Draw(MeshMaterialLibrary.RenderType.IdRender, _graphicsDevice, viewProjection);
 
             //Now onto the billboards
             DrawBillboards(pointLights, dirLights, viewProjection, view);
@@ -74,7 +72,7 @@ namespace EngineTest.Renderer.RenderModules
 
             Color[] retrievedColor = new Color[1];
 
-            _idRenderTarget2D.GetData<Color>(0, sourceRectangle, retrievedColor, 0, 1);
+            _idRenderTarget2D.GetData(0, sourceRectangle, retrievedColor, 0, 1);
 
             HoveredId = IdGenerator.GetIdFromColor(retrievedColor[0]);
         }
@@ -85,7 +83,7 @@ namespace EngineTest.Renderer.RenderModules
             _graphicsDevice.SetVertexBuffer(_billboardBuffer.VBuffer);
             _graphicsDevice.Indices = (_billboardBuffer.IBuffer);
 
-            Shaders.BillboardEffectParameter_Texture.SetValue(_assets.Icon_Light);
+            Shaders.BillboardEffectParameter_Texture.SetValue(_assets.IconLight);
 
             Shaders.BillboardEffect.CurrentTechnique = Shaders.BillboardEffectTechnique_Id;
 
@@ -118,7 +116,7 @@ namespace EngineTest.Renderer.RenderModules
             _graphicsDevice.SetVertexBuffer(_billboardBuffer.VBuffer);
             _graphicsDevice.Indices = (_billboardBuffer.IBuffer);
 
-            Shaders.BillboardEffectParameter_Texture.SetValue(_assets.Icon_Light);
+            Shaders.BillboardEffectParameter_Texture.SetValue(_assets.IconLight);
 
             Shaders.BillboardEffect.CurrentTechnique = Shaders.BillboardEffectTechnique_Id;
 
@@ -137,7 +135,7 @@ namespace EngineTest.Renderer.RenderModules
             }
         }
 
-        public void DrawGizmos(Matrix staticViewProjection, EditorLogic.EditorSendData editorData, Assets _assets)
+        public void DrawGizmos(Matrix staticViewProjection, EditorLogic.EditorSendData editorData, Assets assets)
         {
             if (editorData.SelectedObjectId == 0) return;
 
@@ -148,26 +146,26 @@ namespace EngineTest.Renderer.RenderModules
             Vector3 position = editorData.SelectedObjectPosition;
 
             //Z
-            DrawArrow(position, 0, 0, 0, 0.5f, new Color(1,0,0), staticViewProjection, _assets);
-            DrawArrow(position, -Math.PI / 2, 0, 0, 0.5f, new Color(2, 0, 0), staticViewProjection, _assets);
-            DrawArrow(position, 0, Math.PI / 2, 0, 0.5f, new Color(3, 0, 0), staticViewProjection, _assets);
+            DrawArrow(position, 0, 0, 0, 0.5f, new Color(1,0,0), staticViewProjection, assets);
+            DrawArrow(position, -Math.PI / 2, 0, 0, 0.5f, new Color(2, 0, 0), staticViewProjection, assets);
+            DrawArrow(position, 0, Math.PI / 2, 0, 0.5f, new Color(3, 0, 0), staticViewProjection, assets);
 
-            DrawArrow(position, Math.PI, 0, 0, 0.5f, new Color(1, 0, 0), staticViewProjection, _assets);
-            DrawArrow(position, Math.PI / 2, 0, 0, 0.5f, new Color(2, 0, 0), staticViewProjection, _assets);
-            DrawArrow(position, 0, -Math.PI / 2, 0, 0.5f, new Color(3, 0, 0), staticViewProjection, _assets);
+            DrawArrow(position, Math.PI, 0, 0, 0.5f, new Color(1, 0, 0), staticViewProjection, assets);
+            DrawArrow(position, Math.PI / 2, 0, 0, 0.5f, new Color(2, 0, 0), staticViewProjection, assets);
+            DrawArrow(position, 0, -Math.PI / 2, 0, 0.5f, new Color(3, 0, 0), staticViewProjection, assets);
 
         }
 
-        private void DrawArrow(Vector3 Position, double AngleX, double AngleY, double AngleZ, float Scale, Color color, Matrix staticViewProjection, Assets _assets)
+        private void DrawArrow(Vector3 position, double angleX, double angleY, double angleZ, float scale, Color color, Matrix staticViewProjection, Assets assets)
         {
-            Matrix Rotation = Matrix.CreateRotationX((float)AngleX) * Matrix.CreateRotationY((float)AngleY) *
-                               Matrix.CreateRotationZ((float)AngleZ);
-            Matrix ScaleMatrix = Matrix.CreateScale(0.75f, 0.75f, Scale * 1.5f);
-            Matrix WorldViewProj = ScaleMatrix * Rotation * Matrix.CreateTranslation(Position) * staticViewProjection;
+            Matrix rotation = Matrix.CreateRotationX((float)angleX) * Matrix.CreateRotationY((float)angleY) *
+                               Matrix.CreateRotationZ((float)angleZ);
+            Matrix scaleMatrix = Matrix.CreateScale(0.75f, 0.75f, scale * 1.5f);
+            Matrix worldViewProj = scaleMatrix * rotation * Matrix.CreateTranslation(position) * staticViewProjection;
 
-            Shaders.IdRenderEffectParameterWorldViewProj.SetValue(WorldViewProj);
+            Shaders.IdRenderEffectParameterWorldViewProj.SetValue(worldViewProj);
             Shaders.IdRenderEffectParameterColorId.SetValue(color.ToVector4());
-            foreach (ModelMesh mesh in _assets.EditorArrow.Meshes)
+            foreach (ModelMesh mesh in assets.EditorArrow.Meshes)
             {
                 foreach (ModelMeshPart meshpart in mesh.MeshParts)
                 {
@@ -177,7 +175,7 @@ namespace EngineTest.Renderer.RenderModules
                     _graphicsDevice.Indices = (meshpart.IndexBuffer);
                     int primitiveCount = meshpart.PrimitiveCount;
                     int vertexOffset = meshpart.VertexOffset;
-                    int vCount = meshpart.NumVertices;
+                    //int vCount = meshpart.NumVertices;
                     int startIndex = meshpart.StartIndex;
 
                     _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset, startIndex, primitiveCount);
@@ -199,24 +197,24 @@ namespace EngineTest.Renderer.RenderModules
             if (selectedId != 0)
             {
                 if (!drawAll)
-                    meshMat.Draw(MeshMaterialLibrary.RenderType.idOutline, _graphicsDevice, viewProjection, false, false,
+                    meshMat.Draw(MeshMaterialLibrary.RenderType.IdOutline, _graphicsDevice, viewProjection, false, false,
                         false, selectedId);
 
-                Shaders.IdRenderEffectParameterColorId.SetValue(selectedColor);
-                meshMat.Draw(MeshMaterialLibrary.RenderType.idOutline, _graphicsDevice, viewProjection, false, false,
+                Shaders.IdRenderEffectParameterColorId.SetValue(_selectedColor);
+                meshMat.Draw(MeshMaterialLibrary.RenderType.IdOutline, _graphicsDevice, viewProjection, false, false,
                     outlined: true, outlineId: selectedId);
             }
 
             if (selectedId != hoveredId && hoveredId!=0 && mouseMoved)
             {
-                if (!drawAll) meshMat.Draw(MeshMaterialLibrary.RenderType.idOutline, _graphicsDevice, viewProjection, false, false, false, hoveredId);
+                if (!drawAll) meshMat.Draw(MeshMaterialLibrary.RenderType.IdOutline, _graphicsDevice, viewProjection, false, false, false, hoveredId);
 
-                Shaders.IdRenderEffectParameterColorId.SetValue(hoveredColor);
-                meshMat.Draw(MeshMaterialLibrary.RenderType.idOutline, _graphicsDevice, viewProjection, false, false, outlined: true, outlineId: hoveredId);
+                Shaders.IdRenderEffectParameterColorId.SetValue(_hoveredColor);
+                meshMat.Draw(MeshMaterialLibrary.RenderType.IdOutline, _graphicsDevice, viewProjection, false, false, outlined: true, outlineId: hoveredId);
             }
         }
 
-        public RenderTarget2D GetRT()
+        public RenderTarget2D GetRt()
         {
             return _idRenderTarget2D;
         }

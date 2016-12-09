@@ -1,17 +1,17 @@
 ﻿using System;
 using Microsoft.Xna.Framework;
 
-namespace EngineTest.Renderer
+namespace EngineTest.Entities
 {
     public class Camera
     {
         private Vector3 _position;
         private Vector3 _up = Vector3.UnitZ;
         private Vector3 _forward = Vector3.Up;
-        private float fieldOfView = (float) Math.PI/4;
+        private float _fieldOfView = (float) Math.PI/4;
 
         public bool HasChanged = true;
-        public bool HasMoved = false;
+        public bool HasMoved;
 
         public Camera(Vector3 position, Vector3 lookat)
         {
@@ -71,10 +71,10 @@ namespace EngineTest.Renderer
 
         public float FieldOfView
         {
-            get { return fieldOfView; }
+            get { return _fieldOfView; }
             set
             {
-                fieldOfView = value;
+                _fieldOfView = value;
                 HasChanged = true;
             }
         }

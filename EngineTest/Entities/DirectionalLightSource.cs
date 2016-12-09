@@ -1,12 +1,11 @@
-﻿using System;
-using EngineTest.Entities;
+﻿using EngineTest.Recources;
 using EngineTest.Recources.Helper;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace EngineTest.Recources
+namespace EngineTest.Entities
 {
-    public class DirectionalLightSource : TransformableObject
+    public sealed class DirectionalLightSource : TransformableObject
     {
         public Color Color;
         public float Intensity;
@@ -14,11 +13,11 @@ namespace EngineTest.Recources
         private Vector3 _position;
         public bool HasChanged;
 
-        public bool DrawShadows;
-        public float ShadowSize;
-        public float ShadowDepth;
-        public int ShadowResolution;
-        public bool StaticShadow;
+        public readonly bool DrawShadows;
+        public readonly float ShadowSize;
+        public readonly float ShadowDepth;
+        public readonly int ShadowResolution;
+        private readonly bool _staticShadow;
 
         public RenderTarget2D ShadowMap;
         public Matrix ShadowViewProjection;
@@ -31,7 +30,7 @@ namespace EngineTest.Recources
         public enum ShadowFilteringTypes
         {
             PCF, SoftPCF3x, SoftPCF5x, Poisson, VSM
-        };
+        }
 
         /// <summary>
         /// Create a Directional light, shadows are optional
@@ -43,6 +42,9 @@ namespace EngineTest.Recources
         /// <param name="shadowSize"></param>
         /// <param name="shadowDepth"></param>
         /// <param name="shadowResolution"></param>
+        /// <param name="shadowFiltering"></param>
+        /// <param name="screenspaceshadowblur"></param>
+        /// <param name="staticshadows"></param>
         public DirectionalLightSource(Color color, float intensity, Vector3 direction,Vector3 position = default(Vector3), bool drawShadows = false, float shadowSize = 100, float shadowDepth = 100, int shadowResolution = 512, ShadowFilteringTypes shadowFiltering = ShadowFilteringTypes.Poisson, bool screenspaceshadowblur = false, bool staticshadows = false)
         {
             Color = color;
@@ -58,7 +60,7 @@ namespace EngineTest.Recources
             ShadowSize = shadowSize;
             ShadowDepth = shadowDepth;
             ShadowResolution = shadowResolution;
-            StaticShadow = staticshadows;
+            _staticShadow = staticshadows;
 
             ScreenSpaceShadowBlur = screenspaceshadowblur;
 
@@ -99,7 +101,7 @@ namespace EngineTest.Recources
             set { _id = value; }
         }
 
-        private double _angleZ = 0;
+        private double _angleZ;
         public override double AngleZ {
             get
             {
@@ -112,7 +114,7 @@ namespace EngineTest.Recources
             }
         }
 
-        private double _angleX = 0;
+        private double _angleX;
         public override double AngleX {
             get
             {
@@ -125,7 +127,7 @@ namespace EngineTest.Recources
             }
         }
 
-        private double _angleY = 0;
+        private double _angleY;
 
         public override double AngleY
         {
@@ -142,13 +144,11 @@ namespace EngineTest.Recources
 
         private void TransformAnglesToDirection(float angleX, float angleY, float angleZ)
         {
-            RotationMatrix = Matrix.CreateRotationX((float)angleX) * Matrix.CreateRotationY((float)angleY) *
-                                  Matrix.CreateRotationZ((float)angleZ);
+            RotationMatrix = Matrix.CreateRotationX(angleX) * Matrix.CreateRotationY(angleY) *
+                                  Matrix.CreateRotationZ(angleZ);
 
             
             Direction = Vector3.Transform(Direction, RotationMatrix);
-            
-            return;
         }
 
         private Matrix Trafo;
@@ -161,10 +161,10 @@ namespace EngineTest.Recources
 
         public override TransformableObject Clone
         {
-            get { return new DirectionalLightSource(Color, Intensity, Direction, Position, DrawShadows, ShadowSize, ShadowDepth, ShadowResolution, ShadowFiltering, false, StaticShadow); }
+            get { return new DirectionalLightSource(Color, Intensity, Direction, Position, DrawShadows, ShadowSize, ShadowDepth, ShadowResolution, ShadowFiltering, false, _staticShadow); }
         }
 
-        public virtual void ApplyShader()
+        public void ApplyShader()
         {
             if (DrawShadows)
             {

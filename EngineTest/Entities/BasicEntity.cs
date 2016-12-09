@@ -1,7 +1,6 @@
 ﻿using BEPUphysics.BroadPhaseEntries;
 using BEPUphysics.Entities;
 using BEPUutilities;
-using ConversionHelper;
 using EngineTest.Recources;
 using EngineTest.Recources.Helper;
 using EngineTest.Renderer.Helper;
@@ -22,16 +21,16 @@ namespace EngineTest.Entities
         public abstract TransformableObject Clone { get; }
     }
 
-    public class BasicEntity : TransformableObject
+    public sealed class BasicEntity : TransformableObject
     {
-        public Model Model;
-        public MaterialEffect Material;
+        public readonly Model Model;
+        public readonly MaterialEffect Material;
 
-        public int _id;
+        private int _id;
 
         private Vector3 _position;
 
-        public Entity DynamicPhysicsObject = null;
+        private Entity _dynamicPhysicsObject;
         public StaticMesh StaticPhysicsObject = null;
 
         public override Vector3 Position
@@ -101,11 +100,11 @@ namespace EngineTest.Entities
 
         
 
-        public TransformMatrix WorldTransform;
+        public readonly TransformMatrix WorldTransform;
         public Matrix RotationMatrix;
-        public Matrix WorldOldMatrix = Matrix.Identity;
-        public Matrix WorldNewMatrix = Matrix.Identity;
-        public float Scale = 1;
+        private Matrix _worldOldMatrix = Matrix.Identity;
+        private Matrix _worldNewMatrix = Matrix.Identity;
+        public readonly float Scale = 1;
         
         public BasicEntity(Model model, MaterialEffect material, Vector3 position, double angleZ, double angleX, double angleY, float scale, MeshMaterialLibrary library = null, Entity physicsObject = null)
         {
@@ -137,10 +136,10 @@ namespace EngineTest.Entities
             library.Register(Material, Model, WorldTransform);
         }
 
-        public void RegisterPhysics(Entity PhysisEntity)
+        private void RegisterPhysics(Entity physisEntity)
         {
-            DynamicPhysicsObject = PhysisEntity;
-            DynamicPhysicsObject.Position = new BEPUutilities.Vector3(Position.X, Position.Y, Position.Z);
+            _dynamicPhysicsObject = physisEntity;
+            _dynamicPhysicsObject.Position = new BEPUutilities.Vector3(Position.X, Position.Y, Position.Z);
         }
 
         public void Dispose(MeshMaterialLibrary library)
@@ -148,35 +147,30 @@ namespace EngineTest.Entities
             library.DeleteFromRegistry(this);
         }
 
-        protected BasicEntity()
+        public void ApplyTransformation()
         {
-            //throw new NotImplementedException();
-        }
-
-        public virtual void ApplyTransformation()
-        {
-            if (DynamicPhysicsObject == null)
+            if (_dynamicPhysicsObject == null)
             {
                 RotationMatrix = Matrix.CreateRotationX((float) AngleX)*Matrix.CreateRotationY((float) AngleY)*
                                   Matrix.CreateRotationZ((float) AngleZ);
-                Matrix ScaleMatrix = Matrix.CreateScale(Scale);
-                WorldOldMatrix = ScaleMatrix* RotationMatrix * Matrix.CreateTranslation(Position);
+                Matrix scaleMatrix = Matrix.CreateScale(Scale);
+                _worldOldMatrix = scaleMatrix* RotationMatrix * Matrix.CreateTranslation(Position);
 
                 WorldTransform.Scale = Scale;
-                WorldTransform.World = WorldOldMatrix;
+                WorldTransform.World = _worldOldMatrix;
                 
                 if (StaticPhysicsObject != null && !GameSettings.Editor_enable)
                 {
-                    AffineTransform Change = new AffineTransform(
+                    AffineTransform change = new AffineTransform(
                             new BEPUutilities.Vector3(Scale, Scale, Scale),
-                            BEPUutilities.Quaternion.CreateFromRotationMatrix(MathConverter.Convert(RotationMatrix)),
+                            Quaternion.CreateFromRotationMatrix(MathConverter.Convert(RotationMatrix)),
                             MathConverter.Convert(Position));
 
-                    if (!MathConverter.Equals(Change.Matrix, StaticPhysicsObject.WorldTransform.Matrix))
+                    if (!MathConverter.Equals(change.Matrix, StaticPhysicsObject.WorldTransform.Matrix))
                     {
                         //StaticPhysicsMatrix = MathConverter.Copy(Change.Matrix);
 
-                        StaticPhysicsObject.WorldTransform = Change;
+                        StaticPhysicsObject.WorldTransform = change;
                     }
                 }
             }
@@ -184,37 +178,32 @@ namespace EngineTest.Entities
             {
                 //Has something changed?
                 WorldTransform.Scale = Scale;
-                WorldOldMatrix = Extensions.CopyFromBepuMatrix(WorldOldMatrix, DynamicPhysicsObject.WorldTransform);
-                Matrix ScaleMatrix = Matrix.CreateScale(Scale);
+                _worldOldMatrix = Extensions.CopyFromBepuMatrix(_worldOldMatrix, _dynamicPhysicsObject.WorldTransform);
+                Matrix scaleMatrix = Matrix.CreateScale(Scale);
                 //WorldOldMatrix = Matrix.CreateScale(Scale)*WorldOldMatrix; 
-                WorldTransform.World = ScaleMatrix * WorldOldMatrix;
+                WorldTransform.World = scaleMatrix * _worldOldMatrix;
 
             }
-        }
-
-        public virtual void SetRenderMode(bool isRendered)
-        {
-            WorldTransform.Rendered = isRendered;
         }
 
         internal void CheckPhysics()
         {
-            if (DynamicPhysicsObject == null) return;
+            if (_dynamicPhysicsObject == null) return;
 
-            WorldNewMatrix = Extensions.CopyFromBepuMatrix(WorldNewMatrix, DynamicPhysicsObject.WorldTransform);
+            _worldNewMatrix = Extensions.CopyFromBepuMatrix(_worldNewMatrix, _dynamicPhysicsObject.WorldTransform);
 
-            if (WorldNewMatrix != WorldOldMatrix)
+            if (_worldNewMatrix != _worldOldMatrix)
             {
                 WorldTransform.HasChanged = true;
-                WorldOldMatrix = WorldNewMatrix;
-                Position = WorldOldMatrix.Translation;
+                _worldOldMatrix = _worldNewMatrix;
+                Position = _worldOldMatrix.Translation;
             }
             else
             {
-                if (Position != WorldNewMatrix.Translation && GameSettings.Editor_enable)
+                if (Position != _worldNewMatrix.Translation && GameSettings.Editor_enable)
                 {
                     //DynamicPhysicsObject.Position = new BEPUutilities.Vector3(Position.X, Position.Y, Position.Z);
-                    DynamicPhysicsObject.Position = MathConverter.Convert(Position);
+                    _dynamicPhysicsObject.Position = MathConverter.Convert(Position);
                 }
                 //    DynamicPhysicsObject.Position = new BEPUutilities.Vector3(Position.X, Position.Y, Position.Z);
                 //    //WorldNewMatrix = Extensions.CopyFromBepuMatrix(WorldNewMatrix, DynamicPhysicsObject.WorldTransform);

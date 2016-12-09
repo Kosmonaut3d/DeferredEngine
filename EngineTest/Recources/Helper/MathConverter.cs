@@ -1,6 +1,13 @@
-using Microsoft.Xna.Framework;
+using BEPUutilities;
+using BoundingBox = Microsoft.Xna.Framework.BoundingBox;
+using BoundingSphere = Microsoft.Xna.Framework.BoundingSphere;
+using Matrix = Microsoft.Xna.Framework.Matrix;
+using Plane = Microsoft.Xna.Framework.Plane;
+using Quaternion = Microsoft.Xna.Framework.Quaternion;
+using Vector2 = Microsoft.Xna.Framework.Vector2;
+using Vector3 = Microsoft.Xna.Framework.Vector3;
 
-namespace ConversionHelper
+namespace EngineTest.Recources.Helper
 {
     /// <summary>
     /// Helps convert between XNA math types and the BEPUphysics replacement math types.
@@ -205,14 +212,14 @@ namespace ConversionHelper
             return bepuMatrix;
         }
 
-        public static Matrix Convert(BEPUutilities.Matrix3x3 matrix)
+        public static Matrix Convert(Matrix3x3 matrix)
         {
             Matrix toReturn;
             Convert(ref matrix, out toReturn);
             return toReturn;
         }
 
-        public static void Convert(ref BEPUutilities.Matrix3x3 matrix, out Matrix xnaMatrix)
+        public static void Convert(ref Matrix3x3 matrix, out Matrix xnaMatrix)
         {
             xnaMatrix.M11 = matrix.M11;
             xnaMatrix.M12 = matrix.M12;
@@ -235,7 +242,7 @@ namespace ConversionHelper
             xnaMatrix.M44 = 1;
         }
 
-        public static void Convert(ref Matrix matrix, out BEPUutilities.Matrix3x3 bepuMatrix)
+        public static void Convert(ref Matrix matrix, out Matrix3x3 bepuMatrix)
         {
             bepuMatrix.M11 = matrix.M11;
             bepuMatrix.M12 = matrix.M12;
@@ -289,21 +296,7 @@ namespace ConversionHelper
         }
 
         //Ray
-        public static BEPUutilities.Ray Convert(Ray ray)
-        {
-            BEPUutilities.Ray toReturn;
-            Convert(ref ray.Position, out toReturn.Position);
-            Convert(ref ray.Direction, out toReturn.Direction);
-            return toReturn;
-        }
-
-        public static void Convert(ref Ray ray, out BEPUutilities.Ray bepuRay)
-        {
-            Convert(ref ray.Position, out bepuRay.Position);
-            Convert(ref ray.Direction, out bepuRay.Direction);
-        }
-
-        public static Ray Convert(BEPUutilities.Ray ray)
+        public static Ray Convert(Microsoft.Xna.Framework.Ray ray)
         {
             Ray toReturn;
             Convert(ref ray.Position, out toReturn.Position);
@@ -311,7 +304,21 @@ namespace ConversionHelper
             return toReturn;
         }
 
-        public static void Convert(ref BEPUutilities.Ray ray, out Ray xnaRay)
+        public static void Convert(ref Microsoft.Xna.Framework.Ray ray, out Ray bepuRay)
+        {
+            Convert(ref ray.Position, out bepuRay.Position);
+            Convert(ref ray.Direction, out bepuRay.Direction);
+        }
+
+        public static Microsoft.Xna.Framework.Ray Convert(Ray ray)
+        {
+            Microsoft.Xna.Framework.Ray toReturn;
+            Convert(ref ray.Position, out toReturn.Position);
+            Convert(ref ray.Direction, out toReturn.Direction);
+            return toReturn;
+        }
+
+        public static void Convert(ref Ray ray, out Microsoft.Xna.Framework.Ray xnaRay)
         {
             Convert(ref ray.Position, out xnaRay.Position);
             Convert(ref ray.Direction, out xnaRay.Direction);

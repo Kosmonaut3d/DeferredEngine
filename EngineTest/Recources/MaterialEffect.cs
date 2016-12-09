@@ -17,20 +17,20 @@ namespace EngineTest.Recources
 
         public bool HasShadow = true;
 
-        public bool HasDiffuse = false;
-        public bool HasRoughnessMap = false;
-        public bool HasMask = false;
-        public bool HasNormalMap = false;
-        public bool HasMetallic = false;
-        public bool HasDisplacement = false;
+        public bool HasDiffuse;
+        public bool HasRoughnessMap;
+        public bool HasMask;
+        public bool HasNormalMap;
+        public bool HasMetallic;
+        public bool HasDisplacement;
 
 
         public Vector3 DiffuseColor = Color.Gray.ToVector3();
 
-        public float _roughness = 0.5f;
+        private float _roughness = 0.5f;
 
-        public float Metallic = 0;
-        public float EmissiveStrength = 0;
+        public float Metallic;
+        public float EmissiveStrength;
 
         public float Roughness { get { return _roughness;} set { _roughness = Math.Max(value, 0.001f); } }
         
@@ -101,7 +101,7 @@ namespace EngineTest.Recources
         }
         
         private MaterialTypes _type = MaterialTypes.Basic;
-        public int materialTypeNumber = 0;
+        public int MaterialTypeNumber;
 
         public enum MaterialTypes
         {
@@ -117,11 +117,11 @@ namespace EngineTest.Recources
             set
             {
                 _type = value;
-                materialTypeNumber = 0;
+                MaterialTypeNumber = 0;
                 if (value == MaterialTypes.ProjectHologram)
-                    materialTypeNumber = 2;
+                    MaterialTypeNumber = 2;
                 else if (value == MaterialTypes.Emissive)
-                    materialTypeNumber = 3;
+                    MaterialTypeNumber = 3;
             }
         }
 

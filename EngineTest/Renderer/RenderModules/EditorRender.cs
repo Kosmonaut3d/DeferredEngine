@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using EngineTest.Entities;
 using EngineTest.Entities.Editor;
 using EngineTest.Main;
 using EngineTest.Recources;
@@ -11,15 +12,15 @@ namespace EngineTest.Renderer.RenderModules
 {
     public class EditorRender
     {
-        public IdRenderer _idRenderer;
-        public GraphicsDevice _graphicsDevice;
+        private IdRenderer _idRenderer;
+        private GraphicsDevice _graphicsDevice;
 
         private BillboardBuffer _billboardBuffer;
 
         private Assets _assets;
 
-        private double mouseMoved;
-        private bool mouseMovement = false;
+        private double _mouseMoved;
+        private bool _mouseMovement;
 
         public void Initialize(GraphicsDevice graphics, Assets assets)
         {
@@ -38,13 +39,13 @@ namespace EngineTest.Renderer.RenderModules
             {
                 //reset the timer!
 
-                mouseMoved = gameTime.TotalGameTime.TotalMilliseconds + 500;
-                mouseMovement = true;
+                _mouseMoved = gameTime.TotalGameTime.TotalMilliseconds + 500;
+                _mouseMovement = true;
             }
 
-            if (mouseMoved < gameTime.TotalGameTime.TotalMilliseconds)
+            if (_mouseMoved < gameTime.TotalGameTime.TotalMilliseconds)
             {
-                mouseMovement = false;
+                _mouseMovement = false;
             }
 
         }
@@ -56,13 +57,13 @@ namespace EngineTest.Renderer.RenderModules
 
         public void DrawBillboards(List<PointLightSource> lights, List<DirectionalLightSource> dirLights, Matrix staticViewProjection, Matrix view, EditorLogic.EditorSendData sendData)
         {
-            int hoveredId = GetHoveredId();
+            GetHoveredId();
 
             _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
             _graphicsDevice.SetVertexBuffer(_billboardBuffer.VBuffer);
             _graphicsDevice.Indices = (_billboardBuffer.IBuffer);
 
-            Shaders.BillboardEffectParameter_Texture.SetValue(_assets.Icon_Light);
+            Shaders.BillboardEffectParameter_Texture.SetValue(_assets.IconLight);
 
             Shaders.BillboardEffect.CurrentTechnique = Shaders.BillboardEffectTechnique_Billboard;
 
@@ -118,9 +119,9 @@ namespace EngineTest.Renderer.RenderModules
 
                 if (light.DrawShadows)
                 {
-                    BoundingFrustum _boundingFrustumShadow = new BoundingFrustum(light.LightViewProjection);
+                    BoundingFrustum boundingFrustumShadow = new BoundingFrustum(light.LightViewProjection);
 
-                    LineHelperManager.CreateBoundingBoxLines(_boundingFrustumShadow);
+                    LineHelperManager.CreateBoundingBoxLines(boundingFrustumShadow);
                 }
 
                 //DrawArrow(light.Position, 0,0,0, 2, Color.White, staticViewProjection, EditorLogic.GizmoModes.translation, light.Direction);
@@ -129,7 +130,7 @@ namespace EngineTest.Renderer.RenderModules
 
         public void DrawIds(MeshMaterialLibrary meshMaterialLibrary, List<PointLightSource>lights, List<DirectionalLightSource> dirLights, Matrix staticViewProjection, Matrix view, EditorLogic.EditorSendData editorData)
         {
-            _idRenderer.Draw(meshMaterialLibrary, lights, dirLights, staticViewProjection, view, editorData, mouseMovement);
+            _idRenderer.Draw(meshMaterialLibrary, lights, dirLights, staticViewProjection, view, editorData, _mouseMovement);
         }
 
         public void DrawEditorElements(MeshMaterialLibrary meshMaterialLibrary, List<PointLightSource> lights, List<DirectionalLightSource> dirLights, Matrix staticViewProjection, Matrix view, EditorLogic.EditorSendData editorData)
@@ -165,28 +166,28 @@ namespace EngineTest.Renderer.RenderModules
             //DrawArrowRound(position, 0, Math.PI / 2, 0, GetHoveredId() == 3 ? 1 : 0.5f, Color.Red, staticViewProjection); //x 3
         }
 
-        private void DrawArrow(Vector3 Position, double AngleX, double AngleY, double AngleZ, float Scale, Color color, Matrix staticViewProjection, EditorLogic.GizmoModes gizmoMode, Vector3? direction = null)
+        private void DrawArrow(Vector3 position, double angleX, double angleY, double angleZ, float scale, Color color, Matrix staticViewProjection, EditorLogic.GizmoModes gizmoMode, Vector3? direction = null)
         {
-            Matrix Rotation;
+            Matrix rotation;
             if (direction != null)
             {
-                Rotation = Matrix.CreateLookAt(Vector3.Zero, (Vector3) direction, Vector3.UnitX);
+                rotation = Matrix.CreateLookAt(Vector3.Zero, (Vector3) direction, Vector3.UnitX);
               
 
             }
             else
             {
-                Rotation = Matrix.CreateRotationX((float)AngleX) * Matrix.CreateRotationY((float)AngleY) *
-                                   Matrix.CreateRotationZ((float)AngleZ);
+                rotation = Matrix.CreateRotationX((float)angleX) * Matrix.CreateRotationY((float)angleY) *
+                                   Matrix.CreateRotationZ((float)angleZ);
             }
 
-            Matrix ScaleMatrix = Matrix.CreateScale(0.75f, 0.75f,Scale*1.5f);
-            Matrix WorldViewProj = ScaleMatrix * Rotation * Matrix.CreateTranslation(Position) * staticViewProjection;
+            Matrix scaleMatrix = Matrix.CreateScale(0.75f, 0.75f,scale*1.5f);
+            Matrix worldViewProj = scaleMatrix * rotation * Matrix.CreateTranslation(position) * staticViewProjection;
 
-            Shaders.IdRenderEffectParameterWorldViewProj.SetValue(WorldViewProj);
+            Shaders.IdRenderEffectParameterWorldViewProj.SetValue(worldViewProj);
             Shaders.IdRenderEffectParameterColorId.SetValue(color.ToVector4());
 
-            Model model = gizmoMode == EditorLogic.GizmoModes.translation
+            Model model = gizmoMode == EditorLogic.GizmoModes.Translation
                 ? _assets.EditorArrow
                 : _assets.EditorArrowRound;
 
@@ -200,7 +201,7 @@ namespace EngineTest.Renderer.RenderModules
                     _graphicsDevice.Indices = (meshpart.IndexBuffer);
                     int primitiveCount = meshpart.PrimitiveCount;
                     int vertexOffset = meshpart.VertexOffset;
-                    int vCount = meshpart.NumVertices;
+                    //int vCount = meshpart.NumVertices;
                     int startIndex = meshpart.StartIndex;
 
                     _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset, startIndex, primitiveCount);
@@ -211,7 +212,7 @@ namespace EngineTest.Renderer.RenderModules
 
         public RenderTarget2D GetOutlines()
         {
-            return _idRenderer.GetRT();
+            return _idRenderer.GetRt();
         }
 
         /// <summary>

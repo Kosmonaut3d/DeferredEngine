@@ -18,7 +18,6 @@ namespace EngineTest.Recources
         public static bool g_CPU_Sort = true;
         public static bool g_EnvironmentMapping = true;
         public static bool g_EnvironmentMappingEveryFrame = false;
-        public static float t_color = 0.25f;
 
         public static int g_ScreenWidth = 1280;
         public static int g_ScreenHeight = 800;
@@ -129,7 +128,7 @@ namespace EngineTest.Recources
         public static bool g_VolumetricLights = true;
         public static bool e_CPURayMarch = true;
         public static bool g_ClearGBuffer = true;
-        public static bool d_defaultMaterial = false;
+        public static bool d_defaultMaterial;
         public static bool g_PostProcessing = true;
 
         public static bool g_SSReflectionTaa

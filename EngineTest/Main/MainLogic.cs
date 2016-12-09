@@ -1,21 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using BEPUphysics;
 using BEPUphysics.BroadPhaseEntries;
 using BEPUphysics.Entities;
 using BEPUphysics.Entities.Prefabs;
-using BEPUphysicsDemos;
 using BEPUutilities;
-using ConversionHelper;
 using EngineTest.Entities;
 using EngineTest.Recources;
-using EngineTest.Renderer;
+using EngineTest.Recources.Helper;
 using EngineTest.Renderer.Helper;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Quaternion = BEPUutilities.Quaternion;
 using Vector3 = Microsoft.Xna.Framework.Vector3;
 
 namespace EngineTest.Main
@@ -40,7 +38,7 @@ namespace EngineTest.Main
         public readonly List<DirectionalLightSource> DirectionalLights = new List<DirectionalLightSource>();
 
         //Which render target are we currently displaying?
-        private int _renderModeCycle = 0;
+        private int _renderModeCycle;
         private Space _physicsSpace;
 
         #endregion
@@ -91,7 +89,7 @@ namespace EngineTest.Main
                 hasStaticPhysics: true);
             
             AddEntity(model: _assets.Plane, 
-                materialEffect: _assets.metalRough01Material, 
+                materialEffect: _assets.MetalRough01Material, 
                 position: new Vector3(0, 0, 0), 
                 angleX: 0, 
                 angleY: 0, 
@@ -99,7 +97,7 @@ namespace EngineTest.Main
                 scale: 30);
             
             AddEntity(model: _assets.StanfordDragon, 
-                materialEffect: _assets.goldMaterial, 
+                materialEffect: _assets.GoldMaterial, 
                 position: new Vector3(40, -10, 0), 
                 angleX: Math.PI / 2, 
                 angleY: 0, 
@@ -167,7 +165,7 @@ namespace EngineTest.Main
 
             _physicsSpace.Add(physicsEntity = new Box(pos: BEPUutilities.Vector3.Zero, width: 10, height: 10, length: 10, mass: 100));
             AddEntity(model: _assets.TestCube, 
-                materialEffect: _assets.silverMaterial, 
+                materialEffect: _assets.SilverMaterial, 
                 position: new Vector3(20.2f, 1.1f, 40), 
                 angleX: Math.PI / 2, 
                 angleY: 0, 
@@ -177,7 +175,7 @@ namespace EngineTest.Main
 
             _physicsSpace.Add(physicsEntity = new Sphere(position: BEPUutilities.Vector3.Zero, radius: 5, mass: 50));
             AddEntity(model: _assets.IsoSphere, 
-                materialEffect: _assets.baseMaterial, 
+                materialEffect: _assets.BaseMaterial, 
                 position: new Vector3(20, 0, 10), 
                 angleX: Math.PI / 2, 
                 angleY: 0, 
@@ -471,7 +469,7 @@ namespace EngineTest.Main
                     new BEPUutilities.Vector3(entity.Scale, 
                         entity.Scale, 
                         entity.Scale), 
-                BEPUutilities.Quaternion.CreateFromRotationMatrix(MathConverter.Convert(entity.RotationMatrix)), 
+                Quaternion.CreateFromRotationMatrix(MathConverter.Convert(entity.RotationMatrix)), 
                 MathConverter.Convert(entity.Position)));
 
             entity.StaticPhysicsObject = mesh;

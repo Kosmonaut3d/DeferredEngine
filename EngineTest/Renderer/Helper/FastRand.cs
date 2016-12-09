@@ -92,7 +92,7 @@ namespace EngineTest.Renderer.Helper
         /// <returns></returns>
         public static Color NextColor()
         {
-            return new Color(FastRand.NextInteger(255), FastRand.NextInteger(255), FastRand.NextInteger(255));
+            return new Color(NextInteger(255), NextInteger(255), NextInteger(255));
         }
 
         public static float NextAngle(float maxAngle)
