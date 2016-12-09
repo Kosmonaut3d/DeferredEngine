@@ -8,76 +8,94 @@ using Microsoft.Xna.Framework.Input;
 
 namespace EngineTest
 {
-    /// <summary>
-    /// This is the main type for your game.
-    /// </summary>
     public class Game1 : Game
     {
-        GraphicsDeviceManager graphics;
-        SpriteBatch spriteBatch;
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        //  VARIABLES
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        private ScreenManager screenManager;
+        private readonly GraphicsDeviceManager _graphics;
 
-        private bool isActive = true;
+        private readonly ScreenManager _screenManager;
 
-        private Space space;
+        private bool _isActive = true;
 
+        private Space _physicsSpace;
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        //  FUNCTIONS
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        
         public Game1()
         {
-            graphics = new GraphicsDeviceManager(this);
+            //Initialize graphics and content
+            _graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
 
-            space = new Space();
-            space.ForceUpdater.Gravity = new BEPUutilities.Vector3(0,0,-9.81f);
+            //Initialize screen manager, which controls draw / logic for our screens
+            _screenManager = new ScreenManager();
 
-            graphics.SynchronizeWithVerticalRetrace = false;
+            //Initialize our physics and give it gravity
+            _physicsSpace = new Space
+            {
+                ForceUpdater = { Gravity = new BEPUutilities.Vector3(0, 0, -9.81f) }
+            };
+
+            //Set up graphics properties, no vsync, no framelock
+            _graphics.SynchronizeWithVerticalRetrace = false;
             IsFixedTimeStep = false;
 
-            graphics.PreferredBackBufferWidth = GameSettings.g_ScreenWidth;
-            graphics.PreferredBackBufferHeight = GameSettings.g_ScreenHeight;
+            //Size of our application / starting back buffer
+            _graphics.PreferredBackBufferWidth = GameSettings.g_ScreenWidth;
+            _graphics.PreferredBackBufferHeight = GameSettings.g_ScreenHeight;
 
-            screenManager = new ScreenManager();
-
-            IsMouseVisible = true;
-
-            Window.ClientSizeChanged += ClientChangedWindowSize;
-
-            graphics.GraphicsProfile = GraphicsProfile.HiDef;
+            //HiDef enables usable shaders
+            _graphics.GraphicsProfile = GraphicsProfile.HiDef;
 
             //_graphics.GraphicsDevice.DeviceLost += new EventHandler<EventArgs>(ClientLostDevice);
 
+            //Mouse should not disappear
+            IsMouseVisible = true;
+
+            //Window settings
             Window.AllowUserResizing = true;
             Window.IsBorderless = false;
 
+            //Update all our rendertargets when we resize
+            Window.ClientSizeChanged += ClientChangedWindowSize;
+            
+            //Update framerate etc. when not the active window
             Activated += IsActivated;
             Deactivated += IsDeactivated;
         }
 
         private void IsActivated(object sender, EventArgs e)
         {
-            isActive = true;
+            _isActive = true;
         }
 
         private void IsDeactivated(object sender, EventArgs e)
         {
-            isActive = false;
+            _isActive = false;
         }
 
+        /// <summary>
+        /// Update rendertargets and backbuffer when resizing window size
+        /// </summary>
         private void ClientChangedWindowSize(object sender, EventArgs e)
         {
-            if (GraphicsDevice.Viewport.Width != graphics.PreferredBackBufferWidth ||
-                GraphicsDevice.Viewport.Height != graphics.PreferredBackBufferHeight)
+            if (GraphicsDevice.Viewport.Width != _graphics.PreferredBackBufferWidth ||
+                GraphicsDevice.Viewport.Height != _graphics.PreferredBackBufferHeight)
             {
                 if (Window.ClientBounds.Width == 0) return;
-                graphics.PreferredBackBufferWidth = Window.ClientBounds.Width;
-                graphics.PreferredBackBufferHeight = Window.ClientBounds.Height;
-                graphics.ApplyChanges();
+                _graphics.PreferredBackBufferWidth = Window.ClientBounds.Width;
+                _graphics.PreferredBackBufferHeight = Window.ClientBounds.Height;
+                _graphics.ApplyChanges();
 
                 GameSettings.g_ScreenWidth = Window.ClientBounds.Width;
                 GameSettings.g_ScreenHeight = Window.ClientBounds.Height;
 
-                screenManager.UpdateResolution();
-
+                _screenManager.UpdateResolution();
             }
         }
 
@@ -89,9 +107,9 @@ namespace EngineTest
         /// </summary>
         protected override void Initialize()
         {
-            screenManager.Load(Content, GraphicsDevice);
+            _screenManager.Load(Content, GraphicsDevice);
             // TODO: Add your initialization logic here
-            screenManager.Initialize(GraphicsDevice, space);
+            _screenManager.Initialize(GraphicsDevice, _physicsSpace);
 
             base.Initialize();
         }
@@ -102,10 +120,6 @@ namespace EngineTest
         /// </summary>
         protected override void LoadContent()
         {
-            // Create a new SpriteBatch, which can be used to draw textures.
-            
-
-            // TODO: use this.Content to load your game content here
         }
 
         /// <summary>
@@ -114,9 +128,7 @@ namespace EngineTest
         /// </summary>
         protected override void UnloadContent()
         {
-            // TODO: Unload any non ContentManager content here
-
-            screenManager.Unload(Content);
+            _screenManager.Unload(Content);
         }
 
         /// <summary>
@@ -126,22 +138,17 @@ namespace EngineTest
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
-            //if (!isActive) return;
-
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
+            //Exit the game when pressing escape
+            if (Input.WasKeyPressed(Keys.Escape))
                 Exit();
-
-            // TODO: Add your update logic here
-
-            screenManager.Update(gameTime, isActive);
-
-            //BEPU
-            if(!GameSettings.Editor_enable && GameSettings.p_Physics)
-            space.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
-
-            base.Update(gameTime);
-
             
+            _screenManager.Update(gameTime, _isActive);
+
+            //BEPU Physics
+            if(!GameSettings.Editor_enable && GameSettings.p_Physics)
+                _physicsSpace.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
+
+            //base.Update(gameTime);
         }
 
         /// <summary>
@@ -150,12 +157,11 @@ namespace EngineTest
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
-            if (!isActive) return;
+            //Don't draw when the game is not running
+            if (!_isActive) return;
 
-            screenManager.Draw(gameTime);
-            // TODO: Add your drawing code here
-
-            base.Draw(gameTime);
+            _screenManager.Draw(gameTime);
+            //base.Draw(gameTime);
         }
     }
 }

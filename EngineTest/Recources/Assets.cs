@@ -57,7 +57,7 @@ namespace EngineTest.Recources
 
         public Model HelmetModel { get; set; }
 
-        public Model DragonUvSmoothModel { get; set; }
+        public Model StanfordDragon { get; set; }
 
         public Model SponzaModel { get; set; }
 
@@ -95,7 +95,7 @@ namespace EngineTest.Recources
             BaseTex = new Texture2D(graphicsDevice, 1, 1);
             BaseTex.SetData(new Color[] { Color.White });
 
-            DragonUvSmoothModel = content.Load<Model>("Art/default/dragon_uv_smooth");
+            StanfordDragon = content.Load<Model>("Art/default/dragon_uv_smooth");
 
             SponzaModel = content.Load<Model>("Sponza/Sponza");
             HelmetModel = content.Load<Model>("Art/default/daft_helmets");
@@ -178,8 +178,8 @@ namespace EngineTest.Recources
 
             ProcessSponza();
 
-            DragonUvSmoothModel.Meshes[0].MeshParts[0].Effect =
-                new MaterialEffect(DragonUvSmoothModel.Meshes[0].MeshParts[0].Effect)
+            StanfordDragon.Meshes[0].MeshParts[0].Effect =
+                new MaterialEffect(StanfordDragon.Meshes[0].MeshParts[0].Effect)
                 {
                     DiffuseColor = Color.MonoGameOrange.ToVector3()
                 };

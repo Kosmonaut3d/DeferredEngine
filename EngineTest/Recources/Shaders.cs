@@ -172,6 +172,7 @@ namespace EngineTest.Recources
         public static EffectParameter DeferredComposeEffectParameter_HologramMap;
         public static EffectParameter DeferredComposeEffectParameter_SSAOMap;
         public static EffectParameter DeferredComposeEffectParameter_SSRMap;
+        public static EffectParameter DeferredComposeEffectParameter_UseSSAO;
 
         public static EffectTechnique DeferredComposeTechnique_1;
         public static EffectTechnique DeferredComposeTechnique_SSR;
@@ -248,7 +249,7 @@ namespace EngineTest.Recources
         public static EffectParameter deferredEnvironmentParameter_NormalMap;
         public static EffectParameter deferredEnvironmentParameter_SSRMap;
         public static EffectParameter deferredEnvironmentParameter_FrustumCorners;
-        public static EffectParameter deferredEnvironmentParameterCameraPosition;
+        public static EffectParameter deferredEnvironmentParameter_ReflectionCubeMap;
         public static EffectParameter deferredEnvironmentParameterTransposeView;
 
         //SHADOW MAPPING
@@ -440,6 +441,7 @@ namespace EngineTest.Recources
             DeferredComposeEffectParameter_HologramMap = DeferredCompose.Parameters["HologramMap"];
             DeferredComposeEffectParameter_SSAOMap = DeferredCompose.Parameters["SSAOMap"];
             DeferredComposeEffectParameter_SSRMap = DeferredCompose.Parameters["SSRMap"];
+            DeferredComposeEffectParameter_UseSSAO = DeferredCompose.Parameters["useSSAO"];
 
             DeferredComposeTechnique_1 = DeferredCompose.Techniques["Technique1"];
             DeferredComposeTechnique_SSR = DeferredCompose.Techniques["TechniqueSSR"];
@@ -520,7 +522,8 @@ namespace EngineTest.Recources
             deferredEnvironmentParameter_NormalMap = deferredEnvironment.Parameters["NormalMap"];
             deferredEnvironmentParameter_FrustumCorners = deferredEnvironment.Parameters["FrustumCorners"];
             deferredEnvironmentParameter_SSRMap = deferredEnvironment.Parameters["ReflectionMap"];
-            
+            deferredEnvironmentParameter_ReflectionCubeMap = deferredEnvironment.Parameters["ReflectionCubeMap"];
+
             deferredEnvironmentParameterTransposeView = deferredEnvironment.Parameters["TransposeView"];
 
             //VSM

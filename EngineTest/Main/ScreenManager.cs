@@ -7,8 +7,15 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace EngineTest.Main
 {
+    /// <summary>
+    /// Manages our different screens and passes information accordingly
+    /// </summary>
     public class ScreenManager
     {
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        //  VARIABLES
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
         private Renderer.Renderer _renderer;
         private MainLogic _logic;
         private EditorLogic _editorLogic;
@@ -16,6 +23,10 @@ namespace EngineTest.Main
         private DebugScreen _debug;
 
         private EditorLogic.EditorReceivedData _editorReceivedDataBuffer;
+        
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        //  FUNCTIONS
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         public void Initialize(GraphicsDevice graphicsDevice, Space space)
         {
@@ -29,7 +40,7 @@ namespace EngineTest.Main
         public void Update(GameTime gameTime, bool isActive)
         {
             _logic.Update(gameTime, isActive);
-            _editorLogic.Update(gameTime, _logic.Entities, _logic.PointLights, _logic.DirectionalLights, _editorReceivedDataBuffer, _logic.MeshMaterialLibrary);
+            _editorLogic.Update(gameTime, _logic.BasicEntities, _logic.PointLights, _logic.DirectionalLights, _editorReceivedDataBuffer, _logic.MeshMaterialLibrary);
             _renderer.Update(gameTime, isActive);
 
             _debug.Update(gameTime);
@@ -55,14 +66,11 @@ namespace EngineTest.Main
         {
             content.Dispose();
         }
-
-        /// <summary>
-        /// Draw the scene
-        /// </summary>
+        
         public void Draw(GameTime gameTime)
         {
-            _editorReceivedDataBuffer = _renderer.Draw(_logic.Camera, _logic.MeshMaterialLibrary, _logic.Entities, _logic.PointLights, _logic.DirectionalLights, _editorLogic.GetEditorData(), gameTime);
-
+            //Our renderer gives us information on what id is currently hovered over so we can update / manipulate objects in the logic functions
+            _editorReceivedDataBuffer = _renderer.Draw(_logic.Camera, _logic.MeshMaterialLibrary, _logic.BasicEntities, _logic.PointLights, _logic.DirectionalLights, _editorLogic.GetEditorData(), gameTime);
             _debug.Draw(gameTime);
         }
 

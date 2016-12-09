@@ -201,16 +201,11 @@ namespace EngineTest.Renderer.Helper
             }
 
             if (!GameSettings.g_CPU_Culling) return false;
-
-            //Vector3 RenderBoundingBoxCenter = (RenderBoundingBox.Max + RenderBoundingBox.Min)/2;
-
-            //First change their world value! We only need to do that once though, when we draw shadows!
-
+            
             for (int index1 = 0; index1 < entities.Count; index1++)
             {
                 BasicEntity entity = entities[index1];
-
-                //If both the camera hasn't changed and the Transformation isn't changed we don't need to update the renderstate
+                
                 if (!hasCameraChanged && !entity.WorldTransform.HasChanged)// && entity.DynamicPhysicsObject == null)
                 {
                     continue;
@@ -222,8 +217,8 @@ namespace EngineTest.Renderer.Helper
 
             bool hasAnythingChanged = false;
             //Ok we applied the transformation to all the entities, now update the submesh boundingboxes!
-            //Parallel.For(0, Index, index1 =>
-                for (int index1 = 0; index1 < Index; index1++)
+            Parallel.For(0, Index, index1 =>
+                //for (int index1 = 0; index1 < Index; index1++)
                 {
                     float distance = 0;
                     int counter = 0;
@@ -253,7 +248,7 @@ namespace EngineTest.Renderer.Helper
                         matLib.distanceSquared = distance;
                         matLib.hasChangedThisFrame = true;
                     }
-                }
+                });
 
             //finally sort the materials by distance. Bubble sort should in theory be fast here since little changes.
             if (hasAnythingChanged)

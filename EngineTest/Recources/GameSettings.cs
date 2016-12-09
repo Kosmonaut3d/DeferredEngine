@@ -29,7 +29,7 @@ namespace EngineTest.Recources
         public static bool g_EmissiveNoise = false;
         public static float g_EmissiveDrawFOVFactor = 2;
 
-        public static bool p_Physics = false;
+        public static bool p_Physics = true;
 
         public static float m_defaultRoughness = 0;
 
@@ -245,6 +245,7 @@ namespace EngineTest.Recources
         }
 
         private static float _g_TemporalAntiAliasingThreshold = 0.9f;
+        public static int g_CubeMapResolution = 512;
 
         public static float g_TemporalAntiAliasingThreshold
         {
