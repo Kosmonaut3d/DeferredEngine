@@ -245,6 +245,7 @@ namespace EngineTest.Main
                         ins = ' ';
                     }
 
+                    //For console we don't care about performance
                     _spriteBatch.DrawString(_sprFont,
                         "CONSOLE: " + _consoleString + ins,
                         new Vector2(10.0f, 105.0f), consoleColor);

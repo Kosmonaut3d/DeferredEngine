@@ -44,8 +44,8 @@ namespace EngineTest
 
             //Set up graphics properties, no vsync, no framelock
             _graphics.SynchronizeWithVerticalRetrace = false;
-            IsFixedTimeStep = true;
-            TargetElapsedTime = TimeSpan.FromMilliseconds(100);
+            IsFixedTimeStep = false;
+            //TargetElapsedTime = TimeSpan.FromMilliseconds(100);
 
             //Size of our application / starting back buffer
             _graphics.PreferredBackBufferWidth = GameSettings.g_ScreenWidth;
