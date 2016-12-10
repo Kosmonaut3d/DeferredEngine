@@ -12,7 +12,7 @@ with.
     Modify this string to change the font that will be imported.
     Consolas
     -->
-    <FontName>Arial</FontName>
+    <FontName>Lucida Console</FontName>
 
     <!--
     Size is a float value, measured in points. Modify this value to change

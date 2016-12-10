@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using EngineTest.Recources;
+using EngineTest.Recources.Helper;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
@@ -14,14 +16,19 @@ namespace EngineTest.Main
     {
         private SpriteBatch _spriteBatch;
         private SpriteFont _sprFont;
+        private SpriteFont _monospaceFont;
+
+        private readonly MngStringBuilder _mngStringBuilder = new MngStringBuilder(2048);
 
         //private ScreenManager.ScreenStates _state;
 
         private static readonly List<string> StringList = new List<string>();
         public static readonly List<StringColor> AiDebugString = new List<StringColor>();
+
         //private GraphicsDevice _graphicsDevice;
 
         private long _maxGcMemory;
+        private long _previousMemory;
 
         private double _fps;
         private double _smoothfps = 60;
@@ -32,6 +39,29 @@ namespace EngineTest.Main
         private int _minfpstick;
 
         private bool _offFrame = true;
+        private static bool _clearCommand;
+
+
+        //SB
+
+        private readonly StringBuilder sb_frameTime = new StringBuilder("Threads - Main: ");
+        private readonly StringBuilder sb_ms = new StringBuilder(" ms ");
+
+        private readonly StringBuilder sb_fps = new StringBuilder(" (FPS: ");
+        private readonly StringBuilder sb_dotdotdot = new StringBuilder(" ... ");
+        private readonly StringBuilder sb_greaterthan = new StringBuilder(" > ");
+        private readonly StringBuilder sb_closeBracket = new StringBuilder(")");
+        private readonly StringBuilder sb_multipliedBy = new StringBuilder(" x ");
+        private readonly StringBuilder sb_emptySpace = new StringBuilder(" ");
+        private readonly StringBuilder sb_memoryGc = new StringBuilder(" | Memory(GC): ");
+
+        private readonly StringBuilder sb_meshes = new StringBuilder("\nmeshes: ");
+        private readonly StringBuilder sb_materials = new StringBuilder(" materials: ");
+        private readonly StringBuilder sb_lights = new StringBuilder(" lights: ");
+        private readonly StringBuilder sb_emissive = new StringBuilder(" emissive: ");
+        private readonly StringBuilder sb_shadowmaps = new StringBuilder(" shadowmaps: ");
+        private readonly StringBuilder sb_slash = new StringBuilder("/");
+
 
         // Console
         public static bool ConsoleOpen;
@@ -53,6 +83,7 @@ namespace EngineTest.Main
         public void LoadContent(ContentManager content)
         {
             _sprFont = content.Load<SpriteFont>("Fonts/defaultFont");
+            _monospaceFont = content.Load<SpriteFont>("Fonts/monospace");
         }
 
         public void Update(GameTime gameTime)
@@ -213,7 +244,6 @@ namespace EngineTest.Main
                     {
                         ins = ' ';
                     }
-                    _spriteBatch.Draw(Assets.BaseTex, new Rectangle(10, 105, 500, 15 * _consoleStringSuggestion.Count + 15), Color.Black);
 
                     _spriteBatch.DrawString(_sprFont,
                         "CONSOLE: " + _consoleString + ins,
@@ -255,33 +285,84 @@ namespace EngineTest.Main
                     return;
                 }
 
-                _spriteBatch.DrawString(_sprFont,
-                    string.Format("Threads - Main: " + Math.Round(gameTime.ElapsedGameTime.TotalMilliseconds, 2) + " ms "),
-                    new Vector2(10.0f, 10.0f), Color.White);
-
-                _spriteBatch.DrawString(_sprFont,
-                    " (FPS: " + Math.Round(_fps) + " ... " + Math.Round(_smoothfpsShow) + " > " + Math.Round(_minfps) + ")",
-                    new Vector2(160.0f, 10.0f), Color.White);
-
                 long totalmemory = GC.GetTotalMemory(false);
                 if (_maxGcMemory < totalmemory) _maxGcMemory = totalmemory;
-                _spriteBatch.DrawString(_sprFont, GameSettings.g_ScreenWidth +" x " + GameSettings.g_ScreenHeight + " " + GameSettings.g_RenderMode + " | Memory (GC): " + totalmemory / 1024 + " ... " + _maxGcMemory / 1024, new Vector2(10, 25),
-                    Color.White);
 
-                // HELPERS
-            
-                if (GameSettings.ShowDisplayInfo <= 2)
+                if (GameSettings.c_UseStringBuilder)
                 {
-                    _spriteBatch.End();
-                    StringList.Clear();
-                    return;
+                    //clear
+                    _mngStringBuilder.Length = 0;
+
+                    _mngStringBuilder.Append(sb_frameTime);
+                    _mngStringBuilder.AppendTrim(gameTime.ElapsedGameTime.TotalMilliseconds);
+                    _mngStringBuilder.Append(sb_ms);
+
+                    _mngStringBuilder.AppendAt(30, sb_fps);
+                    _mngStringBuilder.Append((int) Math.Round(_fps));
+                    _mngStringBuilder.Append(sb_dotdotdot);
+                    _mngStringBuilder.Append((int) Math.Round(_smoothfpsShow));
+                    _mngStringBuilder.Append(sb_greaterthan);
+                    _mngStringBuilder.Append((int) Math.Round(_minfps));
+                    _mngStringBuilder.AppendLine(sb_closeBracket);
+                    
+                    _mngStringBuilder.Append(GameSettings.g_ScreenWidth);
+                    _mngStringBuilder.Append(sb_multipliedBy);
+                    _mngStringBuilder.Append(GameSettings.g_ScreenHeight);
+                    _mngStringBuilder.Append(sb_emptySpace);
+                    _mngStringBuilder.Append(GameSettings.g_RenderMode.ToString());
+                    _mngStringBuilder.Append(sb_memoryGc);
+                    _mngStringBuilder.Append(totalmemory/1024);
+                    _mngStringBuilder.Append(sb_dotdotdot);
+                    _mngStringBuilder.Append(_maxGcMemory/1024);
+
+                    _mngStringBuilder.Append(sb_meshes);
+                    _mngStringBuilder.Append(GameStats.MeshDraws);
+                    _mngStringBuilder.Append(sb_materials);
+                    _mngStringBuilder.Append(GameStats.MaterialDraws);
+                    _mngStringBuilder.Append(sb_lights);
+                    _mngStringBuilder.Append(GameStats.LightsDrawn);
+                    _mngStringBuilder.Append(sb_emissive);
+                    _mngStringBuilder.Append(GameStats.EmissiveMeshDraws);
+                    _mngStringBuilder.Append(sb_shadowmaps);
+                    _mngStringBuilder.Append(GameStats.activeShadowMaps);
+                    _mngStringBuilder.Append(sb_slash);
+                    _mngStringBuilder.Append(GameStats.shadowMaps);
+
+                    _spriteBatch.DrawString(_monospaceFont, _mngStringBuilder.StringBuilder,
+                        new Vector2(10.0f, 10.0f), Color.White);
                 }
+                else
+                {
+                    _spriteBatch.DrawString(_sprFont,
+                        string.Format("Threads - Main: " + Math.Round(gameTime.ElapsedGameTime.TotalMilliseconds, 2) +
+                                      " ms "),
+                        new Vector2(10.0f, 10.0f), Color.White);
 
-                _spriteBatch.DrawString(_sprFont,
-                    string.Format("meshes: " + GameStats.MeshDraws + " materials: " + GameStats.MaterialDraws + " lights: " + GameStats.LightsDrawn +  " emissive: " + GameStats.EmissiveMeshDraws
-                    + " shadowMaps: " +GameStats.activeShadowMaps + "/"+ GameStats.shadowMaps ),
-                    new Vector2(10.0f, 40.0f), Color.White);
+                    _spriteBatch.DrawString(_sprFont,
+                        " (FPS: " + Math.Round(_fps) + " ... " + Math.Round(_smoothfpsShow) + " > " +
+                        Math.Round(_minfps) + ")",
+                        new Vector2(200.0f, 10.0f), Color.White);
 
+                    if (_maxGcMemory < totalmemory) _maxGcMemory = totalmemory;
+                    _spriteBatch.DrawString(_sprFont,
+                        GameSettings.g_ScreenWidth + " x " + GameSettings.g_ScreenHeight + " " +
+                        GameSettings.g_RenderMode + " | Memory (GC): " + totalmemory/1024 + " ... " + _maxGcMemory/1024,
+                        new Vector2(10, 25),
+                        Color.White);
+                    
+                    if (GameSettings.ShowDisplayInfo <= 2)
+                    {
+                        _spriteBatch.End();
+                        StringList.Clear();
+                        return;
+                    }
+
+                    _spriteBatch.DrawString(_sprFont,
+                        string.Format("meshes: " + GameStats.MeshDraws + " materials: " + GameStats.MaterialDraws +
+                                      " lights: " + GameStats.LightsDrawn + " emissive: " + GameStats.EmissiveMeshDraws
+                                      + " shadowMaps: " + GameStats.activeShadowMaps + "/" + GameStats.shadowMaps),
+                        new Vector2(10.0f, 40.0f), Color.White);
+                }
 
                 _spriteBatch.End();
             }
@@ -353,8 +434,6 @@ namespace EngineTest.Main
         {
             AiDebugString.Add(new StringColor(info, color));
         }
-
-        private static bool _clearCommand;
 
         public static void ClearAiString()
         {

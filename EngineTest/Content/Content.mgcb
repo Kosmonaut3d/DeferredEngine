@@ -1250,3 +1250,10 @@
 /processorParam:TextureFormat=Color
 /build:Shaders/noise.png
 
+#begin Fonts/monospace.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/build:Fonts/monospace.spritefont
+

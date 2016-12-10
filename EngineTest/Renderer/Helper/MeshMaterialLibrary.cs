@@ -218,8 +218,8 @@ namespace EngineTest.Renderer.Helper
 
             bool hasAnythingChanged = false;
             //Ok we applied the transformation to all the entities, now update the submesh boundingboxes!
-            Parallel.For(0, Index, index1 =>
-                //for (int index1 = 0; index1 < Index; index1++)
+           // Parallel.For(0, Index, index1 =>
+             for (int index1 = 0; index1 < Index; index1++)
                 {
                     float distance = 0;
                     int counter = 0;
@@ -249,7 +249,7 @@ namespace EngineTest.Renderer.Helper
                         matLib.DistanceSquared = distance;
                         matLib.HasChangedThisFrame = true;
                     }
-                });
+                }//);
 
             //finally sort the materials by distance. Bubble sort should in theory be fast here since little changes.
             if (hasAnythingChanged)

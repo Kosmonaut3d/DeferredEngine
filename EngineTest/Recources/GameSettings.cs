@@ -245,6 +245,7 @@ namespace EngineTest.Recources
 
         private static float _g_TemporalAntiAliasingThreshold = 0.9f;
         public static int g_CubeMapResolution = 512;
+        public static bool c_UseStringBuilder = true;
 
         public static float g_TemporalAntiAliasingThreshold
         {

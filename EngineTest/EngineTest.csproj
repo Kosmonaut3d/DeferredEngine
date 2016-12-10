@@ -71,6 +71,7 @@
     <Compile Include="Recources\Helper\Extensions.cs" />
     <Compile Include="Recources\Helper\IdGenerator.cs" />
     <Compile Include="Recources\Helper\MathConverter.cs" />
+    <Compile Include="Recources\Helper\MngStringBuilder.cs" />
     <Compile Include="Recources\Helper\ModelDataExtractor.cs" />
     <Compile Include="Recources\MaterialEffect.cs" />
     <Compile Include="Recources\Shaders.cs" />
