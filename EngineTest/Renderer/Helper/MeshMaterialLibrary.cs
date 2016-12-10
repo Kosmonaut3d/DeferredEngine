@@ -218,7 +218,7 @@ namespace EngineTest.Renderer.Helper
 
             bool hasAnythingChanged = false;
             //Ok we applied the transformation to all the entities, now update the submesh boundingboxes!
-           // Parallel.For(0, Index, index1 =>
+          // Parallel.For(0, Index, index1 =>
              for (int index1 = 0; index1 < Index; index1++)
                 {
                     float distance = 0;

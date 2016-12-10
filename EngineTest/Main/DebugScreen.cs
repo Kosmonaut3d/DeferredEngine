@@ -61,7 +61,22 @@ namespace EngineTest.Main
         private readonly StringBuilder sb_emissive = new StringBuilder(" emissive: ");
         private readonly StringBuilder sb_shadowmaps = new StringBuilder(" shadowmaps: ");
         private readonly StringBuilder sb_slash = new StringBuilder("/");
-
+        
+        public StringBuilder[] RenderModesSB =
+        {
+            new StringBuilder( "Albedo" ),
+            new StringBuilder( "Normal" ),
+            new StringBuilder( "Depth" ),
+            new StringBuilder( "Deferred" ),
+            new StringBuilder( "Diffuse" ),
+            new StringBuilder( "Specular" ),
+            new StringBuilder( "Hologram" ),
+            new StringBuilder( "SSAO" ),
+            new StringBuilder( "Emissive" ),
+            new StringBuilder( "DirectionalShadow" ),
+            new StringBuilder( "SSR" ),
+            new StringBuilder( "Volumetric" )
+        };
 
         // Console
         public static bool ConsoleOpen;
@@ -310,7 +325,7 @@ namespace EngineTest.Main
                     _mngStringBuilder.Append(sb_multipliedBy);
                     _mngStringBuilder.Append(GameSettings.g_ScreenHeight);
                     _mngStringBuilder.Append(sb_emptySpace);
-                    _mngStringBuilder.Append(GameSettings.g_RenderMode.ToString());
+                    _mngStringBuilder.Append(RenderModesToString( GameSettings.g_RenderMode));
                     _mngStringBuilder.Append(sb_memoryGc);
                     _mngStringBuilder.Append(totalmemory/1024);
                     _mngStringBuilder.Append(sb_dotdotdot);
@@ -535,6 +550,12 @@ namespace EngineTest.Main
                 output = null;
             }
             return output;
+        }
+
+
+        private StringBuilder RenderModesToString(Renderer.Renderer.RenderModes render)
+        {
+            return RenderModesSB[(int)render];
         }
     }
 

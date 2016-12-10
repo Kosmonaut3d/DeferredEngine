@@ -28,7 +28,7 @@ namespace EngineTest.Recources
         public static bool g_EmissiveNoise = false;
         public static float g_EmissiveDrawFOVFactor = 2;
 
-        public static bool p_Physics = true;
+        public static bool p_Physics = false;
 
         public static float m_defaultRoughness = 0;
 

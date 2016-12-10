@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text;
 using EngineTest.Entities;
 using EngineTest.Main;
 using EngineTest.Recources;
@@ -1826,7 +1827,7 @@ namespace EngineTest.Renderer
 
             _cpuRayMarch.Draw();
         }
-
+        
         #endregion
 
         #endregion

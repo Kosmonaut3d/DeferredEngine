@@ -21,7 +21,7 @@ const int SecondarySamples = 3;
 
 const float MinimumThickness = 70;
 
-const float border = 0.2f;
+const float border = 0.1f;
 float2 resolution = float2(1280, 800);
 
 Texture2D DepthMap;
@@ -121,7 +121,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 {
 	const float border2 = 1 - border;
 	const float bordermulti = 1 / border;
-	int samples = Samples;
+	float samples = abs(Samples);
 
 	float4 output = 0;
 
@@ -166,6 +166,13 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	float multiplier = min(xMultiplier, yMultiplier) / samples;
 	rayStep *= multiplier;
 
+	/*//uniform raystep distance
+	if (Samples < 0)
+	{
+		float length2 = length(rayStep.xy);
+		rayStep /= length2 * samples;
+	}*/
+
 	//Some variables we need later when precising the hit point
 	float startingDepth = rayOrigin.z;
 	float3 hitPosition;
@@ -176,11 +183,11 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	[branch]
 	if (Time > 0)
 	{
-		temporalComponent = Time * 10000 * rayStep.x / rayOrigin.y / rayStep.z ; // frac(sin(Time * 3.2157) * 46336.23745f);
+		temporalComponent = frac(Time * 10000 * rayStep.x / rayOrigin.y / rayStep.z) ; // frac(sin(Time * 3.2157) * 46336.23745f);
 	}
 
 	//Add some noise
-	float noise = NoiseMap.Sample(texSampler, frac(((texCoord)* resolution + temporalComponent) / 64)).r; // + frac(input.TexCoord* Projection)).r;
+	float noise = NoiseMap.Sample(texSampler, frac(((texCoord) * resolution) / 64) + temporalComponent).r; // + frac(input.TexCoord* Projection)).r;
 	
 	//Raymarching the depth buffer
 	[loop]
@@ -310,8 +317,8 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 			//Fade out to the front
 			
 			float fade = saturate(1 - reflectVector.z);
-
-			output.rgb *= output.a * (1 - roughness) * fade;
+			output.a *= (1 - roughness) * fade;
+			//output.rgb *= output.a;
 
 			break;
 		}
@@ -526,8 +533,8 @@ float4 PixelShaderFunctionTAA(VertexShaderOutput input) : COLOR0
 			//Fade out to the front
 
 			float fade = saturate(1 - reflectVector.z);
-
-			output.rgb *= output.a * (1 - roughness) * fade;
+			output.a *= (1 - roughness) * fade;
+			//output.rgb *= output.a;
 
 			break;
 		}

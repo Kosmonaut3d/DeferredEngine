@@ -100,7 +100,7 @@ float4 VignetteChromaShiftPixelShaderFunction(float4 pos : SV_POSITION, float2 t
 
     base = ColorSCurve(base);
 
-    float dist = distance(texCoord, float2(0.5, 0.5)) * 0.60f;
+    float dist = distance(texCoord, float2(0.5.xx)) * 0.60f;
     base.rgb *= smoothstep(radiusX, radiusY, dist);
 
     return base;
