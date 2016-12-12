@@ -216,8 +216,8 @@ namespace EngineTest.Main
 
             // Spawn a lot of lights to test performance 
 
-            int sides = 8;
-            float distance = 10;
+            int sides = 4;
+            float distance = 20;
             Vector3 startPosition = new Vector3(-30, 30, 1);
 
             //amount of lights is sides*sides* sides*2

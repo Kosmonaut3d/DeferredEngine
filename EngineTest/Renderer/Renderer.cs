@@ -121,6 +121,9 @@ namespace EngineTest.Renderer
         //BlendStates
         private BlendState _lightBlendState;
 
+        private DepthStencilState _stencilCullPass1;
+        private DepthStencilState _stencilCullPass2;
+
         //Performance Profiler
 
         private readonly Stopwatch _performanceTimer = new Stopwatch();
@@ -152,6 +155,41 @@ namespace EngineTest.Renderer
                 ColorSourceBlend = Blend.One,
                 ColorDestinationBlend = Blend.One,
                 AlphaDestinationBlend = Blend.One
+            };
+
+            _stencilCullPass1 = new DepthStencilState()
+            {
+                DepthBufferEnable = true,
+                DepthBufferWriteEnable = false,
+                DepthBufferFunction = CompareFunction.LessEqual,
+                StencilFunction = CompareFunction.Always,
+                StencilDepthBufferFail = StencilOperation.IncrementSaturation,
+                StencilPass = StencilOperation.Keep,
+                StencilFail = StencilOperation.Keep,
+                CounterClockwiseStencilFunction = CompareFunction.Always,
+                CounterClockwiseStencilDepthBufferFail = StencilOperation.Keep,
+                CounterClockwiseStencilPass = StencilOperation.Keep,
+                CounterClockwiseStencilFail = StencilOperation.Keep,
+                StencilMask = 0,
+                ReferenceStencil = 0,
+                StencilEnable = true,
+            };
+
+            _stencilCullPass2 = new DepthStencilState()
+            {
+                DepthBufferEnable = false,
+                DepthBufferWriteEnable = false,
+                DepthBufferFunction = CompareFunction.GreaterEqual,
+                CounterClockwiseStencilFunction = CompareFunction.Equal,
+                StencilFunction = CompareFunction.Equal,
+                StencilFail = StencilOperation.Zero,
+                StencilPass = StencilOperation.Zero,
+                CounterClockwiseStencilFail = StencilOperation.Zero,
+                CounterClockwiseStencilPass = StencilOperation.Zero,
+                ReferenceStencil = 0,
+                StencilEnable = true,
+                StencilMask = 0,
+                
             };
 
             _inverseResolution = new Vector3(1.0f / GameSettings.g_ScreenWidth, 1.0f / GameSettings.g_ScreenHeight, 0);
@@ -1248,10 +1286,11 @@ namespace EngineTest.Renderer
         private void DrawLights(List<PointLightSource> pointLights, List<DirectionalLightSource> dirLights, Vector3 cameraOrigin, GameTime gameTime)
         {
             //Reconstruct Depth
-            if (GameSettings.g_UseDepthStencilLightCulling)
+            if (GameSettings.g_UseDepthStencilLightCulling>0)
             {
                 _graphicsDevice.SetRenderTarget(_renderTargetDiffuse);
                 _graphicsDevice.Clear(ClearOptions.DepthBuffer, Color.TransparentBlack, 1, 0);
+                _graphicsDevice.Clear(ClearOptions.Stencil, Color.TransparentBlack, 1, 0);
                 ReconstructDepth();
 
                 _g_UseDepthStencilLightCulling = true;
@@ -1313,7 +1352,8 @@ namespace EngineTest.Renderer
             if (GameSettings.g_VolumetricLights)
                 Shaders.deferredPointLightParameter_Time.SetValue((float)gameTime.TotalGameTime.TotalSeconds % 1000);
 
-            _graphicsDevice.DepthStencilState = GameSettings.g_UseDepthStencilLightCulling ? DepthStencilState.DepthRead : DepthStencilState.None;
+            
+            _graphicsDevice.DepthStencilState = GameSettings.g_UseDepthStencilLightCulling >0 ? DepthStencilState.DepthRead : DepthStencilState.None;
 
             for (int index = 0; index < pointLights.Count; index++)
             {
@@ -1356,13 +1396,37 @@ namespace EngineTest.Renderer
             int inside = cameraToCenter < light.Radius * 1.2f ? 1 : -1;
             Shaders.deferredPointLightParameter_Inside.SetValue(inside);
 
-            //If we are inside compute the backfaces, otherwise frontfaces of the sphere
-            _graphicsDevice.RasterizerState = inside > 0 ? RasterizerState.CullClockwise : RasterizerState.CullCounterClockwise;
+            if (GameSettings.g_UseDepthStencilLightCulling == 2)
+            {
+                _graphicsDevice.DepthStencilState = _stencilCullPass1;
+                //draw front faces
+                _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+
+                Shaders.deferredPointLightWriteStencil.Passes[0].Apply();
+
+                _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset, startIndex, primitiveCount);
+
+                ////////////
+
+                _graphicsDevice.DepthStencilState = _stencilCullPass2;
+                //draw backfaces
+                _graphicsDevice.RasterizerState = RasterizerState.CullClockwise;
+
+                light.ApplyShader(_inverseView);
+                
+                _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset, startIndex, primitiveCount);
+            }
+            else
+            {
+                //If we are inside compute the backfaces, otherwise frontfaces of the sphere
+                _graphicsDevice.RasterizerState = inside > 0 ? RasterizerState.CullClockwise : RasterizerState.CullCounterClockwise;
+
+                light.ApplyShader(_inverseView);
+
+                _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset, startIndex, primitiveCount);
+            }
 
             //Draw the sphere
-            light.ApplyShader(_inverseView);
-            
-            _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset, startIndex, primitiveCount);
         }
 
         /// <summary>
@@ -1385,7 +1449,7 @@ namespace EngineTest.Renderer
                 Shaders.deferredDirectionalLightParameterInverseViewProjection.SetValue(_inverseViewProjection);
             }
 
-            _graphicsDevice.DepthStencilState = GameSettings.g_UseDepthStencilLightCulling ? DepthStencilState.DepthRead : DepthStencilState.None;
+            _graphicsDevice.DepthStencilState = DepthStencilState.None; 
 
             for (int index = 0; index < dirLights.Count; index++)
             {
@@ -1691,7 +1755,7 @@ namespace EngineTest.Renderer
             _renderTargetBinding[2] = new RenderTargetBinding(_renderTargetDepth);
 
             _renderTargetDiffuse = new RenderTarget2D(_graphicsDevice, targetWidth,
-               targetHeight, false, SurfaceFormat.HalfVector4, DepthFormat.Depth24, 0, RenderTargetUsage.PreserveContents);
+               targetHeight, false, SurfaceFormat.HalfVector4, DepthFormat.Depth24Stencil8, 0, RenderTargetUsage.PreserveContents);
 
             _renderTargetSpecular = new RenderTarget2D(_graphicsDevice, targetWidth,
                targetHeight, false, SurfaceFormat.HalfVector4, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);

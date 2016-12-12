@@ -124,6 +124,11 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 	return output;
 }
 
+float4 VertexShaderBasic(VertexShaderInput input) : POSITION0
+{
+	return mul(input.Position, WorldViewProj);
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//  PIXEL SHADER
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -302,6 +307,11 @@ PixelShaderOutput BasePixelShaderFunction(PixelShaderInput input)
     }
 }
 
+float4 PixelShaderBasic(float4 position : POSITION) : COLOR
+{
+	return 0;
+}
+
 //Base function
 PixelShaderOutput PixelShaderFunction(VertexShaderOutput input)
 {
@@ -309,7 +319,7 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input)
 
 	PixelShaderOutput Output;
 
-	float lightDepth = input.PositionVS.z / -FarClip;
+	/*float lightDepth = input.PositionVS.z / -FarClip;
 
 	[branch]
 	if (lightDepth * inside < p_input.Depth * inside)
@@ -318,11 +328,11 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input)
 		return Output;
 	}
 	else
-	{
+	{*/
 		Output = BasePixelShaderFunction(p_input);
 
 		return Output;
-	}
+	//}
 
 }
 
@@ -720,6 +730,15 @@ PixelShaderOutput VolumetricPixelShaderFunctionShadowed(VertexShaderOutput input
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  FUNCTIONS
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+technique WriteStencilMask
+{
+	pass Pass1
+	{
+		VertexShader = compile vs_4_0 VertexShaderBasic();
+		PixelShader = compile ps_4_0 PixelShaderBasic();
+	}
+}
 
 technique Unshadowed
 {

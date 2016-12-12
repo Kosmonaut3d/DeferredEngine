@@ -222,6 +222,7 @@ namespace EngineTest.Recources
         public static EffectTechnique deferredPointLightUnshadowedVolumetric;
         public static EffectTechnique deferredPointLightShadowed;
         public static EffectTechnique deferredPointLightShadowedVolumetric;
+        public static EffectTechnique deferredPointLightWriteStencil;
         public static EffectParameter deferredPointLightParameterResolution;
         public static EffectParameter deferredPointLightParameterShadowMap;
         public static EffectParameter deferredPointLightParameterLightViewProjectionPositiveX;
@@ -500,6 +501,7 @@ namespace EngineTest.Recources
             deferredPointLightUnshadowedVolumetric = deferredPointLight.Techniques["UnshadowedVolume"];
             deferredPointLightShadowed = deferredPointLight.Techniques["Shadowed"];
             deferredPointLightShadowedVolumetric = deferredPointLight.Techniques["ShadowedVolume"];
+            deferredPointLightWriteStencil = deferredPointLight.Techniques["WriteStencilMask"];
 
             deferredPointLightParameterShadowMap = deferredPointLight.Parameters["shadowMap"];
 
