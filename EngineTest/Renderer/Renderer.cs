@@ -1329,9 +1329,8 @@ namespace EngineTest.Renderer
 
             //Draw the sphere
             light.ApplyShader(_inverseView);
-
+            
             _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset, startIndex, primitiveCount);
-
         }
 
         /// <summary>

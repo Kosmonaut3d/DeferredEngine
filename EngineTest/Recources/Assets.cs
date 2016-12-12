@@ -170,11 +170,14 @@ namespace EngineTest.Recources
 
             sponza_curtain_metallic = content.Load<Texture2D>("Sponza/textures/sponza_curtain_metallic");
 
+            TestCube = content.Load<Model>("Art/test/cube");
+
             NoiseMap = content.Load<Texture2D>("Shaders/noise_blur");
 
             IsoSphere = content.Load<Model>("Art/default/isosphere");
             Sphere = content.Load<Model>("Art/default/sphere");
             SphereMeshPart = Sphere.Meshes[0].MeshParts[0];
+            
 
             IconLight = content.Load<Texture2D>("Art/Editor/icon_light");
 
@@ -186,9 +189,6 @@ namespace EngineTest.Recources
                     DiffuseColor = Color.MonoGameOrange.ToVector3()
                 };
 
-            content.Load<Model>("Art/test/tubes");
-
-            TestCube = content.Load<Model>("Art/test/cube");
             
             //U99 = content.Load<Model>("Art/test/u99");
             //U99Mat = CreateMaterial(Color.Silver, 0.5f, 0.2f, content.Load<Texture2D>("Art/test/u99_texture"));
