@@ -1343,3 +1343,9 @@
 /processorParam:TextureFormat=Color
 /build:Art/Uboat/U96_roughness.png
 
+#begin Shaders/ScreenSpace/ReconstructDepth.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/ScreenSpace/ReconstructDepth.fx
+

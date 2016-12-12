@@ -73,6 +73,7 @@ namespace EngineTest.Renderer
         private bool _forceShadowSS;
         private bool _ssr = true;
         private bool _g_SSReflectionNoise;
+        private bool _g_UseDepthStencilLightCulling;
 
         //Render modes
         public enum RenderModes { Albedo, Normal, Depth, Deferred, Diffuse, Specular, Hologram,
@@ -479,6 +480,7 @@ namespace EngineTest.Renderer
                 Shaders.deferredPointLightParameter_FarClip.SetValue(_g_FarClip);
                 Shaders.BillboardEffectParameter_FarClip.SetValue(_g_FarClip);
                 Shaders.ScreenSpaceReflectionParameter_FarClip.SetValue(_g_FarClip);
+                Shaders.ReconstructDepthParameter_FarClip.SetValue(_g_FarClip);
             }
 
             if (_g_SSReflectionNoise != GameSettings.g_SSReflectionNoise)
@@ -1000,6 +1002,7 @@ namespace EngineTest.Renderer
             Shaders.deferredEnvironmentParameter_FrustumCorners.SetValue(_currentFrustumCorners);
             Shaders.ScreenSpaceReflectionParameter_FrustumCorners.SetValue(_currentFrustumCorners);
             Shaders.TemporalAntiAliasingEffect_FrustumCorners.SetValue(_currentFrustumCorners);
+            Shaders.ReconstructDepthParameter_FrustumCorners.SetValue(_currentFrustumCorners);
         }
 
         /// <summary>
@@ -1244,8 +1247,27 @@ namespace EngineTest.Renderer
         /// <param name="gameTime"></param>
         private void DrawLights(List<PointLightSource> pointLights, List<DirectionalLightSource> dirLights, Vector3 cameraOrigin, GameTime gameTime)
         {
+            //Reconstruct Depth
+            if (GameSettings.g_UseDepthStencilLightCulling)
+            {
+                _graphicsDevice.SetRenderTarget(_renderTargetDiffuse);
+                _graphicsDevice.Clear(ClearOptions.DepthBuffer, Color.TransparentBlack, 1, 0);
+                ReconstructDepth();
+
+                _g_UseDepthStencilLightCulling = true;
+            }
+            else
+            {
+                if (_g_UseDepthStencilLightCulling)
+                {
+                    _g_UseDepthStencilLightCulling = false;
+                    _graphicsDevice.SetRenderTarget(_renderTargetDiffuse);
+                    _graphicsDevice.Clear(ClearOptions.DepthBuffer, Color.TransparentBlack, 1, 0);
+                }
+            }
+
             _graphicsDevice.SetRenderTargets(_renderTargetLightBinding);
-            _graphicsDevice.Clear(Color.TransparentBlack);
+            _graphicsDevice.Clear(ClearOptions.Target, Color.TransparentBlack, 1,0);
             DrawPointLights(pointLights, cameraOrigin, gameTime);
             DrawDirectionalLights(dirLights, cameraOrigin);
 
@@ -1257,6 +1279,16 @@ namespace EngineTest.Renderer
 
                 _performancePreviousTime = performanceCurrentTime;
             }
+        }
+
+        private void ReconstructDepth()
+        {
+            if(_viewProjectionHasChanged)
+                Shaders.ReconstructDepthParameter_Projection.SetValue(_projection);
+
+            _graphicsDevice.DepthStencilState = DepthStencilState.Default;
+            Shaders.ReconstructDepth.CurrentTechnique.Passes[0].Apply();
+            _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
         }
 
         /// <summary>
@@ -1281,7 +1313,7 @@ namespace EngineTest.Renderer
             if (GameSettings.g_VolumetricLights)
                 Shaders.deferredPointLightParameter_Time.SetValue((float)gameTime.TotalGameTime.TotalSeconds % 1000);
 
-            _graphicsDevice.DepthStencilState = DepthStencilState.Default;
+            _graphicsDevice.DepthStencilState = GameSettings.g_UseDepthStencilLightCulling ? DepthStencilState.DepthRead : DepthStencilState.None;
 
             for (int index = 0; index < pointLights.Count; index++)
             {
@@ -1353,7 +1385,7 @@ namespace EngineTest.Renderer
                 Shaders.deferredDirectionalLightParameterInverseViewProjection.SetValue(_inverseViewProjection);
             }
 
-            _graphicsDevice.DepthStencilState = DepthStencilState.Default;
+            _graphicsDevice.DepthStencilState = GameSettings.g_UseDepthStencilLightCulling ? DepthStencilState.DepthRead : DepthStencilState.None;
 
             for (int index = 0; index < dirLights.Count; index++)
             {
@@ -1659,7 +1691,7 @@ namespace EngineTest.Renderer
             _renderTargetBinding[2] = new RenderTargetBinding(_renderTargetDepth);
 
             _renderTargetDiffuse = new RenderTarget2D(_graphicsDevice, targetWidth,
-               targetHeight, false, SurfaceFormat.HalfVector4, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
+               targetHeight, false, SurfaceFormat.HalfVector4, DepthFormat.Depth24, 0, RenderTargetUsage.PreserveContents);
 
             _renderTargetSpecular = new RenderTarget2D(_graphicsDevice, targetWidth,
                targetHeight, false, SurfaceFormat.HalfVector4, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
@@ -1730,6 +1762,8 @@ namespace EngineTest.Renderer
         private void UpdateRenderMapBindings(bool onlyEssentials)
         {
             Shaders.BillboardEffectParameter_DepthMap.SetValue(_renderTargetDepth);
+
+            Shaders.ReconstructDepthParameter_DepthMap.SetValue(_renderTargetDepth);
 
             Shaders.deferredPointLightParameter_AlbedoMap.SetValue(_renderTargetAlbedo);
             Shaders.deferredPointLightParameter_DepthMap.SetValue(_renderTargetDepth);

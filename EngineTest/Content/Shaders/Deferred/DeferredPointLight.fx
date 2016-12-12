@@ -298,7 +298,6 @@ PixelShaderOutput BasePixelShaderFunction(PixelShaderInput input)
     
         output.Diffuse.rgb = (attenuation * diffuseLight * (1 - f0)) * 0.1f; //* (1 - f0)) * (f0 + 1) * (f0 + 1);
         output.Specular.rgb = specular * attenuation * 0.1f;
-		output.Volume = 0;
         return output;
     }
 }

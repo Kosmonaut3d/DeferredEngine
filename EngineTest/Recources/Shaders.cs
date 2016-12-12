@@ -5,6 +5,13 @@ namespace EngineTest.Recources
 {
     public static class Shaders
     {
+        //Depth Reconstruction
+        public static Effect ReconstructDepth;
+        public static EffectParameter ReconstructDepthParameter_DepthMap;
+        public static EffectParameter ReconstructDepthParameter_FrustumCorners;
+        public static EffectParameter ReconstructDepthParameter_FarClip;
+        public static EffectParameter ReconstructDepthParameter_Projection;
+
         //Id Generator
         public static Effect IdRenderEffect;
         public static EffectParameter IdRenderEffectParameterWorld;
@@ -274,6 +281,13 @@ namespace EngineTest.Recources
 
         public static void Load(ContentManager content)
         {
+            //Depth reconstr
+            ReconstructDepth = content.Load<Effect>("Shaders/ScreenSpace/ReconstructDepth");
+            ReconstructDepthParameter_DepthMap = ReconstructDepth.Parameters["DepthMap"];
+            ReconstructDepthParameter_Projection = ReconstructDepth.Parameters["Projection"];
+            ReconstructDepthParameter_FarClip = ReconstructDepth.Parameters["FarClip"];
+            ReconstructDepthParameter_FrustumCorners = ReconstructDepth.Parameters["FrustumCorners"];
+
             //Editor
 
             IdRenderEffect = content.Load<Effect>("Shaders/Editor/IdRender");
