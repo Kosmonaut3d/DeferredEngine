@@ -102,6 +102,7 @@ namespace EngineTest.Recources
         
         private MaterialTypes _type = MaterialTypes.Basic;
         public int MaterialTypeNumber;
+        public bool RenderCClockwise = false;
 
         public enum MaterialTypes
         {

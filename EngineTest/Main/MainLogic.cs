@@ -74,35 +74,42 @@ namespace EngineTest.Main
             //       Right now z is going up, it's not depth!
 
             Camera = new Camera(position: new Vector3(-80, 0, 20), lookat: new Vector3(1, 1, 15));
-            
+
             ////////////////////////////////////////////////////////////////////////
             // Static geometry
 
             // NOTE: If you don't pass a materialEffect it will use the default material from the object
 
-            AddEntity(model: _assets.SponzaModel, 
-                position: Vector3.Zero, 
-                angleX: Math.PI / 2, 
-                angleY: 0, 
-                angleZ: 0, 
-                scale: 0.1f, 
+            AddEntity(model: _assets.SponzaModel,
+                position: Vector3.Zero,
+                angleX: Math.PI / 2,
+                angleY: 0,
+                angleZ: 0,
+                scale: 0.1f,
                 hasStaticPhysics: true);
+
+            //AddEntity(model: _assets.CloneTrooper,
+            //    position: new Vector3(20, 0, 10),
+            //    angleX: Math.PI / 2,
+            //    angleY: 0,
+            //    angleZ: 0,
+            //    scale: 10.4f);
+
+            //AddEntity(model: _assets.Plane, 
+            //    materialEffect: _assets.MetalRough01Material, 
+            //    position: new Vector3(0, 0, 0), 
+            //    angleX: 0, 
+            //    angleY: 0, 
+            //    angleZ: 0, 
+            //    scale: 30);
             
-            AddEntity(model: _assets.Plane, 
-                materialEffect: _assets.MetalRough01Material, 
-                position: new Vector3(0, 0, 0), 
-                angleX: 0, 
-                angleY: 0, 
-                angleZ: 0, 
-                scale: 30);
-            
-            AddEntity(model: _assets.StanfordDragon, 
-                materialEffect: _assets.GoldMaterial, 
-                position: new Vector3(40, -10, 0), 
-                angleX: Math.PI / 2, 
-                angleY: 0, 
-                angleZ: 0, 
-                scale: 10);
+            //AddEntity(model: _assets.StanfordDragon, 
+            //    materialEffect: _assets.GoldMaterial, 
+            //    position: new Vector3(40, -10, 0), 
+            //    angleX: Math.PI / 2, 
+            //    angleY: 0, 
+            //    angleZ: 0, 
+            //    scale: 10);
 
             /*AddEntity(model: _assets.Trabant, 
                 position: new Vector3(0, 0, 40), 
@@ -186,31 +193,31 @@ namespace EngineTest.Main
             ////////////////////////////////////////////////////////////////////////
             // Dynamic lights
 
-            AddPointLight(position: new Vector3(-20, 0, 40), 
-                radius: 120, 
-                color: Color.White, 
-                intensity: 20, 
-                castShadows: true, 
-                shadowResolution: 1024, 
-                staticShadow: false, 
-                isVolumetric: false);
+            //AddPointLight(position: new Vector3(-20, 0, 40), 
+            //    radius: 120, 
+            //    color: Color.White, 
+            //    intensity: 20, 
+            //    castShadows: true, 
+            //    shadowResolution: 1024, 
+            //    staticShadow: false, 
+            //    isVolumetric: false);
 
             //volumetric light!
-            AddPointLight(position: new Vector3(-4, 40, 33), 
-                radius: 80, 
-                color: Color.White, 
-                intensity: 20, 
-                castShadows: true, 
-                shadowResolution: 1024, 
-                staticShadow: false, 
-                isVolumetric: true,
-                volumetricDensity: 2);
+            //AddPointLight(position: new Vector3(-4, 40, 33), 
+            //    radius: 80, 
+            //    color: Color.White, 
+            //    intensity: 20, 
+            //    castShadows: true, 
+            //    shadowResolution: 1024, 
+            //    staticShadow: false, 
+            //    isVolumetric: true,
+            //    volumetricDensity: 2);
 
-            /*
+            
             // Spawn a lot of lights to test performance 
              
-            int sides = 4;
-            float distance = 20;
+            int sides = 8;
+            float distance = 10;
             Vector3 startPosition = new Vector3(-30, 30, 1);
 
             //amount of lights is sides*sides*sides*2
@@ -222,7 +229,7 @@ namespace EngineTest.Main
                         Vector3 position = new Vector3(x, -y, z) * distance + startPosition;
                         AddPointLight(position, distance, FastRand.NextColor(), 50, false, false, 0.9f);
                     }
-            */
+            
 
             // NOT WORKING RIGHT NOW
             //AddDirectionalLight(direction: new Vector3(0.2f, -0.2f, -1),

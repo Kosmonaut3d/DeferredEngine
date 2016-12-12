@@ -272,10 +272,10 @@ namespace EngineTest.Recources
             
             g_EmissiveDraw = false;
             ssao_Active = false;
-            g_PostProcessing = true;
+            g_PostProcessing = false;
             g_TemporalAntiAliasing = true;
-            g_EnvironmentMapping = true;
-            g_SSReflection = true;
+            g_EnvironmentMapping = false;
+            g_SSReflection = false;
 
             g_SSReflections_Samples = 13;
 

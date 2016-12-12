@@ -216,7 +216,6 @@ float getDepthInLS(float4 position, float3 lightVector)
 PixelShaderInput BaseCalculations(VertexShaderOutput input)
 {
 	PixelShaderInput output;
-
      //obtain screen position
     input.ScreenPosition.xyz /= input.ScreenPosition.w;
     //obtain textureCoordinates corresponding to the current pixel
@@ -728,7 +727,7 @@ technique Unshadowed
     pass Pass1
     {
         VertexShader = compile vs_4_0 VertexShaderFunction();
-        PixelShader = compile ps_4_0 PixelShaderFunction();
+		PixelShader = compile ps_4_0 PixelShaderFunction();
     }
 }
 

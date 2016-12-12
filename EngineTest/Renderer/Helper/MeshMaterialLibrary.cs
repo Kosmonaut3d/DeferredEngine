@@ -698,6 +698,10 @@ namespace EngineTest.Renderer.Helper
 
                         }
 
+                        if (material.RenderCClockwise)
+                        {
+                            graphicsDevice.RasterizerState = RasterizerState.CullClockwise;
+                        }
 
                         GameStats.MeshDraws++;
 
@@ -709,6 +713,9 @@ namespace EngineTest.Renderer.Helper
                         {
                             // do nothing
                         }
+
+                        if (material.RenderCClockwise)
+                            graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
 
 
                     }

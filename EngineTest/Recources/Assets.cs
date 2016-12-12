@@ -52,6 +52,11 @@ namespace EngineTest.Recources
 
         //public Model Stormtrooper;
 
+        public Model U99;
+        public MaterialEffect U99Mat;
+        
+        public Model U96;
+        public MaterialEffect U96Mat;
         public Model SkullModel { get; set; }
 
         public Model HelmetModel { get; set; }
@@ -167,9 +172,9 @@ namespace EngineTest.Recources
 
             NoiseMap = content.Load<Texture2D>("Shaders/noise_blur");
 
+            IsoSphere = content.Load<Model>("Art/default/isosphere");
             Sphere = content.Load<Model>("Art/default/sphere");
             SphereMeshPart = Sphere.Meshes[0].MeshParts[0];
-            IsoSphere = content.Load<Model>("Art/default/isosphere");
 
             IconLight = content.Load<Texture2D>("Art/Editor/icon_light");
 
@@ -184,6 +189,13 @@ namespace EngineTest.Recources
             content.Load<Model>("Art/test/tubes");
 
             TestCube = content.Load<Model>("Art/test/cube");
+            
+            //U99 = content.Load<Model>("Art/test/u99");
+            //U99Mat = CreateMaterial(Color.Silver, 0.5f, 0.2f, content.Load<Texture2D>("Art/test/u99_texture"));
+
+            //U96 = content.Load<Model>("Art/Uboat/u96");
+            //U96Mat = CreateMaterial(Color.Silver, 0.5f, 0.2f, content.Load<Texture2D>("Art/Uboat/u96_Albedo"), content.Load<Texture2D>("Art/Uboat/u96_Normal"), content.Load<Texture2D>("Art/Uboat/u96_roughness"));
+            ////U99Mat.RenderCClockwise = true;
 
             TestCubeMap = content.Load<TextureCube>("Art/test/OutputCube");
 
@@ -307,6 +319,33 @@ namespace EngineTest.Recources
                         matEffect.DiffuseColor = Color.Black.ToVector3();
                         matEffect.Roughness = 0.05f;
                         matEffect.Type = MaterialEffect.MaterialTypes.ProjectHologram;
+                    }
+
+                    meshPart.Effect = matEffect;
+                }
+            }
+        }
+
+        private void ProcessClone(Model model, ContentManager content)
+        {
+            foreach (ModelMesh mesh in model.Meshes)
+            {
+                foreach (ModelMeshPart meshPart in mesh.MeshParts)
+                {
+                    MaterialEffect matEffect = new MaterialEffect(meshPart.Effect);
+
+                    BasicEffect oEffect = meshPart.Effect as BasicEffect;
+
+                    //I want to remove this mesh
+                    if (mesh.Name == "g Object001")
+                    {
+                        matEffect.AlbedoMap = content.Load<Texture2D>("Art/Clone Trooper/cloneTrooperHead_d");
+                        matEffect.NormalMap = content.Load<Texture2D>("Art/Clone Trooper/cloneTrooperHead_n");
+                    }
+                    if (mesh.Name == "g clone")
+                    {
+                        matEffect.AlbedoMap = content.Load<Texture2D>("Art/Clone Trooper/cloneTrooperBody_d");
+                        matEffect.NormalMap = content.Load<Texture2D>("Art/Clone Trooper/cloneTrooperBody_n");
                     }
 
                     meshPart.Effect = matEffect;

@@ -1271,6 +1271,13 @@ namespace EngineTest.Renderer
 
             if (pointLights.Count < 1) return;
             
+            ModelMeshPart meshpart = _assets.SphereMeshPart;
+            _graphicsDevice.SetVertexBuffer(meshpart.VertexBuffer);
+            _graphicsDevice.Indices = (meshpart.IndexBuffer);
+            int primitiveCount = meshpart.PrimitiveCount;
+            int vertexOffset = meshpart.VertexOffset;
+            int startIndex = meshpart.StartIndex;
+
             if (GameSettings.g_VolumetricLights)
                 Shaders.deferredPointLightParameter_Time.SetValue((float)gameTime.TotalGameTime.TotalSeconds % 1000);
 
@@ -1279,7 +1286,7 @@ namespace EngineTest.Renderer
             for (int index = 0; index < pointLights.Count; index++)
             {
                 PointLightSource light = pointLights[index];
-                DrawPointLight(light, cameraOrigin);
+                DrawPointLight(light, cameraOrigin, vertexOffset, startIndex, primitiveCount);
             }
         }
 
@@ -1288,7 +1295,7 @@ namespace EngineTest.Renderer
         /// </summary>
         /// <param name="light"></param>
         /// <param name="cameraOrigin"></param>
-        private void DrawPointLight(PointLightSource light, Vector3 cameraOrigin)
+        private void DrawPointLight(PointLightSource light, Vector3 cameraOrigin, int vertexOffset, int startIndex, int primitiveCount)
         {
             //first let's check if the light is even in bounds
             if (_boundingFrustum.Contains(light.BoundingSphere) == ContainmentType.Disjoint ||
@@ -1321,13 +1328,7 @@ namespace EngineTest.Renderer
             _graphicsDevice.RasterizerState = inside > 0 ? RasterizerState.CullClockwise : RasterizerState.CullCounterClockwise;
 
             //Draw the sphere
-            ModelMeshPart meshpart = _assets.SphereMeshPart;
             light.ApplyShader(_inverseView);
-            _graphicsDevice.SetVertexBuffer(meshpart.VertexBuffer);
-            _graphicsDevice.Indices = (meshpart.IndexBuffer);
-            int primitiveCount = meshpart.PrimitiveCount;
-            int vertexOffset = meshpart.VertexOffset;
-            int startIndex = meshpart.StartIndex;
 
             _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset, startIndex, primitiveCount);
 
@@ -1659,13 +1660,13 @@ namespace EngineTest.Renderer
             _renderTargetBinding[2] = new RenderTargetBinding(_renderTargetDepth);
 
             _renderTargetDiffuse = new RenderTarget2D(_graphicsDevice, targetWidth,
-               targetHeight, false, SurfaceFormat.HalfVector4, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
+               targetHeight, false, SurfaceFormat.HalfVector4, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
 
             _renderTargetSpecular = new RenderTarget2D(_graphicsDevice, targetWidth,
-               targetHeight, false, SurfaceFormat.HalfVector4, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
+               targetHeight, false, SurfaceFormat.HalfVector4, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
 
             _renderTargetVolume = new RenderTarget2D(_graphicsDevice, targetWidth,
-               targetHeight, false, SurfaceFormat.HalfVector4, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
+               targetHeight, false, SurfaceFormat.HalfVector4, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
 
             Shaders.deferredPointLightParameterResolution.SetValue(new Vector2(targetWidth, targetHeight));
 

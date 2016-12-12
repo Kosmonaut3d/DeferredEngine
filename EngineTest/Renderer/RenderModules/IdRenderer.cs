@@ -72,7 +72,14 @@ namespace EngineTest.Renderer.RenderModules
 
             Color[] retrievedColor = new Color[1];
 
-            _idRenderTarget2D.GetData(0, sourceRectangle, retrievedColor, 0, 1);
+            try
+            {
+                _idRenderTarget2D.GetData(0, sourceRectangle, retrievedColor, 0, 1);
+            }
+            catch
+            {
+                //nothing
+            }
 
             HoveredId = IdGenerator.GetIdFromColor(retrievedColor[0]);
         }
