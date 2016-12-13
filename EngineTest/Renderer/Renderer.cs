@@ -1351,10 +1351,7 @@ namespace EngineTest.Renderer
 
             if (GameSettings.g_VolumetricLights)
                 Shaders.deferredPointLightParameter_Time.SetValue((float)gameTime.TotalGameTime.TotalSeconds % 1000);
-
             
-            _graphicsDevice.DepthStencilState = GameSettings.g_UseDepthStencilLightCulling >0 ? DepthStencilState.DepthRead : DepthStencilState.None;
-
             for (int index = 0; index < pointLights.Count; index++)
             {
                 PointLightSource light = pointLights[index];
@@ -1423,6 +1420,8 @@ namespace EngineTest.Renderer
 
                 light.ApplyShader(_inverseView);
 
+                _graphicsDevice.DepthStencilState = GameSettings.g_UseDepthStencilLightCulling > 0 && !light.IsVolumetric && inside<0 ? DepthStencilState.DepthRead : DepthStencilState.None;
+
                 _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset, startIndex, primitiveCount);
             }
 
@@ -1478,7 +1477,7 @@ namespace EngineTest.Renderer
         {
             if (!GameSettings.g_EnvironmentMapping) return;
 
-            _graphicsDevice.DepthStencilState = DepthStencilState.Default;
+            _graphicsDevice.DepthStencilState = DepthStencilState.None;
             _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
             Shaders.deferredEnvironmentParameterTransposeView.SetValue(Matrix.Transpose(_view));
 

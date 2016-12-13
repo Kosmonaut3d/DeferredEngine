@@ -28,7 +28,6 @@ namespace EngineTest.Main
         //private GraphicsDevice _graphicsDevice;
 
         private long _maxGcMemory;
-        private long _previousMemory;
 
         private double _fps;
         private double _smoothfps = 60;

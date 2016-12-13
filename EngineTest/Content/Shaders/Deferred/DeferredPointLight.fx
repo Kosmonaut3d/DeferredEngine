@@ -319,7 +319,7 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input)
 
 	PixelShaderOutput Output;
 
-	/*float lightDepth = input.PositionVS.z / -FarClip;
+	float lightDepth = input.PositionVS.z / -FarClip;
 
 	[branch]
 	if (lightDepth * inside < p_input.Depth * inside)
@@ -328,11 +328,11 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input)
 		return Output;
 	}
 	else
-	{*/
+	{
 		Output = BasePixelShaderFunction(p_input);
 
 		return Output;
-	//}
+	}
 
 }
 
