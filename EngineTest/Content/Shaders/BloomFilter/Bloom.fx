@@ -118,11 +118,11 @@ float4 DownsampleLuminancePS(float4 pos : SV_POSITION,  float2 texCoord : TEXCOO
 	float4 c11 = tex2D(u_texture, texCoord + float2(0, 2) * offset);
 	float4 c12 = tex2D(u_texture, texCoord + float2(2, 2) * offset);
 
-	return Box4(c0, c1, c5, c6) * 0.125f +
+	return saturate(Box4(c0, c1, c5, c6) * 0.125f +
 		Box4(c1, c2, c6, c7) * 0.125f +
 		Box4(c5, c6, c10, c11) * 0.125f +
 		Box4(c6, c7, c11, c12) * 0.125f +
-		Box4(c3, c4, c8, c9) * 0.5f;
+		Box4(c3, c4, c8, c9) * 0.5f);
 }
 
 float4 UpsamplePS(float4 pos : SV_POSITION,  float2 texCoord : TEXCOORD0) : SV_TARGET0

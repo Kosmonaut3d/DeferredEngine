@@ -172,7 +172,7 @@ namespace EngineTest.Main
 
             _physicsSpace.Add(physicsEntity = new Box(pos: BEPUutilities.Vector3.Zero, width: 10, height: 10, length: 10, mass: 100));
             AddEntity(model: _assets.Cube, 
-                materialEffect: _assets.BaseMaterial, 
+                materialEffect: _assets.EmissiveMaterial2, 
                 position: new Vector3(20.2f, 1.1f, 40), 
                 angleX: Math.PI / 2, 
                 angleY: 0, 
