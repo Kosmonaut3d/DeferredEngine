@@ -218,7 +218,7 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input) : SV_Target
 	alpha = min(1 - 1 / (1 / (1 - alpha) + 1), 0.9375);
 /*
 	if (Threshold > 0) alpha = 0.6f;*/
-	if (linearDepth >= 0.999999) alpha = 0.5f;
+	//if (linearDepth >= 0.999999) alpha = 0.5f;
 
 	/*float2 diff = texCoord - sampleTexCoord;
 	output.Coherence = float4(alpha, 0, 0, 0);*/

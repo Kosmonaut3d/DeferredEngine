@@ -194,5 +194,11 @@ namespace EngineTest.Recources
 
             return true;
         }
+
+        public MaterialEffect Clone()
+        {
+            return new MaterialEffect(this);
+
+        }
     }
 }

@@ -41,7 +41,7 @@ float2 brownConradyDistortion(float2 uv)
     return uv;
 }
 
-float4 ColorSCurve(float4 color)
+float3 ColorSCurve(float3 color)
 {
     [branch]
     if (SCurveStrength == 0)
@@ -55,7 +55,7 @@ float4 ColorSCurve(float4 color)
 
     brightness = brightnessCurve / brightness;
 
-    return color * float4(brightness, brightness, brightness, 1);
+    return color * float3(brightness, brightness, brightness);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -79,16 +79,18 @@ float radiusY = 0.2;
 
 float4 VignettePixelShaderFunction(float4 pos : SV_POSITION, float2 texCoord : TEXCOORD0) : SV_TARGET0
 {
-    float4 base = tex2D(TextureSampler, texCoord.xy);
+    float3 base = tex2D(TextureSampler, texCoord.xy).rgb;
 
     base = ColorSCurve(base);
 
-    return base;
+    return float4(base,1);
 }
 
 float4 VignetteChromaShiftPixelShaderFunction(float4 pos : SV_POSITION, float2 texCoord : TEXCOORD0) : SV_TARGET0
 {
-    float4 base = tex2D(TextureSampler, texCoord) ;
+    float3 base = tex2D(TextureSampler, texCoord).rgb ;
+
+	base = pow(abs(base), 1 / 2.2f);
 
     //float chromaStrength = (base.r + base.g + base.b) / 3;
 
@@ -96,14 +98,14 @@ float4 VignetteChromaShiftPixelShaderFunction(float4 pos : SV_POSITION, float2 t
 
     float chromaR = tex2D(TextureSampler, texCoord.xy + chromaDist).r;
     
-    base.r = chromaR;
+    base.r = pow(abs(chromaR), 1 / 2.2f);
 
     base = ColorSCurve(base);
 
     float dist = distance(texCoord, float2(0.5.xx)) * 0.60f;
     base.rgb *= smoothstep(radiusX, radiusY, dist);
 
-    return base;
+    return float4(base,1);
 }
 
 

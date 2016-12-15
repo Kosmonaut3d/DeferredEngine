@@ -73,7 +73,7 @@ namespace EngineTest.Main
             // NOTE: Coordinate system depends on Camera.up,
             //       Right now z is going up, it's not depth!
 
-            Camera = new Camera(position: new Vector3(-80, 0, 20), lookat: new Vector3(1, 1, 15));
+            Camera = new Camera(position: new Vector3(-88, -11f, 4), lookat: new Vector3(38, 8, 32));
 
             ////////////////////////////////////////////////////////////////////////
             // Static geometry
@@ -97,7 +97,7 @@ namespace EngineTest.Main
 
             AddEntity(model: _assets.Plane,
                 materialEffect: _assets.MetalRough01Material,
-                position: new Vector3(0, 0, 0),
+                position: new Vector3(30, 0, 0),
                 angleX: 0,
                 angleY: 0,
                 angleZ: 0,
@@ -172,13 +172,14 @@ namespace EngineTest.Main
 
             _physicsSpace.Add(physicsEntity = new Box(pos: BEPUutilities.Vector3.Zero, width: 10, height: 10, length: 10, mass: 100));
             AddEntity(model: _assets.Cube, 
-                materialEffect: _assets.SilverMaterial, 
+                materialEffect: _assets.BaseMaterial, 
                 position: new Vector3(20.2f, 1.1f, 40), 
                 angleX: Math.PI / 2, 
                 angleY: 0, 
                 angleZ: 0, 
                 scale: 5, 
                 PhysicsEntity: physicsEntity);
+
 
             _physicsSpace.Add(physicsEntity = new Sphere(position: BEPUutilities.Vector3.Zero, radius: 5, mass: 50));
             AddEntity(model: _assets.IsoSphere, 
@@ -190,23 +191,48 @@ namespace EngineTest.Main
                 scale: 5, 
                 PhysicsEntity: physicsEntity);
 
+            for (int i = 0; i < 10; i++)
+            {
+                MaterialEffect test = _assets.SilverMaterial.Clone();
+                test.Roughness = i / 9.0f + 0.1f;
+                test.Metallic = 1;
+                _physicsSpace.Add(physicsEntity = new Sphere(position: BEPUutilities.Vector3.Zero, radius: 5, mass: 50));
+                AddEntity(model: _assets.IsoSphere,
+                    materialEffect: test,
+                    position: new Vector3(30 + i*10, 0, 10),
+                    angleX: Math.PI / 2,
+                    angleY: 0,
+                    angleZ: 0,
+                    scale: 5,
+                    PhysicsEntity: physicsEntity);
+            }
+
             ////////////////////////////////////////////////////////////////////////
             // Dynamic lights
 
-            AddPointLight(position: new Vector3(-20, 0, 40),
+            //AddPointLight(position: new Vector3(-20, 0, 40),
+            //    radius: 120,
+            //    color: Color.White,
+            //    intensity: 40,
+            //    castShadows: true,
+            //    shadowResolution: 1024,
+            //    staticShadow: false,
+            //    isVolumetric: false);
+
+            AddPointLight(position: new Vector3(66, 0, 40),
                 radius: 120,
                 color: Color.White,
-                intensity: 20,
+                intensity: 120,
                 castShadows: true,
                 shadowResolution: 1024,
                 staticShadow: false,
                 isVolumetric: false);
 
             //volumetric light!
-            AddPointLight(position: new Vector3(-4, 40, 33),
+            AddPointLight(position: new Vector3(-4, 40, 66),
                 radius: 80,
                 color: Color.White,
-                intensity: 20,
+                intensity: 50,
                 castShadows: true,
                 shadowResolution: 1024,
                 staticShadow: false,
@@ -281,7 +307,7 @@ namespace EngineTest.Main
                 AddPointLight(position: new Vector3(FastRand.NextSingle() * 250 - 125, FastRand.NextSingle() * 50 - 25, FastRand.NextSingle() * 30 - 19), 
                     radius: 20, 
                     color: FastRand.NextColor(), 
-                    intensity: 10, 
+                    intensity: 40, 
                     castShadows: false,
                     isVolumetric: true);
             }

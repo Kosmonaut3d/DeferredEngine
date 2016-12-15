@@ -7,6 +7,9 @@ sampler u_texture = sampler_state
 	MagFilter = LINEAR;
 	MinFilter = LINEAR;
 	Mipfilter = LINEAR;
+
+	AddressU = CLAMP;
+	AddressV = CLAMP;
 };
 
 float2 InverseResolution;

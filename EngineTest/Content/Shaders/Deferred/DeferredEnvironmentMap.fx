@@ -191,6 +191,8 @@ PixelShaderOutput PixelShaderFunctionBasic(VertexShaderOutput input)
 	//Sample our screen space reflection map and use the environment map only as fallback
     float4 ssreflectionMap = ReflectionMap.Sample(PointSampler, input.TexCoord);
 	if (ssreflectionMap.a > 0) ReflectColor.rgb = ssreflectionMap.rgb;
+	else ReflectColor.rgb = pow(abs(ReflectColor.rgb), 2.2f);
+	DiffuseReflectColor.rgb = pow(abs(DiffuseReflectColor.rgb), 2.2f);
 
     output.Diffuse = float4(DiffuseReflectColor.xyz, 0) * 0.1;
     output.Specular = float4(ReflectColor.xyz, 0) * 0.4;

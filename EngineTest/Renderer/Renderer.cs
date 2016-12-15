@@ -283,7 +283,8 @@ namespace EngineTest.Renderer
             //We do this either when pressing C or at the start of the program (_renderTargetCube == null) or when the game settings want us to do it every frame
             if ((Input.WasKeyPressed(Keys.C) && !DebugScreen.ConsoleOpen) || GameSettings.g_EnvironmentMappingEveryFrame || _renderTargetCubeMap == null)
             {
-                DrawCubeMap(camera.Position, meshMaterialLibrary, entities, pointLights, directionalLights, 300, gameTime, camera);
+                Vector3 Position = _renderTargetCubeMap == null ? new Vector3(90, -2, 10) : camera.Position; 
+                DrawCubeMap(Position, meshMaterialLibrary, entities, pointLights, directionalLights, 300, gameTime, camera);
             }
             
             //Update our view projection matrices if the camera moved
@@ -379,7 +380,7 @@ namespace EngineTest.Renderer
             if (_renderTargetCubeMap == null)
             {
                 //Create a new cube map
-                _renderTargetCubeMap = new RenderTargetCube(_graphicsDevice, GameSettings.g_CubeMapResolution, true, SurfaceFormat.Color,
+                _renderTargetCubeMap = new RenderTargetCube(_graphicsDevice, GameSettings.g_CubeMapResolution, true, SurfaceFormat.HalfVector4,
                     DepthFormat.Depth24, 0, RenderTargetUsage.PreserveContents);
 
                 //Set this cubemap in the shader of the environment map
@@ -454,7 +455,12 @@ namespace EngineTest.Renderer
                 meshMaterialLibrary.FrustumCulling(entities, _boundingFrustum, true, origin);
                 SetUpGBuffer();
                 DrawGBuffer(meshMaterialLibrary);
+
+                bool volumeEnabled = GameSettings.g_VolumetricLights;
+                GameSettings.g_VolumetricLights = false;
                 DrawLights(pointLights, dirLights, origin, gameTime);
+
+                GameSettings.g_VolumetricLights = volumeEnabled;
 
                 //We don't use temporal AA obviously for the cubemap
                 bool tempAa = GameSettings.g_TemporalAntiAliasing;
@@ -1583,7 +1589,11 @@ namespace EngineTest.Renderer
             }
             else
             {
-                _renderTargetFinal8Bit = _renderTargetFinal;
+
+                _graphicsDevice.SetRenderTarget(_renderTargetFinal8Bit);
+                _spriteBatch.Begin(0, BlendState.Opaque, _supersampling > 1 ? SamplerState.LinearWrap : SamplerState.PointClamp);
+                _spriteBatch.Draw(_renderTargetFinal, new Rectangle(0, 0, GameSettings.g_ScreenWidth, GameSettings.g_ScreenHeight), Color.White);
+                _spriteBatch.End();
             }
         }
 
@@ -1815,7 +1825,7 @@ namespace EngineTest.Renderer
             _renderTargetFinalBinding[0] = new RenderTargetBinding(_renderTargetFinal);
 
             _renderTargetFinal8Bit = new RenderTarget2D(_graphicsDevice, targetWidth,
-               targetHeight, false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
+               targetHeight, false, SurfaceFormat.HalfVector4, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
 
             _renderTargetFinal8BitBinding[0] = new RenderTargetBinding(_renderTargetFinal8Bit);
 
@@ -1826,8 +1836,8 @@ namespace EngineTest.Renderer
             {
                 _editorRender.SetUpRenderTarget(width, height);
 
-                _renderTargetTAA_1 = new RenderTarget2D(_graphicsDevice, targetWidth, targetHeight, false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
-                _renderTargetTAA_2 = new RenderTarget2D(_graphicsDevice, targetWidth, targetHeight, false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
+                _renderTargetTAA_1 = new RenderTarget2D(_graphicsDevice, targetWidth, targetHeight, false, SurfaceFormat.HalfVector4, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
+                _renderTargetTAA_2 = new RenderTarget2D(_graphicsDevice, targetWidth, targetHeight, false, SurfaceFormat.HalfVector4, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
 
                 Shaders.TemporalAntiAliasingEffect_Resolution.SetValue(new Vector2(targetWidth, targetHeight));
                 // Shaders.SSReflectionEffectParameter_Resolution.SetValue(new Vector2(target_width, target_height));
@@ -1847,7 +1857,7 @@ namespace EngineTest.Renderer
 
                 Shaders.ScreenSpaceReflectionParameter_Resolution.SetValue(new Vector2(targetWidth, targetHeight));
                 _renderTargetScreenSpaceEffectReflection = new RenderTarget2D(_graphicsDevice, targetWidth,
-                    targetHeight, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+                    targetHeight, false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
                 
                 ///////////////////
                 // HALF RESOLUTION

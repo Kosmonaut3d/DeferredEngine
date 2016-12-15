@@ -179,10 +179,12 @@ namespace EngineTest.Recources
         public static EffectParameter DeferredComposeEffectParameter_HologramMap;
         public static EffectParameter DeferredComposeEffectParameter_SSAOMap;
         public static EffectParameter DeferredComposeEffectParameter_SSRMap;
+        public static EffectParameter DeferredComposeEffectParameter_LinearMap;
         public static EffectParameter DeferredComposeEffectParameter_UseSSAO;
 
         public static EffectTechnique DeferredComposeTechnique_NonLinear;
         public static EffectTechnique DeferredComposeTechnique_Linear;
+        public static EffectTechnique DeferredComposeTechnique_Unlinearize;
 
         //Deferred Light
         //public static Effect deferredSpotLight;
@@ -455,11 +457,13 @@ namespace EngineTest.Recources
             DeferredComposeEffectParameter_volumeLightMap = DeferredCompose.Parameters["volumeLightMap"];
             DeferredComposeEffectParameter_HologramMap = DeferredCompose.Parameters["HologramMap"];
             DeferredComposeEffectParameter_SSAOMap = DeferredCompose.Parameters["SSAOMap"];
+            DeferredComposeEffectParameter_LinearMap = DeferredCompose.Parameters["LinearMap"];
             DeferredComposeEffectParameter_SSRMap = DeferredCompose.Parameters["SSRMap"];
             DeferredComposeEffectParameter_UseSSAO = DeferredCompose.Parameters["useSSAO"];
 
             DeferredComposeTechnique_NonLinear = DeferredCompose.Techniques["Technique1"];
             DeferredComposeTechnique_Linear = DeferredCompose.Techniques["TechniqueSSR"];
+            DeferredComposeTechnique_Unlinearize = DeferredCompose.Techniques["Unlinearize"];
             ////DeferredLights
 
             //deferredSpotLight = content.Load<Effect>("Shaders/Deferred/DeferredSpotLight");

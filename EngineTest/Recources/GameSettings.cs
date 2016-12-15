@@ -28,7 +28,7 @@ namespace EngineTest.Recources
         public static bool g_EmissiveNoise = false;
         public static float g_EmissiveDrawFOVFactor = 2;
 
-        public static bool p_Physics = false;
+        public static bool p_Physics = true;
 
         public static float m_defaultRoughness = 0;
 
@@ -117,9 +117,9 @@ namespace EngineTest.Recources
             set
             {
                 _g_SSReflection = value;
-                Shaders.DeferredCompose.CurrentTechnique = value
-                    ? Shaders.DeferredComposeTechnique_Linear
-                    : Shaders.DeferredComposeTechnique_NonLinear;
+                //Shaders.DeferredCompose.CurrentTechnique = value
+                //    ? Shaders.DeferredComposeTechnique_Linear
+                //    : Shaders.DeferredComposeTechnique_NonLinear;
             }
         }
 
@@ -262,19 +262,19 @@ namespace EngineTest.Recources
         public static int g_UseDepthStencilLightCulling = 1; //None, Depth, Depth+Stencil
         public static bool g_BloomEnable = true;
 
-        public static float g_BloomRadius1 = 2.0f;
-        public static float g_BloomRadius2 = 2.0f;
+        public static float g_BloomRadius1 = 1.0f;
+        public static float g_BloomRadius2 = 1.0f;
         public static float g_BloomRadius3 = 2.0f;
         public static float g_BloomRadius4 = 3.0f;
-        public static float g_BloomRadius5 = 3.0f;
+        public static float g_BloomRadius5 = 4.0f;
 
-        public static float g_BloomStrength1 = 0.2f;
-        public static float g_BloomStrength2 = 1.0f;
-        public static float g_BloomStrength3 = 2.0f;
+        public static float g_BloomStrength1 = 0.3f;
+        public static float g_BloomStrength2 = 1f;
+        public static float g_BloomStrength3 = 2f;
         public static float g_BloomStrength4 = 2.0f;
-        public static float g_BloomStrength5 = 4.0f;
+        public static float g_BloomStrength5 = 2f;
 
-        public static float g_BloomThreshold = 1.0f;
+        public static float g_BloomThreshold = 0.5f;
 
         public static float g_TemporalAntiAliasingThreshold
         {

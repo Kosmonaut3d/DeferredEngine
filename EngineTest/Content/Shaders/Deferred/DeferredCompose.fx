@@ -5,6 +5,7 @@ Texture2D diffuseLightMap;
 Texture2D specularLightMap;
 Texture2D volumeLightMap;
 Texture2D SSRMap;
+Texture2D linearMap;
 
 static float2 Resolution = float2(1280, 800);
 
@@ -228,9 +229,9 @@ float4 PixelShaderSSRFunction(VertexShaderOutput input) : COLOR0
 
 	float3 volumeLight = volumeLightMap.Sample(pointSampler, input.TexCoord).rgb;
 
-	diffuseLight = pow(abs(diffuseLight.rgb), 2.2f);
-	specularLight = pow(abs(specularLight.rgb), 2.2f);
-	volumeLight = pow(abs(volumeLight.rgb), 2.2f);
+	/*diffuseLight = pow(abs(diffuseLight.rgb), 2.2f);
+	specularLight = pow(abs(specularLight.rgb), 2.2f);*/
+	//volumeLight = pow(abs(volumeLight.rgb), 2.2f);
 	//float4 ssreflectionMap = SSRMap.Sample(linearSampler, input.TexCoord);
 	//specularLight += ssreflectionMap.rgb / exposure / 2;
 	////lerp(specularLight, ssreflectionMap.rgb / exposure, ssreflectionMap.a);
@@ -243,9 +244,24 @@ float4 PixelShaderSSRFunction(VertexShaderOutput input) : COLOR0
 
 	float3 output = (finalValue * ssaoContribution + volumeLight) ;
 
+	return float4(output, 1); //pow(abs(output), 1 / 2.2f) * exposure, 1);
+}
+
+float4 PixelShaderUnlinearize(VertexShaderOutput input) : COLOR0
+{
+	float3 output = linearMap.Sample(pointSampler, input.TexCoord).rgb;
+
 	return float4(pow(abs(output), 1 / 2.2f) * exposure, 1);
 }
 
+technique TechniqueUnlinearize
+{
+	pass Pass1
+	{
+		VertexShader = compile vs_4_0 VertexShaderFunction();
+		PixelShader = compile ps_4_0 PixelShaderUnlinearize();
+	}
+}
 
 technique Technique1                                         
 {

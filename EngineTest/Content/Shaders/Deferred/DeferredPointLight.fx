@@ -282,7 +282,11 @@ PixelShaderOutput BasePixelShaderFunction(PixelShaderInput input)
         float f0 = lerp(0.04f, color.g * 0.25 + 0.75, metalness);
 
         //compute attenuation based on distance - linear attenuation
-        float attenuation = saturate(1.0f - lengthLight / lightRadius);
+        //float attenuation = saturate(1.0f - lengthLight / lightRadius);
+		float x = lengthLight / lightRadius; //normalized
+		float bottom = (4 * x + 1);
+
+		float attenuation = saturate(1 / (bottom*bottom) - 0.04*x);
 
         //normalize light vector
         lightVector /= lengthLight;
@@ -444,7 +448,7 @@ PixelShaderOutput VolumetricPixelShaderFunction(VertexShaderOutput input)
 
 	output.Diffuse = 0;
 	output.Specular = 0;
-	output.Volume = float4((totalVolumePassed * 0.002 *lightIntensity * lightVolumeDensity) * lightColor, 0);
+	output.Volume = float4((totalVolumePassed * 0.0002 *lightIntensity * lightVolumeDensity) * lightColor, 0);
 
 	[branch]
 	if (distanceLtoR < lightRadius)
@@ -463,7 +467,11 @@ PixelShaderOutput VolumetricPixelShaderFunction(VertexShaderOutput input)
 		float f0 = lerp(0.04f, color.g * 0.25 + 0.75, metalness);
 
 		//compute attenuation based on distance - linear attenuation
-		float attenuation = saturate(1.0f - distanceLtoR / lightRadius);
+		//float attenuation = saturate(1.0f - distanceLtoR / lightRadius);
+		float x = distanceLtoR / lightRadius; //normalized
+		float bottom = (4 * x + 1);
+
+		float attenuation = saturate(1 / (bottom*bottom) - 0.04*x);
 
 		//normalize light vector
 		lightVector /= distanceLtoR;
@@ -518,7 +526,12 @@ PixelShaderOutput BasePixelShaderFunctionShadow(PixelShaderInput input)
 	else
 	{
 		//compute attenuation based on distance - linear attenuation
-		float attenuation = saturate(1.0f - lengthLight / lightRadius);
+		//float attenuation = saturate(1.0f - lengthLight / lightRadius);
+
+		float x = lengthLight / lightRadius; //normalized
+		float bottom = (4 * x + 1);
+
+		float attenuation = saturate(1 / (bottom*bottom) - 0.04*x);
 
 		//normalize light vector
 		lightVector /= lengthLight;
@@ -678,7 +691,7 @@ PixelShaderOutput VolumetricPixelShaderFunctionShadowed(VertexShaderOutput input
 	//startvector > input.WorldPositionVS
 	//EndVector
 
-	output.Volume = float4((0.1 * lightIntensity * lightVolumeDensity * visibility) * lightColor, 0);
+	output.Volume = float4((0.02 * lightIntensity * lightVolumeDensity * visibility) * lightColor, 0);
 
 	float4 normalData = NormalMap.Load(texCoordInt);
 	//tranform normal back into [-1,1] range
@@ -693,7 +706,11 @@ PixelShaderOutput VolumetricPixelShaderFunctionShadowed(VertexShaderOutput input
 	float f0 = lerp(0.04f, color.g * 0.25 + 0.75, metalness);
 
 	//compute attenuation based on distance - linear attenuation
-	float attenuation = saturate(1.0f - distanceLtoR / lightRadius);
+	//float attenuation = saturate(1.0f - distanceLtoR / lightRadius);
+	float x = distanceLtoR / lightRadius; //normalized
+	float bottom = (4 * x + 1);
+
+	float attenuation = saturate(1 / (bottom*bottom) - 0.04*x);
 
 	//normalize light vector
 	lightVector /= distanceLtoR;
