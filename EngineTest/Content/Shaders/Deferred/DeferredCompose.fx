@@ -80,163 +80,170 @@ float4 GaussianSampler(float2 TexCoord, float offset)
         finalColor += HologramMap.SampleLevel(linearSampler, TexCoord.xy +
                     offset * SampleOffsets[i] * InverseResolution, 0) * SampleWeights[i];
     }
-   // finalColor = colorMap.Sample(colorSampler, TexCoord.xy);
     return finalColor;
 }
 
 
 float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 {
-    float4 diffuseColor = colorMap.Sample(pointSampler, input.TexCoord);
+	float4 diffuseColor = colorMap.Sample(pointSampler, input.TexCoord);
 
-    float albedoColorProp = diffuseColor.a;
+	float albedoColorProp = diffuseColor.a;
 
+	float materialType = decodeMattype(albedoColorProp);
 
-    float materialType = decodeMattype(albedoColorProp);
+	float metalness = decodeMetalness(albedoColorProp);
 
-    float metalness = decodeMetalness(albedoColorProp);
-                
-    float3 diffuseContrib = float3(0, 0, 0);
-	float ssaoContribution = 1;
+	float3 diffuseContrib = float3(0, 0, 0);
 
-  //  //
-  //  [branch]
-  //  if(useGauss)
-  //  {
-  //      [branch]
-  //      if (abs(materialType - 2) < 0.1f)
-  //      {
-  //        float4 hologramColor = GaussianSampler(input.TexCoord, 3);
-  //  //    float2 pixel = trunc(input.TexCoord * Resolution);
+	//
+	[branch]
+	if (useGauss)
+	{
+		[branch]
+		if (abs(materialType - 2) < 0.1f)
+		{
+			float4 hologramColor = GaussianSampler(input.TexCoord, 3);
+			//    float2 pixel = trunc(input.TexCoord * Resolution);
 
-  //  //    float pixelsize2 = 2 * pixelsize;
-  //  //    if (pixel.x % pixelsize2 <= pixelsize && pixel.y % pixelsize2 <= pixelsize)
-  //          diffuseContrib = float3(0, hologramColor.x * 0.49, hologramColor.x * 0.95f) * 0.06f ;
-  //      }
-  //  }
-  //  else
-  //  {
-		//float pixelsize = pixelsize_intended;
-
-		//float2 hologramTexCoord = trunc(input.TexCoord * Resolution / pixelsize / 2) / Resolution * pixelsize * 2;
-
-
-  //      float hologramColor = HologramMap.Sample(linearSampler, hologramTexCoord).r;
-  //      if (abs(materialType - 2) < 0.1f)
-  //      {
-  //      float2 pixel = trunc(input.TexCoord * Resolution);
-
-  //      float pixelsize2 = 2 * pixelsize;
-  //      if (pixel.x % pixelsize2 <= pixelsize && pixel.y % pixelsize2 <= pixelsize)
-  //              diffuseContrib = float3(0, hologramColor * 0.49, hologramColor * 0.95f) * 0.06f;
-
-  //      }
-  //  }
-
-  //  if (abs(materialType - 3) < 0.1f)
-  //  {
-  //      return diffuseColor;
-  //  }
-  //      
-  //  //SSAO
-  //  if(useSSAO)
-  //  {
-  //      ssaoContribution = SSAOMap.Sample(linearSampler, input.TexCoord).r;
-  //  }
-
-    float f0 = lerp(0.04f, diffuseColor.g * 0.25 + 0.75, metalness);
-    
-    float3 diffuseLight = diffuseLightMap.Sample(pointSampler, input.TexCoord).rgb;
-    float3 specularLight = specularLightMap.Sample(pointSampler, input.TexCoord).rgb;
-
-	float3 volumeLight = volumeLightMap.Sample(pointSampler, input.TexCoord).rgb;
-
-    float3 plasticFinal = diffuseColor.rgb * (diffuseLight) + specularLight;
-                  
-    float3 metalFinal = specularLight * diffuseColor.rgb;
-
-    float3 finalValue = lerp(plasticFinal, metalFinal, metalness) + diffuseContrib;
-
-    return float4(finalValue * ssaoContribution + volumeLight, 1) * exposure;
-}
-
-float4 PixelShaderSSRFunction(VertexShaderOutput input) : COLOR0
-{
-    float4 diffuseColor = colorMap.Sample(pointSampler, input.TexCoord);
-
-    float albedoColorProp = diffuseColor.a;
-
-    
-
-    float materialType = decodeMattype(albedoColorProp);
-
-    float metalness = decodeMetalness(albedoColorProp);
-                
-    float3 diffuseContrib = float3(0, 0, 0);
-
-    //
-    [branch]
-    if (useGauss)
-    {
-        [branch]
-        if (abs(materialType - 2) < 0.1f)
-        {
-            float4 hologramColor = GaussianSampler(input.TexCoord, 3);
-    //    float2 pixel = trunc(input.TexCoord * Resolution);
-
-    //    float pixelsize2 = 2 * pixelsize;
-    //    if (pixel.x % pixelsize2 <= pixelsize && pixel.y % pixelsize2 <= pixelsize)
-            diffuseContrib = float3(0, hologramColor.x * 0.49, hologramColor.x * 0.95f) * 0.06f;
-        }
-    }
-    else
-    {
+			//    float pixelsize2 = 2 * pixelsize;
+			//    if (pixel.x % pixelsize2 <= pixelsize && pixel.y % pixelsize2 <= pixelsize)
+			diffuseContrib = float3(0, hologramColor.x * 0.49, hologramColor.x * 0.95f) * 0.06f;
+		}
+	}
+	else
+	{
 		float pixelsize = pixelsize_intended;
 
 		float2 hologramTexCoord = trunc(input.TexCoord * Resolution / pixelsize / 2) / Resolution * pixelsize * 2;
 
-        float hologramColor = HologramMap.Sample(linearSampler, hologramTexCoord).r;
-        if (abs(materialType - 2) < 0.1f)
-        {
-            float2 pixel = trunc(input.TexCoord * Resolution);
+		float hologramColor = HologramMap.Sample(linearSampler, hologramTexCoord).r;
+		if (abs(materialType - 2) < 0.1f)
+		{
+			float2 pixel = trunc(input.TexCoord * Resolution);
 
-            float pixelsize2 = 2 * pixelsize;
-            if (pixel.x % pixelsize2 <= pixelsize && pixel.y % pixelsize2 <= pixelsize)
-                diffuseContrib = float3(0, hologramColor * 0.49, hologramColor * 0.95f) * 0.06f;
+			float pixelsize2 = 2 * pixelsize;
+			if (pixel.x % pixelsize2 <= pixelsize && pixel.y % pixelsize2 <= pixelsize)
+				diffuseContrib = float3(0, hologramColor * 0.49, hologramColor * 0.95f) * 0.06f;
 
-        }
-    }
+		}
+	}
 
-    if (abs(materialType - 3) < 0.1f)
-    {
-        return diffuseColor;
-    }
-        
-    //SSAO
-    float ssaoContribution = 1;
-    if (useSSAO)
-    {
-        ssaoContribution = SSAOMap.Sample(linearSampler, input.TexCoord).r;
-    }
+	if (abs(materialType - 3) < 0.1f)
+	{
+		return diffuseColor;
+		}
 
-    float f0 = lerp(0.04f, diffuseColor.g * 0.25 + 0.75, metalness);
-    
-    float3 diffuseLight = diffuseLightMap.Sample(pointSampler, input.TexCoord).rgb;
-    float3 specularLight = specularLightMap.Sample(pointSampler, input.TexCoord).rgb;
+	//SSAO
+	float ssaoContribution = 1;
+	if (useSSAO)
+	{
+		ssaoContribution = SSAOMap.Sample(linearSampler, input.TexCoord).r;
+	}
+
+	float f0 = lerp(0.04f, diffuseColor.g * 0.25 + 0.75, metalness);
+
+	float3 diffuseLight = diffuseLightMap.Sample(pointSampler, input.TexCoord).rgb;
+	float3 specularLight = specularLightMap.Sample(pointSampler, input.TexCoord).rgb;
 
 	float3 volumeLight = volumeLightMap.Sample(pointSampler, input.TexCoord).rgb;
 
-    //float4 ssreflectionMap = SSRMap.Sample(linearSampler, input.TexCoord);
-    //specularLight += ssreflectionMap.rgb / exposure / 2;
-    ////lerp(specularLight, ssreflectionMap.rgb / exposure, ssreflectionMap.a);
+	//float4 ssreflectionMap = SSRMap.Sample(linearSampler, input.TexCoord);
+	//specularLight += ssreflectionMap.rgb / exposure / 2;
+	////lerp(specularLight, ssreflectionMap.rgb / exposure, ssreflectionMap.a);
 
-    float3 plasticFinal = diffuseColor.rgb * (diffuseLight) + specularLight;
-                  
-    float3 metalFinal = specularLight * diffuseColor.rgb;
+	float3 plasticFinal = diffuseColor.rgb * (diffuseLight)+specularLight;
 
-    float3 finalValue = lerp(plasticFinal, metalFinal, metalness) + diffuseContrib;
+	float3 metalFinal = specularLight * diffuseColor.rgb;
 
-    return float4(finalValue * ssaoContribution + volumeLight,  1) * exposure;
+	float3 finalValue = lerp(plasticFinal, metalFinal, metalness) + diffuseContrib;
+
+	return float4(finalValue * ssaoContribution + volumeLight,  1) * exposure;
+}
+
+float4 PixelShaderSSRFunction(VertexShaderOutput input) : COLOR0
+{
+	float4 diffuseColor = colorMap.Sample(pointSampler, input.TexCoord);
+
+	//linear?
+	diffuseColor.rgb = pow(abs(diffuseColor.rgb), 2.2f);
+
+	float albedoColorProp = diffuseColor.a;
+
+	float materialType = decodeMattype(albedoColorProp);
+
+	float metalness = decodeMetalness(albedoColorProp);
+
+	float3 diffuseContrib = float3(0, 0, 0);
+
+	//
+	[branch]
+	if (useGauss)
+	{
+		[branch]
+		if (abs(materialType - 2) < 0.1f)
+		{
+			float4 hologramColor = GaussianSampler(input.TexCoord, 3);
+			//    float2 pixel = trunc(input.TexCoord * Resolution);
+
+			//    float pixelsize2 = 2 * pixelsize;
+			//    if (pixel.x % pixelsize2 <= pixelsize && pixel.y % pixelsize2 <= pixelsize)
+			diffuseContrib = float3(0, hologramColor.x * 0.49, hologramColor.x * 0.95f) * 0.06f;
+		}
+	}
+	else
+	{
+		float pixelsize = pixelsize_intended;
+
+		float2 hologramTexCoord = trunc(input.TexCoord * Resolution / pixelsize / 2) / Resolution * pixelsize * 2;
+
+		float hologramColor = HologramMap.Sample(linearSampler, hologramTexCoord).r;
+		if (abs(materialType - 2) < 0.1f)
+		{
+			float2 pixel = trunc(input.TexCoord * Resolution);
+
+			float pixelsize2 = 2 * pixelsize;
+			if (pixel.x % pixelsize2 <= pixelsize && pixel.y % pixelsize2 <= pixelsize)
+				diffuseContrib = float3(0, hologramColor * 0.49, hologramColor * 0.95f) * 0.06f;
+
+		}
+	}
+
+	if (abs(materialType - 3) < 0.1f)
+	{
+		return diffuseColor;
+	}
+
+	//SSAO
+	float ssaoContribution = 1;
+	if (useSSAO)
+	{
+		ssaoContribution = SSAOMap.Sample(linearSampler, input.TexCoord).r;
+	}
+
+	float f0 = lerp(0.04f, diffuseColor.g * 0.25 + 0.75, metalness);
+
+	float3 diffuseLight = diffuseLightMap.Sample(pointSampler, input.TexCoord).rgb;
+	float3 specularLight = specularLightMap.Sample(pointSampler, input.TexCoord).rgb;
+
+	float3 volumeLight = volumeLightMap.Sample(pointSampler, input.TexCoord).rgb;
+
+	diffuseLight = pow(abs(diffuseLight.rgb), 2.2f);
+	specularLight = pow(abs(specularLight.rgb), 2.2f);
+	volumeLight = pow(abs(volumeLight.rgb), 2.2f);
+	//float4 ssreflectionMap = SSRMap.Sample(linearSampler, input.TexCoord);
+	//specularLight += ssreflectionMap.rgb / exposure / 2;
+	////lerp(specularLight, ssreflectionMap.rgb / exposure, ssreflectionMap.a);
+
+	float3 plasticFinal = diffuseColor.rgb * (diffuseLight)+specularLight;
+
+	float3 metalFinal = specularLight * diffuseColor.rgb;
+
+	float3 finalValue = lerp(plasticFinal, metalFinal, metalness) + diffuseContrib;
+
+	float3 output = (finalValue * ssaoContribution + volumeLight) ;
+
+	return float4(pow(abs(output), 1 / 2.2f) * exposure, 1);
 }
 
 

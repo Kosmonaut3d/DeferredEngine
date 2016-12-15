@@ -182,7 +182,7 @@ namespace EngineTest.Main
 
             _physicsSpace.Add(physicsEntity = new Sphere(position: BEPUutilities.Vector3.Zero, radius: 5, mass: 50));
             AddEntity(model: _assets.IsoSphere, 
-                materialEffect: _assets.BaseMaterial, 
+                materialEffect: _assets.MetalRough01Material, 
                 position: new Vector3(20, 0, 10), 
                 angleX: Math.PI / 2, 
                 angleY: 0, 

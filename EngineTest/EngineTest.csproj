@@ -80,6 +80,7 @@
     <Compile Include="Entities\PointLightSource.cs" />
     <Compile Include="Entities\Camera.cs" />
     <Compile Include="Main\DebugScreen.cs" />
+    <Compile Include="Renderer\RenderModules\BloomFilter.cs" />
     <Compile Include="Renderer\Helper\FastRand.cs" />
     <Compile Include="Renderer\Helper\LineHelper.cs" />
     <Compile Include="Renderer\Helper\LineHelperManager.cs" />

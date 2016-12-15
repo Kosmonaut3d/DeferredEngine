@@ -181,8 +181,8 @@ namespace EngineTest.Recources
         public static EffectParameter DeferredComposeEffectParameter_SSRMap;
         public static EffectParameter DeferredComposeEffectParameter_UseSSAO;
 
-        public static EffectTechnique DeferredComposeTechnique_1;
-        public static EffectTechnique DeferredComposeTechnique_SSR;
+        public static EffectTechnique DeferredComposeTechnique_NonLinear;
+        public static EffectTechnique DeferredComposeTechnique_Linear;
 
         //Deferred Light
         //public static Effect deferredSpotLight;
@@ -458,8 +458,8 @@ namespace EngineTest.Recources
             DeferredComposeEffectParameter_SSRMap = DeferredCompose.Parameters["SSRMap"];
             DeferredComposeEffectParameter_UseSSAO = DeferredCompose.Parameters["useSSAO"];
 
-            DeferredComposeTechnique_1 = DeferredCompose.Techniques["Technique1"];
-            DeferredComposeTechnique_SSR = DeferredCompose.Techniques["TechniqueSSR"];
+            DeferredComposeTechnique_NonLinear = DeferredCompose.Techniques["Technique1"];
+            DeferredComposeTechnique_Linear = DeferredCompose.Techniques["TechniqueSSR"];
             ////DeferredLights
 
             //deferredSpotLight = content.Load<Effect>("Shaders/Deferred/DeferredSpotLight");

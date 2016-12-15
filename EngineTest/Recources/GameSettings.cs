@@ -118,8 +118,21 @@ namespace EngineTest.Recources
             {
                 _g_SSReflection = value;
                 Shaders.DeferredCompose.CurrentTechnique = value
-                    ? Shaders.DeferredComposeTechnique_SSR
-                    : Shaders.DeferredComposeTechnique_1;
+                    ? Shaders.DeferredComposeTechnique_Linear
+                    : Shaders.DeferredComposeTechnique_NonLinear;
+            }
+        }
+
+        private static bool _g_Linear = false;
+        public static bool g_Linear
+        {
+            get { return _g_Linear; }
+            set
+            {
+                _g_Linear = value;
+                Shaders.DeferredCompose.CurrentTechnique = value
+                    ? Shaders.DeferredComposeTechnique_Linear
+                    : Shaders.DeferredComposeTechnique_NonLinear;
             }
         }
 
@@ -247,6 +260,21 @@ namespace EngineTest.Recources
         public static int g_CubeMapResolution = 512;
         public static bool c_UseStringBuilder = true;
         public static int g_UseDepthStencilLightCulling = 1; //None, Depth, Depth+Stencil
+        public static bool g_BloomEnable = true;
+
+        public static float g_BloomRadius1 = 2.0f;
+        public static float g_BloomRadius2 = 2.0f;
+        public static float g_BloomRadius3 = 2.0f;
+        public static float g_BloomRadius4 = 3.0f;
+        public static float g_BloomRadius5 = 3.0f;
+
+        public static float g_BloomStrength1 = 0.2f;
+        public static float g_BloomStrength2 = 1.0f;
+        public static float g_BloomStrength3 = 2.0f;
+        public static float g_BloomStrength4 = 2.0f;
+        public static float g_BloomStrength5 = 4.0f;
+
+        public static float g_BloomThreshold = 1.0f;
 
         public static float g_TemporalAntiAliasingThreshold
         {
