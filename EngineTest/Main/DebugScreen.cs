@@ -74,7 +74,8 @@ namespace EngineTest.Main
             new StringBuilder( "Emissive" ),
             new StringBuilder( "DirectionalShadow" ),
             new StringBuilder( "SSR" ),
-            new StringBuilder( "Volumetric" )
+            new StringBuilder( "Volumetric" ),
+            new StringBuilder( "HDR" )
         };
 
         // Console

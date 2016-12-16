@@ -103,12 +103,12 @@ namespace EngineTest.Main
                 angleZ: 0,
                 scale: 30);
 
-            //AddEntity(model: _assets.StanfordDragon, 
-            //    materialEffect: _assets.GoldMaterial, 
-            //    position: new Vector3(40, -10, 0), 
-            //    angleX: Math.PI / 2, 
-            //    angleY: 0, 
-            //    angleZ: 0, 
+            //AddEntity(model: _assets.StanfordDragon,
+            //    materialEffect: _assets.BaseMaterial,
+            //    position: new Vector3(40, -10, 0),
+            //    angleX: Math.PI / 2,
+            //    angleY: 0,
+            //    angleZ: 0,
             //    scale: 10);
 
             /*AddEntity(model: _assets.Trabant, 
@@ -169,18 +169,7 @@ namespace EngineTest.Main
 
             //Just a ground box where nothing should fall through
             //_physicsSpace.Add(new Box(new BEPUutilities.Vector3(0, 0, -0.5f), 1000, 1000, 1));
-
-            _physicsSpace.Add(physicsEntity = new Box(pos: BEPUutilities.Vector3.Zero, width: 10, height: 10, length: 10, mass: 100));
-            AddEntity(model: _assets.Cube, 
-                materialEffect: _assets.EmissiveMaterial2, 
-                position: new Vector3(20.2f, 1.1f, 40), 
-                angleX: Math.PI / 2, 
-                angleY: 0, 
-                angleZ: 0, 
-                scale: 5, 
-                PhysicsEntity: physicsEntity);
-
-
+            
             _physicsSpace.Add(physicsEntity = new Sphere(position: BEPUutilities.Vector3.Zero, radius: 5, mass: 50));
             AddEntity(model: _assets.IsoSphere, 
                 materialEffect: _assets.MetalRough01Material, 
@@ -237,7 +226,7 @@ namespace EngineTest.Main
                 shadowResolution: 1024,
                 staticShadow: false,
                 isVolumetric: true,
-                volumetricDensity: 2);
+                volumetricDensity: 3);
 
 
             // Spawn a lot of lights to test performance 
@@ -348,7 +337,7 @@ namespace EngineTest.Main
                         GameSettings.g_RenderMode = Renderer.Renderer.RenderModes.Hologram;
                         break;
                     case 9:
-                        GameSettings.g_RenderMode = Renderer.Renderer.RenderModes.Emissive;
+                        GameSettings.g_RenderMode = Renderer.Renderer.RenderModes.HDR;
                         break;
                     case 10:
                         GameSettings.g_RenderMode = Renderer.Renderer.RenderModes.DirectionalShadow;

@@ -49,11 +49,11 @@ namespace EngineTest.Recources
         public static int g_ShadowForceFiltering = 0; //1 = PCF, 2 3 better PCF  4 = Poisson, 5 = VSM;
         public static bool g_ShadowForceScreenSpace = false;
 
-        private static float _ssao_falloffmin = 0.0001f;
-        private static float _ssao_falloffmax = 0.001f;
+        private static float _ssao_falloffmin = 0.001f;
+        private static float _ssao_falloffmax = 0.03f;
         private static int _ssao_samples = 8;
-        private static float _ssao_sampleradius = 0.015f;
-        private static float _ssao_strength = 30;
+        private static float _ssao_sampleradius = 0.03f;
+        private static float _ssao_strength = 1;
         public static bool ssao_Blur = true;
         private static bool _ssao_active = true;
 
@@ -268,11 +268,11 @@ namespace EngineTest.Recources
         public static float g_BloomRadius4 = 3.0f;
         public static float g_BloomRadius5 = 4.0f;
 
-        public static float g_BloomStrength1 = 0.3f;
-        public static float g_BloomStrength2 = 1f;
-        public static float g_BloomStrength3 = 2f;
-        public static float g_BloomStrength4 = 2.0f;
-        public static float g_BloomStrength5 = 2f;
+        public static float g_BloomStrength1 = 1;
+        public static float g_BloomStrength2 = 7;
+        public static float g_BloomStrength3 = 1;
+        public static float g_BloomStrength4 = 0.5f;
+        public static float g_BloomStrength5 = 0.2f;
 
         public static float g_BloomThreshold = 0.5f;
 
@@ -300,7 +300,7 @@ namespace EngineTest.Recources
             g_SSReflection = _g_SSReflection;
             
             g_EmissiveDraw = false;
-            ssao_Active = false;
+            ssao_Active = true;
             g_PostProcessing = true;
             g_TemporalAntiAliasing = true;
             g_EnvironmentMapping = true;

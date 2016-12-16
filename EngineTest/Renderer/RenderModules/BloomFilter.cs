@@ -260,6 +260,8 @@ namespace EngineTest.Renderer.RenderModules
             //Setup the default preset values.
             BloomPreset = BloomPresets.SuperWide;
             SetBloomPreset(BloomPreset);
+
+            BloomDownsamplePasses = 5;
         }
 
         /// <summary>
@@ -463,7 +465,7 @@ namespace EngineTest.Renderer.RenderModules
                                 //UPSAMPLE TO MIP4
                                 _graphicsDevice.SetRenderTarget(_bloomRenderTarget2DMip4);
                                 BloomScreenTexture = _bloomRenderTarget2DMip5;
-
+                                
                                 BloomStrength = _bloomStrength5;
                                 BloomRadius = _bloomRadius5;
                                 if (BloomUseLuminance) _bloomPassUpsampleLuminance.Apply();
@@ -558,7 +560,7 @@ namespace EngineTest.Renderer.RenderModules
 
         private void ChangeBlendState()
         {
-            _graphicsDevice.BlendState = BlendState.AlphaBlend;
+            _graphicsDevice.BlendState = BlendState.Opaque;
         }
 
         /// <summary>
@@ -579,22 +581,22 @@ namespace EngineTest.Renderer.RenderModules
 
             _bloomRenderTarget2DMip0 = new RenderTarget2D(_graphicsDevice,
                 (int) (width),
-                (int) (height), false, SurfaceFormat.HdrBlendable, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
+                (int) (height), false, SurfaceFormat.HalfVector4, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
             _bloomRenderTarget2DMip1 = new RenderTarget2D(_graphicsDevice,
                 (int) (width/2),
-                (int) (height/2), false, SurfaceFormat.HdrBlendable, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
+                (int) (height/2), false, SurfaceFormat.HalfVector4, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
             _bloomRenderTarget2DMip2 = new RenderTarget2D(_graphicsDevice,
                 (int) (width/4),
-                (int) (height/4), false, SurfaceFormat.HdrBlendable, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
+                (int) (height/4), false, SurfaceFormat.HalfVector4, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
             _bloomRenderTarget2DMip3 = new RenderTarget2D(_graphicsDevice,
                 (int) (width/8),
-                (int) (height/8), false, SurfaceFormat.HdrBlendable, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
+                (int) (height/8), false, SurfaceFormat.HalfVector4, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
             _bloomRenderTarget2DMip4 = new RenderTarget2D(_graphicsDevice,
                 (int) (width/16),
-                (int) (height/16), false, SurfaceFormat.HdrBlendable, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
+                (int) (height/16), false, SurfaceFormat.HalfVector4, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
             _bloomRenderTarget2DMip5 = new RenderTarget2D(_graphicsDevice,
                 (int) (width/32),
-                (int) (height/32), false, SurfaceFormat.HdrBlendable, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
+                (int) (height/32), false, SurfaceFormat.HalfVector4, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
         }
 
         /// <summary>

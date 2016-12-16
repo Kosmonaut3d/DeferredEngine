@@ -82,7 +82,8 @@ namespace EngineTest.Renderer
             Emissive,
             DirectionalShadow,
             SSR,
-            Volumetric
+            Volumetric,
+            HDR,
         }
 
         //Render targets
@@ -1254,12 +1255,14 @@ namespace EngineTest.Renderer
 
             _spriteBatch.End();
 
-            if (GameSettings.ssao_Blur)
+            if (GameSettings.ssao_Blur &&  GameSettings.ssao_Active)
             {
-                _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+                _graphicsDevice.RasterizerState = RasterizerState.CullNone;
 
                 _graphicsDevice.SetRenderTarget(_renderTargetScreenSpaceEffectUpsampleBlurHorizontal);
 
+                Shaders.ScreenSpaceEffectParameter_InverseResolution.SetValue(new Vector2(1.0f / _renderTargetScreenSpaceEffectUpsampleBlurVertical.Width,
+                    1.0f / _renderTargetScreenSpaceEffectUpsampleBlurVertical.Height));
                 Shaders.ScreenSpaceEffectParameter_SSAOMap.SetValue(_renderTargetScreenSpaceEffectUpsampleBlurVertical);
                 Shaders.ScreenSpaceEffectTechnique_BlurVertical.Passes[0].Apply();
 
@@ -1267,6 +1270,8 @@ namespace EngineTest.Renderer
 
                 _graphicsDevice.SetRenderTarget(_renderTargetScreenSpaceEffectBlurFinal);
 
+                Shaders.ScreenSpaceEffectParameter_InverseResolution.SetValue(new Vector2(1.0f / _renderTargetScreenSpaceEffectUpsampleBlurHorizontal.Width,
+                    1.0f / _renderTargetScreenSpaceEffectUpsampleBlurHorizontal.Height));
                 Shaders.ScreenSpaceEffectParameter_SSAOMap.SetValue(_renderTargetScreenSpaceEffectUpsampleBlurHorizontal);
                 Shaders.ScreenSpaceEffectTechnique_BlurHorizontal.Passes[0].Apply();
 
@@ -1668,7 +1673,7 @@ namespace EngineTest.Renderer
                     DrawMapToScreenToFullScreen(_renderTargetHologram);
                     break;
                 case RenderModes.DirectionalShadow:
-                    DrawMapToScreenToFullScreen(_renderTargetScreenSpaceEffectUpsampleBlurVertical);
+                    DrawMapToScreenToFullScreen(_renderTargetScreenSpaceEffectBlurFinal);
                     break;
                 case RenderModes.Emissive:
                     DrawMapToScreenToFullScreen(_renderTargetEmissive);
@@ -1676,7 +1681,7 @@ namespace EngineTest.Renderer
                 case RenderModes.SSR:
                     DrawMapToScreenToFullScreen(_renderTargetScreenSpaceEffectReflection);
                     break;
-                default:
+                case RenderModes.HDR:
                     if (GameSettings.g_TemporalAntiAliasing)
                     {
                         DrawMapToScreenToFullScreen(_temporalAAOffFrame ? _renderTargetTAA_2 : _renderTargetTAA_1);
@@ -1685,6 +1690,8 @@ namespace EngineTest.Renderer
                     {
                         DrawMapToScreenToFullScreen(_renderTargetFinal8Bit);
                     }
+                    break;
+                default:
                     DrawPostProcessing();
                     break;
             }
@@ -1830,7 +1837,7 @@ namespace EngineTest.Renderer
             _renderTargetFinal8BitBinding[0] = new RenderTargetBinding(_renderTargetFinal8Bit);
 
             _renderTargetScreenSpaceEffectUpsampleBlurVertical = new RenderTarget2D(_graphicsDevice, targetWidth,
-                targetHeight, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+                targetHeight, false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
 
             if (!onlyEssentials)
             {
@@ -1852,8 +1859,6 @@ namespace EngineTest.Renderer
                 _renderTargetScreenSpaceEffectBlurFinal = new RenderTarget2D(_graphicsDevice, targetWidth,
                     targetHeight, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
 
-                Shaders.ScreenSpaceEffectParameter_InverseResolution.SetValue(new Vector2(1.0f / targetWidth,
-                    1.0f / targetHeight));
 
                 Shaders.ScreenSpaceReflectionParameter_Resolution.SetValue(new Vector2(targetWidth, targetHeight));
                 _renderTargetScreenSpaceEffectReflection = new RenderTarget2D(_graphicsDevice, targetWidth,
@@ -1869,6 +1874,9 @@ namespace EngineTest.Renderer
                     targetHeight, false, SurfaceFormat.HalfSingle, DepthFormat.None, 0,
                     RenderTargetUsage.DiscardContents);
 
+
+                Shaders.ScreenSpaceEffectParameter_InverseResolution.SetValue(new Vector2(1.0f / targetWidth,
+                    1.0f / targetHeight));
 
                 _renderTargetHologram = new RenderTarget2D(_graphicsDevice, targetWidth,
                     targetHeight, false, SurfaceFormat.Single, DepthFormat.Depth24, 0,

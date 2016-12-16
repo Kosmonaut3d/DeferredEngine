@@ -212,7 +212,7 @@ float4 PixelShaderSSRFunction(VertexShaderOutput input) : COLOR0
 
 	if (abs(materialType - 3) < 0.1f)
 	{
-		return diffuseColor;
+		return diffuseColor * metalness *8 ;
 	}
 
 	//SSAO

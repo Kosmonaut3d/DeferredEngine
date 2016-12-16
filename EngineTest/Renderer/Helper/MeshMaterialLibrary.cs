@@ -592,15 +592,16 @@ namespace EngineTest.Renderer.Helper
                         if (!material.HasDiffuse)
                         {
                             if (material.Type == MaterialEffect.MaterialTypes.Emissive && material.EmissiveStrength > 0)
-                                //{
-                                Shaders.GBufferEffectParameter_Material_DiffuseColor.SetValue(material.DiffuseColor*
-                                                                                              material.EmissiveStrength);
-                            //* Math.Max(material.EmissiveStrength,1));
-                            //}
-                            else
-                                //{
+                                {
                                 Shaders.GBufferEffectParameter_Material_DiffuseColor.SetValue(material.DiffuseColor);
-                            //}
+                            Shaders.GBufferEffectParameter_Material_Metallic.SetValue(material.EmissiveStrength/8);
+                        }
+                        //* Math.Max(material.EmissiveStrength,1));
+                        //}
+                        else
+                            //{
+                            Shaders.GBufferEffectParameter_Material_DiffuseColor.SetValue(material.DiffuseColor);
+                        //}
                         }
 
                         if (!material.HasRoughnessMap)

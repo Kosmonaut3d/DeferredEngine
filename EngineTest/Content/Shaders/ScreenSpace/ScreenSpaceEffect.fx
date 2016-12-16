@@ -48,6 +48,8 @@ float Strength = 4;
 
 float SampleRadius = 0.05f;
 
+float FarClip = 500;
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  STRUCT DEFINITIONS
 
@@ -93,33 +95,6 @@ VertexShaderOutputBlur VertexShaderBlurFunction(VertexShaderInput input)
     return output;
 }
 
-float linearizeDepth(float depth)
-{
-	return (Projection._43 / (depth - Projection._33));
-}
-
-float localDepth(float lindepth)
-{
-    return (Projection._43 / lindepth) + Projection._33;
-}
-
-float zfar = 500;
-float znear = 1;
-
-float linearizeDepth2(float z)
-{
-    float zfar_2 = zfar / (zfar - znear);
-
-    float z0 = z * zfar_2 - znear * zfar_2;
-
-    float w0 = z;
-
-    float native_z = z0 / w0;
-
-    float linZ = (znear * zfar_2 / (zfar_2 - native_z));
-
-    return linZ;
-}
 
 float3 randomNormal(float2 tex)
 {
@@ -131,90 +106,87 @@ float3 randomNormal(float2 tex)
 
 float4 PixelShaderFunction(VertexShaderOutput input) : SV_Target
 {
-    float2 texCoord = float2(input.TexCoord);
-    
-    //get normal data from the NormalMap
-    float4 normalData = NormalMap.Sample(texSampler, texCoord);
-    //tranform normal back into [-1,1] range
-    float3 normalWS = decode(normalData.xyz); //2.0f * normalData.xyz - 1.0f;    //could do mad
+	float2 texCoord = float2(input.TexCoord);
 
-    //Ignore sky!
-    [branch]
-    if (normalData.x + normalData.y <= 0.001f) //Out of range
-    {
-        return float4(1, 0, 0, 0);
-    }
-    else
-    {
-        float depthVal = linearizeDepth(1 - DepthMap.Sample(texSampler, texCoord).r);
-    
-        float3 normalVS = mul(float4(normalWS, 0), ViewProjection).xyz;
-        normalVS = normalize(normalVS);
+	//get normal data from the NormalMap
+	float4 normalData = NormalMap.Sample(texSampler, texCoord);
+	//tranform normal back into [-1,1] range
+	float3 normalVS = decode(normalData.xyz); //2.0f * normalData.xyz - 1.0f;    //could do mad
 
-        float3 randNor = randomNormal(mul(input.TexCoord, ViewProjection).rg); //
+	float depth = DepthMap.Sample(texSampler, texCoord).r;
+	//Ignore sky!
+	[branch]
+	if (depth > 0.9999999) //Out of range
+	{
+		return float4(1, 0, 0, 0);
+	}
+	else
+	{
+		float3 randNor = randomNormal(mul(input.TexCoord, ViewProjection).rg); //
 
-        const float3 sampleSphere[] =
-        {
-            float3(0.2024537f, 0.841204f, -0.9060141f),
-        float3(-0.2200423f, 0.6282339f, -0.8275437f),
-        float3(0.3677659f, 0.1086345f, -0.4466777f),
-        float3(0.8775856f, 0.4617546f, -0.6427765f),
-        float3(0.7867433f, -0.141479f, -0.1567597f),
-        float3(0.4839356f, -0.8253108f, -0.1563844f),
-        float3(0.4401554f, -0.4228428f, -0.3300118f),
-        float3(0.0019193f, -0.8048455f, 0.0726584f),
-        float3(-0.7578573f, -0.5583301f, 0.2347527f),
-        float3(-0.4540417f, -0.252365f, 0.0694318f),
-        float3(-0.0483353f, -0.2527294f, 0.5924745f),
-        float3(-0.4192392f, 0.2084218f, -0.3672943f),
-        float3(-0.8433938f, 0.1451271f, 0.2202872f),
-        float3(-0.4037157f, -0.8263387f, 0.4698132f),
-        float3(-0.6657394f, 0.6298575f, 0.6342437f),
-        float3(-0.0001783f, 0.2834622f, 0.8343929f),
-        };
+		const float3 sampleSphere[] =
+		{
+			float3(0.2024537f, 0.841204f, -0.9060141f),
+			float3(-0.2200423f, 0.6282339f, -0.8275437f),
+			float3(0.3677659f, 0.1086345f, -0.4466777f),
+			float3(0.8775856f, 0.4617546f, -0.6427765f),
+			float3(0.7867433f, -0.141479f, -0.1567597f),
+			float3(0.4839356f, -0.8253108f, -0.1563844f),
+			float3(0.4401554f, -0.4228428f, -0.3300118f),
+			float3(0.0019193f, -0.8048455f, 0.0726584f),
+			float3(-0.7578573f, -0.5583301f, 0.2347527f),
+			float3(-0.4540417f, -0.252365f, 0.0694318f),
+			float3(-0.0483353f, -0.2527294f, 0.5924745f),
+			float3(-0.4192392f, 0.2084218f, -0.3672943f),
+			float3(-0.8433938f, 0.1451271f, 0.2202872f),
+			float3(-0.4037157f, -0.8263387f, 0.4698132f),
+			float3(-0.6657394f, 0.6298575f, 0.6342437f),
+			float3(-0.0001783f, 0.2834622f, 0.8343929f),
+		};
 
-        float3 pos = float3(input.TexCoord, depthVal);
+		float3 positionWVS = float3(input.TexCoord, depth);
 
-        float result = 0;
+		float result = 0;
 
-        float radius = SampleRadius * (1 - depthVal);
+		float radius = SampleRadius * (1 - depth);
 
-    [unroll]
-        for (uint i = 0; i < Samples; i++)
-        {
-            float3 offset = reflect(sampleSphere[i], randNor);
-                
-        //reverse the sign if the normal is looking backward
-            offset = sign(dot(offset, normalVS)) * offset; //
-            offset.y = -offset.y;
-            float3 ray = pos + offset * radius;
+		[unroll]
+		for (uint i = 0; i < Samples; i++)
+		{
+			float3 offset = reflect(sampleSphere[i], randNor);
 
-        //outside of view
-            if ((saturate(ray.x) != ray.x) || (saturate(ray.y) != ray.y))
-                continue;
+			//reverse the sign if the normal is looking backward
+			offset = sign(dot(offset, normalVS)) * offset; //
+			offset.y = -offset.y;
+			float3 ray = positionWVS + offset * radius;
+
+			//outside of view
+			if ((saturate(ray.x) != ray.x) || (saturate(ray.y) != ray.y))
+				continue;
 
 
-        //sample
+			//    //sample
 
-            float depthSample = linearizeDepth(1 - DepthMap.SampleLevel(texSampler, ray.xy, 0).r);
+			float depthSample = DepthMap.SampleLevel(texSampler, ray.xy, 0).r;
 
-            float depthDiff = (depthVal - depthSample);
+			float depthDiff = (depth - depthSample);
 
-            float occlusion = depthDiff * (1 - depthVal);
+			float occlusion = depthDiff * (1 - depth);
 
-            float falloff = 1 - saturate(depthDiff * (1 - depthVal) - FalloffMin) / (FalloffMax - FalloffMin);
-        
-            occlusion *= falloff;
+			float falloff = 1 - saturate(depthDiff * (1 - depth) - FalloffMin) / (FalloffMax - FalloffMin);
+			//    
+			occlusion *= falloff;
 
-            result += occlusion;
-        
-        }
-        result /= Samples;
-        result = saturate(1 - result * Strength * 200);
+			result += occlusion;
+			//    
+		}
+		result /= Samples;
+		result = saturate(1 - result * Strength * 200);
 
-        return float4(result, 0, 0, 0);
-    }
+		return float4(result, 0, 0, 0);
+	}
 }
+
 
 
 float4 BilateralBlurVertical(VertexShaderOutputBlur input) : SV_TARGET

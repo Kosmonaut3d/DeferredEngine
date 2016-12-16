@@ -33,6 +33,8 @@ namespace EngineTest.Recources
         public MaterialEffect GoldMaterial;
         public MaterialEffect EmissiveMaterial;
         public MaterialEffect EmissiveMaterial2;
+        public MaterialEffect EmissiveMaterial3;
+        public MaterialEffect EmissiveMaterial4;
         public MaterialEffect SilverMaterial;
         public MaterialEffect HologramMaterial;
         public MaterialEffect MetalRough03Material;
@@ -94,7 +96,9 @@ namespace EngineTest.Recources
 
             EmissiveMaterial = CreateMaterial(Color.White, 0.2f, 1, null, null, null, null, null, null, MaterialEffect.MaterialTypes.Emissive, 1.5f);
 
-            EmissiveMaterial2 = CreateMaterial(Color.LimeGreen, 0.2f, 1, null, null, null, null, null, null, MaterialEffect.MaterialTypes.Emissive, 2.8f);
+            EmissiveMaterial2 = CreateMaterial(Color.MonoGameOrange, 0.2f, 1, null, null, null, null, null, null, MaterialEffect.MaterialTypes.Emissive, 4.8f);
+            EmissiveMaterial3 = CreateMaterial(Color.Violet, 0.2f, 1, null, null, null, null, null, null, MaterialEffect.MaterialTypes.Emissive, 3.8f);
+            EmissiveMaterial4 = CreateMaterial(Color.LimeGreen, 0.2f, 1, null, null, null, null, null, null, MaterialEffect.MaterialTypes.Emissive, 2.8f);
 
             GoldMaterial = CreateMaterial(Color.Gold, 0.2f, 1);
 
