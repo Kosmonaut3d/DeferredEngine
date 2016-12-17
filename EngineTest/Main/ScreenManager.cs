@@ -20,6 +20,7 @@ namespace EngineTest.Main
         private Renderer.Renderer _renderer;
         private GUIRenderer _guiRenderer;
         private MainLogic _logic;
+        private GUILogic _guiLogic;
         private EditorLogic _editorLogic;
         private Assets _assets;
         private DebugScreen _debug;
@@ -34,6 +35,7 @@ namespace EngineTest.Main
         {
             _renderer.Initialize(graphicsDevice, _assets);
             _logic.Initialize(_assets, space);
+            _guiLogic.Initialize(_assets);
             _editorLogic.Initialize(graphicsDevice);
             _debug.Initialize(graphicsDevice);
             _guiRenderer.Initialize(graphicsDevice);
@@ -44,8 +46,9 @@ namespace EngineTest.Main
         {
             _logic.Update(gameTime, isActive);
             _editorLogic.Update(gameTime, _logic.BasicEntities, _logic.PointLights, _logic.DirectionalLights, _editorReceivedDataBuffer, _logic.MeshMaterialLibrary);
+            _guiLogic.Update(gameTime, isActive);
             _renderer.Update(gameTime, isActive);
-
+            
             _debug.Update(gameTime);
         }
 
@@ -54,6 +57,7 @@ namespace EngineTest.Main
         {
             _renderer = new Renderer.Renderer();
             _logic = new MainLogic();
+            _guiLogic = new GUILogic();
             _editorLogic = new EditorLogic();
             _assets = new Assets();
             _debug = new DebugScreen();
@@ -76,14 +80,14 @@ namespace EngineTest.Main
         {
             //Our renderer gives us information on what id is currently hovered over so we can update / manipulate objects in the logic functions
             _editorReceivedDataBuffer = _renderer.Draw(_logic.Camera, _logic.MeshMaterialLibrary, _logic.BasicEntities, _logic.PointLights, _logic.DirectionalLights, _editorLogic.GetEditorData(), gameTime);
-            _guiRenderer.Draw(_logic.GuiCanvas);
+            _guiRenderer.Draw(_guiLogic.GuiCanvas);
             _debug.Draw(gameTime);
         }
 
         public void UpdateResolution()
         {
             _renderer.UpdateResolution();
-            _logic.UpdateResolution();
+            _guiLogic.UpdateResolution();
         }
     }
 }

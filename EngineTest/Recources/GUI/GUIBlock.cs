@@ -1,4 +1,5 @@
-﻿using EngineTest.Renderer.RenderModules;
+﻿using EngineTest.Main;
+using EngineTest.Renderer.RenderModules;
 using Microsoft.Xna.Framework;
 
 namespace EngineTest.Recources.GUI
@@ -8,8 +9,6 @@ namespace EngineTest.Recources.GUI
     /// </summary>
     public class GUIBlock : GUIElement
     {
-        public Vector2 Position;
-        public Vector2 Dimensions;
         public Color Color;
 
         public GUIBlock(Vector2 position, Vector2 dimensions, Color color, int layer = 0, GUICanvas.GUIAlignment alignment = GUICanvas.GUIAlignment.None, Vector2 ParentDimensions = default(Vector2))
@@ -23,19 +22,30 @@ namespace EngineTest.Recources.GUI
             {
                 ParentResized(ParentDimensions);
             }
+            
         }
 
-        public void Draw(GUIRenderer guiRenderer, Vector2 parentPosition)
+        protected GUIBlock()
+        {
+        }
+
+        public override void Draw(GUIRenderer guiRenderer, Vector2 parentPosition)
         {
             guiRenderer.DrawQuad(parentPosition+Position, Dimensions, Color);
         }
 
-        public void ParentResized(Vector2 dimensions)
+        public override void ParentResized(Vector2 dimensions)
         {
             Position = GUICanvas.UpdateAlignment(Alignment, dimensions, Dimensions, Position);
         }
 
-        public int Layer { get; }
-        public GUICanvas.GUIAlignment Alignment { get; }
+        public override int Layer { get; set; }
+        public override void Update(GameTime gameTime, Vector2 mousePosition, Vector2 parentPosition)
+        {
+            //;
+        }
+        
+
+        public override GUICanvas.GUIAlignment Alignment { get; set; }
     }
 }

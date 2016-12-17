@@ -38,7 +38,6 @@ namespace EngineTest.Main
         public readonly List<BasicEntity> BasicEntities = new List<BasicEntity>();
         public readonly List<PointLightSource> PointLights = new List<PointLightSource>();
         public readonly List<DirectionalLightSource> DirectionalLights = new List<DirectionalLightSource>();
-        public GUICanvas GuiCanvas;
 
         //Which render target are we currently displaying?
         private int _renderModeCycle;
@@ -81,8 +80,6 @@ namespace EngineTest.Main
             ////////////////////////////////////////////////////////////////////////
             // GUI
 
-            CreateGUI();
-           
             ////////////////////////////////////////////////////////////////////////
             // Static geometry
 
@@ -267,20 +264,6 @@ namespace EngineTest.Main
             //    screenspaceShadowBlur: true);
         }
 
-        /// <summary>
-        /// Creates the GUI for the default editor
-        /// </summary>
-        private void CreateGUI()
-        {
-            GuiCanvas = new GUICanvas(Vector2.Zero, new Vector2(GameSettings.g_ScreenWidth, GameSettings.g_ScreenHeight));
-
-            GuiCanvas.AddElement(new GUIBlock(new Vector2(10, 210), new Vector2(200, 40), Color.Red));
-
-            GuiCanvas.AddElement(new GUITextBlock(new Vector2(10, 250), new Vector2(200, 40), "testString",
-                _assets.MonospaceFont, new Color(74, 74, 74), Color.White));
-
-            GuiCanvas.AddElement(new GUITextBlock(new Vector2(10, 250), new Vector2(200, 40), "testString", _assets.MonospaceFont, new Color(74, 74, 74), Color.White, 0, GUICanvas.GUIAlignment.BottomRight, GuiCanvas.Dimensions));
-        }
 
 
         /// <summary>
@@ -521,9 +504,5 @@ namespace EngineTest.Main
             _physicsSpace.Add(mesh);
         }
 
-        public void UpdateResolution()
-        {
-            GuiCanvas.Resize(GameSettings.g_ScreenWidth, GameSettings.g_ScreenHeight);
-        }
     }
 }

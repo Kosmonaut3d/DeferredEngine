@@ -60,6 +60,7 @@
     <Compile Include="Entities\Editor\BillboardBuffer.cs" />
     <Compile Include="Game1.cs" />
     <Compile Include="Main\EditorLogic.cs" />
+    <Compile Include="Main\GUILogic.cs" />
     <Compile Include="Main\Input.cs" />
     <Compile Include="Main\MainLogic.cs" />
     <Compile Include="Main\ScreenManager.cs" />
@@ -70,6 +71,7 @@
     <Compile Include="Recources\GameStats.cs" />
     <Compile Include="Recources\GUI\GUIBlock.cs" />
     <Compile Include="Recources\GUI\GUICanvas.cs" />
+    <Compile Include="Recources\GUI\GUIList.cs" />
     <Compile Include="Recources\GUI\GUITextBlock.cs" />
     <Compile Include="Recources\Helper\CPURayMarch.cs" />
     <Compile Include="Recources\Helper\Extensions.cs" />

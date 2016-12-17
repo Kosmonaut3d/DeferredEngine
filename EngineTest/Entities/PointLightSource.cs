@@ -51,7 +51,7 @@ namespace EngineTest.Entities
         /// <param name="drawShadow"></param>
         /// <param name="volumeDensity"></param>
         /// <returns></returns>
-        public PointLightSource(Vector3 position, float radius, Color color, float intensity, bool drawShadow, bool isVolumetric, int shadowResolution, bool staticShadow, float volumeDensity = 1)
+        public PointLightSource(Vector3 position, float radius, Color color, float intensity, bool drawShadow, bool isVolumetric, int shadowResolution, bool staticShadow, float volumeDensity = 1, bool isEnabled = true)
         {
             BoundingSphere = new BoundingSphere(position, radius);
             Position = position;
@@ -64,7 +64,7 @@ namespace EngineTest.Entities
             ShadowResolution = shadowResolution;
             StaticShadows = staticShadow;
             _lightVolumeDensity = volumeDensity;
-
+            IsEnabled = isEnabled;
             Id = IdGenerator.GetNewId();
 
         }
@@ -107,6 +107,7 @@ namespace EngineTest.Entities
         public override double AngleZ { get; set; }
         public override double AngleX { get; set; }
         public override double AngleY { get; set; }
+        public sealed override bool IsEnabled { get; set; }
 
         public override TransformableObject Clone
         {

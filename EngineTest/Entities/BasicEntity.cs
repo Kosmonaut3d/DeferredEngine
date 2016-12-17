@@ -18,6 +18,8 @@ namespace EngineTest.Entities
         public abstract double AngleX { get; set; }
         public abstract double AngleY { get; set; }
 
+        public abstract bool IsEnabled { get; set; }
+
         public abstract TransformableObject Clone { get; }
     }
 
@@ -90,6 +92,8 @@ namespace EngineTest.Entities
                 _angleY = value;
             }
         }
+
+        public override bool IsEnabled { get; set; }
 
         public override TransformableObject Clone {
             get

@@ -629,6 +629,8 @@ namespace EngineTest.Renderer
             {
                 PointLightSource light = pointLights[index];
 
+                if (!light.IsEnabled) continue;
+
                 //If we don't see the light we shouldn't update. This is actually wrong, can lead to mistakes,
                 //if we implement it like this we should rerender once we enter visible space again.
                 //if (_boundingFrustum.Contains(light.BoundingSphere) == ContainmentType.Disjoint)
@@ -654,8 +656,11 @@ namespace EngineTest.Renderer
             }
 
             int dirLightShadowed = 0;
-            foreach (DirectionalLightSource light in dirLights)
+            for (int index = 0; index < dirLights.Count; index++)
             {
+                DirectionalLightSource light = dirLights[index];
+                if (!light.IsEnabled) continue;
+
                 if (light.DrawShadows)
                 {
                     GameStats.shadowMaps += 1;
@@ -670,7 +675,8 @@ namespace EngineTest.Renderer
 
                 if (dirLightShadowed > 1)
                 {
-                    throw new NotImplementedException("Only one shadowed DirectionalLight with screen space blur is supported right now");
+                    throw new NotImplementedException(
+                        "Only one shadowed DirectionalLight with screen space blur is supported right now");
                 }
             }
 
@@ -1389,6 +1395,8 @@ namespace EngineTest.Renderer
         /// <param name="cameraOrigin"></param>
         private void DrawPointLight(PointLightSource light, Vector3 cameraOrigin, int vertexOffset, int startIndex, int primitiveCount)
         {
+            if (!light.IsEnabled) return;
+
             //first let's check if the light is even in bounds
             if (_boundingFrustum.Contains(light.BoundingSphere) == ContainmentType.Disjoint ||
                 !_boundingFrustum.Intersects(light.BoundingSphere))
@@ -1486,6 +1494,7 @@ namespace EngineTest.Renderer
         /// <param name="lightSource"></param>
         private void DrawDirectionalLight(DirectionalLightSource lightSource)
         {
+            if (!lightSource.IsEnabled) return;
             Shaders.deferredDirectionalLightParameter_LightColor.SetValue(lightSource.Color.ToVector3());
             Shaders.deferredDirectionalLightParameter_LightDirection.SetValue(lightSource.Direction);
             Shaders.deferredDirectionalLightParameter_LightIntensity.SetValue(lightSource.Intensity);
@@ -1529,6 +1538,8 @@ namespace EngineTest.Renderer
         private void DrawEmissiveEffect(Camera camera, MeshMaterialLibrary meshMatLib, GameTime gameTime)
         {
             if (!GameSettings.g_EmissiveDraw) return;
+
+            throw new NotImplementedException("Check an older build, emissives are currently not implemented because I switched from World Space to View Space but did not update all the effects yet");
 
             //Make a new _viewProjection
             //This should actually scale dynamically with the position of the object

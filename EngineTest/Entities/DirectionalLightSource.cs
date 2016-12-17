@@ -142,6 +142,8 @@ namespace EngineTest.Entities
             }
         }
 
+        public override bool IsEnabled { get; set; }
+
         private void TransformAnglesToDirection(float angleX, float angleY, float angleZ)
         {
             RotationMatrix = Matrix.CreateRotationX(angleX) * Matrix.CreateRotationY(angleY) *

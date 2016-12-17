@@ -7,7 +7,7 @@ using Microsoft.Xna.Framework.Input;
 
 namespace EngineTest.Main
 {
-    static class Input
+    public static class Input
     {
         public static KeyboardState keyboardState, keyboardLastState;
         public static MouseState mouseState, mouseLastState;
