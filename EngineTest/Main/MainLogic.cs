@@ -7,6 +7,7 @@ using BEPUphysics.Entities.Prefabs;
 using BEPUutilities;
 using EngineTest.Entities;
 using EngineTest.Recources;
+using EngineTest.Recources.GUI;
 using EngineTest.Recources.Helper;
 using EngineTest.Renderer.Helper;
 using Microsoft.Xna.Framework;
@@ -14,6 +15,7 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Quaternion = BEPUutilities.Quaternion;
+using Vector2 = Microsoft.Xna.Framework.Vector2;
 using Vector3 = Microsoft.Xna.Framework.Vector3;
 
 namespace EngineTest.Main
@@ -36,6 +38,7 @@ namespace EngineTest.Main
         public readonly List<BasicEntity> BasicEntities = new List<BasicEntity>();
         public readonly List<PointLightSource> PointLights = new List<PointLightSource>();
         public readonly List<DirectionalLightSource> DirectionalLights = new List<DirectionalLightSource>();
+        public GUICanvas GuiCanvas;
 
         //Which render target are we currently displaying?
         private int _renderModeCycle;
@@ -75,6 +78,11 @@ namespace EngineTest.Main
 
             Camera = new Camera(position: new Vector3(-88, -11f, 4), lookat: new Vector3(38, 8, 32));
 
+            ////////////////////////////////////////////////////////////////////////
+            // GUI
+
+            CreateGUI();
+           
             ////////////////////////////////////////////////////////////////////////
             // Static geometry
 
@@ -257,6 +265,21 @@ namespace EngineTest.Main
             //    shadowResolution: 2048,
             //    shadowFilteringFiltering: DirectionalLightSource.ShadowFilteringTypes.SoftPCF3x,
             //    screenspaceShadowBlur: true);
+        }
+
+        /// <summary>
+        /// Creates the GUI for the default editor
+        /// </summary>
+        private void CreateGUI()
+        {
+            GuiCanvas = new GUICanvas(Vector2.Zero, new Vector2(GameSettings.g_ScreenWidth, GameSettings.g_ScreenHeight));
+
+            GuiCanvas.AddElement(new GUIBlock(new Vector2(10, 210), new Vector2(200, 40), Color.Red));
+
+            GuiCanvas.AddElement(new GUITextBlock(new Vector2(10, 250), new Vector2(200, 40), "testString",
+                _assets.MonospaceFont, new Color(74, 74, 74), Color.White));
+
+            GuiCanvas.AddElement(new GUITextBlock(new Vector2(10, 250), new Vector2(200, 40), "testString", _assets.MonospaceFont, new Color(74, 74, 74), Color.White, 0, GUICanvas.GUIAlignment.BottomRight, GuiCanvas.Dimensions));
         }
 
 
@@ -498,5 +521,9 @@ namespace EngineTest.Main
             _physicsSpace.Add(mesh);
         }
 
+        public void UpdateResolution()
+        {
+            GuiCanvas.Resize(GameSettings.g_ScreenWidth, GameSettings.g_ScreenHeight);
+        }
     }
 }

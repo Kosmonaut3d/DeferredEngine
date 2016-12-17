@@ -1262,7 +1262,7 @@ namespace EngineTest.Renderer
                 _graphicsDevice.SetRenderTarget(_renderTargetScreenSpaceEffectUpsampleBlurHorizontal);
 
                 Shaders.ScreenSpaceEffectParameter_InverseResolution.SetValue(new Vector2(1.0f / _renderTargetScreenSpaceEffectUpsampleBlurVertical.Width,
-                    1.0f / _renderTargetScreenSpaceEffectUpsampleBlurVertical.Height));
+                    1.0f / _renderTargetScreenSpaceEffectUpsampleBlurVertical.Height) * 2);
                 Shaders.ScreenSpaceEffectParameter_SSAOMap.SetValue(_renderTargetScreenSpaceEffectUpsampleBlurVertical);
                 Shaders.ScreenSpaceEffectTechnique_BlurVertical.Passes[0].Apply();
 
@@ -1271,11 +1271,12 @@ namespace EngineTest.Renderer
                 _graphicsDevice.SetRenderTarget(_renderTargetScreenSpaceEffectBlurFinal);
 
                 Shaders.ScreenSpaceEffectParameter_InverseResolution.SetValue(new Vector2(1.0f / _renderTargetScreenSpaceEffectUpsampleBlurHorizontal.Width,
-                    1.0f / _renderTargetScreenSpaceEffectUpsampleBlurHorizontal.Height));
+                    1.0f / _renderTargetScreenSpaceEffectUpsampleBlurHorizontal.Height) * 2);
                 Shaders.ScreenSpaceEffectParameter_SSAOMap.SetValue(_renderTargetScreenSpaceEffectUpsampleBlurHorizontal);
                 Shaders.ScreenSpaceEffectTechnique_BlurHorizontal.Passes[0].Apply();
 
                 _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+                
             }
             else
             {
@@ -1853,13 +1854,6 @@ namespace EngineTest.Renderer
                 _renderTargetEmissive = new RenderTarget2D(_graphicsDevice, targetWidth,
                     targetHeight, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
 
-                _renderTargetScreenSpaceEffectUpsampleBlurHorizontal = new RenderTarget2D(_graphicsDevice, targetWidth,
-                    targetHeight, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
-
-                _renderTargetScreenSpaceEffectBlurFinal = new RenderTarget2D(_graphicsDevice, targetWidth,
-                    targetHeight, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
-
-
                 Shaders.ScreenSpaceReflectionParameter_Resolution.SetValue(new Vector2(targetWidth, targetHeight));
                 _renderTargetScreenSpaceEffectReflection = new RenderTarget2D(_graphicsDevice, targetWidth,
                     targetHeight, false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
@@ -1873,6 +1867,13 @@ namespace EngineTest.Renderer
                 _renderTargetSSAOEffect = new RenderTarget2D(_graphicsDevice, targetWidth,
                     targetHeight, false, SurfaceFormat.HalfSingle, DepthFormat.None, 0,
                     RenderTargetUsage.DiscardContents);
+
+                _renderTargetScreenSpaceEffectUpsampleBlurHorizontal = new RenderTarget2D(_graphicsDevice, targetWidth,
+                    targetHeight, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+
+                _renderTargetScreenSpaceEffectBlurFinal = new RenderTarget2D(_graphicsDevice, targetWidth,
+                    targetHeight, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+
 
 
                 Shaders.ScreenSpaceEffectParameter_InverseResolution.SetValue(new Vector2(1.0f / targetWidth,

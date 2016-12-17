@@ -1,6 +1,7 @@
 ﻿using BEPUphysics;
 using EngineTest.Recources;
 using EngineTest.Renderer.Helper;
+using EngineTest.Renderer.RenderModules;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
@@ -17,6 +18,7 @@ namespace EngineTest.Main
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         private Renderer.Renderer _renderer;
+        private GUIRenderer _guiRenderer;
         private MainLogic _logic;
         private EditorLogic _editorLogic;
         private Assets _assets;
@@ -34,6 +36,7 @@ namespace EngineTest.Main
             _logic.Initialize(_assets, space);
             _editorLogic.Initialize(graphicsDevice);
             _debug.Initialize(graphicsDevice);
+            _guiRenderer.Initialize(graphicsDevice);
         }
 
         //Update per frame
@@ -54,12 +57,14 @@ namespace EngineTest.Main
             _editorLogic = new EditorLogic();
             _assets = new Assets();
             _debug = new DebugScreen();
+            _guiRenderer = new GUIRenderer();
 
             Shaders.Load(content);
             _assets.Load(content, graphicsDevice);
             _renderer.Load(content);
             _logic.Load(content);
             _debug.LoadContent(content);
+            _guiRenderer.Load(content);
         }
 
         public void Unload(ContentManager content)
@@ -71,12 +76,14 @@ namespace EngineTest.Main
         {
             //Our renderer gives us information on what id is currently hovered over so we can update / manipulate objects in the logic functions
             _editorReceivedDataBuffer = _renderer.Draw(_logic.Camera, _logic.MeshMaterialLibrary, _logic.BasicEntities, _logic.PointLights, _logic.DirectionalLights, _editorLogic.GetEditorData(), gameTime);
+            _guiRenderer.Draw(_logic.GuiCanvas);
             _debug.Draw(gameTime);
         }
 
         public void UpdateResolution()
         {
             _renderer.UpdateResolution();
+            _logic.UpdateResolution();
         }
     }
 }

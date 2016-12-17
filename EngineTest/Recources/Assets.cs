@@ -65,6 +65,10 @@ namespace EngineTest.Recources
         
         public MaterialEffect RockMaterial;
 
+
+        public SpriteFont DefaultFont;
+        public SpriteFont MonospaceFont;
+
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////
         //  FUNCTIONS
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -189,7 +193,12 @@ namespace EngineTest.Recources
                 mask: null,
                 displacementMap: content.Load<Texture2D>("Art/test/squarebricks-depth")
             );
-            
+
+            //Fonts
+
+            DefaultFont = content.Load<SpriteFont>("Fonts/defaultFont");
+            MonospaceFont = content.Load<SpriteFont>("Fonts/monospace");
+
         }
 
         /// <summary>

@@ -68,6 +68,9 @@
     <Compile Include="Recources\Assets.cs" />
     <Compile Include="Recources\GameSettings.cs" />
     <Compile Include="Recources\GameStats.cs" />
+    <Compile Include="Recources\GUI\GUIBlock.cs" />
+    <Compile Include="Recources\GUI\GUICanvas.cs" />
+    <Compile Include="Recources\GUI\GUITextBlock.cs" />
     <Compile Include="Recources\Helper\CPURayMarch.cs" />
     <Compile Include="Recources\Helper\Extensions.cs" />
     <Compile Include="Recources\Helper\IdGenerator.cs" />
@@ -90,6 +93,7 @@
     <Compile Include="Renderer\Helper\QuadRenderer.cs" />
     <Compile Include="Renderer\Renderer.cs" />
     <Compile Include="Renderer\Renderer_old.cs" />
+    <Compile Include="Renderer\RenderModules\GUIRenderer.cs" />
     <Compile Include="Renderer\RenderModules\IdRenderer.cs" />
   </ItemGroup>
   <ItemGroup>

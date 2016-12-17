@@ -1257,3 +1257,9 @@
 /processorParam:DebugMode=Auto
 /build:Shaders/BloomFilter/Bloom.fx
 
+#begin Shaders/Graphical User Interface/GUIEffect.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/Graphical User Interface/GUIEffect.fx
+

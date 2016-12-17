@@ -122,7 +122,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : SV_Target
 	}
 	else
 	{
-		float3 randNor = randomNormal(mul(input.TexCoord, ViewProjection).rg); //
+		float3 randNor = randomNormal(mul(float4(input.TexCoord,0,0), ViewProjection).rg); //
 
 		const float3 sampleSphere[] =
 		{
@@ -171,10 +171,11 @@ float4 PixelShaderFunction(VertexShaderOutput input) : SV_Target
 
 			float depthDiff = (depth - depthSample);
 
-			float occlusion = depthDiff * (1 - depth);
+			float occlusion = depthDiff;// *(1 - depth);
 
 			float falloff = 1 - saturate(depthDiff * (1 - depth) - FalloffMin) / (FalloffMax - FalloffMin);
 			//    
+			
 			occlusion *= falloff;
 
 			result += occlusion;

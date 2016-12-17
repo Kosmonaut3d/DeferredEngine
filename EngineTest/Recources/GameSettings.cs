@@ -275,6 +275,7 @@ namespace EngineTest.Recources
         public static float g_BloomStrength5 = 0.2f;
 
         public static float g_BloomThreshold = 0.5f;
+        public static bool ui_DrawUI = true;
 
         public static float g_TemporalAntiAliasingThreshold
         {
