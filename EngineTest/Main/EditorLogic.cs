@@ -17,7 +17,7 @@ namespace EngineTest.Main
         private int _gizmoId;
         private GizmoModes _gizmoMode = GizmoModes.Translation;
 
-        private TransformableObject SelectedObject;
+        public TransformableObject SelectedObject;
 
         private GraphicsDevice _graphicsDevice;
 
@@ -70,7 +70,7 @@ namespace EngineTest.Main
                 }
                 else _gizmoTransformationMode = false;
             }
-            else if (Input.WasLMBPressed())
+            else if (Input.WasLMBPressed() && !GameStats.UIWasClicked)
             {
                 //Gizmos
                 if (hoveredId >= 1 && hoveredId <= 3)
@@ -170,11 +170,7 @@ namespace EngineTest.Main
                     dirLights.Add(copy);
                 }
             }
-
-            if (SelectedObject != null)
-            {
-                DebugScreen.AddString(SelectedObject.Position.ToString());
-            }
+            
         }
 
         private void GizmoControl(int gizmoId, EditorReceivedData data)

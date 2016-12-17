@@ -65,7 +65,7 @@ namespace EngineTest.Renderer.RenderModules
         
         public void Draw(GUICanvas canvas)
         {
-            if (!GameSettings.ui_DrawUI) return;
+            if (!GameSettings.Editor_enable || !GameSettings.ui_DrawUI) return;
 
             _graphicsDevice.SetRenderTarget(null);
             _graphicsDevice.RasterizerState = RasterizerState.CullNone;

@@ -28,5 +28,6 @@
         public static long d_profileCombineTemporalAntialiasing;
         public static long d_profileDrawFinalRender;
         public static long d_profileTotalRender;
+        public static bool UIWasClicked;
     }
 }
