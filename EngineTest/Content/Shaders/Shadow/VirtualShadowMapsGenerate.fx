@@ -13,12 +13,12 @@ static bool transparent = false;
 
 struct DrawBasic_VSIn
 {
-	float4 Position : SV_POSITION0;
+	float4 Position : POSITION0;
 };
 
 struct DrawBasic_VSOut
 {
-    float4 Position : SV_POSITION0;
+    float4 Position : SV_POSITION;
     float2 Depth : TEXCOORD2;
 };
 

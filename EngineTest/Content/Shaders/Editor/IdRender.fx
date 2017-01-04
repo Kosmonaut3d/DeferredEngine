@@ -8,7 +8,7 @@ float4 ColorId = float4(0.8f, 0.8f, 0.8f, 1);
 
 struct DrawBasic_VSIn
 {
-	float4 Position : SV_POSITION0;
+	float4 Position : POSITION0;
 };
 
 struct DrawNormal_VSIn

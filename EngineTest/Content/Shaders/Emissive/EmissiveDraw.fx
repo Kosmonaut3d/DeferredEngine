@@ -67,7 +67,7 @@ SamplerState LinearSampler
 
 struct DrawBasic_VSIn
 {
-    float4 Position : SV_POSITION0;
+    float4 Position : POSITION0;
     float2 TexCoord : TEXCOORD0;
 };
 

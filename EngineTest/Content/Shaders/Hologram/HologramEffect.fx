@@ -15,14 +15,14 @@ matrix  WorldViewProj;
 
 struct DrawBasic_VSIn
 {
-	float4 Position : SV_POSITION0;
+	float4 Position : POSITION0;
 	float3 Normal   : NORMAL0;
 	float2 TexCoord : TEXCOORD0;
 };
 
 struct DrawBasic_VSOut
 {
-    float4 Position : SV_POSITION0;
+    float4 Position : SV_POSITION;
     float3 Normal : NORMAL0;
 };
 

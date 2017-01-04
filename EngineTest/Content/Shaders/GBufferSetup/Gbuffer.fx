@@ -58,14 +58,14 @@ sampler TextureSamplerTrilinear
 
 struct DrawBasic_VSIn
 {
-	float4 Position : SV_POSITION0;
+	float4 Position : POSITION0;
 	float3 Normal   : NORMAL0;
 	float2 TexCoord : TEXCOORD0;
 };
 
 struct DrawBasic_VSOut
 {
-    float4 Position : SV_POSITION0;
+    float4 Position : SV_POSITION;
     float3 Normal : NORMAL0;
     float2 TexCoord : TEXCOORD1;
     float Depth : TEXCOORD2;
@@ -73,7 +73,7 @@ struct DrawBasic_VSOut
 
 struct DrawNormals_VSIn
 {
-    float4 Position : SV_POSITION0;
+    float4 Position : POSITION0;
     float3 Normal : NORMAL0;
     float3 Binormal : BINORMAL0;
     float3 Tangent : TANGENT0;
@@ -82,7 +82,7 @@ struct DrawNormals_VSIn
 
 struct DrawNormals_VSOut
 {
-    float4 Position : SV_POSITION0;
+    float4 Position : SV_POSITION;
     float3x3 WorldToTangentSpace : TEXCOORD3;
     float2 TexCoord : TEXCOORD1;
     float Depth : TEXCOORD0;
@@ -90,7 +90,7 @@ struct DrawNormals_VSOut
 
 struct Render_IN
 {
-    float4 Position : SV_POSITION0;
+    float4 Position : SV_POSITION;
     float4 Color : COLOR0;
     float3 Normal : TEXCOORD0;
     float2 Depth : DEPTH;
