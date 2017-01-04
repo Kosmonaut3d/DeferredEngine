@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using EngineTest.Entities;
-using EngineTest.Recources;
-using EngineTest.Recources.Helper;
+using DeferredEngine.Entities;
+using DeferredEngine.Recources;
+using DeferredEngine.Recources.Helper;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace EngineTest.Renderer.Helper
+namespace DeferredEngine.Renderer.Helper
 {
     // Controls all Materials and Meshes, so they are ordered at render time.
 

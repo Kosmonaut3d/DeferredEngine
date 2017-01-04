@@ -7,7 +7,7 @@ using Quaternion = Microsoft.Xna.Framework.Quaternion;
 using Vector2 = Microsoft.Xna.Framework.Vector2;
 using Vector3 = Microsoft.Xna.Framework.Vector3;
 
-namespace EngineTest.Recources.Helper
+namespace DeferredEngine.Recources.Helper
 {
     /// <summary>
     /// Helps convert between XNA math types and the BEPUphysics replacement math types.

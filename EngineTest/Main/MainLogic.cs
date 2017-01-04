@@ -5,20 +5,18 @@ using BEPUphysics.BroadPhaseEntries;
 using BEPUphysics.Entities;
 using BEPUphysics.Entities.Prefabs;
 using BEPUutilities;
-using EngineTest.Entities;
-using EngineTest.Recources;
-using EngineTest.Recources.GUI;
-using EngineTest.Recources.Helper;
-using EngineTest.Renderer.Helper;
+using DeferredEngine.Entities;
+using DeferredEngine.Recources;
+using DeferredEngine.Recources.Helper;
+using DeferredEngine.Renderer.Helper;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Quaternion = BEPUutilities.Quaternion;
-using Vector2 = Microsoft.Xna.Framework.Vector2;
 using Vector3 = Microsoft.Xna.Framework.Vector3;
 
-namespace EngineTest.Main
+namespace DeferredEngine.Main
 {
     public class MainLogic
     {
@@ -219,6 +217,7 @@ namespace EngineTest.Main
                 intensity: 120,
                 castShadows: true,
                 shadowResolution: 1024,
+                softShadowBlurAmount: 6,
                 staticShadow: false,
                 isVolumetric: false);
 
@@ -413,9 +412,9 @@ namespace EngineTest.Main
         /// <param name="shadowResolution">shadow map resolution per face. Optional</param>
         /// <param name="staticShadow">if set to true the shadows will not update at all. Dynamic shadows in contrast update only when needed.</param>
         /// <returns></returns>
-        private PointLightSource AddPointLight(Vector3 position, float radius, Color color, float intensity, bool castShadows, bool isVolumetric = false, float volumetricDensity = 1, int shadowResolution = 256, bool staticShadow = false)
+        private PointLightSource AddPointLight(Vector3 position, float radius, Color color, float intensity, bool castShadows, bool isVolumetric = false, float volumetricDensity = 1, int shadowResolution = 256, int softShadowBlurAmount = 0, bool staticShadow = false)
         {
-            PointLightSource light = new PointLightSource(position, radius, color, intensity, castShadows, isVolumetric, shadowResolution, staticShadow, volumetricDensity);
+            PointLightSource light = new PointLightSource(position, radius, color, intensity, castShadows, isVolumetric, shadowResolution, softShadowBlurAmount, staticShadow, volumetricDensity);
             PointLights.Add(light);
             return light;
         }

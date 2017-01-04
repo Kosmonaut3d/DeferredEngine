@@ -1,9 +1,9 @@
-﻿using EngineTest.Recources;
-using EngineTest.Recources.Helper;
+﻿using DeferredEngine.Recources;
+using DeferredEngine.Recources.Helper;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace EngineTest.Entities
+namespace DeferredEngine.Entities
 {
     public class PointLightSource : TransformableObject
     {
@@ -28,12 +28,16 @@ namespace EngineTest.Entities
         public Matrix LightViewProjectionPositiveZ;
         public Matrix LightViewProjectionNegativeZ;
 
+        public int[] faceBlurCount = {0, 0, 0, 0, 0, 0};
+
         public Matrix LightViewSpace;
         public Matrix LightWorldViewProj;
 
         public BoundingSphere BoundingSphere;
 
         public bool DrawShadow;
+        public int SoftShadowBlurAmount = 0;
+
         public readonly bool IsVolumetric;
         private readonly float _lightVolumeDensity = 1;
 
@@ -51,7 +55,7 @@ namespace EngineTest.Entities
         /// <param name="drawShadow"></param>
         /// <param name="volumeDensity"></param>
         /// <returns></returns>
-        public PointLightSource(Vector3 position, float radius, Color color, float intensity, bool drawShadow, bool isVolumetric, int shadowResolution, bool staticShadow, float volumeDensity = 1, bool isEnabled = true)
+        public PointLightSource(Vector3 position, float radius, Color color, float intensity, bool drawShadow, bool isVolumetric, int shadowResolution, int softShadowBlurAmount, bool staticShadow, float volumeDensity = 1, bool isEnabled = true)
         {
             BoundingSphere = new BoundingSphere(position, radius);
             Position = position;
@@ -60,6 +64,7 @@ namespace EngineTest.Entities
             Intensity = intensity;
             DrawShadow = drawShadow;
             IsVolumetric = isVolumetric;
+            SoftShadowBlurAmount = softShadowBlurAmount;
 
             ShadowResolution = shadowResolution;
             StaticShadows = staticShadow;
@@ -111,7 +116,7 @@ namespace EngineTest.Entities
 
         public override TransformableObject Clone
         {
-            get { return new PointLightSource(Position, Radius, Color, Intensity, DrawShadow, IsVolumetric, ShadowResolution, StaticShadows);}
+            get { return new PointLightSource(Position, Radius, Color, Intensity, DrawShadow, IsVolumetric, ShadowResolution, SoftShadowBlurAmount, StaticShadows);}
         }
         
         protected PointLightSource()

@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 
-namespace EngineTest.Recources.Helper
+namespace DeferredEngine.Recources.Helper
 {
     static class IdGenerator
     {

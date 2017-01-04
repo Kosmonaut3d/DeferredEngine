@@ -1,11 +1,10 @@
 ﻿using System;
-using EngineTest.Entities;
-using EngineTest.Recources;
-using EngineTest.Renderer.Helper;
+using DeferredEngine.Entities;
+using DeferredEngine.Recources;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
-namespace EngineTest.Main
+namespace DeferredEngine.Main
 {
     public static class Input
     {

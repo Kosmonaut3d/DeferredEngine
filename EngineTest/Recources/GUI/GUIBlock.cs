@@ -1,8 +1,7 @@
-﻿using EngineTest.Main;
-using EngineTest.Renderer.RenderModules;
+﻿using DeferredEngine.Renderer.RenderModules;
 using Microsoft.Xna.Framework;
 
-namespace EngineTest.Recources.GUI
+namespace DeferredEngine.Recources.GUI
 {
     /// <summary>
     /// Just a colored block

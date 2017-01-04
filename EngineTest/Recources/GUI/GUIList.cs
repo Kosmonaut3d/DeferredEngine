@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using EngineTest.Renderer.RenderModules;
+﻿using System.Collections.Generic;
+using DeferredEngine.Renderer.RenderModules;
 using Microsoft.Xna.Framework;
 
-namespace EngineTest.Recources.GUI
+namespace DeferredEngine.Recources.GUI
 {
     public class GUIList : GUIElement
     {

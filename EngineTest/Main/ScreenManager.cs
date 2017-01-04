@@ -1,12 +1,11 @@
 ﻿using BEPUphysics;
-using EngineTest.Recources;
-using EngineTest.Renderer.Helper;
-using EngineTest.Renderer.RenderModules;
+using DeferredEngine.Recources;
+using DeferredEngine.Renderer.RenderModules;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace EngineTest.Main
+namespace DeferredEngine.Main
 {
     /// <summary>
     /// Manages our different screens and passes information accordingly

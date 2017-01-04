@@ -3,7 +3,7 @@ using BEPUutilities;
 using Microsoft.Xna.Framework.Graphics;
 using Matrix = Microsoft.Xna.Framework.Matrix;
 
-namespace EngineTest.Recources.Helper
+namespace DeferredEngine.Recources.Helper
 {
     /// <summary>
     /// Contains helper methods for extracting vertices and indices from XNA models.

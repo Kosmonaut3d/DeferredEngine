@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace EngineTest.Recources
+namespace DeferredEngine.Recources
 {
     public class Assets
     {
@@ -48,8 +48,8 @@ namespace EngineTest.Recources
 
         //Meshes and Materials
 
-        public Model Trabant;
-        public MaterialEffect TrabantBigParts;
+        //public Model Trabant;
+        //public MaterialEffect TrabantBigParts;
 
         public Model SponzaModel;
         readonly List<Texture2D> _sponzaTextures = new List<Texture2D>();
@@ -117,23 +117,23 @@ namespace EngineTest.Recources
 
             //Meshes and Materials
 
-            Trabant = content.Load<Model>("Art/test/source/trabant_realtime_v3");
+            //Trabant = content.Load<Model>("Art/test/source/trabant_realtime_v3");
 
-            TrabantBigParts = CreateMaterial(Color.White, roughness: 1, metallic: 0,
-                albedoMap: content.Load<Texture2D>("Art/test/textures/big_parts_col"),
-                normalMap: content.Load<Texture2D>("Art/test/textures/big_parts_nor"),
-                roughnessMap: content.Load<Texture2D>("Art/test/textures/big_parts_rough"));
+            //TrabantBigParts = CreateMaterial(Color.White, roughness: 1, metallic: 0,
+            //    albedoMap: content.Load<Texture2D>("Art/test/textures/big_parts_col"),
+            //    normalMap: content.Load<Texture2D>("Art/test/textures/big_parts_nor"),
+            //    roughnessMap: content.Load<Texture2D>("Art/test/textures/big_parts_rough"));
 
-            MaterialEffect TrabantWindow = CreateMaterial(Color.White, roughness: 0.04f, metallic: 0.5f);
+            //MaterialEffect TrabantWindow = CreateMaterial(Color.White, roughness: 0.04f, metallic: 0.5f);
 
-            MaterialEffect TrabantSmallParts = CreateMaterial(Color.White, roughness: 1, metallic: 0,
-                albedoMap: content.Load<Texture2D>("Art/test/textures/small_parts_col"),
-                normalMap: null,
-                roughnessMap: content.Load<Texture2D>("Art/test/textures/small_parts_rough"));
+            //MaterialEffect TrabantSmallParts = CreateMaterial(Color.White, roughness: 1, metallic: 0,
+            //    albedoMap: content.Load<Texture2D>("Art/test/textures/small_parts_col"),
+            //    normalMap: null,
+            //    roughnessMap: content.Load<Texture2D>("Art/test/textures/small_parts_rough"));
 
-            Trabant.Meshes[0].MeshParts[0].Effect = TrabantWindow;
-            Trabant.Meshes[1].MeshParts[0].Effect = TrabantBigParts;
-            Trabant.Meshes[3].MeshParts[0].Effect = TrabantSmallParts;
+            //Trabant.Meshes[0].MeshParts[0].Effect = TrabantWindow;
+            //Trabant.Meshes[1].MeshParts[0].Effect = TrabantBigParts;
+            //Trabant.Meshes[3].MeshParts[0].Effect = TrabantSmallParts;
 
             //
 

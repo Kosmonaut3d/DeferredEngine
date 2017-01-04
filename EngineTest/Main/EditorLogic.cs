@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
-using EngineTest.Entities;
-using EngineTest.Recources;
-using EngineTest.Renderer.Helper;
+using DeferredEngine.Entities;
+using DeferredEngine.Recources;
+using DeferredEngine.Renderer.Helper;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
-namespace EngineTest.Main
+namespace DeferredEngine.Main
 {
     public class EditorLogic
     {

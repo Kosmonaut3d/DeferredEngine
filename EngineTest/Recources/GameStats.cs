@@ -1,4 +1,4 @@
-﻿namespace EngineTest.Recources
+﻿namespace DeferredEngine.Recources
 {
     public static class GameStats
     {
@@ -29,5 +29,6 @@
         public static long d_profileDrawFinalRender;
         public static long d_profileTotalRender;
         public static bool UIWasClicked;
+        public static int ShadowsBlurred;
     }
 }

@@ -2,7 +2,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace EngineTest.Recources
+namespace DeferredEngine.Recources
 {
     public class MaterialEffect : Effect, IEquatable<MaterialEffect>
     {

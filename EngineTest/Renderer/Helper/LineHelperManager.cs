@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
-using EngineTest.Recources;
+using DeferredEngine.Recources;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace EngineTest.Renderer.Helper
+namespace DeferredEngine.Renderer.Helper
 {
     public static class LineHelperManager
     {

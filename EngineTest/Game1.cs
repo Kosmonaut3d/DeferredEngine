@@ -1,13 +1,13 @@
 ﻿using System;
 using BEPUphysics;
-using EngineTest.Main;
-using EngineTest.Recources;
+using DeferredEngine.Main;
+using DeferredEngine.Recources;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Vector3 = BEPUutilities.Vector3;
 
-namespace EngineTest
+namespace DeferredEngine
 {
     public class Game1 : Game
     {

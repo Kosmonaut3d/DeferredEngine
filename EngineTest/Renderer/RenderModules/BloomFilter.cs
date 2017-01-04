@@ -1,11 +1,11 @@
 ﻿using System;
-using EngineTest.Recources;
-using EngineTest.Renderer.Helper;
+using DeferredEngine.Recources;
+using DeferredEngine.Renderer.Helper;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace EngineTest.Renderer.RenderModules
+namespace DeferredEngine.Renderer.RenderModules
 {
     /// <summary>
     /// Bloom / Blur, 2016 TheKosmonaut

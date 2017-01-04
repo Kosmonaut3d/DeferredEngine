@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using EngineTest.Entities;
-using EngineTest.Entities.Editor;
-using EngineTest.Main;
-using EngineTest.Recources;
-using EngineTest.Renderer.Helper;
+using DeferredEngine.Entities;
+using DeferredEngine.Entities.Editor;
+using DeferredEngine.Main;
+using DeferredEngine.Recources;
+using DeferredEngine.Renderer.Helper;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace EngineTest.Renderer.RenderModules
+namespace DeferredEngine.Renderer.RenderModules
 {
     public class EditorRender
     {

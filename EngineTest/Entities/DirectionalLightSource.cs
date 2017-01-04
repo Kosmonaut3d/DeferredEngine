@@ -1,9 +1,9 @@
-﻿using EngineTest.Recources;
-using EngineTest.Recources.Helper;
+﻿using DeferredEngine.Recources;
+using DeferredEngine.Recources.Helper;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace EngineTest.Entities
+namespace DeferredEngine.Entities
 {
     public sealed class DirectionalLightSource : TransformableObject
     {

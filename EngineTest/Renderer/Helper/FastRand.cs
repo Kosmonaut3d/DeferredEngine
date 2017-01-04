@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.Xna.Framework;
 
-namespace EngineTest.Renderer.Helper
+namespace DeferredEngine.Renderer.Helper
 {
     internal static class FastRand
     {

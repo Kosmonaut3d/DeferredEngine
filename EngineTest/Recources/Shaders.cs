@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace EngineTest.Recources
+namespace DeferredEngine.Recources
 {
     public static class Shaders
     {

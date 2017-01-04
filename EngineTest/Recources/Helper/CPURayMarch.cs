@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using EngineTest.Entities;
-using EngineTest.Main;
-using EngineTest.Renderer.Helper;
+using DeferredEngine.Entities;
+using DeferredEngine.Main;
+using DeferredEngine.Renderer.Helper;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Graphics.PackedVector;
 
-namespace EngineTest.Recources.Helper
+namespace DeferredEngine.Recources.Helper
 {
     public class CPURayMarch
     {

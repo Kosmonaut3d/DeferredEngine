@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
-using EngineTest.Entities;
-using EngineTest.Main;
-using EngineTest.Recources;
-using EngineTest.Recources.Helper;
-using EngineTest.Renderer.Helper;
-using EngineTest.Renderer.RenderModules;
+using DeferredEngine.Entities;
+using DeferredEngine.Main;
+using DeferredEngine.Recources;
+using DeferredEngine.Recources.Helper;
+using DeferredEngine.Renderer.Helper;
+using DeferredEngine.Renderer.RenderModules;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
@@ -16,7 +15,7 @@ using Microsoft.Xna.Framework.Input;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //    MAIN RENDER FUNCTIONS, TheKosmonaut 2016
 
-namespace EngineTest.Renderer
+namespace DeferredEngine.Renderer
 {
     public class Renderer
     {
@@ -624,6 +623,8 @@ namespace EngineTest.Renderer
 
             _graphicsDevice.DepthStencilState = DepthStencilState.Default;
 
+            GameStats.ShadowsBlurred = 0;
+
             //Go through all our point lights
             for (int index = 0; index < pointLights.Count; index++)
             {
@@ -652,7 +653,12 @@ namespace EngineTest.Renderer
                         //camera.HasChanged = true;
                         light.HasChanged = false;
                     }
+
+
                 }
+
+                //Soft VSM Shadow blur
+
             }
 
             int dirLightShadowed = 0;
@@ -711,6 +717,9 @@ namespace EngineTest.Renderer
             {
                 Matrix lightProjection = Matrix.CreatePerspectiveFieldOfView((float)(Math.PI / 2), 1, 1, light.Radius);
                 Matrix lightView; // = identity
+
+                //Reset the blur array
+                light.faceBlurCount = new int[6];
 
                 for (int i = 0; i < 6; i++)
                 {
@@ -779,6 +788,19 @@ namespace EngineTest.Renderer
                         viewProjection: lightViewProjection, 
                         lightViewPointChanged: true, 
                         hasAnyObjectMoved: light.HasChanged);
+
+                    if (GameStats.ShadowsBlurred < GameSettings.g_ShadowBlurBudget && light.SoftShadowBlurAmount>0)
+                    {
+                        //i is cubeface
+
+                        if (light.faceBlurCount[i] < light.SoftShadowBlurAmount)
+                        {
+                            GameStats.ShadowsBlurred++;
+                            light.faceBlurCount[i]++;
+
+                            _gaussianBlur.DrawGaussianBlur(light.shadowMapCube, cubeMapFace);
+                        }
+                    }
                 }
             }
             else

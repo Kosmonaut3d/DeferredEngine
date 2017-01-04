@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Reflection;
-using EngineTest.Main;
-using EngineTest.Renderer.RenderModules;
+using DeferredEngine.Main;
+using DeferredEngine.Renderer.RenderModules;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace EngineTest.Recources.GUI
+namespace DeferredEngine.Recources.GUI
 {
     public class GUITextBlockToggle : GUITextBlock
     {

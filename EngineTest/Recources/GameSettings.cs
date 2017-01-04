@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace EngineTest.Recources
+namespace DeferredEngine.Recources
 {
     public static class GameSettings
     {
@@ -48,6 +48,7 @@ namespace EngineTest.Recources
 
         public static int g_ShadowForceFiltering = 0; //1 = PCF, 2 3 better PCF  4 = Poisson, 5 = VSM;
         public static bool g_ShadowForceScreenSpace = false;
+        public static int g_ShadowBlurBudget = 1;
 
         private static float _ssao_falloffmin = 0.001f;
         private static float _ssao_falloffmax = 0.03f;

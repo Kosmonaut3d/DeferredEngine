@@ -2,7 +2,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace EngineTest.Entities
+namespace DeferredEngine.Entities
 {
     public class SpotLightSource : PointLightSource
     {

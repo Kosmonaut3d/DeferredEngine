@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text;
 
-namespace EngineTest.Recources.Helper //StringBuilderII
+namespace DeferredEngine.Recources.Helper //StringBuilderII
 {
     /// <summary> 
     /// 

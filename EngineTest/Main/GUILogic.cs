@@ -1,16 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Sockets;
-using System.Security.Policy;
-using System.Text;
-using System.Threading.Tasks;
-using EngineTest.Entities;
-using EngineTest.Recources;
-using EngineTest.Recources.GUI;
+﻿using System.Text;
+using DeferredEngine.Entities;
+using DeferredEngine.Recources;
+using DeferredEngine.Recources.GUI;
 using Microsoft.Xna.Framework;
 
-namespace EngineTest.Main
+namespace DeferredEngine.Main
 {
     public class GUILogic
     {

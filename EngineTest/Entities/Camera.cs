@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.Xna.Framework;
 
-namespace EngineTest.Entities
+namespace DeferredEngine.Entities
 {
     public class Camera
     {

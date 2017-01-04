@@ -1,17 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using BEPUphysics.Constraints.TwoEntity.Motors;
-using EngineTest.Recources;
-using EngineTest.Recources.GUI;
-using EngineTest.Renderer.Helper;
+﻿using System.Text;
+using DeferredEngine.Recources;
+using DeferredEngine.Recources.GUI;
+using DeferredEngine.Renderer.Helper;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace EngineTest.Renderer.RenderModules
+namespace DeferredEngine.Renderer.RenderModules
 {
     public class GUIRenderer
     {

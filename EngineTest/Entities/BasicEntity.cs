@@ -1,14 +1,14 @@
 ﻿using BEPUphysics.BroadPhaseEntries;
 using BEPUphysics.Entities;
 using BEPUutilities;
-using EngineTest.Recources;
-using EngineTest.Recources.Helper;
-using EngineTest.Renderer.Helper;
+using DeferredEngine.Recources;
+using DeferredEngine.Recources.Helper;
+using DeferredEngine.Renderer.Helper;
 using Microsoft.Xna.Framework.Graphics;
 using Matrix = Microsoft.Xna.Framework.Matrix;
 using Vector3 = Microsoft.Xna.Framework.Vector3;
 
-namespace EngineTest.Entities
+namespace DeferredEngine.Entities
 {
     public abstract class TransformableObject
     {

@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace EngineTest.Entities.Editor
+namespace DeferredEngine.Entities.Editor
 {
     public class BillboardBuffer
     {

@@ -9,8 +9,8 @@
     <ProjectGuid>{510FB9FE-B461-47B4-B4AF-8A0801AA4F26}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>EngineTest</RootNamespace>
-    <AssemblyName>EngineTest</AssemblyName>
+    <RootNamespace>DeferredEngine</RootNamespace>
+    <AssemblyName>DeferredEngine</AssemblyName>
     <FileAlignment>512</FileAlignment>
     <MonoGamePlatform>Windows</MonoGamePlatform>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>

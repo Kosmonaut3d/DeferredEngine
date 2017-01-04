@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics.PackedVector;
 
-namespace EngineTest.Recources.Helper
+namespace DeferredEngine.Recources.Helper
 {
    public static class Extensions
     {

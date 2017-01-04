@@ -6,7 +6,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 #endregion
 
-namespace EngineTest.Renderer.Helper
+namespace DeferredEngine.Renderer.Helper
 {
     public class QuadRenderer
     {

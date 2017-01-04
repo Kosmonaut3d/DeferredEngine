@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace EngineTest
+namespace DeferredEngine
 {
 #if WINDOWS || LINUX
     /// <summary>

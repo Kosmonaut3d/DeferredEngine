@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Text;
-using EngineTest.Renderer.RenderModules;
+using DeferredEngine.Renderer.RenderModules;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace EngineTest.Recources.GUI
+namespace DeferredEngine.Recources.GUI
 {
     /// <summary>
     /// Just a colored block with a text inside
