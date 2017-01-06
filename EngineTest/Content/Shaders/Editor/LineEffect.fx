@@ -3,7 +3,6 @@
 //float4x4 Projection;
 
 matrix WorldViewProj;
-
 float4 GlobalColor;
 
 struct VertexShaderInput

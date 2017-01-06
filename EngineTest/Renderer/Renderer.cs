@@ -1838,9 +1838,7 @@ namespace DeferredEngine.Renderer
 
             _renderTargetDepth = new RenderTarget2D(_graphicsDevice, targetWidth,
                 targetHeight, false, SurfaceFormat.Single, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
-
-            //Half res!
-
+            
             _renderTargetBinding[0] = new RenderTargetBinding(_renderTargetAlbedo);
             _renderTargetBinding[1] = new RenderTargetBinding(_renderTargetNormal);
             _renderTargetBinding[2] = new RenderTargetBinding(_renderTargetDepth);
