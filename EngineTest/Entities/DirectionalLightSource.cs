@@ -13,6 +13,9 @@ namespace DeferredEngine.Entities
         private Vector3 _position;
         public bool HasChanged;
 
+        public Vector3 DirectionViewSpace;
+
+
         public readonly bool DrawShadows;
         public readonly float ShadowSize;
         public readonly float ShadowDepth;
@@ -26,6 +29,7 @@ namespace DeferredEngine.Entities
         public bool ScreenSpaceShadowBlur;
 
         public Matrix LightViewProjection;
+        public Matrix LightViewProjectionViewSpace;
 
         public enum ShadowFilteringTypes
         {
@@ -69,6 +73,8 @@ namespace DeferredEngine.Entities
             Position = position;
 
             Id = IdGenerator.GetNewId();
+
+            IsEnabled = true;
 
             TransformDirectionToAngles();
         }
@@ -174,13 +180,13 @@ namespace DeferredEngine.Entities
                 //Shaders.deferredDirectionalLightParameter_ShadowMap.SetValue(shadowMap);
                 if (ScreenSpaceShadowBlur)
                 {
-                    Shaders.deferredDirectionalLightParameterLightViewProjection.SetValue(LightViewProjection);
+                    Shaders.deferredDirectionalLightParameterLightViewProjection.SetValue(LightViewProjectionViewSpace);
                     Shaders.deferredDirectionalLightParameter_ShadowFiltering.SetValue((int)ShadowFiltering);
                     Shaders.deferredDirectionalLightSSShadowed.Passes[0].Apply();  
                 }
                 else
                 {
-                    Shaders.deferredDirectionalLightParameterLightViewProjection.SetValue(LightViewProjection);
+                    Shaders.deferredDirectionalLightParameterLightViewProjection.SetValue(LightViewProjectionViewSpace);
                     Shaders.deferredDirectionalLightParameter_ShadowMap.SetValue(ShadowMap);
                     Shaders.deferredDirectionalLightParameter_ShadowFiltering.SetValue((int)ShadowFiltering);
                     Shaders.deferredDirectionalLightParameter_ShadowMapSize.SetValue((float)ShadowResolution);

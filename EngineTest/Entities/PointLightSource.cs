@@ -130,6 +130,7 @@ namespace DeferredEngine.Entities
             {
                 Shaders.deferredPointLightParameterShadowMap.SetValue(shadowMapCube);
 
+                //todo: Store this transformed view position and only update upon camera change!
                 Shaders.deferredPointLightParameterLightViewProjectionPositiveX.SetValue(inverseView * LightViewProjectionPositiveX);
                 Shaders.deferredPointLightParameterLightViewProjectionNegativeX.SetValue(inverseView * LightViewProjectionNegativeX);
 

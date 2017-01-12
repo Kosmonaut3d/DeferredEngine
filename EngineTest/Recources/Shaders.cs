@@ -60,6 +60,7 @@ namespace DeferredEngine.Recources
         public static EffectParameter PostProcessingParameter_SCurveStrength;
 
         public static EffectTechnique PostProcessingTechnique_Vignette;
+        public static EffectTechnique PostProcessingTechnique_Base;
         public static EffectTechnique PostProcessingTechnique_VignetteChroma;
 
         //Hologram
@@ -201,6 +202,7 @@ namespace DeferredEngine.Recources
         public static EffectTechnique deferredDirectionalLightShadowOnly;
 
         public static EffectParameter deferredDirectionalLightParameterViewProjection;
+        public static EffectParameter deferredDirectionalLightParameterFrustumCorners;
         public static EffectParameter deferredDirectionalLightParameterCameraPosition;
         public static EffectParameter deferredDirectionalLightParameterInverseViewProjection;
         public static EffectParameter deferredDirectionalLightParameterLightViewProjection;
@@ -338,6 +340,7 @@ namespace DeferredEngine.Recources
             PostProcessingParameter_ScreenTexture = PostProcessing.Parameters["ScreenTexture"];
             PostProcessingTechnique_Vignette = PostProcessing.Techniques["Vignette"];
             PostProcessingTechnique_VignetteChroma = PostProcessing.Techniques["VignetteChroma"];
+            PostProcessingTechnique_Base = PostProcessing.Techniques["BaseChroma"];
 
             //Hologram Effect
             HologramEffect = content.Load<Effect>("Shaders/Hologram/HologramEffect");
@@ -482,6 +485,7 @@ namespace DeferredEngine.Recources
             deferredDirectionalLightShadowOnly = deferredDirectionalLight.Techniques["ShadowOnly"];
 
             deferredDirectionalLightParameterViewProjection = deferredDirectionalLight.Parameters["ViewProjection"];
+            deferredDirectionalLightParameterFrustumCorners = deferredDirectionalLight.Parameters["FrustumCorners"];
             deferredDirectionalLightParameterCameraPosition = deferredDirectionalLight.Parameters["cameraPosition"];
             deferredDirectionalLightParameterInverseViewProjection = deferredDirectionalLight.Parameters["InvertViewProjection"];
             deferredDirectionalLightParameterLightViewProjection = deferredDirectionalLight.Parameters["LightViewProjection"];

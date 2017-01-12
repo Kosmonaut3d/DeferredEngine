@@ -23,6 +23,7 @@ SamplerState texSampler
 
 SamplerState blurSamplerPoint
 {
+	Texture = <SSAOMap>;
     AddressU = CLAMP;
     AddressV = CLAMP;
     MagFilter = POINT;
@@ -32,6 +33,7 @@ SamplerState blurSamplerPoint
 
 SamplerState blurSamplerLinear
 {
+	Texture = <SSAOMap>;
     AddressU = CLAMP;
     AddressV = CLAMP;
     MagFilter = LINEAR;

@@ -32,6 +32,7 @@ namespace DeferredEngine.Renderer
         private EditorRender _editorRender;
         private CPURayMarch _cpuRayMarch;
         private BloomFilter _bloomFilter;
+        private LightRenderer _lightRenderer;
 
         //Assets
         private Assets _assets;
@@ -49,6 +50,7 @@ namespace DeferredEngine.Renderer
         //Projection Matrices and derivates used in shaders
         private Matrix _view;
         private Matrix _inverseView;
+        private Matrix _viewIT;
         private Matrix _projection;
         private Matrix _viewProjection;
         private Matrix _staticViewProjection;
@@ -73,7 +75,6 @@ namespace DeferredEngine.Renderer
         private bool _forceShadowSS;
         private bool _ssr = true;
         private bool _g_SSReflectionNoise;
-        private bool _g_UseDepthStencilLightCulling;
 
         //Render modes
         public enum RenderModes { Albedo, Normal, Depth, Deferred, Diffuse, Specular, Hologram,
@@ -120,12 +121,7 @@ namespace DeferredEngine.Renderer
 
         //Cubemap
         private RenderTargetCube _renderTargetCubeMap;
-
-        //BlendStates
-        private BlendState _lightBlendState;
-
-        private DepthStencilState _stencilCullPass1;
-        private DepthStencilState _stencilCullPass2;
+        
 
         //Performance Profiler
 
@@ -155,49 +151,6 @@ namespace DeferredEngine.Renderer
             _bloomFilter = new BloomFilter();
             _bloomFilter.Load(content, _quadRenderer);
 
-            _lightBlendState = new BlendState
-            {
-                AlphaSourceBlend = Blend.One,
-                ColorSourceBlend = Blend.One,
-                ColorDestinationBlend = Blend.One,
-                AlphaDestinationBlend = Blend.One
-            };
-
-            _stencilCullPass1 = new DepthStencilState()
-            {
-                DepthBufferEnable = true,
-                DepthBufferWriteEnable = false,
-                DepthBufferFunction = CompareFunction.LessEqual,
-                StencilFunction = CompareFunction.Always,
-                StencilDepthBufferFail = StencilOperation.IncrementSaturation,
-                StencilPass = StencilOperation.Keep,
-                StencilFail = StencilOperation.Keep,
-                CounterClockwiseStencilFunction = CompareFunction.Always,
-                CounterClockwiseStencilDepthBufferFail = StencilOperation.Keep,
-                CounterClockwiseStencilPass = StencilOperation.Keep,
-                CounterClockwiseStencilFail = StencilOperation.Keep,
-                StencilMask = 0,
-                ReferenceStencil = 0,
-                StencilEnable = true,
-            };
-
-            _stencilCullPass2 = new DepthStencilState()
-            {
-                DepthBufferEnable = false,
-                DepthBufferWriteEnable = false,
-                DepthBufferFunction = CompareFunction.GreaterEqual,
-                CounterClockwiseStencilFunction = CompareFunction.Equal,
-                StencilFunction = CompareFunction.Equal,
-                StencilFail = StencilOperation.Zero,
-                StencilPass = StencilOperation.Zero,
-                CounterClockwiseStencilFail = StencilOperation.Zero,
-                CounterClockwiseStencilPass = StencilOperation.Zero,
-                ReferenceStencil = 0,
-                StencilEnable = true,
-                StencilMask = 0,
-                
-            };
-
             _inverseResolution = new Vector3(1.0f / GameSettings.g_ScreenWidth, 1.0f / GameSettings.g_ScreenHeight, 0);
         }
 
@@ -221,6 +174,9 @@ namespace DeferredEngine.Renderer
             _cpuRayMarch.Initialize(_graphicsDevice);
 
             _bloomFilter.Initialize(_graphicsDevice, GameSettings.g_ScreenWidth, GameSettings.g_ScreenHeight);
+
+            _lightRenderer = new LightRenderer();
+            _lightRenderer.Initialize(graphicsDevice, _quadRenderer, assets);
             
             _assets = assets;
 
@@ -306,13 +262,13 @@ namespace DeferredEngine.Renderer
             DrawScreenSpaceAmbientOcclusion(camera);
 
             //Screen space shadows for directional lights to an offscreen render target
-            //DrawScreenSpaceDirectionalShadow(dirLights);
+            DrawScreenSpaceDirectionalShadow(directionalLights);
 
             //Upsample/blur our SSAO / screen space shadows
             DrawBilateralBlur();
 
             //Light the scene
-            DrawLights(pointLights, directionalLights, camera.Position, gameTime);
+            _lightRenderer.DrawLights(pointLights, directionalLights, camera.Position, gameTime, _renderTargetLightBinding, _renderTargetDiffuse);
 
             //Draw the environment cube map as a fullscreen effect on all meshes
             DrawEnvironmentMap();
@@ -439,6 +395,7 @@ namespace DeferredEngine.Renderer
                 _inverseView = Matrix.Invert(_view);
                 _viewProjection = _view * _projection;
                 _inverseViewProjection = Matrix.Invert(_viewProjection);
+                _viewIT = Matrix.Transpose(_inverseView);
 
                 //Pass these values to our shader
                 Shaders.ScreenSpaceEffectParameter_InverseViewProjection.SetValue(_inverseView);
@@ -451,6 +408,8 @@ namespace DeferredEngine.Renderer
                 else _boundingFrustum.Matrix = _viewProjection;
                 ComputeFrustumCorners(_boundingFrustum);
 
+                _lightRenderer.UpdateViewProjection(_boundingFrustum, _viewProjectionHasChanged, _view, _inverseView, _viewIT, _projection, _viewProjection, _inverseViewProjection);
+
                 //Base stuff, for description look in Draw()
                 meshMaterialLibrary.FrustumCulling(entities, _boundingFrustum, true, origin);
                 SetUpGBuffer();
@@ -458,7 +417,7 @@ namespace DeferredEngine.Renderer
 
                 bool volumeEnabled = GameSettings.g_VolumetricLights;
                 GameSettings.g_VolumetricLights = false;
-                DrawLights(pointLights, dirLights, origin, gameTime);
+                _lightRenderer.DrawLights(pointLights, dirLights, camera.Position, gameTime, _renderTargetLightBinding, _renderTargetDiffuse);
 
                 GameSettings.g_VolumetricLights = volumeEnabled;
 
@@ -953,6 +912,8 @@ namespace DeferredEngine.Renderer
                 _view = Matrix.CreateLookAt(camera.Position, camera.Lookat, camera.Up);
                 _inverseView = Matrix.Invert(_view);
 
+                _viewIT = Matrix.Transpose(_inverseView);
+
                 Shaders.deferredPointLightParameter_InverseView.SetValue(_inverseView);
 
                 _projection = Matrix.CreatePerspectiveFieldOfView(camera.FieldOfView,
@@ -1012,6 +973,8 @@ namespace DeferredEngine.Renderer
 
             //We need to update whether or not entities are in our boundingFrustum and then cull them or not!
             meshMaterialLibrary.FrustumCulling(entities, _boundingFrustum, _viewProjectionHasChanged, camera.Position);
+
+            _lightRenderer.UpdateViewProjection(_boundingFrustum, _viewProjectionHasChanged, _view, _inverseView, _viewIT, _projection, _viewProjection, _inverseViewProjection);
 
             //Performance Profiler
             if (GameSettings.d_profiler)
@@ -1087,6 +1050,7 @@ namespace DeferredEngine.Renderer
             Shaders.ScreenSpaceReflectionParameter_FrustumCorners.SetValue(_currentFrustumCorners);
             Shaders.TemporalAntiAliasingEffect_FrustumCorners.SetValue(_currentFrustumCorners);
             Shaders.ReconstructDepthParameter_FrustumCorners.SetValue(_currentFrustumCorners);
+            Shaders.deferredDirectionalLightParameterFrustumCorners.SetValue(_currentFrustumCorners);
         }
 
         /// <summary>
@@ -1239,6 +1203,7 @@ namespace DeferredEngine.Renderer
             {
                 Shaders.deferredDirectionalLightParameterViewProjection.SetValue(_viewProjection);
                 Shaders.deferredDirectionalLightParameterInverseViewProjection.SetValue(_inverseViewProjection);
+
             }
             foreach (DirectionalLightSource light in dirLights)
             {
@@ -1249,7 +1214,13 @@ namespace DeferredEngine.Renderer
 
                     Shaders.deferredDirectionalLightParameter_LightDirection.SetValue(light.Direction);
 
-                    Shaders.deferredDirectionalLightParameterLightViewProjection.SetValue(light.LightViewProjection);
+                    if (_viewProjectionHasChanged)
+                    {
+                        light.DirectionViewSpace = Vector3.Transform(light.Direction, _viewIT);
+                        light.LightViewProjectionViewSpace = _inverseView* light.LightViewProjection;
+                    }
+
+                    Shaders.deferredDirectionalLightParameterLightViewProjection.SetValue(light.LightViewProjectionViewSpace);
                     Shaders.deferredDirectionalLightParameter_ShadowMap.SetValue(light.ShadowMap);
                     Shaders.deferredDirectionalLightParameter_ShadowFiltering.SetValue((int)light.ShadowFiltering);
                     Shaders.deferredDirectionalLightParameter_ShadowMapSize.SetValue((float)light.ShadowResolution);
@@ -1310,9 +1281,9 @@ namespace DeferredEngine.Renderer
             {
                 _graphicsDevice.SetRenderTarget(_renderTargetScreenSpaceEffectBlurFinal);
 
-                _spriteBatch.Begin(0, BlendState.Opaque);
+                _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.LinearClamp);
 
-                _spriteBatch.Draw(_renderTargetScreenSpaceEffectUpsampleBlurVertical, new Rectangle(0, 0, GameSettings.g_ScreenWidth, GameSettings.g_ScreenHeight), Color.White);
+                _spriteBatch.Draw(_renderTargetScreenSpaceEffectUpsampleBlurVertical, new Rectangle(0, 0, _renderTargetScreenSpaceEffectBlurFinal.Width, _renderTargetScreenSpaceEffectBlurFinal.Height), Color.White);
 
                 _spriteBatch.End();
             }
@@ -1326,204 +1297,7 @@ namespace DeferredEngine.Renderer
                 _performancePreviousTime = performanceCurrentTime;
             }
         }
-
-        /// <summary>
-        /// Draw our lights to the diffuse/specular/volume buffer
-        /// </summary>
-        /// <param name="pointLights"></param>
-        /// <param name="dirLights"></param>
-        /// <param name="cameraOrigin"></param>
-        /// <param name="gameTime"></param>
-        private void DrawLights(List<PointLightSource> pointLights, List<DirectionalLightSource> dirLights, Vector3 cameraOrigin, GameTime gameTime)
-        {
-            //Reconstruct Depth
-            if (GameSettings.g_UseDepthStencilLightCulling>0)
-            {
-                _graphicsDevice.SetRenderTarget(_renderTargetDiffuse);
-                _graphicsDevice.Clear(ClearOptions.DepthBuffer, Color.TransparentBlack, 1, 0);
-                _graphicsDevice.Clear(ClearOptions.Stencil, Color.TransparentBlack, 1, 0);
-                ReconstructDepth();
-
-                _g_UseDepthStencilLightCulling = true;
-            }
-            else
-            {
-                if (_g_UseDepthStencilLightCulling)
-                {
-                    _g_UseDepthStencilLightCulling = false;
-                    _graphicsDevice.SetRenderTarget(_renderTargetDiffuse);
-                    _graphicsDevice.Clear(ClearOptions.DepthBuffer, Color.TransparentBlack, 1, 0);
-                }
-            }
-
-            _graphicsDevice.SetRenderTargets(_renderTargetLightBinding);
-            _graphicsDevice.Clear(ClearOptions.Target, Color.TransparentBlack, 1,0);
-            DrawPointLights(pointLights, cameraOrigin, gameTime);
-            DrawDirectionalLights(dirLights, cameraOrigin);
-
-            //Performance Profiler
-            if (GameSettings.d_profiler)
-            {
-                long performanceCurrentTime = _performanceTimer.ElapsedTicks;
-                GameStats.d_profileDrawLights = performanceCurrentTime - _performancePreviousTime;
-
-                _performancePreviousTime = performanceCurrentTime;
-            }
-        }
-
-        private void ReconstructDepth()
-        {
-            if(_viewProjectionHasChanged)
-                Shaders.ReconstructDepthParameter_Projection.SetValue(_projection);
-
-            _graphicsDevice.DepthStencilState = DepthStencilState.Default;
-            Shaders.ReconstructDepth.CurrentTechnique.Passes[0].Apply();
-            _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
-        }
-
-        /// <summary>
-        /// Draw the point lights, set up some stuff first
-        /// </summary>
-        /// <param name="pointLights"></param>
-        /// <param name="cameraOrigin"></param>
-        /// <param name="gameTime"></param>
-        private void DrawPointLights(List<PointLightSource> pointLights, Vector3 cameraOrigin, GameTime gameTime)
-        {
-            _graphicsDevice.BlendState = _lightBlendState;
-
-            if (pointLights.Count < 1) return;
-            
-            ModelMeshPart meshpart = _assets.SphereMeshPart;
-            _graphicsDevice.SetVertexBuffer(meshpart.VertexBuffer);
-            _graphicsDevice.Indices = (meshpart.IndexBuffer);
-            int primitiveCount = meshpart.PrimitiveCount;
-            int vertexOffset = meshpart.VertexOffset;
-            int startIndex = meshpart.StartIndex;
-
-            if (GameSettings.g_VolumetricLights)
-                Shaders.deferredPointLightParameter_Time.SetValue((float)gameTime.TotalGameTime.TotalSeconds % 1000);
-            
-            for (int index = 0; index < pointLights.Count; index++)
-            {
-                PointLightSource light = pointLights[index];
-                DrawPointLight(light, cameraOrigin, vertexOffset, startIndex, primitiveCount);
-            }
-        }
-
-        /// <summary>
-        /// Draw each individual point lights
-        /// </summary>
-        /// <param name="light"></param>
-        /// <param name="cameraOrigin"></param>
-        private void DrawPointLight(PointLightSource light, Vector3 cameraOrigin, int vertexOffset, int startIndex, int primitiveCount)
-        {
-            if (!light.IsEnabled) return;
-
-            //first let's check if the light is even in bounds
-            if (_boundingFrustum.Contains(light.BoundingSphere) == ContainmentType.Disjoint ||
-                !_boundingFrustum.Intersects(light.BoundingSphere))
-                return;
-
-            //For our stats
-            GameStats.LightsDrawn++;
-
-            //Send the light parameters to the shader
-            if (_viewProjectionHasChanged)
-            {
-                light.LightViewSpace = light.WorldMatrix * _view;
-                light.LightWorldViewProj = light.WorldMatrix * _viewProjection;
-            }
-
-            Shaders.deferredPointLightParameter_WorldView.SetValue(light.LightViewSpace);
-            Shaders.deferredPointLightParameter_WorldViewProjection.SetValue(light.LightWorldViewProj);
-            Shaders.deferredPointLightParameter_LightPosition.SetValue(light.LightViewSpace.Translation);
-            Shaders.deferredPointLightParameter_LightColor.SetValue(light.ColorV3);
-            Shaders.deferredPointLightParameter_LightRadius.SetValue(light.Radius);
-            Shaders.deferredPointLightParameter_LightIntensity.SetValue(light.Intensity);
-
-            //Compute whether we are inside or outside and use 
-            float cameraToCenter = Vector3.Distance(cameraOrigin, light.Position);
-            int inside = cameraToCenter < light.Radius * 1.2f ? 1 : -1;
-            Shaders.deferredPointLightParameter_Inside.SetValue(inside);
-
-            if (GameSettings.g_UseDepthStencilLightCulling == 2)
-            {
-                _graphicsDevice.DepthStencilState = _stencilCullPass1;
-                //draw front faces
-                _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
-
-                Shaders.deferredPointLightWriteStencil.Passes[0].Apply();
-
-                _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset, startIndex, primitiveCount);
-
-                ////////////
-
-                _graphicsDevice.DepthStencilState = _stencilCullPass2;
-                //draw backfaces
-                _graphicsDevice.RasterizerState = RasterizerState.CullClockwise;
-
-                light.ApplyShader(_inverseView);
-                
-                _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset, startIndex, primitiveCount);
-            }
-            else
-            {
-                //If we are inside compute the backfaces, otherwise frontfaces of the sphere
-                _graphicsDevice.RasterizerState = inside > 0 ? RasterizerState.CullClockwise : RasterizerState.CullCounterClockwise;
-
-                light.ApplyShader(_inverseView);
-
-                _graphicsDevice.DepthStencilState = GameSettings.g_UseDepthStencilLightCulling > 0 && !light.IsVolumetric && inside<0 ? DepthStencilState.DepthRead : DepthStencilState.None;
-
-                _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset, startIndex, primitiveCount);
-            }
-
-            //Draw the sphere
-        }
-
-        /// <summary>
-        /// Draw all directional lights, set up some shader variables first
-        /// </summary>
-        /// <param name="dirLights"></param>
-        /// <param name="cameraOrigin"></param>
-        private void DrawDirectionalLights(List<DirectionalLightSource> dirLights, Vector3 cameraOrigin)
-        {
-            if (dirLights.Count < 1) return;
-
-            _graphicsDevice.DepthStencilState = DepthStencilState.Default;
-            _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
-
-            //If nothing has changed we don't need to update
-            if (_viewProjectionHasChanged)
-            {
-                Shaders.deferredDirectionalLightParameterViewProjection.SetValue(_viewProjection);
-                Shaders.deferredDirectionalLightParameterCameraPosition.SetValue(cameraOrigin);
-                Shaders.deferredDirectionalLightParameterInverseViewProjection.SetValue(_inverseViewProjection);
-            }
-
-            _graphicsDevice.DepthStencilState = DepthStencilState.None; 
-
-            for (int index = 0; index < dirLights.Count; index++)
-            {
-                DirectionalLightSource lightSource = dirLights[index];
-                DrawDirectionalLight(lightSource);
-            }
-        }
-
-        /// <summary>
-        /// Draw the individual light, full screen effect
-        /// </summary>
-        /// <param name="lightSource"></param>
-        private void DrawDirectionalLight(DirectionalLightSource lightSource)
-        {
-            if (!lightSource.IsEnabled) return;
-            Shaders.deferredDirectionalLightParameter_LightColor.SetValue(lightSource.Color.ToVector3());
-            Shaders.deferredDirectionalLightParameter_LightDirection.SetValue(lightSource.Direction);
-            Shaders.deferredDirectionalLightParameter_LightIntensity.SetValue(lightSource.Intensity);
-            lightSource.ApplyShader();
-            _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
-        }
-
+        
         /// <summary>
         /// Apply our environment cubemap to the renderer
         /// </summary>
@@ -1571,7 +1345,7 @@ namespace DeferredEngine.Renderer
 
             Matrix transformedViewProjection = _view * newProjection;
 
-            meshMatLib.DrawEmissive(_graphicsDevice, camera, _viewProjection, transformedViewProjection, _inverseViewProjection, _renderTargetEmissive, _renderTargetDiffuse, _renderTargetSpecular, _lightBlendState, _assets.Sphere.Meshes, gameTime);
+            //meshMatLib.DrawEmissive(_graphicsDevice, camera, _viewProjection, transformedViewProjection, _inverseViewProjection, _renderTargetEmissive, _renderTargetDiffuse, _renderTargetSpecular, _lightBlendState, _assets.Sphere.Meshes, gameTime);
             //Performance Profiler
             if (GameSettings.d_profiler)
             {
@@ -1888,22 +1662,22 @@ namespace DeferredEngine.Renderer
                 Shaders.ScreenSpaceReflectionParameter_Resolution.SetValue(new Vector2(targetWidth, targetHeight));
                 _renderTargetScreenSpaceEffectReflection = new RenderTarget2D(_graphicsDevice, targetWidth,
                     targetHeight, false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
-                
+
                 ///////////////////
                 // HALF RESOLUTION
 
                 targetWidth /= 2;
                 targetHeight /= 2;
 
-                _renderTargetSSAOEffect = new RenderTarget2D(_graphicsDevice, targetWidth,
-                    targetHeight, false, SurfaceFormat.HalfSingle, DepthFormat.None, 0,
-                    RenderTargetUsage.DiscardContents);
-
                 _renderTargetScreenSpaceEffectUpsampleBlurHorizontal = new RenderTarget2D(_graphicsDevice, targetWidth,
                     targetHeight, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
 
                 _renderTargetScreenSpaceEffectBlurFinal = new RenderTarget2D(_graphicsDevice, targetWidth,
                     targetHeight, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+
+                _renderTargetSSAOEffect = new RenderTarget2D(_graphicsDevice, targetWidth,
+                    targetHeight, false, SurfaceFormat.HalfSingle, DepthFormat.None, 0,
+                    RenderTargetUsage.DiscardContents);
 
 
 

@@ -98,7 +98,7 @@ float4 VignetteChromaShiftPixelShaderFunction(float4 pos : SV_POSITION, float2 t
     
 	base.r = chromaR;
 
-	base = pow(abs(base), 1 / 2.2f);
+	base = pow(abs(base), 0.4545454545f);
 
     base = ColorSCurve(base);
 
@@ -106,6 +106,15 @@ float4 VignetteChromaShiftPixelShaderFunction(float4 pos : SV_POSITION, float2 t
     base.rgb *= smoothstep(radiusX, radiusY, dist);
 
     return float4(base,1);
+}
+
+float4 BasePixelShaderFunction(float4 pos : SV_POSITION, float2 texCoord : TEXCOORD0) : SV_TARGET0
+{
+	float3 base = tex2D(TextureSampler, texCoord).rgb;
+
+	base = pow(abs(base), 0.4545454545f);
+
+	return float4(base,1);
 }
 
 
@@ -119,6 +128,16 @@ technique Vignette
 		VertexShader = compile vs_4_0 VertexShaderFunction();
         PixelShader = compile ps_5_0 VignettePixelShaderFunction();
     }
+}
+
+technique Base
+{
+	pass Pass1
+	{
+
+		VertexShader = compile vs_4_0 VertexShaderFunction();
+		PixelShader = compile ps_5_0 BasePixelShaderFunction();
+	}
 }
 
 technique VignetteChroma

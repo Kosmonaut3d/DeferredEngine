@@ -251,16 +251,16 @@ namespace DeferredEngine.Main
 
 
             // NOT WORKING RIGHT NOW
-            //AddDirectionalLight(direction: new Vector3(0.2f, -0.2f, -1),
-            //    intensity: 40,
-            //    color: Color.White,
-            //    position: Vector3.UnitZ * 2,
-            //    drawShadows: false,
-            //    shadowWorldSize: 250,
-            //    shadowDepth: 180,
-            //    shadowResolution: 2048,
-            //    shadowFilteringFiltering: DirectionalLightSource.ShadowFilteringTypes.SoftPCF3x,
-            //    screenspaceShadowBlur: true);
+            AddDirectionalLight(direction: new Vector3(0.2f, -0.2f, -1),
+                intensity: 100,
+                color: Color.White,
+                position: Vector3.UnitZ * 2,
+                drawShadows: true,
+                shadowWorldSize: 250,
+                shadowDepth: 180,
+                shadowResolution: 2048,
+                shadowFilteringFiltering: DirectionalLightSource.ShadowFilteringTypes.Poisson,
+                screenspaceShadowBlur: false);
         }
 
 
