@@ -217,9 +217,10 @@ float4 PixelShaderSSRFunction(VertexShaderOutput input) : COLOR0
 
 	//SSAO
 	float ssaoContribution = 1;
+	[branch]
 	if (useSSAO)
 	{
-		ssaoContribution = SSAOMap.Sample(linearSampler, input.TexCoord).r;
+		ssaoContribution = pow(abs(SSAOMap.SampleLevel(linearSampler, input.TexCoord, 0).r), 2.2f);
 	}
 
 	float f0 = lerp(0.04f, diffuseColor.g * 0.25 + 0.75, metalness);

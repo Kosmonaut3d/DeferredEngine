@@ -1773,6 +1773,7 @@ namespace DeferredEngine.Renderer
             // Shaders.DeferredComposeEffectParameter_SSRMap.SetValue(_renderTargetScreenSpaceEffectReflection);
 
             Shaders.ScreenSpaceEffectParameter_NormalMap.SetValue(_renderTargetNormal);
+
             Shaders.ScreenSpaceEffectParameter_DepthMap.SetValue(_renderTargetDepth);
             Shaders.ScreenSpaceEffectParameter_SSAOMap.SetValue(_renderTargetSSAOEffect);
 

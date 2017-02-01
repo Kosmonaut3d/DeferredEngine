@@ -179,84 +179,48 @@ float4 PixelShaderFunction(VertexShaderOutput input) : SV_Target
 
 	float2 aspectRatio = float2(min(1, Resolution.y / Resolution.x), min(1.0f, Resolution.x / Resolution.y));
 
-	float amount = 0.0;
+	float amount = 1.0;
 
 	float3 noise = randomNormal(texCoord);
 
-	//HBAO 2 dir
-	for (int i = 0; i < Samples/2; i++)
+	//HBAO
+	for (int i = 0; i < Samples; i++)
 	{
 		float3 kernelVec = reflect(kernel[i], noise);
-		/*kernelVec.xy *= aspectRatio;
-*/
+		kernelVec.xy *= aspectRatio;
+
 		float radius = SampleRadius;
 
-		float2 kernelVecSS = (kernelVec.xy / currentDistance) * radius * aspectRatio;
+		kernelVec.xy = (kernelVec.xy / currentDistance) * radius;
 
-		float biggestAnglePos = 0.0f;
-
-		float biggestAngleNeg = 0.0f;
+		float biggestAngle = 0.0f;
 
 		float wAO = 0.0;
 
-		float3 viewDir = float3(0, 0, -1);
-
 		for (int b = 1; b <= 4; b++)
 		{
-			float3 sampleVec = getPosition(texCoord + kernelVecSS * b / 4.0f) - currentPos;
+			float3 sampleVec = getPosition(texCoord + kernelVec.xy * b / 4.0f) - currentPos;
 
 			float sampleAngle = dot(normalize(sampleVec), currentNormal);
 
 			//sampleAngle *= step(0.3, sampleAngle);
 
-			if (sampleAngle > biggestAnglePos)
+			if (sampleAngle > biggestAngle)
 			{
-				
-				biggestAnglePos = sampleAngle;
-			}
+				wAO += weightFunction(sampleVec, radius) * (sampleAngle - biggestAngle);
 
-			sampleVec = getPosition(texCoord - kernelVecSS * b / 4.0f) - currentPos;
-
-			sampleAngle = dot(normalize(sampleVec), currentNormal);
-
-			if (sampleAngle > biggestAngleNeg)
-			{
-				
-				biggestAngleNeg = sampleAngle;
+				biggestAngle = sampleAngle;
 			}
 		}
 
-		//Plane is created by
-		// 0 0 -1 and kernelVec 0
-		//float3 kernelNormalized = normalize(float3(kernelVec.xy, 0));
-		//float3 projectedNormal = dot(currentNormal, viewDir) * viewDir + dot(currentNormal, kernelNormalized) * kernelNormalized;
+		biggestAngle = wAO;
 
-
-		////Angle normal
-		//float n = acos(dot(normalize(currentNormal), viewDir));
-
-		float h1 = -acos(biggestAngleNeg);
-
-		float h2 = acos(biggestAnglePos);
-
-		/*const float PI = 3.141;
-
-		h1 = n + max(h1 - n, -PI / 2);
-		h2 = n + min(h2 - n, PI / 2);*/
-
-		amount += (1 - cos(h1)) + (1 - cos(h2));
+		biggestAngle = max(0, biggestAngle);
 		
-		//amount += (0.25 * (-cos(2 * h1 - n) + cos(n) + 2 * h1 * sin(n)) + 0.25*(-cos(2 * h2 - n) + cos(n) + 2 * h2*sin(n))) * length(projectedNormal);
-		/*amount *= length(projectedNormal);*/
-		/*biggestAngle = max(0, biggestAngle);
-		
-		amount -= biggestAngle * Strength + currentNormal.z * 0.0000001f;*/
+		amount -= biggestAngle / Samples *Strength;
 	}
 
-	/*amount *= Strength;*/
-	amount /= Samples;
-
-	return float4(amount, amount, amount, currentNormal.z);
+	return float4(amount, amount, amount, amount);
 
 }
 

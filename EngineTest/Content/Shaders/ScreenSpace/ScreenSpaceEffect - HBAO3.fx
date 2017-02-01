@@ -137,6 +137,8 @@ float weightFunction(float3 vec3, float radius)
 
 float4 PixelShaderFunction(VertexShaderOutput input) : SV_Target
 {
+	const float PI = 3.141;
+
 	const float3 kernel[] =
 	{
 	float3(0.2024537f, 0.841204f, -0.9060141f),
@@ -193,59 +195,74 @@ float4 PixelShaderFunction(VertexShaderOutput input) : SV_Target
 
 		float2 kernelVecSS = (kernelVec.xy / currentDistance) * radius * aspectRatio;
 
-		float biggestAnglePos = 0.0f;
+		//Clamp to 0,1
+		kernelVecSS = saturate(texCoord + kernelVecSS) - texCoord;
 
-		float biggestAngleNeg = 0.0f;
+		float biggestAnglePos = 0.05f;
+
+		float biggestAngleNeg = 0.05f;
 
 		float wAO = 0.0;
 
 		float3 viewDir = float3(0, 0, -1);
 
+		float3 kernelNormalized = normalize(float3(kernelVec.xy, 0));
+		float3 projectedNormal = dot(currentNormal, viewDir) * viewDir + dot(currentNormal, kernelNormalized) * kernelNormalized;
+		projectedNormal = currentNormal;
+
 		for (int b = 1; b <= 4; b++)
 		{
 			float3 sampleVec = getPosition(texCoord + kernelVecSS * b / 4.0f) - currentPos;
+			float sampleAngle;
 
-			float sampleAngle = dot(normalize(sampleVec), currentNormal);
+			if ((texCoord + kernelVecSS * b / 4.0f).y > 1) return float4(0, 0, 0, 0);
 
-			//sampleAngle *= step(0.3, sampleAngle);
-
-			if (sampleAngle > biggestAnglePos)
+			if (length(sampleVec) < radius*0.4f)
 			{
-				
-				biggestAnglePos = sampleAngle;
+
+				sampleAngle = dot(normalize(sampleVec), projectedNormal);
+
+				if (sampleAngle > biggestAnglePos)
+				{
+
+					biggestAnglePos = sampleAngle;
+				}
 			}
 
 			sampleVec = getPosition(texCoord - kernelVecSS * b / 4.0f) - currentPos;
 
-			sampleAngle = dot(normalize(sampleVec), currentNormal);
-
-			if (sampleAngle > biggestAngleNeg)
+			if (length(sampleVec) < radius*0.4f)
 			{
-				
-				biggestAngleNeg = sampleAngle;
+
+				sampleAngle = dot(normalize(sampleVec), projectedNormal);
+				if (sampleAngle > biggestAngleNeg)
+				{
+
+					biggestAngleNeg = sampleAngle;
+				}
 			}
 		}
 
 		//Plane is created by
 		// 0 0 -1 and kernelVec 0
-		//float3 kernelNormalized = normalize(float3(kernelVec.xy, 0));
-		//float3 projectedNormal = dot(currentNormal, viewDir) * viewDir + dot(currentNormal, kernelNormalized) * kernelNormalized;
-
+		/*float3 kernelNormalized = normalize(float3(kernelVec.xy, 0));
+		float3 projectedNormal = dot(currentNormal, viewDir) * viewDir + dot(currentNormal, kernelNormalized) * kernelNormalized;
+*/
 
 		////Angle normal
-		//float n = acos(dot(normalize(currentNormal), viewDir));
+		float n = acos(dot(currentNormal, viewDir));
 
 		float h1 = -acos(biggestAngleNeg);
 
 		float h2 = acos(biggestAnglePos);
-
-		/*const float PI = 3.141;
-
+/*
 		h1 = n + max(h1 - n, -PI / 2);
 		h2 = n + min(h2 - n, PI / 2);*/
 
-		amount += (1 - cos(h1)) + (1 - cos(h2));
+		float integral = (1 - cos(h1)) + (1 - cos(h2)) /*+ 0.1f*/;
+		/*integral /= PI;*/
 		
+		amount += integral;
 		//amount += (0.25 * (-cos(2 * h1 - n) + cos(n) + 2 * h1 * sin(n)) + 0.25*(-cos(2 * h2 - n) + cos(n) + 2 * h2*sin(n))) * length(projectedNormal);
 		/*amount *= length(projectedNormal);*/
 		/*biggestAngle = max(0, biggestAngle);
@@ -253,8 +270,9 @@ float4 PixelShaderFunction(VertexShaderOutput input) : SV_Target
 		amount -= biggestAngle * Strength + currentNormal.z * 0.0000001f;*/
 	}
 
-	/*amount *= Strength;*/
 	amount /= Samples;
+
+	amount = 1 - ((1 - amount)*Strength);
 
 	return float4(amount, amount, amount, currentNormal.z);
 

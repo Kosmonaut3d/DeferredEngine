@@ -183,17 +183,19 @@ float4 PixelShaderFunction(VertexShaderOutput input) : SV_Target
 
 	float3 noise = randomNormal(texCoord);
 
-	//HBAO
-	for (int i = 0; i < Samples; i++)
+	//HBAO 2 dir
+	for (int i = 0; i < Samples/2; i++)
 	{
 		float3 kernelVec = reflect(kernel[i], noise);
-		kernelVec.xy * aspectRatio;
+		kernelVec.xy *= aspectRatio;
 
 		float radius = SampleRadius;
 
 		kernelVec.xy = (kernelVec.xy / currentDistance) * radius;
 
-		float biggestAngle = 0.0f;
+		float biggestAnglePos = 0.0f;
+
+		float biggestAngleNeg = 0.0f;
 
 		float wAO = 0.0;
 
@@ -205,21 +207,40 @@ float4 PixelShaderFunction(VertexShaderOutput input) : SV_Target
 
 			//sampleAngle *= step(0.3, sampleAngle);
 
-			if (sampleAngle > biggestAngle)
+			if (sampleAngle > biggestAnglePos)
 			{
-				wAO += weightFunction(sampleVec, radius) * (sampleAngle - biggestAngle);
+				wAO += saturate(weightFunction(sampleVec, radius) * (sampleAngle - biggestAnglePos));
 
-				biggestAngle = sampleAngle;
+				biggestAnglePos = sampleAngle;
+			}
+
+			sampleVec = getPosition(texCoord - kernelVec.xy * b / 4.0f) - currentPos;
+
+			sampleAngle = dot(normalize(sampleVec), currentNormal);
+
+			if (sampleAngle > biggestAngleNeg)
+			{
+				wAO += saturate(weightFunction(sampleVec, radius) * (sampleAngle - biggestAngleNeg));
+
+				biggestAngleNeg = sampleAngle;
 			}
 		}
 
-		biggestAngle = wAO;
+		/*biggestAngle = wAO;
+*/
+		/*biggestAngle = max(0, biggestAngle);
+		*/
+/*
+		wAO = max(0, wAO);*/
 
-		biggestAngle = max(0, biggestAngle);
-		
-		amount -= biggestAngle / Samples *Strength;
+		amount -= wAO / Samples *Strength;
 	}
 
+	/*float diff = amount - 0.5f;
+	diff *= Strength;
+
+	amount = saturate(0.5f + diff);
+*/
 	return float4(amount, amount, amount, amount);
 
 }
