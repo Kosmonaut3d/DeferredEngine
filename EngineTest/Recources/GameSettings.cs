@@ -28,7 +28,7 @@ namespace DeferredEngine.Recources
         public static bool g_EmissiveNoise = false;
         public static float g_EmissiveDrawFOVFactor = 2;
 
-        public static bool p_Physics = true;
+        public static bool p_Physics = false;
 
         public static float m_defaultRoughness = 0;
 
@@ -53,7 +53,7 @@ namespace DeferredEngine.Recources
         private static float _ssao_falloffmin = 0.001f;
         private static float _ssao_falloffmax = 0.03f;
         private static int _ssao_samples = 8;
-        private static float _ssao_sampleradius = 0.03f;
+        private static float _ssao_sampleradius = 15;
         private static float _ssao_strength = 1;
         public static bool ssao_Blur = true;
         private static bool _ssao_active = true;
@@ -277,6 +277,13 @@ namespace DeferredEngine.Recources
 
         public static float g_BloomThreshold = 0.5f;
         public static bool ui_DrawUI = true;
+
+
+
+
+        public static float tr = -1;
+        public static float ShadowBias = 0.005f;
+
 
         public static float g_TemporalAntiAliasingThreshold
         {

@@ -128,6 +128,9 @@ namespace DeferredEngine.Renderer
         private readonly Stopwatch _performanceTimer = new Stopwatch();
         private long _performancePreviousTime;
 
+        //TEST
+        private TestShadow testShadow;
+
         #endregion
 
         #region FUNCTIONS
@@ -177,6 +180,9 @@ namespace DeferredEngine.Renderer
 
             _lightRenderer = new LightRenderer();
             _lightRenderer.Initialize(graphicsDevice, _quadRenderer, assets);
+
+            testShadow = new TestShadow();
+            testShadow.Initialize(graphicsDevice);
             
             _assets = assets;
 
@@ -185,6 +191,7 @@ namespace DeferredEngine.Renderer
 
             Shaders.ScreenSpaceReflectionParameter_NoiseMap.SetValue(_assets.NoiseMap);
             SetUpRenderTargets(GameSettings.g_ScreenWidth, GameSettings.g_ScreenHeight, false);
+            
         }
 
         /// <summary>
@@ -239,7 +246,7 @@ namespace DeferredEngine.Renderer
             //We do this either when pressing C or at the start of the program (_renderTargetCube == null) or when the game settings want us to do it every frame
             if ((Input.WasKeyPressed(Keys.C) && !DebugScreen.ConsoleOpen) || GameSettings.g_EnvironmentMappingEveryFrame || _renderTargetCubeMap == null)
             {
-                Vector3 Position = _renderTargetCubeMap == null ? new Vector3(90, -2, 10) : camera.Position; 
+                Vector3 Position = _renderTargetCubeMap == null ? new Vector3(90, 0, 20) : camera.Position; 
                 DrawCubeMap(Position, meshMaterialLibrary, entities, pointLights, directionalLights, 300, gameTime, camera);
             }
             
@@ -284,6 +291,8 @@ namespace DeferredEngine.Renderer
 
             //Compose the image and add information from previous frames to apply temporal super sampling
             CombineTemporalAntialiasing();
+
+            DrawTestShadow(camera);
                 
             //Draw the elements that we are hovering over with outlines
             if(GameSettings.Editor_enable)
@@ -297,7 +306,21 @@ namespace DeferredEngine.Renderer
             {
                 DrawMapToScreenToFullScreen(_editorRender.GetOutlines(), BlendState.Additive);
                 _editorRender.DrawEditorElements(meshMaterialLibrary, pointLights, directionalLights, _staticViewProjection, _view, editorData);
-
+                
+                if (editorData.SelectedObject != null)
+                {
+                    if (editorData.SelectedObject is DirectionalLightSource)
+                    {
+                        int size = 512;
+                        DirectionalLightSource light = (DirectionalLightSource)editorData.SelectedObject;
+                        if (light.DrawShadows)
+                        {
+                            _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.PointClamp);
+                            _spriteBatch.Draw(light.ShadowMap, new Rectangle(0, GameSettings.g_ScreenHeight - size, size, size), Color.White);
+                            _spriteBatch.End();
+                        }
+                    }
+                }
             }
 
             //Debug ray marching
@@ -587,6 +610,8 @@ namespace DeferredEngine.Renderer
             //Go through all our point lights
             for (int index = 0; index < pointLights.Count; index++)
             {
+                //DISABLED
+                
                 PointLightSource light = pointLights[index];
 
                 if (!light.IsEnabled) continue;
@@ -742,7 +767,7 @@ namespace DeferredEngine.Renderer
 
                     _graphicsDevice.SetRenderTarget(light.shadowMapCube, cubeMapFace);
                     _graphicsDevice.Clear(Color.TransparentBlack);
-                    meshMaterialLibrary.Draw(renderType: MeshMaterialLibrary.RenderType.ShadowVsm, 
+                    meshMaterialLibrary.Draw(renderType: MeshMaterialLibrary.RenderType.ShadowZW, 
                         graphicsDevice: _graphicsDevice,
                         viewProjection: lightViewProjection, 
                         lightViewPointChanged: true, 
@@ -751,6 +776,8 @@ namespace DeferredEngine.Renderer
                     if (GameStats.ShadowsBlurred < GameSettings.g_ShadowBlurBudget && light.SoftShadowBlurAmount>0)
                     {
                         //i is cubeface
+
+                        throw new NotImplementedException();
 
                         if (light.faceBlurCount[i] < light.SoftShadowBlurAmount)
                         {
@@ -802,7 +829,7 @@ namespace DeferredEngine.Renderer
                     //_graphicsDevice.Clear(Color.TransparentBlack);
                     //_graphicsDevice.Clear(ClearOptions.DepthBuffer, Color.White, 0, 0);
 
-                    meshMaterialLibrary.Draw(renderType: MeshMaterialLibrary.RenderType.ShadowVsm,
+                    meshMaterialLibrary.Draw(renderType: MeshMaterialLibrary.RenderType.ShadowZW,
                         graphicsDevice: _graphicsDevice,
                         viewProjection: lightViewProjection,
                         lightViewPointChanged: light.HasChanged,
@@ -823,21 +850,22 @@ namespace DeferredEngine.Renderer
             //Create a renderTarget if we don't have one yet
             if (lightSource.ShadowMap == null)
             {
-                if (lightSource.ShadowFiltering != DirectionalLightSource.ShadowFilteringTypes.VSM)
-                {
+                //if (lightSource.ShadowFiltering != DirectionalLightSource.ShadowFilteringTypes.VSM)
+                //{
                     lightSource.ShadowMap = new RenderTarget2D(_graphicsDevice, shadowResolution, shadowResolution, false,
                         SurfaceFormat.HalfSingle, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
-                }
-                else //For a VSM shadowMap we need 2 components
-                {
-                    lightSource.ShadowMap = new RenderTarget2D(_graphicsDevice, shadowResolution, shadowResolution, false,
-                       SurfaceFormat.Vector2, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
-                }
+                //}
+                //else //For a VSM shadowMap we need 2 components
+                //{
+                //    lightSource.ShadowMap = new RenderTarget2D(_graphicsDevice, shadowResolution, shadowResolution, false,
+                //       SurfaceFormat.Vector2, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+                //}
             }
 
-            MeshMaterialLibrary.RenderType renderType = lightSource.ShadowFiltering == DirectionalLightSource.ShadowFilteringTypes.VSM
-                ? MeshMaterialLibrary.RenderType.ShadowVsm
-                : MeshMaterialLibrary.RenderType.ShadowDepth;
+            //MeshMaterialLibrary.RenderType renderType = lightSource.ShadowFiltering == DirectionalLightSource.ShadowFilteringTypes.VSM
+            //    ? MeshMaterialLibrary.RenderType.ShadowZW
+            //    : MeshMaterialLibrary.RenderType.ShadowLinear;
+            MeshMaterialLibrary.RenderType renderType = MeshMaterialLibrary.RenderType.ShadowLinear;
 
             if (lightSource.HasChanged)
             {
@@ -845,6 +873,7 @@ namespace DeferredEngine.Renderer
                     -lightSource.ShadowDepth, lightSource.ShadowDepth);
                 Matrix lightView = Matrix.CreateLookAt(lightSource.Position, lightSource.Position + lightSource.Direction, Vector3.Down);
 
+                lightSource.LightView = lightView;
                 lightSource.LightViewProjection = lightView * lightProjection;
 
                 _boundingFrustumShadow = new BoundingFrustum(lightSource.LightViewProjection);
@@ -855,9 +884,11 @@ namespace DeferredEngine.Renderer
                 meshMaterialLibrary.FrustumCulling(entities, _boundingFrustumShadow, true, lightSource.Position);
 
                 // Rendering!
+                Shaders.virtualShadowMappingEffectParameter_FarClip.SetValue(lightSource.ShadowDepth);
+                Shaders.virtualShadowMappingEffectParameter_SizeBias.SetValue(GameSettings.ShadowBias * 2048 / lightSource.ShadowResolution);
 
                 meshMaterialLibrary.Draw(renderType, _graphicsDevice,
-                    lightSource.LightViewProjection, lightSource.HasChanged, false);
+                    lightSource.LightViewProjection, lightSource.HasChanged, false, false, 0, lightSource.LightView);
             }
             else
             {
@@ -872,15 +903,18 @@ namespace DeferredEngine.Renderer
                 _graphicsDevice.SetRenderTarget(lightSource.ShadowMap);
                 _graphicsDevice.Clear(ClearOptions.DepthBuffer, Color.White, 1, 0);
 
+                Shaders.virtualShadowMappingEffectParameter_FarClip.SetValue(lightSource.ShadowDepth);
+                Shaders.virtualShadowMappingEffectParameter_SizeBias.SetValue(GameSettings.ShadowBias * 2048 / lightSource.ShadowResolution);
+
                 meshMaterialLibrary.Draw(renderType, _graphicsDevice,
-                    lightSource.LightViewProjection, false, true);
+                    lightSource.LightViewProjection, false, true, false, 0, lightSource.LightView);
             }
 
             //Blur!
-            if (lightSource.ShadowFiltering == DirectionalLightSource.ShadowFilteringTypes.VSM)
-            {
-                lightSource.ShadowMap = _gaussianBlur.DrawGaussianBlur(lightSource.ShadowMap);
-            }
+            //if (lightSource.ShadowFiltering == DirectionalLightSource.ShadowFilteringTypes.VSM)
+            //{
+            //    lightSource.ShadowMap = _gaussianBlur.DrawGaussianBlur(lightSource.ShadowMap);
+            //}
 
         }
 
@@ -1048,9 +1082,11 @@ namespace DeferredEngine.Renderer
 
             Shaders.deferredEnvironmentParameter_FrustumCorners.SetValue(_currentFrustumCorners);
             Shaders.ScreenSpaceReflectionParameter_FrustumCorners.SetValue(_currentFrustumCorners);
+            Shaders.ScreenSpaceEffectParameter_FrustumCorners.SetValue(_currentFrustumCorners);
             Shaders.TemporalAntiAliasingEffect_FrustumCorners.SetValue(_currentFrustumCorners);
             Shaders.ReconstructDepthParameter_FrustumCorners.SetValue(_currentFrustumCorners);
             Shaders.deferredDirectionalLightParameterFrustumCorners.SetValue(_currentFrustumCorners);
+            Shaders.TestShadowEffect_FrustumCorners.SetValue(_currentFrustumCorners);
         }
 
         /// <summary>
@@ -1209,6 +1245,8 @@ namespace DeferredEngine.Renderer
             {
                 if (light.DrawShadows && light.ScreenSpaceShadowBlur)
                 {
+                    throw new NotImplementedException();
+
                     //Draw our map!
                     _graphicsDevice.SetRenderTarget(_renderTargetScreenSpaceEffectUpsampleBlurVertical);
 
@@ -1217,10 +1255,13 @@ namespace DeferredEngine.Renderer
                     if (_viewProjectionHasChanged)
                     {
                         light.DirectionViewSpace = Vector3.Transform(light.Direction, _viewIT);
-                        light.LightViewProjectionViewSpace = _inverseView* light.LightViewProjection;
+                        light.LightViewProjection_ViewSpace = _inverseView* light.LightViewProjection;
+                        light.LightView_ViewSpace = _inverseView * light.LightView;
+
                     }
 
-                    Shaders.deferredDirectionalLightParameterLightViewProjection.SetValue(light.LightViewProjectionViewSpace);
+                    Shaders.deferredDirectionalLightParameterLightViewProjection.SetValue(light.LightViewProjection_ViewSpace);
+                    Shaders.deferredDirectionalLightParameterLightView.SetValue(light.LightViewProjection_ViewSpace);
                     Shaders.deferredDirectionalLightParameter_ShadowMap.SetValue(light.ShadowMap);
                     Shaders.deferredDirectionalLightParameter_ShadowFiltering.SetValue((int)light.ShadowFiltering);
                     Shaders.deferredDirectionalLightParameter_ShadowMapSize.SetValue((float)light.ShadowResolution);
@@ -1448,10 +1489,17 @@ namespace DeferredEngine.Renderer
                 _performancePreviousTime = performanceCurrentTime;
             }
         }
+        
+        private void DrawTestShadow(Camera camera)
+        {
+            //testShadow.Draw(_renderTargetDepth, _view, camera, _projection);
+        }
+
 
         /// <summary>
         /// Draw the final rendered image, change the output based on user input to show individual buffers/rendertargets
         /// </summary>
+        /// <param name="editorData"></param>
         private void RenderMode()
         {
             switch (GameSettings.g_RenderMode)
@@ -1503,6 +1551,7 @@ namespace DeferredEngine.Renderer
                     DrawPostProcessing();
                     break;
             }
+
 
             //Performance Profiler
             if (GameSettings.d_profiler)
@@ -1564,6 +1613,8 @@ namespace DeferredEngine.Renderer
             _haltonSequence = null;
 
             SetUpRenderTargets(GameSettings.g_ScreenWidth, GameSettings.g_ScreenHeight, false);
+
+            testShadow.UpdateResolution();
         }
 
         private void SetUpRenderTargets(int width, int height, bool onlyEssentials)
@@ -1734,6 +1785,9 @@ namespace DeferredEngine.Renderer
             Shaders.EmissiveEffectParameter_NormalMap.SetValue(_renderTargetNormal);
 
             Shaders.TemporalAntiAliasingEffect_DepthMap.SetValue(_renderTargetDepth);
+
+            Shaders.TestShadowEffect_DepthMap.SetValue(_renderTargetDepth);
+            Shaders.TestShadowEffect_Resolution.SetValue(new Vector2(GameSettings.g_ScreenWidth, GameSettings.g_ScreenHeight));
         }
 
             #endregion

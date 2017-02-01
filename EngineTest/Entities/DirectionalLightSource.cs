@@ -1,4 +1,5 @@
-﻿using DeferredEngine.Recources;
+﻿using System;
+using DeferredEngine.Recources;
 using DeferredEngine.Recources.Helper;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -29,11 +30,13 @@ namespace DeferredEngine.Entities
         public bool ScreenSpaceShadowBlur;
 
         public Matrix LightViewProjection;
-        public Matrix LightViewProjectionViewSpace;
+        public Matrix LightView;
+        public Matrix LightViewProjection_ViewSpace;
+        public Matrix LightView_ViewSpace;
 
         public enum ShadowFilteringTypes
         {
-            PCF, SoftPCF3x, SoftPCF5x, Poisson, VSM
+            PCF, SoftPCF3x, SoftPCF5x, Poisson, /*VSM*/
         }
 
         /// <summary>
@@ -180,13 +183,17 @@ namespace DeferredEngine.Entities
                 //Shaders.deferredDirectionalLightParameter_ShadowMap.SetValue(shadowMap);
                 if (ScreenSpaceShadowBlur)
                 {
-                    Shaders.deferredDirectionalLightParameterLightViewProjection.SetValue(LightViewProjectionViewSpace);
+                    throw new NotImplementedException();
+
+                    Shaders.deferredDirectionalLightParameterLightViewProjection.SetValue(LightViewProjection_ViewSpace);
                     Shaders.deferredDirectionalLightParameter_ShadowFiltering.SetValue((int)ShadowFiltering);
                     Shaders.deferredDirectionalLightSSShadowed.Passes[0].Apply();  
                 }
                 else
                 {
-                    Shaders.deferredDirectionalLightParameterLightViewProjection.SetValue(LightViewProjectionViewSpace);
+                    Shaders.deferredDirectionalLightParameterLightView.SetValue(LightView_ViewSpace);
+                    Shaders.deferredDirectionalLightParameterLightViewProjection.SetValue(LightViewProjection_ViewSpace);
+                    Shaders.deferredDirectionalLightParameterLightFarClip.SetValue(ShadowDepth);
                     Shaders.deferredDirectionalLightParameter_ShadowMap.SetValue(ShadowMap);
                     Shaders.deferredDirectionalLightParameter_ShadowFiltering.SetValue((int)ShadowFiltering);
                     Shaders.deferredDirectionalLightParameter_ShadowMapSize.SetValue((float)ShadowResolution);

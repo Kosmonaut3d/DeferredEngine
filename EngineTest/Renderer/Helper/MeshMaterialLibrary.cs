@@ -313,8 +313,8 @@ namespace DeferredEngine.Renderer.Helper
         {
             Opaque,
             Alpha,
-            ShadowVsm,
-            ShadowDepth,
+            ShadowZW,
+            ShadowLinear,
             Hologram,
             IdRender,
             IdOutline
@@ -376,7 +376,7 @@ namespace DeferredEngine.Renderer.Helper
                 graphicsDevice.Clear(Color.TransparentBlack);
             }
 
-            if (renderType == RenderType.ShadowVsm || renderType == RenderType.ShadowDepth) GameStats.activeShadowMaps++;
+            if (renderType == RenderType.ShadowZW || renderType == RenderType.ShadowLinear) GameStats.activeShadowMaps++;
 
             for (int index1 = 0; index1 < Index; index1++)
             {
@@ -430,16 +430,16 @@ namespace DeferredEngine.Renderer.Helper
 
                 Effect shader;
                 //Set the appropriate Shader for the material
-                if (renderType == RenderType.ShadowVsm || renderType == RenderType.ShadowDepth)
+                if (renderType == RenderType.ShadowZW || renderType == RenderType.ShadowLinear)
                 {
                     if (material.HasShadow)
                     {
                         //if we have special shadow shaders for the material
                         shader = Shaders.virtualShadowMappingEffect;
 
-                        shader.CurrentTechnique = renderType == RenderType.ShadowVsm
-                            ? Shaders.virtualShadowMappingEffect_Technique_VSM
-                            : Shaders.virtualShadowMappingEffect_Technique_Depth;
+                        shader.CurrentTechnique = renderType == RenderType.ShadowZW
+                            ? Shaders.virtualShadowMappingEffect_Technique_ZW
+                            : Shaders.virtualShadowMappingEffect_Technique_Linear;
                     }
                     else continue;
                 }
@@ -646,9 +646,12 @@ namespace DeferredEngine.Renderer.Helper
 
                             shader.CurrentTechnique.Passes[0].Apply();
                         }
-                        else if (renderType == RenderType.ShadowDepth || renderType == RenderType.ShadowVsm)
+                        else if (renderType == RenderType.ShadowLinear || renderType == RenderType.ShadowZW)
                         {
                             Shaders.virtualShadowMappingEffectParameter_WorldViewProj.SetValue(localWorldMatrix * viewProjection);
+
+                            if(renderType == RenderType.ShadowLinear)
+                            Shaders.virtualShadowMappingEffectParameter_WorldView.SetValue(localWorldMatrix * (Matrix)view);
 
                             shader.CurrentTechnique.Passes[0].Apply();
                         }

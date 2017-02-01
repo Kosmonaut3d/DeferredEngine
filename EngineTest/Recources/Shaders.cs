@@ -51,6 +51,18 @@ namespace DeferredEngine.Recources
         public static EffectParameter TemporalAntiAliasingEffect_FrustumCorners;
         public static EffectParameter TemporalAntiAliasingEffect_Threshold;
 
+        //test shadow
+
+        public static Effect TestShadowEffect;
+
+        public static EffectParameter TestShadowEffect_DepthMap;
+        public static EffectParameter TestShadowEffect_AccumulationMap;
+        public static EffectParameter TestShadowEffect_UpdateMap;
+        public static EffectParameter TestShadowEffect_CurrentToPrevious;
+        public static EffectParameter TestShadowEffect_Resolution;
+        public static EffectParameter TestShadowEffect_FrustumCorners;
+        public static EffectParameter TestShadowEffect_Threshold;
+
         //Vignette and CA
 
         public static Effect PostProcessing;
@@ -124,6 +136,7 @@ namespace DeferredEngine.Recources
         public static EffectParameter ScreenSpaceEffect_Strength;
         public static EffectParameter ScreenSpaceEffect_SampleRadius;
         public static EffectParameter ScreenSpaceEffectParameter_InverseResolution;
+        public static EffectParameter ScreenSpaceEffectParameter_FrustumCorners;
 
         public static EffectTechnique ScreenSpaceEffectTechnique_SSAO;
         public static EffectTechnique ScreenSpaceEffectTechnique_BlurHorizontal;
@@ -206,6 +219,8 @@ namespace DeferredEngine.Recources
         public static EffectParameter deferredDirectionalLightParameterCameraPosition;
         public static EffectParameter deferredDirectionalLightParameterInverseViewProjection;
         public static EffectParameter deferredDirectionalLightParameterLightViewProjection;
+        public static EffectParameter deferredDirectionalLightParameterLightView;
+        public static EffectParameter deferredDirectionalLightParameterLightFarClip;
 
         public static EffectParameter deferredDirectionalLightParameter_LightColor;
         public static EffectParameter deferredDirectionalLightParameter_LightDirection;
@@ -244,6 +259,7 @@ namespace DeferredEngine.Recources
         public static EffectParameter deferredPointLightParameter_LightColor;
         public static EffectParameter deferredPointLightParameter_LightRadius;
         public static EffectParameter deferredPointLightParameter_LightIntensity;
+        public static EffectParameter deferredPointLightParameter_ShadowMapSize;
         public static EffectParameter deferredPointLightParameter_Inside;
         public static EffectParameter deferredPointLightParameter_Time;
         public static EffectParameter deferredPointLightParameter_FarClip;
@@ -268,8 +284,11 @@ namespace DeferredEngine.Recources
 
         public static Effect virtualShadowMappingEffect;
         public static EffectParameter virtualShadowMappingEffectParameter_WorldViewProj;
-        public static EffectTechnique virtualShadowMappingEffect_Technique_Depth;
-        public static EffectTechnique virtualShadowMappingEffect_Technique_VSM;
+        public static EffectParameter virtualShadowMappingEffectParameter_WorldView;
+        public static EffectParameter virtualShadowMappingEffectParameter_FarClip;
+        public static EffectParameter virtualShadowMappingEffectParameter_SizeBias;
+        public static EffectTechnique virtualShadowMappingEffect_Technique_Linear;
+        public static EffectTechnique virtualShadowMappingEffect_Technique_ZW;
 
 
         //SSR
@@ -329,6 +348,16 @@ namespace DeferredEngine.Recources
             TemporalAntiAliasingEffect_Resolution = TemporalAntiAliasingEffect.Parameters["Resolution"];
             TemporalAntiAliasingEffect_FrustumCorners = TemporalAntiAliasingEffect.Parameters["FrustumCorners"];
             TemporalAntiAliasingEffect_Threshold = TemporalAntiAliasingEffect.Parameters["Threshold"];
+
+
+            //TEST shadow
+            TestShadowEffect = content.Load<Effect>("Shaders/Shadow/testshadow");
+
+            TestShadowEffect_AccumulationMap = TestShadowEffect.Parameters["AccumulationMap"];
+            TestShadowEffect_DepthMap = TestShadowEffect.Parameters["DepthMap"];
+            TestShadowEffect_CurrentToPrevious = TestShadowEffect.Parameters["CurrentToPrevious"];
+            TestShadowEffect_Resolution = TestShadowEffect.Parameters["Resolution"];
+            TestShadowEffect_FrustumCorners = TestShadowEffect.Parameters["FrustumCorners"];
 
             //Post
 
@@ -400,6 +429,7 @@ namespace DeferredEngine.Recources
             ScreenSpaceEffect_Strength = ScreenSpaceEffect.Parameters["Strength"];
             ScreenSpaceEffect_SampleRadius = ScreenSpaceEffect.Parameters["SampleRadius"];
             ScreenSpaceEffectParameter_InverseResolution = ScreenSpaceEffect.Parameters["InverseResolution"];
+            ScreenSpaceEffectParameter_FrustumCorners = ScreenSpaceEffect.Parameters["FrustumCorners"];
 
             ScreenSpaceEffectTechnique_SSAO = ScreenSpaceEffect.Techniques["SSAO"];
             ScreenSpaceEffectTechnique_BlurHorizontal = ScreenSpaceEffect.Techniques["BilateralHorizontal"];
@@ -489,6 +519,8 @@ namespace DeferredEngine.Recources
             deferredDirectionalLightParameterCameraPosition = deferredDirectionalLight.Parameters["cameraPosition"];
             deferredDirectionalLightParameterInverseViewProjection = deferredDirectionalLight.Parameters["InvertViewProjection"];
             deferredDirectionalLightParameterLightViewProjection = deferredDirectionalLight.Parameters["LightViewProjection"];
+            deferredDirectionalLightParameterLightView = deferredDirectionalLight.Parameters["LightView"];
+            deferredDirectionalLightParameterLightFarClip = deferredDirectionalLight.Parameters["LightFarClip"];
 
             deferredDirectionalLightParameter_LightColor = deferredDirectionalLight.Parameters["lightColor"];
             deferredDirectionalLightParameter_LightIntensity = deferredDirectionalLight.Parameters["lightIntensity"];
@@ -530,6 +562,7 @@ namespace DeferredEngine.Recources
             deferredPointLightParameter_LightColor = deferredPointLight.Parameters["lightColor"];
             deferredPointLightParameter_LightRadius = deferredPointLight.Parameters["lightRadius"];
             deferredPointLightParameter_LightIntensity = deferredPointLight.Parameters["lightIntensity"];
+            deferredPointLightParameter_ShadowMapSize = deferredPointLight.Parameters["ShadowMapSize"];
             deferredPointLightParameter_Inside = deferredPointLight.Parameters["inside"];
             deferredPointLightParameter_Time = deferredPointLight.Parameters["Time"];
             deferredPointLightParameter_FarClip = deferredPointLight.Parameters["FarClip"];
@@ -554,9 +587,12 @@ namespace DeferredEngine.Recources
 
             virtualShadowMappingEffect = content.Load<Effect>("Shaders/Shadow/VirtualShadowMapsGenerate");
             virtualShadowMappingEffectParameter_WorldViewProj = virtualShadowMappingEffect.Parameters["WorldViewProj"];
+            virtualShadowMappingEffectParameter_WorldView= virtualShadowMappingEffect.Parameters["WorldView"];
+            virtualShadowMappingEffectParameter_FarClip = virtualShadowMappingEffect.Parameters["FarClip"];
+            virtualShadowMappingEffectParameter_SizeBias = virtualShadowMappingEffect.Parameters["SizeBias"];
 
-            virtualShadowMappingEffect_Technique_VSM = virtualShadowMappingEffect.Techniques["DrawVSM"];
-            virtualShadowMappingEffect_Technique_Depth = virtualShadowMappingEffect.Techniques["DrawDepth"];
+            virtualShadowMappingEffect_Technique_ZW = virtualShadowMappingEffect.Techniques["DrawDepthZW"];
+            virtualShadowMappingEffect_Technique_Linear = virtualShadowMappingEffect.Techniques["DrawDepthLinear"];
             //SSReflections
             //SSReflectionEffect = content.Load<Effect>("Shaders/SSReflectionEffect");
 

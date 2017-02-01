@@ -34,6 +34,9 @@ float lightIntensity = 1.0f;
 //Density of our light volume if we render it that way
 float lightVolumeDensity = 1;
 
+float ShadowMapSize = 512;
+float DepthBias = 0.02;
+
 //For shadow mapping
 float4x4 LightViewProjectionPositiveX;
 float4x4 LightViewProjectionNegativeX;
@@ -154,6 +157,52 @@ float chebyshevUpperBound(float distance, float3 texCoord)
 	float p_max = variance / (variance + d * d);
 
 	return p_max;
+}
+
+float SampleShadowMap(float3 texCoord)
+{
+	texCoord.z = -texCoord.z;
+	return 1 - shadowCubeMap.SampleLevel(shadowCubeMapSampler, texCoord, 0).r;
+}
+
+float GetVariableBias(float nDotL)
+{
+	//return /*(1 - abs(nDotL)) * DepthBias;*/clamp(0.001 * tan(acos(nDotL)), 0, DepthBias);
+	return clamp(0.001 * sqrt(1 - nDotL * nDotL) / nDotL, 0, DepthBias);
+}
+
+float CalcShadowTermPCF(float linearDepthLV, float ndotl, float3 shadowTexCoord)
+{
+	float lightTerm = 0;
+
+	//float2 fractionals = frac(ShadowMapSize * shadowTexCoord);
+
+	////safe to assume it's a square
+	//float size = 1.0f / ShadowMapSize;
+
+	float variableBias = GetVariableBias(ndotl);
+
+	float testDepth = linearDepthLV - variableBias;
+	//Center
+	lightTerm = testDepth < SampleShadowMap(shadowTexCoord);
+
+	////Right
+	//lightTerm += (testDepth < SampleShadowMap(shadowTexCoord + float3(size, 0,0)) * fractionals.x;
+
+	////Left
+	//lightTerm += (testDepth < SampleShadowMap(shadowTexCoord + float3(-size, 0,0)) * (1- fractionals.x);
+
+	////Top
+	//lightTerm += (testDepth < SampleShadowMap(shadowTexCoord + float3(0, size,0)) * fractionals.y;
+
+	////Bot
+	//lightTerm += (testDepth < SampleShadowMap(shadowTexCoord + float3(0, -size,0)) * (1 - fractionals.y);
+
+	////samples[1] = (light_space_depth - variableBias < ShadowMap.SampleLevel(pointSampler, shadow_coord + float2(size, 0), 0).r) * fractionals;
+	//
+	//lightTerm /= 3;
+
+	return lightTerm;
 }
 
 //Plain Shadow Depth difference, no bias
@@ -351,6 +400,7 @@ PixelShaderOutput VolumetricPixelShaderFunction(VertexShaderOutput input)
 	float linDepth = DepthMap.SampleLevel(PointSampler, texCoord, 0).r;
 
 	//Basically extend the depth of this ray to the end of the far plane, this gives us the position of the sphere only
+	//todo: needed?
 	float3 cameraDirVS = input.PositionVS.xyz * (FarClip / -input.PositionVS.z);
 
 	//compute ViewSpace position
@@ -379,6 +429,7 @@ PixelShaderOutput VolumetricPixelShaderFunction(VertexShaderOutput input)
 	float distanceCtoB = alpha * distanceLtoC;
 	float distanceCtoR = distance(cameraPosition, positionFromDepthVS);
 
+	//Position of B
 	float3 b_vector = distanceCtoB * cameraDirection + cameraPosition;
 
 	float totalVolumePassed = 0;
@@ -544,7 +595,7 @@ PixelShaderOutput BasePixelShaderFunctionShadow(PixelShaderInput input)
 
 		float depthInLS = getDepthInLS(float4(input.PositionVS, 1), lightVectorWS);
 
-		float shadowVSM = chebyshevUpperBound(depthInLS, lightVectorWS);
+		float shadowVSM = CalcShadowTermPCF(depthInLS, NdL, lightVectorWS);// chebyshevUpperBound(depthInLS, lightVectorWS);
 
 		float3 diffuseLight = float3(0, 0, 0);
 		float3 specular = float3(0, 0, 0);
@@ -788,7 +839,7 @@ technique ShadowedVolume
 {
     pass Pass1
     {
-        VertexShader = compile vs_4_0 VertexShaderFunction();
-        PixelShader = compile ps_4_0 VolumetricPixelShaderFunctionShadowed();
+        VertexShader = compile vs_5_0 VertexShaderFunction();
+        PixelShader = compile ps_5_0 VolumetricPixelShaderFunctionShadowed();
     }
 }

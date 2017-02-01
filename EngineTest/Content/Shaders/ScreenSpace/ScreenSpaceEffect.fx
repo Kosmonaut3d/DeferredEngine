@@ -5,6 +5,10 @@ float4x4 InverseViewProjection;
 float4x4 Projection;
 float4x4 ViewProjection;
 
+float2 Resolution = float2(1280, 800);
+
+float3 FrustumCorners[4]; //In Viewspace!
+
 #include "helper.fx"
 
 Texture2D NormalMap;
@@ -40,19 +44,17 @@ SamplerState blurSamplerLinear
     MinFilter = LINEAR;
     Mipfilter = POINT;
 };
-       
+
 float FalloffMin = 0.000001f;
 float FalloffMax = 0.002f;
-  
+
 int Samples = 8;
 
 float Strength = 4;
 
 float SampleRadius = 0.05f;
 
-float FarClip = 500;
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
 //  STRUCT DEFINITIONS
 
 struct VertexShaderInput
@@ -65,7 +67,7 @@ struct VertexShaderOutput
 {
     float4 Position : POSITION0;
     float2 TexCoord : TEXCOORD0;
-    float3 viewDirVS : TEXCOORD2;
+	float3 ViewRay : TEXCOORD1;
 };
 
 struct VertexShaderOutputBlur
@@ -77,6 +79,21 @@ struct VertexShaderOutputBlur
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  FUNCTION DEFINITIONS
 
+float3 GetFrustumRay(float2 texCoord)
+{
+	float index = texCoord.x + (texCoord.y * 2);
+	return FrustumCorners[index];
+}
+
+float3 GetFrustumRay2(float2 texCoord)
+{
+	float3 x1 = lerp(FrustumCorners[0], FrustumCorners[1], texCoord.x);
+	float3 x2 = lerp(FrustumCorners[2], FrustumCorners[3], texCoord.x);
+	float3 outV = lerp(x1, x2, texCoord.y);
+	return outV;
+}
+
+
  //  DEFAULT LIGHT SHADER FOR MODELS
 VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 {
@@ -84,7 +101,7 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
     output.Position = float4(input.Position, 1);
     //align texture coordinates
     output.TexCoord = input.TexCoord;
-    output.viewDirVS = input.Position.xyz;
+	output.ViewRay = GetFrustumRay(input.TexCoord);
     return output;
 }
 
@@ -106,88 +123,105 @@ float3 randomNormal(float2 tex)
     return normalize(float3(noiseX, noiseY, noiseZ));
 }
 
+float3 getPosition(float2 texCoord)
+{
+	float linearDepth = DepthMap.SampleLevel(texSampler, texCoord, 0).r;
+	return GetFrustumRay2(texCoord) * linearDepth;
+}
+
+float weightFunction(float3 vec3, float radius)
+{
+	// NVIDIA's weighting function
+	return 1.0 - /*length(vec3) / radius;*/pow(length(vec3) / radius, 2.0);
+}
+
 float4 PixelShaderFunction(VertexShaderOutput input) : SV_Target
 {
+	const float3 kernel[] =
+	{
+	float3(0.2024537f, 0.841204f, -0.9060141f),
+	float3(-0.2200423f, 0.6282339f, -0.8275437f),
+	float3(-0.7578573f, -0.5583301f, 0.2347527f),
+	float3(-0.4540417f, -0.252365f, 0.0694318f),
+	float3(0.3677659f, 0.1086345f, -0.4466777f),
+	float3(0.8775856f, 0.4617546f, -0.6427765f),
+	float3(-0.8433938f, 0.1451271f, 0.2202872f),
+	float3(-0.4037157f, -0.8263387f, 0.4698132f),
+	float3(0.7867433f, -0.141479f, -0.1567597f),
+	float3(0.4839356f, -0.8253108f, -0.1563844f),
+	float3(0.4401554f, -0.4228428f, -0.3300118f),
+	float3(0.0019193f, -0.8048455f, 0.0726584f),
+	float3(-0.0483353f, -0.2527294f, 0.5924745f),
+	float3(-0.4192392f, 0.2084218f, -0.3672943f),
+	float3(-0.6657394f, 0.6298575f, 0.6342437f),
+	float3(-0.0001783f, 0.2834622f, 0.8343929f),
+	};
+
 	float2 texCoord = float2(input.TexCoord);
 
 	//get normal data from the NormalMap
 	float4 normalData = NormalMap.Sample(texSampler, texCoord);
 	//tranform normal back into [-1,1] range
-	float3 normalVS = decode(normalData.xyz); //2.0f * normalData.xyz - 1.0f;    //could do mad
+	float3 currentNormal = decode(normalData.xyz); //2.0f * normalData.xyz - 1.0f;    //could do mad
 
-	float depth = DepthMap.Sample(texSampler, texCoord).r;
-	//Ignore sky!
-	[branch]
-	if (depth > 0.9999999) //Out of range
+	float linearDepth = DepthMap.Sample(texSampler, texCoord).r;
+
+	if (linearDepth > 0.99999f)
 	{
-		return float4(1, 0, 0, 0);
+		return float4(1, 1, 1, 1);
 	}
-	else
+	float3 currentPos = input.ViewRay * linearDepth;
+
+	//alternative 
+	//currentPos = getPosition(texCoord);
+
+	float currentDistance = -input.ViewRay.z;
+
+	float2 aspectRatio = float2(min(1, Resolution.y / Resolution.x), min(1.0f, Resolution.x / Resolution.y));
+
+	float amount = 1.0;
+
+	float3 noise = randomNormal(texCoord);
+
+	//HBAO
+	for (int i = 0; i < Samples; i++)
 	{
-		float3 randNor = randomNormal(mul(float4(input.TexCoord,0,0), ViewProjection).rg); //
+		float3 kernelVec = reflect(kernel[i], noise);
+		kernelVec.xy * aspectRatio;
 
-		const float3 sampleSphere[] =
+		float radius = SampleRadius;
+
+		kernelVec.xy = (kernelVec.xy / currentDistance) * radius;
+
+		float biggestAngle = 0.0f;
+
+		float wAO = 0.0;
+
+		for (int b = 1; b <= 4; b++)
 		{
-			float3(0.2024537f, 0.841204f, -0.9060141f),
-			float3(-0.2200423f, 0.6282339f, -0.8275437f),
-			float3(0.3677659f, 0.1086345f, -0.4466777f),
-			float3(0.8775856f, 0.4617546f, -0.6427765f),
-			float3(0.7867433f, -0.141479f, -0.1567597f),
-			float3(0.4839356f, -0.8253108f, -0.1563844f),
-			float3(0.4401554f, -0.4228428f, -0.3300118f),
-			float3(0.0019193f, -0.8048455f, 0.0726584f),
-			float3(-0.7578573f, -0.5583301f, 0.2347527f),
-			float3(-0.4540417f, -0.252365f, 0.0694318f),
-			float3(-0.0483353f, -0.2527294f, 0.5924745f),
-			float3(-0.4192392f, 0.2084218f, -0.3672943f),
-			float3(-0.8433938f, 0.1451271f, 0.2202872f),
-			float3(-0.4037157f, -0.8263387f, 0.4698132f),
-			float3(-0.6657394f, 0.6298575f, 0.6342437f),
-			float3(-0.0001783f, 0.2834622f, 0.8343929f),
-		};
+			float3 sampleVec = getPosition(texCoord + kernelVec.xy * b / 4.0f) - currentPos;
 
-		float3 positionWVS = float3(input.TexCoord, depth);
+			float sampleAngle = dot(normalize(sampleVec), currentNormal);
 
-		float result = 0;
+			//sampleAngle *= step(0.3, sampleAngle);
 
-		float radius = SampleRadius * (1 - depth);
+			if (sampleAngle > biggestAngle)
+			{
+				wAO += weightFunction(sampleVec, radius) * (sampleAngle - biggestAngle);
 
-		[unroll]
-		for (uint i = 0; i < Samples; i++)
-		{
-			float3 offset = reflect(sampleSphere[i], randNor);
-
-			//reverse the sign if the normal is looking backward
-			offset = sign(dot(offset, normalVS)) * offset; //
-			offset.y = -offset.y;
-			float3 ray = positionWVS + offset * radius;
-
-			//outside of view
-			if ((saturate(ray.x) != ray.x) || (saturate(ray.y) != ray.y))
-				continue;
-
-
-			//    //sample
-
-			float depthSample = DepthMap.SampleLevel(texSampler, ray.xy, 0).r;
-
-			float depthDiff = (depth - depthSample);
-
-			float occlusion = depthDiff;// *(1 - depth);
-
-			float falloff = 1 - saturate(depthDiff * (1 - depth) - FalloffMin) / (FalloffMax - FalloffMin);
-			//    
-			
-			occlusion *= falloff;
-
-			result += occlusion;
-			//    
+				biggestAngle = sampleAngle;
+			}
 		}
-		result /= Samples;
-		result = saturate(1 - result * Strength * 200);
 
-		return float4(result, 0, 0, 0);
+		biggestAngle = wAO;
+
+		biggestAngle = max(0, biggestAngle);
+		
+		amount -= biggestAngle / Samples *Strength;
 	}
+
+	return float4(amount, amount, amount, amount);
+
 }
 
 

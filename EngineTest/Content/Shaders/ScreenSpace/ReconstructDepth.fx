@@ -11,8 +11,6 @@ float3 FrustumCorners[4]; //In Viewspace!
 
 float FarClip;
 
-float2 resolution = float2(1280, 800);
-
 Texture2D DepthMap;
 
 SamplerState texSampler

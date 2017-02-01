@@ -89,7 +89,7 @@ namespace DeferredEngine.Main
                 angleY: 0,
                 angleZ: 0,
                 scale: 0.1f,
-                hasStaticPhysics: true);
+                hasStaticPhysics: false);//CHANGE BACK
 
             //AddEntity(model: _assets.CloneTrooper,
             //    position: new Vector3(20, 0, 10),
@@ -217,7 +217,7 @@ namespace DeferredEngine.Main
                 intensity: 120,
                 castShadows: true,
                 shadowResolution: 1024,
-                softShadowBlurAmount: 6,
+                softShadowBlurAmount: 0,
                 staticShadow: false,
                 isVolumetric: false);
 
@@ -249,18 +249,17 @@ namespace DeferredEngine.Main
             //            AddPointLight(position, distance, FastRand.NextColor(), 50, false, false, 0.9f);
             //        }
 
-
-            // NOT WORKING RIGHT NOW
-            AddDirectionalLight(direction: new Vector3(0.2f, -0.2f, -1),
-                intensity: 100,
-                color: Color.White,
-                position: Vector3.UnitZ * 2,
-                drawShadows: true,
-                shadowWorldSize: 250,
-                shadowDepth: 180,
-                shadowResolution: 2048,
-                shadowFilteringFiltering: DirectionalLightSource.ShadowFilteringTypes.Poisson,
-                screenspaceShadowBlur: false);
+            
+            //AddDirectionalLight(direction: new Vector3(0.2f, -0.2f, -1),
+            //    intensity: 100,
+            //    color: Color.White,
+            //    position: Vector3.UnitZ * 2,
+            //    drawShadows: true,
+            //    shadowWorldSize: 250,
+            //    shadowDepth: 180,
+            //    shadowResolution: 512,
+            //    shadowFilteringFiltering: DirectionalLightSource.ShadowFilteringTypes.SoftPCF3x,
+            //    screenspaceShadowBlur: false);
         }
 
 

@@ -36,6 +36,7 @@ namespace DeferredEngine.Main
 
         public struct EditorSendData
         {
+            public TransformableObject SelectedObject;
             public int SelectedObjectId;
             public Vector3 SelectedObjectPosition;
             public bool GizmoTransformationMode;
@@ -288,10 +289,12 @@ namespace DeferredEngine.Main
                 return new EditorSendData {SelectedObjectId = 0, SelectedObjectPosition = Vector3.Zero};
             return new EditorSendData
             {
+                SelectedObject = SelectedObject,
                 SelectedObjectId = SelectedObject.Id,
                 SelectedObjectPosition = SelectedObject.Position,
                 GizmoTransformationMode = _gizmoTransformationMode,
-                GizmoMode =  _gizmoMode
+                GizmoMode =  _gizmoMode,
+                
             };
         }
 

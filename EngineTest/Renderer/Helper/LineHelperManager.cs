@@ -82,7 +82,7 @@ namespace DeferredEngine.Renderer.Helper
                         Shaders.LineEffect.CurrentTechnique.Passes[0].Apply();
 
                         //Gather
-                        graphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.LineList, line.Verts, 0, 2, line.Indices,
+                        graphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.LineList, line.Verts, 0, 2, LineHelper.Indices,
                             0,
                             1);
                     

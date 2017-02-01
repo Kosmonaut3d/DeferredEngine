@@ -147,6 +147,8 @@ namespace DeferredEngine.Renderer.RenderModules
 
             _graphicsDevice.SetRenderTargets(renderTargetLightBinding);
             _graphicsDevice.Clear(ClearOptions.Target, Color.TransparentBlack, 1, 0);
+            _graphicsDevice.BlendState = _lightBlendState;
+
             DrawPointLights(pointLights, cameraOrigin, gameTime);
             DrawDirectionalLights(dirLights, cameraOrigin);
 
@@ -178,8 +180,7 @@ namespace DeferredEngine.Renderer.RenderModules
         /// <param name="gameTime"></param>
         private void DrawPointLights(List<PointLightSource> pointLights, Vector3 cameraOrigin, GameTime gameTime)
         {
-            _graphicsDevice.BlendState = _lightBlendState;
-
+            
             if (pointLights.Count < 1) return;
 
             ModelMeshPart meshpart = _assets.SphereMeshPart;
@@ -310,7 +311,8 @@ namespace DeferredEngine.Renderer.RenderModules
             if (_viewProjectionHasChanged)
             {
                 lightSource.DirectionViewSpace = Vector3.Transform(lightSource.Direction, _viewIT);
-                lightSource.LightViewProjectionViewSpace = _inverseView * lightSource.LightViewProjection;
+                lightSource.LightViewProjection_ViewSpace = _inverseView * lightSource.LightViewProjection;
+                lightSource.LightView_ViewSpace = _inverseView*lightSource.LightView;
             }
 
             Shaders.deferredDirectionalLightParameter_LightColor.SetValue(lightSource.Color.ToVector3());

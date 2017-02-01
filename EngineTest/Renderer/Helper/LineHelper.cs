@@ -6,8 +6,8 @@ namespace DeferredEngine.Renderer.Helper
 {
     public class LineHelper
     {
-        public readonly VertexPositionColor[] Verts;
-        public readonly short[] Indices = {0, 1};
+        public VertexPositionColor[] Verts;
+        public static short[] Indices = {0, 1};
 
         private Vector3 _start;
         private Vector3 _end;
