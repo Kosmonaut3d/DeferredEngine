@@ -249,7 +249,7 @@ namespace DeferredEngine.Main
             //            AddPointLight(position, distance, FastRand.NextColor(), 50, false, false, 0.9f);
             //        }
 
-            
+
             //AddDirectionalLight(direction: new Vector3(0.2f, -0.2f, -1),
             //    intensity: 100,
             //    color: Color.White,
