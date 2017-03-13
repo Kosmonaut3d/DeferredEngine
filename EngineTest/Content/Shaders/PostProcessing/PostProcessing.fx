@@ -77,18 +77,27 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 float radiusX = 0.6;
 float radiusY = 0.2;
 
-float4 VignettePixelShaderFunction(float4 pos : SV_POSITION, float2 texCoord : TEXCOORD0) : SV_TARGET0
+//float4 VignettePixelShaderFunction(float4 pos : SV_POSITION, float2 texCoord : TEXCOORD0) : SV_TARGET0
+//{
+//    float3 base = tex2D(TextureSampler, texCoord.xy).rgb;
+//
+//    base = ColorSCurve(base);
+//
+//    return float4(base,1);
+//}
+
+float3 ToneMapFilmic_Hejl2015(float3 hdr, float whitePt)
 {
-    float3 base = tex2D(TextureSampler, texCoord.xy).rgb;
-
-    base = ColorSCurve(base);
-
-    return float4(base,1);
+	float4 vh = float4(hdr, whitePt);
+	float4 va = (1.425 * vh) + 0.05f;
+	float4 vf = ((vh * va + 0.004f) / ((vh * (va + 0.55f) + 0.0491f))) - 0.0821f;
+	return vf.rgb / vf.www;
 }
 
 float4 VignetteChromaShiftPixelShaderFunction(float4 pos : SV_POSITION, float2 texCoord : TEXCOORD0) : SV_TARGET0
 {
     float3 base = tex2D(TextureSampler, texCoord).rgb ;
+
 
     //float chromaStrength = (base.r + base.g + base.b) / 3;
 
@@ -98,7 +107,10 @@ float4 VignetteChromaShiftPixelShaderFunction(float4 pos : SV_POSITION, float2 t
     
 	base.r = chromaR;
 
+	base.rgb = ToneMapFilmic_Hejl2015(base.rgb, 1.1f);
+
 	base = pow(abs(base), 0.4545454545f);
+
 
     base = ColorSCurve(base);
 
@@ -126,7 +138,7 @@ technique Vignette
     {
 
 		VertexShader = compile vs_4_0 VertexShaderFunction();
-        PixelShader = compile ps_5_0 VignettePixelShaderFunction();
+        PixelShader = compile ps_5_0 BasePixelShaderFunction();
     }
 }
 
