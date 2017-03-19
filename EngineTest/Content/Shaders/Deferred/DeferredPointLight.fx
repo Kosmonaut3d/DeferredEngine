@@ -175,10 +175,10 @@ float CalcShadowTermPCF(float linearDepthLV, float ndotl, float3 shadowTexCoord)
 {
 	float lightTerm = 0;
 
-	//float2 fractionals = frac(ShadowMapSize * shadowTexCoord);
+	float2 fractionals = frac(ShadowMapSize * shadowTexCoord);
 
 	////safe to assume it's a square
-	//float size = 1.0f / ShadowMapSize;
+	/*float size = 1.0f / ShadowMapSize;*/
 
 	float variableBias = GetVariableBias(ndotl);
 
@@ -186,21 +186,21 @@ float CalcShadowTermPCF(float linearDepthLV, float ndotl, float3 shadowTexCoord)
 	//Center
 	lightTerm = testDepth < SampleShadowMap(shadowTexCoord);
 
-	////Right
+	//////Right
 	//lightTerm += (testDepth < SampleShadowMap(shadowTexCoord + float3(size, 0,0)) * fractionals.x;
 
-	////Left
+	//////Left
 	//lightTerm += (testDepth < SampleShadowMap(shadowTexCoord + float3(-size, 0,0)) * (1- fractionals.x);
 
-	////Top
+	//////Top
 	//lightTerm += (testDepth < SampleShadowMap(shadowTexCoord + float3(0, size,0)) * fractionals.y;
 
-	////Bot
+	//////Bot
 	//lightTerm += (testDepth < SampleShadowMap(shadowTexCoord + float3(0, -size,0)) * (1 - fractionals.y);
 
 	////samples[1] = (light_space_depth - variableBias < ShadowMap.SampleLevel(pointSampler, shadow_coord + float2(size, 0), 0).r) * fractionals;
 	//
-	//lightTerm /= 3;
+	//ligitghtTerm /= 5;
 
 	return lightTerm;
 }

@@ -125,7 +125,7 @@ float4 BasePixelShaderFunction(float4 pos : SV_POSITION, float2 texCoord : TEXCO
 	float3 base = tex2D(TextureSampler, texCoord).rgb;
 
 	base = pow(abs(base), 0.4545454545f);
-
+	base = ColorSCurve(base);
 	return float4(base,1);
 }
 

@@ -632,10 +632,9 @@ namespace DeferredEngine.Renderer
                     if (!light.StaticShadows || light.shadowMapCube == null)
                     {
                         CreateShadowCubeMap(light, light.ShadowResolution, meshMaterialLibrary, entities);
-
-                        //todo: Check if we actually need to change camea.HasChanged
-                        //camera.HasChanged = true;
+                        
                         light.HasChanged = false;
+                        camera.HasChanged = true;
                     }
 
 
