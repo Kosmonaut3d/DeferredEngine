@@ -79,6 +79,8 @@ namespace DeferredEngine.Entities
             IsEnabled = true;
 
             TransformDirectionToAngles();
+
+            Name = GetType().Name + " " + Id;
         }
 
         public Vector3 Direction
@@ -132,6 +134,8 @@ namespace DeferredEngine.Entities
         {
             get { return new DirectionalLightSource(Color, Intensity, Direction, Position, DrawShadows, ShadowSize, ShadowDepth, ShadowResolution, ShadowFiltering, false, _staticShadow); }
         }
+
+        public override string Name { get; set; }
 
         public void ApplyShader()
         {

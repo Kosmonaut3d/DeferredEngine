@@ -5,8 +5,10 @@ using DeferredEngine.Entities.Editor;
 using DeferredEngine.Main;
 using DeferredEngine.Recources;
 using DeferredEngine.Renderer.Helper;
+using HelperSuite.GUIHelper;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 
 namespace DeferredEngine.Renderer.RenderModules
 {
@@ -21,6 +23,7 @@ namespace DeferredEngine.Renderer.RenderModules
 
         private double _mouseMoved;
         private bool _mouseMovement;
+        private readonly double mouseMoveTimer = 400;
 
         public void Initialize(GraphicsDevice graphics, Assets assets)
         {
@@ -35,11 +38,17 @@ namespace DeferredEngine.Renderer.RenderModules
 
         public void Update(GameTime gameTime)
         {
+            if (GameStats.UIIsHovered || Input.mouseState.RightButton == ButtonState.Pressed)
+            {
+                _mouseMovement = false;
+                return;
+            }
+
             if (Input.mouseState != Input.mouseLastState)
             {
                 //reset the timer!
 
-                _mouseMoved = gameTime.TotalGameTime.TotalMilliseconds + 500;
+                _mouseMoved = gameTime.TotalGameTime.TotalMilliseconds + mouseMoveTimer;
                 _mouseMovement = true;
             }
 
@@ -191,10 +200,9 @@ namespace DeferredEngine.Renderer.RenderModules
                 ? _assets.EditorArrow
                 : _assets.EditorArrowRound;
 
-            foreach (ModelMesh mesh in model.Meshes)
-            {
-                foreach (ModelMeshPart meshpart in mesh.MeshParts)
-                {
+
+            ModelMeshPart meshpart = model.Meshes[0].MeshParts[0];
+                
                     Shaders.IdRenderEffectDrawId.Apply();
 
                     _graphicsDevice.SetVertexBuffer(meshpart.VertexBuffer);
@@ -205,8 +213,8 @@ namespace DeferredEngine.Renderer.RenderModules
                     int startIndex = meshpart.StartIndex;
 
                     _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset, startIndex, primitiveCount);
-                }
-            }
+                
+            
         }
 
 

@@ -1310,7 +1310,7 @@ namespace DeferredEngine.Renderer
                 _graphicsDevice.SetRenderTarget(_renderTargetScreenSpaceEffectBlurFinal);
 
                 Shaders.ScreenSpaceEffectParameter_InverseResolution.SetValue(new Vector2(1.0f / _renderTargetScreenSpaceEffectUpsampleBlurHorizontal.Width,
-                    1.0f / _renderTargetScreenSpaceEffectUpsampleBlurHorizontal.Height) * 2);
+                    1.0f / _renderTargetScreenSpaceEffectUpsampleBlurHorizontal.Height)*0.5f);
                 Shaders.ScreenSpaceEffectParameter_SSAOMap.SetValue(_renderTargetScreenSpaceEffectUpsampleBlurHorizontal);
                 Shaders.ScreenSpaceEffectTechnique_BlurHorizontal.Passes[0].Apply();
 

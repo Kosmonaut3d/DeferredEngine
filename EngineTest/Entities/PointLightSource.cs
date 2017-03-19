@@ -71,7 +71,7 @@ namespace DeferredEngine.Entities
             _lightVolumeDensity = volumeDensity;
             IsEnabled = isEnabled;
             Id = IdGenerator.GetNewId();
-
+            Name = GetType().Name + " " + Id;
         }
 
         public Color Color
@@ -116,7 +116,9 @@ namespace DeferredEngine.Entities
         {
             get { return new PointLightSource(Position, Radius, Color, Intensity, DrawShadow, IsVolumetric, ShadowResolution, SoftShadowBlurAmount, StaticShadows);}
         }
-        
+
+        public override string Name { get; set; }
+
         protected PointLightSource()
         {
 

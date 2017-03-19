@@ -20,8 +20,8 @@ namespace DeferredEngine.Renderer.RenderModules
 
         public int HoveredId;
 
-        private readonly Vector4 _hoveredColor = Color.White.ToVector4();
-        private readonly Vector4 _selectedColor = Color.Yellow.ToVector4();
+        private readonly Vector4 _hoveredColor = new Vector4(1,1,1,0.2f);
+        private readonly Vector4 _selectedColor = new Vector4(1,1,0,0.1f);
 
         private BillboardBuffer _billboardBuffer;
         private Assets _assets;
@@ -174,11 +174,9 @@ namespace DeferredEngine.Renderer.RenderModules
 
             Shaders.IdRenderEffectParameterWorldViewProj.SetValue(worldViewProj);
             Shaders.IdRenderEffectParameterColorId.SetValue(color.ToVector4());
-            foreach (ModelMesh mesh in assets.EditorArrow.Meshes)
-            {
-                foreach (ModelMeshPart meshpart in mesh.MeshParts)
-                {
-                    Shaders.IdRenderEffectDrawId.Apply();
+            ModelMeshPart meshpart = assets.EditorArrow.Meshes[0].MeshParts[0];
+
+            Shaders.IdRenderEffectDrawId.Apply();
 
                     _graphicsDevice.SetVertexBuffer(meshpart.VertexBuffer);
                     _graphicsDevice.Indices = (meshpart.IndexBuffer);
@@ -188,8 +186,7 @@ namespace DeferredEngine.Renderer.RenderModules
                     int startIndex = meshpart.StartIndex;
 
                     _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset, startIndex, primitiveCount);
-                }
-            }
+             
         }
 
         public void DrawOutlines(MeshMaterialLibrary meshMat, Matrix viewProjection, bool drawAll, int hoveredId, EditorLogic.EditorSendData editorData, bool mouseMoved)

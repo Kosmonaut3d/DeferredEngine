@@ -47,14 +47,23 @@ DrawNormal_VSOut DrawOutline_VertexShader(DrawNormal_VSIn input)
 
     float4 normal = mul(float4(input.Normal, 0), WorldViewProj);
 
-    /*if(normal.z < 0.3f)
-        normal *= 0;*/
-
+    /*if(normal.z < 0.03f)
+        normal *= 0;
+*/
     //if (normal.w < -0.2f)
     //    normal.w = -normal.w;
 
-    Output.Position = mul(input.Position, WorldViewProj) + float4(normalize(normal.rgb),0) * OutlineSize;
+	float factor = 0;
+	if (normal.z > 0.03f)
+		factor = OutlineSize;
 
+	//if (normal.w < -0.2f)
+	//    normal.w = -normal.w;
+
+	Output.Position = mul(input.Position, WorldViewProj) + normalize(float4(normal.rgb,0)) * factor;
+
+	//Output.Position = mul(input.Position + float4(input.Normal, 0)* OutlineSize, WorldViewProj); /*+ float4(normalize(normal.rgb),0) * OutlineSize*/;
+	//Output.Position = mul(input.Position, WorldViewProj); /*+ float4(normalize(normal.rgb),0) * OutlineSize*/;
 	Output.Normal = normal.rgb;
     
 
@@ -63,7 +72,9 @@ DrawNormal_VSOut DrawOutline_VertexShader(DrawNormal_VSIn input)
 
 float4 Outline_PixelShader(DrawNormal_VSOut input) : SV_Target
 {
-	if (input.Normal.z < 0.3f) discard;
+	if (input.Normal.z > 0.03) return float4(ColorId.rgb,0.8f);
+
+    if (input.Position.x % 8 + input.Position.y % 8 > 6) return float4(0, 0, 0, 0);
     return ColorId;
 }
 

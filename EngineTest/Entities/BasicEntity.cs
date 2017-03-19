@@ -21,6 +21,8 @@ namespace DeferredEngine.Entities
         public abstract bool IsEnabled { get; set; }
 
         public abstract TransformableObject Clone { get; }
+
+        public abstract string Name { get; set; }
     }
 
     public sealed class BasicEntity : TransformableObject
@@ -73,6 +75,8 @@ namespace DeferredEngine.Entities
             }  
         }
 
+        public override string Name { get; set; }
+
 
         public readonly TransformMatrix WorldTransform;
         private Matrix _worldOldMatrix = Matrix.Identity;
@@ -82,6 +86,7 @@ namespace DeferredEngine.Entities
         public BasicEntity(Model model, MaterialEffect material, Vector3 position, double angleZ, double angleX, double angleY, float scale, MeshMaterialLibrary library = null, Entity physicsObject = null)
         {
             Id = IdGenerator.GetNewId();
+            Name = GetType().Name + " " + Id;
             WorldTransform = new TransformMatrix(Matrix.Identity, Id);
             Model = model;
             Material = material;
@@ -102,6 +107,7 @@ namespace DeferredEngine.Entities
         public BasicEntity(Model model, MaterialEffect material, Vector3 position, Matrix rotationMatrix, float scale)
         {
             Id = IdGenerator.GetNewId();
+            Name = GetType().Name + " " + Id;
             WorldTransform = new TransformMatrix(Matrix.Identity, Id);
             Model = model;
             Material = material;
