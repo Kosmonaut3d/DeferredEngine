@@ -48,8 +48,6 @@ namespace DeferredEngine.Main
 
             _lightDescriptionList.AddElement(_lightEnableToggle = new GUITextBlockToggle(new Vector2(10, 250), new Vector2(240, 40), "enabled:", _assets.MonospaceFont, new Color(74, 74, 74), Color.White));
             
-
-
         }
 
         public void Update(GameTime gameTime, bool isActive, TransformableObject editorObject)

@@ -12,7 +12,7 @@ using Microsoft.Xna.Framework.Input;
 
 namespace DeferredEngine.Renderer.RenderModules
 {
-    public class IdRenderer
+    public class IdAndOutlineRenderer
     {
         GraphicsDevice _graphicsDevice;
 
@@ -25,6 +25,8 @@ namespace DeferredEngine.Renderer.RenderModules
 
         private BillboardBuffer _billboardBuffer;
         private Assets _assets;
+
+        private float OutlineSize = 1;
 
         public void Initialize(GraphicsDevice graphicsDevice, BillboardBuffer billboardBuffer, Assets assets)
         {
@@ -203,6 +205,8 @@ namespace DeferredEngine.Renderer.RenderModules
             //Selected entity
             if (selectedId != 0)
             {
+                //UPdate the size of our outlines!
+
                 if (!drawAll)
                     meshMat.Draw(MeshMaterialLibrary.RenderType.IdOutline, _graphicsDevice, viewProjection, false, false,
                         false, selectedId);

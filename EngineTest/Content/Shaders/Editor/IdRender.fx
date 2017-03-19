@@ -2,19 +2,26 @@
 matrix World;
 
 float4 ColorId = float4(0.8f, 0.8f, 0.8f, 1);
+float OutlineSize = 0.4f;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  STRUCT DEFINITIONS
 
 struct DrawBasic_VSIn
 {
-	float4 Position : POSITION0;
+	float4 Position : POSITION;
 };
 
 struct DrawNormal_VSIn
 {
-    float4 Position : SV_POSITION0;
+    float4 Position : POSITION;
     float3 Normal : NORMAL0;
+};
+
+struct DrawNormal_VSOut
+{
+	float4 Position : SV_POSITION;
+	float3 Normal : NORMAL0;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -34,26 +41,29 @@ float4 Id_PixelShader(DrawBasic_VSIn input): SV_Target
 }
 
 //Outline
-DrawBasic_VSIn DrawOutline_VertexShader(DrawNormal_VSIn input)
+DrawNormal_VSOut DrawOutline_VertexShader(DrawNormal_VSIn input)
 {
-    DrawBasic_VSIn Output;
+	DrawNormal_VSOut Output;
 
     float4 normal = mul(float4(input.Normal, 0), WorldViewProj);
 
-    if(normal.z < 0.03f)
-        normal *= 0;
+    /*if(normal.z < 0.3f)
+        normal *= 0;*/
 
     //if (normal.w < -0.2f)
     //    normal.w = -normal.w;
 
-    Output.Position = mul(input.Position, WorldViewProj) + normalize(normal) * 0.2f;
+    Output.Position = mul(input.Position, WorldViewProj) + float4(normalize(normal.rgb),0) * OutlineSize;
+
+	Output.Normal = normal.rgb;
     
 
     return Output;
 }
 
-float4 Outline_PixelShader(DrawBasic_VSIn input) : SV_Target
+float4 Outline_PixelShader(DrawNormal_VSOut input) : SV_Target
 {
+	if (input.Normal.z < 0.3f) discard;
     return ColorId;
 }
 

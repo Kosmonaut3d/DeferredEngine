@@ -12,7 +12,7 @@ namespace DeferredEngine.Renderer.RenderModules
 {
     public class EditorRender
     {
-        private IdRenderer _idRenderer;
+        private IdAndOutlineRenderer _idAndOutlineRenderer;
         private GraphicsDevice _graphicsDevice;
 
         private BillboardBuffer _billboardBuffer;
@@ -28,8 +28,8 @@ namespace DeferredEngine.Renderer.RenderModules
             _assets = assets;
 
             _billboardBuffer = new BillboardBuffer(Color.White, graphics);
-            _idRenderer = new IdRenderer();
-            _idRenderer.Initialize(graphics, _billboardBuffer, _assets);
+            _idAndOutlineRenderer = new IdAndOutlineRenderer();
+            _idAndOutlineRenderer.Initialize(graphics, _billboardBuffer, _assets);
 
         }
 
@@ -52,7 +52,7 @@ namespace DeferredEngine.Renderer.RenderModules
 
         public void SetUpRenderTarget(int width, int height)
         {
-            _idRenderer.SetUpRenderTarget(width, height);
+            _idAndOutlineRenderer.SetUpRenderTarget(width, height);
         }
 
         public void DrawBillboards(List<PointLightSource> lights, List<DirectionalLightSource> dirLights, Matrix staticViewProjection, Matrix view, EditorLogic.EditorSendData sendData)
@@ -130,7 +130,7 @@ namespace DeferredEngine.Renderer.RenderModules
 
         public void DrawIds(MeshMaterialLibrary meshMaterialLibrary, List<PointLightSource>lights, List<DirectionalLightSource> dirLights, Matrix staticViewProjection, Matrix view, EditorLogic.EditorSendData editorData)
         {
-            _idRenderer.Draw(meshMaterialLibrary, lights, dirLights, staticViewProjection, view, editorData, _mouseMovement);
+            _idAndOutlineRenderer.Draw(meshMaterialLibrary, lights, dirLights, staticViewProjection, view, editorData, _mouseMovement);
         }
 
         public void DrawEditorElements(MeshMaterialLibrary meshMaterialLibrary, List<PointLightSource> lights, List<DirectionalLightSource> dirLights, Matrix staticViewProjection, Matrix view, EditorLogic.EditorSendData editorData)
@@ -212,7 +212,7 @@ namespace DeferredEngine.Renderer.RenderModules
 
         public RenderTarget2D GetOutlines()
         {
-            return _idRenderer.GetRt();
+            return _idAndOutlineRenderer.GetRt();
         }
 
         /// <summary>
@@ -221,7 +221,7 @@ namespace DeferredEngine.Renderer.RenderModules
         /// <returns></returns>
         public int GetHoveredId()
         {
-            return _idRenderer.HoveredId;
+            return _idAndOutlineRenderer.HoveredId;
         }
     }
 }

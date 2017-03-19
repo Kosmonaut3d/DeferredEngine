@@ -97,7 +97,7 @@
     <Compile Include="Renderer\Renderer.cs" />
     <Compile Include="Renderer\Renderer_old.cs" />
     <Compile Include="Renderer\RenderModules\GUIRenderer.cs" />
-    <Compile Include="Renderer\RenderModules\IdRenderer.cs" />
+    <Compile Include="Renderer\RenderModules\IdAndOutlineRenderer.cs" />
     <Compile Include="Renderer\RenderModules\LightRenderer.cs" />
     <Compile Include="Renderer\RenderModules\TestShadow.cs" />
   </ItemGroup>

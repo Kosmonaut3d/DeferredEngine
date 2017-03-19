@@ -17,6 +17,7 @@ namespace DeferredEngine.Recources
         public static EffectParameter IdRenderEffectParameterWorld;
         public static EffectParameter IdRenderEffectParameterWorldViewProj;
         public static EffectParameter IdRenderEffectParameterColorId;
+        public static EffectParameter IdRenderEffectParameterOutlineSize;
 
         public static EffectPass IdRenderEffectDrawId;
         public static EffectPass IdRenderEffectDrawOutline;
@@ -317,6 +318,7 @@ namespace DeferredEngine.Recources
             IdRenderEffect = content.Load<Effect>("Shaders/Editor/IdRender");
             IdRenderEffectParameterWorldViewProj = IdRenderEffect.Parameters["WorldViewProj"];
             IdRenderEffectParameterColorId = IdRenderEffect.Parameters["ColorId"];
+            IdRenderEffectParameterOutlineSize = IdRenderEffect.Parameters["OutlineSize"];
             IdRenderEffectParameterWorld = IdRenderEffect.Parameters["World"];
 
             IdRenderEffectDrawId = IdRenderEffect.Techniques["DrawId"].Passes[0];
