@@ -106,13 +106,13 @@ namespace DeferredEngine.Main
                 angleZ: 0,
                 scale: 30);
 
-            //AddEntity(model: _assets.StanfordDragon,
-            //    materialEffect: _assets.BaseMaterial,
-            //    position: new Vector3(40, -10, 0),
-            //    angleX: Math.PI / 2,
-            //    angleY: 0,
-            //    angleZ: 0,
-            //    scale: 10);
+            AddEntity(model: _assets.StanfordDragon,
+                materialEffect: _assets.BaseMaterial,
+                position: new Vector3(40, -10, 0),
+                angleX: Math.PI / 2,
+                angleY: 0,
+                angleZ: 0,
+                scale: 10);
 
             /*AddEntity(model: _assets.Trabant, 
                 position: new Vector3(0, 0, 40), 
@@ -222,15 +222,15 @@ namespace DeferredEngine.Main
                 isVolumetric: false);
 
             //volumetric light!
-            AddPointLight(position: new Vector3(-4, 40, 66),
-                radius: 80,
-                color: Color.White,
-                intensity: 50,
-                castShadows: true,
-                shadowResolution: 1024,
-                staticShadow: false,
-                isVolumetric: true,
-                volumetricDensity: 3);
+            //AddPointLight(position: new Vector3(-4, 40, 66),
+            //    radius: 80,
+            //    color: Color.White,
+            //    intensity: 50,
+            //    castShadows: true,
+            //    shadowResolution: 1024,
+            //    staticShadow: false,
+            //    isVolumetric: true,
+            //    volumetricDensity: 3);
 
 
             // Spawn a lot of lights to test performance 

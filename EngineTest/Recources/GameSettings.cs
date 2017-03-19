@@ -311,14 +311,14 @@ namespace DeferredEngine.Recources
             g_EmissiveDraw = false;
             ssao_Active = true;
             g_PostProcessing = true;
-            g_TemporalAntiAliasing = true;
+            g_TemporalAntiAliasing = false;
             g_EnvironmentMapping = true;
-            g_SSReflection = true;
+            g_SSReflection = false;
 
             g_SSReflections_Samples = 13;
 
 
-            d_defaultMaterial = false;
+            d_defaultMaterial = true;
             SCurveStrength = _sCurveStrength;
             ChromaticAbberationStrength = _chromaticAbberationStrength;
             

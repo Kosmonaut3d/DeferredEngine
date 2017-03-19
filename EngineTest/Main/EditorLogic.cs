@@ -151,7 +151,7 @@ namespace DeferredEngine.Main
                     }
             }
 
-            if (Input.WasKeyPressed(Keys.Insert))
+            if (Input.WasKeyPressed(Keys.Insert) || (Input.keyboardState.IsKeyDown(Keys.LeftControl) && Input.WasKeyPressed(Keys.C)))
             {
                 if (SelectedObject is BasicEntity)
                 {
@@ -211,21 +211,19 @@ namespace DeferredEngine.Main
             }
             else //rotation
             {
-                if (gizmoId == 1)
-                {
-                    plane = new Plane(SelectedObject.Position, SelectedObject.Position + Vector3.UnitX,
-                        SelectedObject.Position + Vector3.UnitY);
-                }
-                else if (gizmoId == 2)
-                {
-                    plane = new Plane(SelectedObject.Position, SelectedObject.Position + Vector3.UnitX,
-                        SelectedObject.Position + Vector3.UnitZ);
-                }
-                else if (gizmoId == 3)
-                {
-                    plane = new Plane(SelectedObject.Position, SelectedObject.Position + Vector3.UnitZ,
-                        SelectedObject.Position + Vector3.UnitY);
-                }
+                //Z is up
+                Vector3 forwardVector3 = pos2 - pos1;
+                forwardVector3.Normalize();
+
+                //left
+                Vector3 leftVector3 = Vector3.Cross(Vector3.UnitZ, forwardVector3);
+
+                //UP
+                Vector3 upVector3 = Vector3.Cross(forwardVector3, leftVector3);
+
+                //alternative
+                plane = new Plane(SelectedObject.Position, SelectedObject.Position + upVector3,
+                        SelectedObject.Position + leftVector3);
             }
 
             float? d = ray.Intersects(plane);
@@ -264,17 +262,29 @@ namespace DeferredEngine.Main
 
                 diffL /= 10;
 
-                if (gizmoId == 1) //Z
+                //if (gizmoId == 1) //Z
+                //{
+                //    SelectedObject.AngleZ += diffL;
+                //}
+                //if (gizmoId == 2) //Z
+                //{
+                //    SelectedObject.AngleY += diffL;
+                //}
+                //if (gizmoId == 3) //Z
+                //{
+                //    SelectedObject.AngleX += diffL;
+                //}
+                if (gizmoId == 1)
                 {
-                    SelectedObject.AngleZ += diffL;
+                    SelectedObject.RotationMatrix = SelectedObject.RotationMatrix * Matrix.CreateRotationZ((float)diffL);
                 }
-                if (gizmoId == 2) //Z
+                if (gizmoId == 2)
                 {
-                    SelectedObject.AngleY += diffL;
+                    SelectedObject.RotationMatrix = SelectedObject.RotationMatrix * Matrix.CreateRotationY((float)diffL);
                 }
-                if (gizmoId == 3) //Z
+                if (gizmoId == 3)
                 {
-                    SelectedObject.AngleX += diffL;
+                    SelectedObject.RotationMatrix = SelectedObject.RotationMatrix * Matrix.CreateRotationX((float)diffL);
                 }
             }
 

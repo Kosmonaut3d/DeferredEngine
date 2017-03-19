@@ -4,8 +4,10 @@ using BEPUutilities;
 using DeferredEngine.Recources;
 using DeferredEngine.Recources.Helper;
 using DeferredEngine.Renderer.Helper;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Matrix = Microsoft.Xna.Framework.Matrix;
+using Quaternion = BEPUutilities.Quaternion;
 using Vector3 = Microsoft.Xna.Framework.Vector3;
 
 namespace DeferredEngine.Entities
@@ -14,9 +16,7 @@ namespace DeferredEngine.Entities
     {
         public abstract Vector3 Position { get; set; }
         public abstract int Id { get; set; }
-        public abstract double AngleZ { get; set; }
-        public abstract double AngleX { get; set; }
-        public abstract double AngleY { get; set; }
+        public abstract Matrix RotationMatrix { get; set; }
 
         public abstract bool IsEnabled { get; set; }
 
@@ -52,60 +52,29 @@ namespace DeferredEngine.Entities
             get { return _id; }
             set { _id = value; } }
 
-        private double _angleZ;
-        private double _angleX; //forward
-        private double _angleY;
+        public Matrix _rotationMatrix;
 
-        public override double AngleZ
+        public override Matrix RotationMatrix
         {
-            get
-            {
-                return _angleZ;
-            }
+            get { return _rotationMatrix; }
             set
             {
+                _rotationMatrix = value;
                 WorldTransform.HasChanged = true;
-                _angleZ = value;
             }
         }
-        public override double AngleX
-        {
-            get
-            {
-                return _angleX;
-            }
-            set
-            {
-                WorldTransform.HasChanged = true;
-                _angleX = value;
-            }
-        } //forward
-        public override double AngleY
-        {
-            get
-            {
-                return _angleY;
-            }
-            set
-            {
-                WorldTransform.HasChanged = true;
-                _angleY = value;
-            }
-        }
-
+        
         public override bool IsEnabled { get; set; }
 
         public override TransformableObject Clone {
             get
             {
-                return new BasicEntity(Model, Material, Position, AngleZ, AngleX, AngleY, Scale );   
+                return new BasicEntity(Model, Material, Position, RotationMatrix, Scale );   
             }  
         }
 
-        
 
         public readonly TransformMatrix WorldTransform;
-        public Matrix RotationMatrix;
         private Matrix _worldOldMatrix = Matrix.Identity;
         private Matrix _worldNewMatrix = Matrix.Identity;
         public readonly float Scale = 1;
@@ -114,25 +83,32 @@ namespace DeferredEngine.Entities
         {
             Id = IdGenerator.GetNewId();
             WorldTransform = new TransformMatrix(Matrix.Identity, Id);
-
-            Position = position;
-            AngleZ = angleZ;
-            AngleX = angleX;
-            AngleY = angleY;
-            Scale = scale;
-
-            RotationMatrix = Matrix.CreateRotationX((float)AngleX) * Matrix.CreateRotationY((float)AngleY) *
-                                  Matrix.CreateRotationZ((float)AngleZ);
-
-            Material = material;
             Model = model;
-
-            if(library!=null)
-            RegisterInLibrary(library);
-
-            if(physicsObject!=null)
-                RegisterPhysics(physicsObject);
+            Material = material;
+            Position = position;
+            Scale = scale;
             
+            RotationMatrix = Matrix.CreateRotationX((float)angleX) * Matrix.CreateRotationY((float)angleY) *
+                                  Matrix.CreateRotationZ((float)angleZ);
+
+            if (library != null)
+                RegisterInLibrary(library);
+
+            if (physicsObject != null)
+                RegisterPhysics(physicsObject);
+
+        }
+
+        public BasicEntity(Model model, MaterialEffect material, Vector3 position, Matrix rotationMatrix, float scale)
+        {
+            Id = IdGenerator.GetNewId();
+            WorldTransform = new TransformMatrix(Matrix.Identity, Id);
+            Model = model;
+            Material = material;
+            Position = position;
+            RotationMatrix = rotationMatrix;
+            Scale = scale;
+            RotationMatrix = rotationMatrix;
         }
 
         public void RegisterInLibrary(MeshMaterialLibrary library)
@@ -155,8 +131,8 @@ namespace DeferredEngine.Entities
         {
             if (_dynamicPhysicsObject == null)
             {
-                RotationMatrix = Matrix.CreateRotationX((float) AngleX)*Matrix.CreateRotationY((float) AngleY)*
-                                  Matrix.CreateRotationZ((float) AngleZ);
+                //RotationMatrix = Matrix.CreateRotationX((float) AngleX)*Matrix.CreateRotationY((float) AngleY)*
+                //                  Matrix.CreateRotationZ((float) AngleZ);
                 Matrix scaleMatrix = Matrix.CreateScale(Scale);
                 _worldOldMatrix = scaleMatrix* RotationMatrix * Matrix.CreateTranslation(Position);
 

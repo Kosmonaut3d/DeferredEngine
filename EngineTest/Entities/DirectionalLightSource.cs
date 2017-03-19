@@ -15,8 +15,7 @@ namespace DeferredEngine.Entities
         public bool HasChanged;
 
         public Vector3 DirectionViewSpace;
-
-
+        
         public readonly bool DrawShadows;
         public readonly float ShadowSize;
         public readonly float ShadowDepth;
@@ -110,47 +109,8 @@ namespace DeferredEngine.Entities
             set { _id = value; }
         }
 
-        private double _angleZ;
-        public override double AngleZ {
-            get
-            {
-                return _angleZ;
-            }
-            set
-            {
-                TransformAnglesToDirection(0,0, (float)(value - _angleZ));
-                _angleZ = value;
-            }
-        }
-
-        private double _angleX;
-        public override double AngleX {
-            get
-            {
-                return _angleX;
-            }
-            set
-            {
-                TransformAnglesToDirection((float)(value - _angleX), 0,0);
-                _angleX = value;
-            }
-        }
-
-        private double _angleY;
-
-        public override double AngleY
-        {
-            get
-            {
-                return _angleY;
-            }
-            set
-            {
-                TransformAnglesToDirection(0,(float)(value-_angleY), 0);
-                _angleY = value;
-            }
-        }
-
+        public override Matrix RotationMatrix { get; set; }
+        
         public override bool IsEnabled { get; set; }
 
         private void TransformAnglesToDirection(float angleX, float angleY, float angleZ)
@@ -167,9 +127,7 @@ namespace DeferredEngine.Entities
         {
             Trafo = Matrix.CreateLookAt(Vector3.Zero, Direction, Vector3.UnitZ);
         }
-
-        public Matrix RotationMatrix;
-
+        
         public override TransformableObject Clone
         {
             get { return new DirectionalLightSource(Color, Intensity, Direction, Position, DrawShadows, ShadowSize, ShadowDepth, ShadowResolution, ShadowFiltering, false, _staticShadow); }
