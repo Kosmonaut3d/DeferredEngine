@@ -36,6 +36,7 @@ namespace DeferredEngine.Main
         public readonly List<BasicEntity> BasicEntities = new List<BasicEntity>();
         public readonly List<PointLightSource> PointLights = new List<PointLightSource>();
         public readonly List<DirectionalLightSource> DirectionalLights = new List<DirectionalLightSource>();
+        public EnvironmentSample EnvironmentSample;
 
         //Which render target are we currently displaying?
         private int _renderModeCycle;
@@ -74,6 +75,8 @@ namespace DeferredEngine.Main
             //       Right now z is going up, it's not depth!
 
             Camera = new Camera(position: new Vector3(-88, -11f, 4), lookat: new Vector3(38, 8, 32));
+
+            EnvironmentSample = new EnvironmentSample(Camera.Position);
 
             ////////////////////////////////////////////////////////////////////////
             // GUI

@@ -46,7 +46,7 @@ namespace DeferredEngine.Main
         {
             _logic.Update(gameTime, isActive);
             _guiLogic.Update(gameTime, isActive, _editorLogic.SelectedObject);
-            _editorLogic.Update(gameTime, _logic.BasicEntities, _logic.PointLights, _logic.DirectionalLights, _editorReceivedDataBuffer, _logic.MeshMaterialLibrary);
+            _editorLogic.Update(gameTime, _logic.BasicEntities, _logic.PointLights, _logic.DirectionalLights, _logic.EnvironmentSample, _editorReceivedDataBuffer, _logic.MeshMaterialLibrary);
             _renderer.Update(gameTime, isActive);
             
             _debug.Update(gameTime);
@@ -79,7 +79,7 @@ namespace DeferredEngine.Main
         public void Draw(GameTime gameTime)
         {
             //Our renderer gives us information on what id is currently hovered over so we can update / manipulate objects in the logic functions
-            _editorReceivedDataBuffer = _renderer.Draw(_logic.Camera, _logic.MeshMaterialLibrary, _logic.BasicEntities, _logic.PointLights, _logic.DirectionalLights, _editorLogic.GetEditorData(), gameTime);
+            _editorReceivedDataBuffer = _renderer.Draw(_logic.Camera, _logic.MeshMaterialLibrary, _logic.BasicEntities, _logic.PointLights, _logic.DirectionalLights, _logic.EnvironmentSample, _editorLogic.GetEditorData(), gameTime);
             
             if (GameSettings.Editor_enable)
                 _guiRenderer.Draw(_guiLogic.GuiCanvas);

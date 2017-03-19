@@ -18,9 +18,9 @@ namespace DeferredEngine.Main
         private GUIList _objectDescriptionList;
         private GUITextBlock _objectDescriptionName;
         private GUITextBlock _objectDescriptionPos;
-
-        private GUIList _lightDescriptionList;
-        private GUITextBlockToggle _lightEnableToggle;
+        private GUITextBlockButton _objectButton1;
+        private GUITextBlockToggle _objectToggle1;
+        private GuiSliderFloatText _objectSlider1;
 
         private GUIStyle defaultStyle;
 
@@ -62,12 +62,17 @@ namespace DeferredEngine.Main
 
             _objectDescriptionList = new GUIList(Vector2.Zero, defaultStyle);
 
+            _rightSideList.AddElement(new GUITextBlockToggle(defaultStyle, "Enable Selection ")
+            {
+                ToggleField = typeof(GameStats).GetField("e_EnableSelection"),
+                Toggle = true
+            });
+
             _objectDescriptionList.AddElement(_objectDescriptionName = new GUITextBlock(defaultStyle, "objDescName"));
             _objectDescriptionList.AddElement(_objectDescriptionPos = new GUITextBlock(defaultStyle, "objDescName"));
-
-            _objectDescriptionList.AddElement(_lightDescriptionList = new GUIList(Vector2.Zero, new Vector2(300, 40), 0));
-
-            _lightDescriptionList.AddElement(_lightEnableToggle = new GUITextBlockToggle(defaultStyle, "enabled:"));
+            _objectDescriptionList.AddElement(_objectButton1 = new GUITextBlockButton(defaultStyle, "objButton1") {IsHidden = true});
+            _objectDescriptionList.AddElement(_objectToggle1 = new GUITextBlockToggle(defaultStyle, "objToggle1") { IsHidden = true });
+            _objectDescriptionList.AddElement(_objectSlider1 = new GuiSliderFloatText(defaultStyle, 0,1,2,"objToggle1") { IsHidden = true });
 
             _rightSideList.AddElement(_objectDescriptionList);
             //Options
@@ -75,6 +80,12 @@ namespace DeferredEngine.Main
 
             GuiListToggle optionList = new GuiListToggle(Vector2.Zero, defaultStyle);
             _rightSideList.AddElement(optionList);
+
+            optionList.AddElement(new GUITextBlockToggle(defaultStyle, "Temporal AA")
+            {
+                ToggleField = typeof(GameSettings).GetField("g_TemporalAntiAliasing"),
+                Toggle = GameSettings.g_TemporalAntiAliasing
+            });
 
             optionList.AddElement(new GUITextBlockToggle(defaultStyle, "Default Material")
             {
@@ -115,20 +126,49 @@ namespace DeferredEngine.Main
                     activeObjectPos = selectedObject.Position;
                 }
 
+                _objectButton1.IsHidden = true;
+                _objectToggle1.IsHidden = true;
+                _objectSlider1.IsHidden = true;
+
                 if (selectedObject is PointLightSource)
                 {
-                    _lightDescriptionList.IsHidden = false;
+                    _objectToggle1.IsHidden = false;
+                    _objectSlider1.IsHidden = false;
 
                     if (activeObject != selectedObject)
                     {
-                        _lightEnableToggle.ToggleObject = selectedObject;
-                        _lightEnableToggle.Toggle = (selectedObject as PointLightSource).IsEnabled;
-                        _lightEnableToggle.ToggleProperty = typeof(PointLightSource).GetProperty("IsEnabled");
+                        _objectToggle1.SetField(selectedObject, "IsVolumetric");
+                        _objectToggle1.Text = new StringBuilder("Volumetric");
+
+                        _objectSlider1.MinValue = 1.1f;
+                        _objectSlider1.MaxValue = 200;
+
+                        _objectSlider1.SetProperty(selectedObject, "Radius");
+                        _objectSlider1.SetText(new StringBuilder("Radius: "));
+
                     }
                 }
-                else
+
+                // Environment Sample!
+                if (selectedObject is EnvironmentSample)
                 {
-                    _lightDescriptionList.IsHidden = true;
+                    _objectButton1.IsHidden = false;
+                    _objectToggle1.IsHidden = false;
+
+                    if (activeObject != selectedObject)
+                    {
+                        _objectButton1.ButtonObject = selectedObject;
+                        _objectButton1.ButtonMethod = selectedObject.GetType().GetMethod("Update");
+
+                        _objectButton1.Text = new StringBuilder("Update Cubemap");
+
+                        _objectToggle1.ToggleObject = selectedObject;
+                        _objectToggle1.ToggleField = selectedObject.GetType().GetField("AutoUpdate");
+
+                        _objectToggle1.Toggle = (selectedObject as EnvironmentSample).AutoUpdate;
+
+                        _objectToggle1.Text = new StringBuilder("Update on move");
+                    }
                 }
 
                 activeObject = selectedObject;

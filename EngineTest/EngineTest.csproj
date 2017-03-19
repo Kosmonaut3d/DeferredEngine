@@ -58,6 +58,7 @@
     <Compile Include="Entities\BasicEntity.cs" />
     <Compile Include="Entities\DirectionalLightSource.cs" />
     <Compile Include="Entities\Editor\BillboardBuffer.cs" />
+    <Compile Include="Entities\EnvironmentSample.cs" />
     <Compile Include="Game1.cs" />
     <Compile Include="Main\EditorLogic.cs" />
     <Compile Include="Main\GUILogic.cs" />

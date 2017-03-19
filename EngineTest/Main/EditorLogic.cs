@@ -55,7 +55,7 @@ namespace DeferredEngine.Main
         /// <param name="gameTime"></param>
         /// <param name="entities"></param>
         /// <param name="data"></param>
-        public void Update(GameTime gameTime, List<BasicEntity> entities, List<PointLightSource> pointLights, List<DirectionalLightSource> dirLights, EditorReceivedData data, MeshMaterialLibrary meshMaterialLibrary)
+        public void Update(GameTime gameTime, List<BasicEntity> entities, List<PointLightSource> pointLights, List<DirectionalLightSource> dirLights, EnvironmentSample envSample, EditorReceivedData data, MeshMaterialLibrary meshMaterialLibrary)
         {
             if (!GameSettings.Editor_enable) return;
 
@@ -119,6 +119,13 @@ namespace DeferredEngine.Main
                         {
                             SelectedObject = directionalLightSource;
                             break;
+                        }
+                    }
+
+                    {
+                        if (envSample.Id == hoveredId)
+                        {
+                            SelectedObject = envSample;
                         }
                     }
                 }

@@ -35,7 +35,7 @@ namespace DeferredEngine.Renderer.RenderModules
             _assets = assets;
         }
 
-        public void Draw(MeshMaterialLibrary meshMat, List<PointLightSource> pointLights, List<DirectionalLightSource> dirLights, Matrix viewProjection, Matrix view, EditorLogic.EditorSendData editorData, bool mouseMoved)
+        public void Draw(MeshMaterialLibrary meshMat, List<PointLightSource> pointLights, List<DirectionalLightSource> dirLights, EnvironmentSample envSample, Matrix viewProjection, Matrix view, EditorLogic.EditorSendData editorData, bool mouseMoved)
         {
             if (editorData.GizmoTransformationMode)
             {
@@ -46,13 +46,13 @@ namespace DeferredEngine.Renderer.RenderModules
 
             if (mouseMoved)
             {
-                DrawIds(meshMat, pointLights, dirLights, viewProjection, view, editorData);
+                DrawIds(meshMat, pointLights, dirLights, envSample, viewProjection, view, editorData);
             }
 
             DrawOutlines(meshMat, viewProjection, mouseMoved, HoveredId, editorData, mouseMoved);
         }
 
-        public void DrawIds(MeshMaterialLibrary meshMat, List<PointLightSource> pointLights, List<DirectionalLightSource> dirLights, Matrix viewProjection, Matrix view, EditorLogic.EditorSendData editorData)
+        public void DrawIds(MeshMaterialLibrary meshMat, List<PointLightSource> pointLights, List<DirectionalLightSource> dirLights, EnvironmentSample envSample, Matrix viewProjection, Matrix view, EditorLogic.EditorSendData editorData)
         {
             
             _graphicsDevice.SetRenderTarget(_idRenderTarget2D);
@@ -64,7 +64,7 @@ namespace DeferredEngine.Renderer.RenderModules
             meshMat.Draw(MeshMaterialLibrary.RenderType.IdRender, _graphicsDevice, viewProjection);
 
             //Now onto the billboards
-            DrawBillboards(pointLights, dirLights, viewProjection, view);
+            DrawBillboards(pointLights, dirLights, envSample, viewProjection, view);
 
             //Now onto the gizmos
             DrawGizmos(viewProjection, editorData, _assets);
@@ -86,7 +86,7 @@ namespace DeferredEngine.Renderer.RenderModules
             HoveredId = IdGenerator.GetIdFromColor(retrievedColor[0]);
         }
 
-        public void DrawBillboards(List<PointLightSource> lights, List<DirectionalLightSource> dirLights, Matrix staticViewProjection, Matrix view)
+        public void DrawBillboards(List<PointLightSource> lights, List<DirectionalLightSource> dirLights, EnvironmentSample envSample, Matrix staticViewProjection, Matrix view)
         {
             _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
             _graphicsDevice.SetVertexBuffer(_billboardBuffer.VBuffer);
@@ -113,6 +113,17 @@ namespace DeferredEngine.Renderer.RenderModules
                 Shaders.BillboardEffectParameter_WorldViewProj.SetValue(world * staticViewProjection);
                 Shaders.BillboardEffectParameter_WorldView.SetValue(world * view);
                 Shaders.BillboardEffectParameter_IdColor.SetValue(IdGenerator.GetColorFromId(light.Id).ToVector3());
+                Shaders.BillboardEffect.CurrentTechnique.Passes[0].Apply();
+
+                _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2);
+            }
+
+            //foreach (var light in dirLights)
+            {
+                Matrix world = Matrix.CreateTranslation(envSample.Position);
+                Shaders.BillboardEffectParameter_WorldViewProj.SetValue(world * staticViewProjection);
+                Shaders.BillboardEffectParameter_WorldView.SetValue(world * view);
+                Shaders.BillboardEffectParameter_IdColor.SetValue(IdGenerator.GetColorFromId(envSample.Id).ToVector3());
                 Shaders.BillboardEffect.CurrentTechnique.Passes[0].Apply();
 
                 _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2);

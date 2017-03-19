@@ -46,6 +46,8 @@ namespace DeferredEngine.Renderer
         private Vector3[] _haltonSequence;
         private int _haltonSequenceIndex = -1;
         private const int HaltonSequenceLength = 16;
+
+        private int frameCounter = 0;
         
         //Projection Matrices and derivates used in shaders
         private Matrix _view;
@@ -228,8 +230,10 @@ namespace DeferredEngine.Renderer
         /// <param name="editorData">The data passed from our editor logic</param>
         /// <param name="gameTime"></param>
         /// <returns></returns>
-        public EditorLogic.EditorReceivedData Draw(Camera camera, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities, List<PointLightSource> pointLights, List<DirectionalLightSource> directionalLights, EditorLogic.EditorSendData editorData, GameTime gameTime)
+        public EditorLogic.EditorReceivedData Draw(Camera camera, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities, List<PointLightSource> pointLights, List<DirectionalLightSource> directionalLights, EnvironmentSample envSample, EditorLogic.EditorSendData editorData, GameTime gameTime)
         {
+            frameCounter++;
+
             //Reset the stat counter, so we can count stats/information for this frame only
             ResetStats();
             
@@ -244,10 +248,10 @@ namespace DeferredEngine.Renderer
 
             //Render EnvironmentMaps
             //We do this either when pressing C or at the start of the program (_renderTargetCube == null) or when the game settings want us to do it every frame
-            if ((Input.WasKeyPressed(Keys.C) && !DebugScreen.ConsoleOpen) || GameSettings.g_EnvironmentMappingEveryFrame || _renderTargetCubeMap == null)
+            if (/*(Input.WasKeyPressed(Keys.C) && !DebugScreen.ConsoleOpen) ||*/ envSample.NeedsUpdate || GameSettings.g_EnvironmentMappingEveryFrame /*|| _renderTargetCubeMap == null*/)
             {
-                Vector3 Position = _renderTargetCubeMap == null ? new Vector3(90, 0, 20) : camera.Position; 
-                DrawCubeMap(Position, meshMaterialLibrary, entities, pointLights, directionalLights, 300, gameTime, camera);
+                DrawCubeMap(envSample.Position, meshMaterialLibrary, entities, pointLights, directionalLights, 300, gameTime, camera);
+                envSample.NeedsUpdate = false;
             }
             
             //Update our view projection matrices if the camera moved
@@ -295,17 +299,17 @@ namespace DeferredEngine.Renderer
             DrawTestShadow(camera);
                 
             //Draw the elements that we are hovering over with outlines
-            if(GameSettings.Editor_enable)
-                _editorRender.DrawIds(meshMaterialLibrary, pointLights, directionalLights, _staticViewProjection, _view, editorData);
+            if(GameSettings.Editor_enable && GameStats.e_EnableSelection)
+                _editorRender.DrawIds(meshMaterialLibrary, pointLights, directionalLights, envSample, _staticViewProjection, _view, editorData);
 
             //Draw the final rendered image, change the output based on user input to show individual buffers/rendertargets
             RenderMode();
 
             //Additional editor elements that overlay our screen
-            if (GameSettings.Editor_enable)
+            if (GameSettings.Editor_enable && GameStats.e_EnableSelection)
             {
                 DrawMapToScreenToFullScreen(_editorRender.GetOutlines(), BlendState.Additive);
-                _editorRender.DrawEditorElements(meshMaterialLibrary, pointLights, directionalLights, _staticViewProjection, _view, editorData);
+                _editorRender.DrawEditorElements(meshMaterialLibrary, pointLights, directionalLights, envSample, _staticViewProjection, _view, editorData);
                 
                 if (editorData.SelectedObject != null)
                 {
@@ -352,8 +356,14 @@ namespace DeferredEngine.Renderer
         /// Another draw function, but this time for cubemaps. Doesn't need all the stuff we have in the main draw function
         /// </summary>
         /// <param name="origin">from where do we render the cubemap</param>
-        private void DrawCubeMap(Vector3 origin, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities,
-          List<PointLightSource> pointLights, List<DirectionalLightSource> dirLights, float farPlane, GameTime gameTime, Camera camera)
+        /// <param name="meshMaterialLibrary"></param>
+        /// <param name="entities"></param>
+        /// <param name="pointLights"></param>
+        /// <param name="dirLights"></param>
+        /// <param name="farPlane"></param>
+        /// <param name="gameTime"></param>
+        /// <param name="camera"></param>
+        private void DrawCubeMap(Vector3 origin, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities, List<PointLightSource> pointLights, List<DirectionalLightSource> dirLights, float farPlane, GameTime gameTime, Camera camera)
         {
             //If our cubemap is not yet initialized, create a new one
             if (_renderTargetCubeMap == null)
@@ -440,7 +450,7 @@ namespace DeferredEngine.Renderer
 
                 bool volumeEnabled = GameSettings.g_VolumetricLights;
                 GameSettings.g_VolumetricLights = false;
-                _lightRenderer.DrawLights(pointLights, dirLights, camera.Position, gameTime, _renderTargetLightBinding, _renderTargetDiffuse);
+                _lightRenderer.DrawLights(pointLights, dirLights, origin, gameTime, _renderTargetLightBinding, _renderTargetDiffuse);
 
                 GameSettings.g_VolumetricLights = volumeEnabled;
 
