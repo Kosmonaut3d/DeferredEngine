@@ -2,6 +2,7 @@
 using BEPUphysics;
 using DeferredEngine.Main;
 using DeferredEngine.Recources;
+using HelperSuite.GUIHelper;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -109,6 +110,8 @@ namespace DeferredEngine
         /// </summary>
         protected override void Initialize()
         {
+            GUIControl.Initialize(GameSettings.g_ScreenWidth, GameSettings.g_ScreenHeight);
+
             _screenManager.Load(Content, GraphicsDevice);
             // TODO: Add your initialization logic here
             _screenManager.Initialize(GraphicsDevice, _physicsSpace);

@@ -1,6 +1,7 @@
 ﻿using BEPUphysics;
 using DeferredEngine.Recources;
 using DeferredEngine.Renderer.RenderModules;
+using HelperSuite.GUIRenderer;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
@@ -37,7 +38,7 @@ namespace DeferredEngine.Main
             _guiLogic.Initialize(_assets);
             _editorLogic.Initialize(graphicsDevice);
             _debug.Initialize(graphicsDevice);
-            _guiRenderer.Initialize(graphicsDevice);
+            _guiRenderer.Initialize(graphicsDevice, GameSettings.g_ScreenWidth, GameSettings.g_ScreenHeight);
         }
 
         //Update per frame
@@ -79,7 +80,10 @@ namespace DeferredEngine.Main
         {
             //Our renderer gives us information on what id is currently hovered over so we can update / manipulate objects in the logic functions
             _editorReceivedDataBuffer = _renderer.Draw(_logic.Camera, _logic.MeshMaterialLibrary, _logic.BasicEntities, _logic.PointLights, _logic.DirectionalLights, _editorLogic.GetEditorData(), gameTime);
-            _guiRenderer.Draw(_guiLogic.GuiCanvas);
+            
+            if (GameSettings.Editor_enable)
+                _guiRenderer.Draw(_guiLogic.GuiCanvas);
+
             _debug.Draw(gameTime);
         }
 

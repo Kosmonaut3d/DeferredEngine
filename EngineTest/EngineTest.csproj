@@ -69,11 +69,6 @@
     <Compile Include="Recources\Assets.cs" />
     <Compile Include="Recources\GameSettings.cs" />
     <Compile Include="Recources\GameStats.cs" />
-    <Compile Include="Recources\GUI\GUIBlock.cs" />
-    <Compile Include="Recources\GUI\GUICanvas.cs" />
-    <Compile Include="Recources\GUI\GUIList.cs" />
-    <Compile Include="Recources\GUI\GUITextBlock.cs" />
-    <Compile Include="Recources\GUI\GUITextBlockToggle.cs" />
     <Compile Include="Recources\Helper\CPURayMarch.cs" />
     <Compile Include="Recources\Helper\Extensions.cs" />
     <Compile Include="Recources\Helper\IdGenerator.cs" />
@@ -96,7 +91,6 @@
     <Compile Include="Renderer\Helper\QuadRenderer.cs" />
     <Compile Include="Renderer\Renderer.cs" />
     <Compile Include="Renderer\Renderer_old.cs" />
-    <Compile Include="Renderer\RenderModules\GUIRenderer.cs" />
     <Compile Include="Renderer\RenderModules\IdAndOutlineRenderer.cs" />
     <Compile Include="Renderer\RenderModules\LightRenderer.cs" />
     <Compile Include="Renderer\RenderModules\TestShadow.cs" />
@@ -114,6 +108,7 @@
       <HintPath>$(MonoGameInstallDirectory)\MonoGame\v3.0\Assemblies\Windows\MonoGame.Framework.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
@@ -144,6 +139,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\ShaderPlayground\HelperSuite\HelperSuite.csproj">
+      <Project>{bbe5a22c-4774-4066-a51c-d689b1e8a2e6}</Project>
+      <Name>HelperSuite</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(MSBuildExtensionsPath)\MonoGame\v3.0\MonoGame.Content.Builder.targets" />

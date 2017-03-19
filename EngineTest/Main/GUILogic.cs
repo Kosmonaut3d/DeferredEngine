@@ -1,7 +1,8 @@
 ﻿using System.Text;
 using DeferredEngine.Entities;
 using DeferredEngine.Recources;
-using DeferredEngine.Recources.GUI;
+using HelperSuite.GUI;
+using HelperSuite.GUIHelper;
 using Microsoft.Xna.Framework;
 
 namespace DeferredEngine.Main
@@ -17,6 +18,8 @@ namespace DeferredEngine.Main
 
         private GUIList _lightDescriptionList;
         private GUITextBlockToggle _lightEnableToggle;
+
+        private GUIStyle defaultStyle;
 
 
         public void Initialize(Assets assets)
@@ -34,28 +37,35 @@ namespace DeferredEngine.Main
         {
             GuiCanvas = new GUICanvas(Vector2.Zero, new Vector2(GameSettings.g_ScreenWidth, GameSettings.g_ScreenHeight));
 
-            //GuiCanvas.AddElement(new GUIBlock(new Vector2(10, 210), new Vector2(200, 40), Color.Red));
+            defaultStyle = new GUIStyle(
+                new Vector2(200,35),
+                _assets.MonospaceFont,
+                Color.Gray, 
+                Color.White,
+                Color.White,
+                GUIStyle.GUIAlignment.None,
+                GUIStyle.TextAlignment.Left,
+                GUIStyle.TextAlignment.Center,
+                Vector2.Zero,
+                GuiCanvas.Dimensions);
 
-            //GuiCanvas.AddElement(new GUITextBlock(new Vector2(10, 250), new Vector2(200, 40), "testString",
-            //    _assets.MonospaceFont, new Color(74, 74, 74), Color.White));
 
-            GuiCanvas.AddElement(_objectDescriptionList = new GUIList(Vector2.Zero, new Vector2(300,40),0,GUICanvas.GUIAlignment.TopRight, GuiCanvas.Dimensions));
+            GuiCanvas.AddElement(_objectDescriptionList = new GuiListToggle(Vector2.Zero, defaultStyle));
+            _objectDescriptionList.Alignment = GUIStyle.GUIAlignment.TopRight;
 
-            _objectDescriptionList.AddElement(_objectDescriptionName = new GUITextBlock(new Vector2(10, 250), new Vector2(200, 40), "objDescName", _assets.MonospaceFont, new Color(74, 74, 74), Color.White));
-            _objectDescriptionList.AddElement(_objectDescriptionPos = new GUITextBlock(new Vector2(10, 250), new Vector2(240, 40), "objDescPos", _assets.MonospaceFont, new Color(74, 74, 74), Color.White));
+            _objectDescriptionList.AddElement(_objectDescriptionName = new GUITextBlock(defaultStyle, "objDescName"));
+            _objectDescriptionList.AddElement(_objectDescriptionPos = new GUITextBlock(defaultStyle, "objDescName"));
 
             _objectDescriptionList.AddElement(_lightDescriptionList = new GUIList(Vector2.Zero, new Vector2(300, 40), 0));
 
-            _lightDescriptionList.AddElement(_lightEnableToggle = new GUITextBlockToggle(new Vector2(10, 250), new Vector2(240, 40), "enabled:", _assets.MonospaceFont, new Color(74, 74, 74), Color.White));
-            
+            _lightDescriptionList.AddElement(_lightEnableToggle = new GUITextBlockToggle(defaultStyle, "enabled:"));
         }
 
         public void Update(GameTime gameTime, bool isActive, TransformableObject editorObject)
         {
-            GameStats.UIWasClicked = false;
             if (!isActive || !GameSettings.Editor_enable || !GameSettings.ui_DrawUI) return;
-
-            Vector2 mousePosition = Input.GetMousePosition().ToVector2();
+            
+            GUIControl.Update(Input.mouseLastState, Input.mouseState);
 
             if (editorObject != null)
             {
@@ -80,11 +90,12 @@ namespace DeferredEngine.Main
                 _objectDescriptionList.IsEnabled = false;
             }
 
-            GuiCanvas.Update(gameTime, mousePosition, Vector2.Zero);
+            GuiCanvas.Update(gameTime, GUIControl.GetMousePosition(), Vector2.Zero);
         }
 
         public void UpdateResolution()
         {
+            GUIControl.UpdateResolution(GameSettings.g_ScreenWidth, GameSettings.g_ScreenHeight);
             GuiCanvas.Resize(GameSettings.g_ScreenWidth, GameSettings.g_ScreenHeight);
         }
     }

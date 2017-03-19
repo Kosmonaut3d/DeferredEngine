@@ -2,6 +2,7 @@
 using DeferredEngine.Entities;
 using DeferredEngine.Recources;
 using DeferredEngine.Renderer.Helper;
+using HelperSuite.GUIHelper;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -71,7 +72,7 @@ namespace DeferredEngine.Main
                 }
                 else _gizmoTransformationMode = false;
             }
-            else if (Input.WasLMBPressed() && !GameStats.UIWasClicked)
+            else if (Input.WasLMBClicked() && !GUIControl.UIWasUsed)
             {
                 //Gizmos
                 if (hoveredId >= 1 && hoveredId <= 3)

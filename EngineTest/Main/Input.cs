@@ -100,9 +100,14 @@ namespace DeferredEngine.Main
             return keyboardLastState.IsKeyUp(key) && keyboardState.IsKeyDown(key);
         }
 
-        public static bool WasLMBPressed()
+        public static bool WasLMBClicked()
         {
             return mouseState.LeftButton == ButtonState.Pressed && mouseLastState.LeftButton == ButtonState.Released;
+        }
+        
+        public static bool IsLMBPressed()
+        {
+            return mouseState.LeftButton == ButtonState.Pressed;
         }
 
         public static bool WasKeyReleased(Keys key)
@@ -211,6 +216,7 @@ namespace DeferredEngine.Main
         {
             return (capsLock ^ shift) ? char.ToUpper(baseChar) : baseChar;
         }
+
     }
 
 }
