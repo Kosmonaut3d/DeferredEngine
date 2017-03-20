@@ -631,7 +631,7 @@ namespace DeferredEngine.Renderer
                 //    continue;
                 //}
 
-                if (light.DrawShadow)
+                if (light.CastShadow)
                 {
                     //A poing light has 6 shadow maps, add that to our stat counter. These are total shadow maps, not updated ones
                     GameStats.shadowMaps += 6;

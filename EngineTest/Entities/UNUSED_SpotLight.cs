@@ -12,14 +12,14 @@ namespace DeferredEngine.Entities
         public RenderTargetBinding[] RenderTargetShadowMapBinding = new RenderTargetBinding[1];
         public Matrix LightViewProjection;
 
-        public SpotLightSource(Vector3 position, float radius, Color color, float intensity, Vector3 direction, bool drawShadow)
+        public SpotLightSource(Vector3 position, float radius, Color color, float intensity, Vector3 direction, bool castShadow)
         {
             Position = position;
             Radius = radius;
             Color = color;
             Intensity = intensity;
             Direction = direction;
-            DrawShadow = drawShadow;
+            CastShadow = castShadow;
         }
 
         public override void ApplyShader(Matrix InverseView)

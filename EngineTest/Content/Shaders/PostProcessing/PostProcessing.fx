@@ -48,7 +48,7 @@ float2 brownConradyDistortion(float2 uv)
 float3 ColorSCurve(float3 color)
 {
     [branch]
-    if (SCurveStrength == 0)
+    if (abs(SCurveStrength) <= 0.01)
         return color;
     //brighness (luminance)
     //float brightness = color.r * 0.21f + color.g * 0.72f + color.b * 0.07f;

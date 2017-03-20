@@ -19,6 +19,7 @@ namespace DeferredEngine.Main
         private GUITextBlock _objectDescriptionPos;
         private GUITextBlockButton _objectButton1;
         private GUITextBlockToggle _objectToggle1;
+        private GUITextBlockToggle _objectToggle2;
         private GuiSliderFloatText _objectSlider1;
         private GuiSliderFloatText _objectSlider2;
         private GUIColorPicker _objectColorPicker1;
@@ -74,6 +75,7 @@ namespace DeferredEngine.Main
             _objectDescriptionList.AddElement(_objectDescriptionPos = new GUITextBlock(defaultStyle, "objDescName"));
             _objectDescriptionList.AddElement(_objectButton1 = new GUITextBlockButton(defaultStyle, "objButton1") {IsHidden = true});
             _objectDescriptionList.AddElement(_objectToggle1 = new GUITextBlockToggle(defaultStyle, "objToggle1") { IsHidden = true });
+            _objectDescriptionList.AddElement(_objectToggle2 = new GUITextBlockToggle(defaultStyle, "objToggle2") { IsHidden = true });
             _objectDescriptionList.AddElement(_objectSlider1 = new GuiSliderFloatText(defaultStyle, 0,1,2,"objToggle1") { IsHidden = true });
             _objectDescriptionList.AddElement(_objectSlider2 = new GuiSliderFloatText(defaultStyle, 0, 1, 2, "objToggle2") { IsHidden = true });
             _objectDescriptionList.AddElement(_objectColorPicker1 = new GUIColorPicker(defaultStyle) { IsHidden = true });
@@ -222,6 +224,7 @@ namespace DeferredEngine.Main
 
                 _objectButton1.IsHidden = true;
                 _objectToggle1.IsHidden = true;
+                _objectToggle2.IsHidden = true;
                 _objectSlider1.IsHidden = true;
                 _objectSlider2.IsHidden = true;
                 _objectColorPicker1.IsHidden = true;
@@ -229,6 +232,7 @@ namespace DeferredEngine.Main
                 if (selectedObject is PointLightSource)
                 {
                     _objectToggle1.IsHidden = false;
+                    _objectToggle2.IsHidden = false;
                     _objectSlider1.IsHidden = false;
                     _objectSlider2.IsHidden = false;
                     _objectColorPicker1.IsHidden = false;
@@ -237,6 +241,9 @@ namespace DeferredEngine.Main
                     {
                         _objectToggle1.SetField(selectedObject, "IsVolumetric");
                         _objectToggle1.Text = new StringBuilder("Volumetric");
+
+                        _objectToggle2.SetField(selectedObject, "CastShadow");
+                        _objectToggle2.Text = new StringBuilder("Cast Shadows");
 
                         _objectSlider1.MinValue = 1.1f;
                         _objectSlider1.MaxValue = 200;
