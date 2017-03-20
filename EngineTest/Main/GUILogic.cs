@@ -20,6 +20,7 @@ namespace DeferredEngine.Main
         private GUITextBlockButton _objectButton1;
         private GUITextBlockToggle _objectToggle1;
         private GuiSliderFloatText _objectSlider1;
+        private GUIColorPicker _objectColorPicker1;
 
         private GUIStyle defaultStyle;
 
@@ -72,6 +73,7 @@ namespace DeferredEngine.Main
             _objectDescriptionList.AddElement(_objectButton1 = new GUITextBlockButton(defaultStyle, "objButton1") {IsHidden = true});
             _objectDescriptionList.AddElement(_objectToggle1 = new GUITextBlockToggle(defaultStyle, "objToggle1") { IsHidden = true });
             _objectDescriptionList.AddElement(_objectSlider1 = new GuiSliderFloatText(defaultStyle, 0,1,2,"objToggle1") { IsHidden = true });
+            _objectDescriptionList.AddElement(_objectColorPicker1 = new GUIColorPicker(defaultStyle) { IsHidden = true });
 
             _rightSideList.AddElement(_objectDescriptionList);
 
@@ -218,11 +220,13 @@ namespace DeferredEngine.Main
                 _objectButton1.IsHidden = true;
                 _objectToggle1.IsHidden = true;
                 _objectSlider1.IsHidden = true;
+                _objectColorPicker1.IsHidden = true;
 
                 if (selectedObject is PointLightSource)
                 {
                     _objectToggle1.IsHidden = false;
                     _objectSlider1.IsHidden = false;
+                    _objectColorPicker1.IsHidden = false;
 
                     if (activeObject != selectedObject)
                     {
@@ -235,6 +239,8 @@ namespace DeferredEngine.Main
                         _objectSlider1.SetProperty(selectedObject, "Radius");
                         _objectSlider1.SetText(new StringBuilder("Radius: "));
 
+                        _objectColorPicker1.ReferenceObject = selectedObject;
+                        _objectColorPicker1.ReferenceProperty = selectedObject.GetType().GetProperty("Color");
                     }
                 }
 

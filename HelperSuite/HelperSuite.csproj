@@ -1,0 +1,77 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{BBE5A22C-4774-4066-A51C-D689B1E8A2E6}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>HelperSuite</RootNamespace>
+    <AssemblyName>HelperSuite</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="MonoGame.Framework">
+      <HintPath>$(MSBuildExtensionsPath)\MonoGame\v3.0\Tools\MonoGame.Framework.dll</HintPath>
+    </Reference>
+    <Reference Include="MonoGame.Framework.Content.Pipeline">
+      <HintPath>$(MSBuildExtensionsPath)\MonoGame\v3.0\Tools\MonoGame.Framework.Content.Pipeline.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Windows.Forms" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ContentLoader\ThreadSafeContentManager.cs" />
+    <Compile Include="GUIHelper\GUIContentLoader.cs" />
+    <Compile Include="GUIHelper\GUIControl.cs" />
+    <Compile Include="GUIRenderer\GUIRenderer.cs" />
+    <Compile Include="GUIHelper\MngStringBuilder.cs" />
+    <Compile Include="GUI\GUIBlock.cs" />
+    <Compile Include="GUI\GUICanvas.cs" />
+    <Compile Include="GUI\GUIColorPicker.cs" />
+    <Compile Include="GUI\GUIList.cs" />
+    <Compile Include="GUI\GuiListToggle.cs" />
+    <Compile Include="GUI\GuiListToggleScroll.cs" />
+    <Compile Include="GUI\GuiSliderFloat.cs" />
+    <Compile Include="GUI\GuiSliderFloatText.cs" />
+    <Compile Include="GUI\GuiSliderInt.cs" />
+    <Compile Include="GUI\GuiSliderIntText.cs" />
+    <Compile Include="GUI\GUIStyle.cs" />
+    <Compile Include="GUI\GUITextBlock.cs" />
+    <Compile Include="GUI\GUITextBlockButton.cs" />
+    <Compile Include="GUI\GuiTextBlockLoadDialog.cs" />
+    <Compile Include="GUI\GUITextBlockToggle.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="GUI log.txt" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

@@ -1,0 +1,16 @@
+﻿GUI LOG
+
+Requirements:
+			MonospaceFont = Fonts/monospace
+
+			images:
+            colorPickerSmall = Graphical User Interface/colorpickersmall
+            colorPickerBig = Graphical User Interface/colorpickerBig
+
+			GUIControl needs to be updated with each Update Period and each Resolution Change
+
+Version 1.2
+
+1.1 - Style added, now Elements can be created with Element(style, other properties...) to save time and have a unified appearance.
+1.2 - Made it a seperate project, so it can easily be integrated into new projects. Added a global GUIControl
+

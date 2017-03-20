@@ -5,7 +5,7 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EngineTest", "EngineTest\EngineTest.csproj", "{510FB9FE-B461-47B4-B4AF-8A0801AA4F26}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HelperSuite", "..\ShaderPlayground\HelperSuite\HelperSuite.csproj", "{BBE5A22C-4774-4066-A51C-D689B1E8A2E6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HelperSuite", "HelperSuite\HelperSuite.csproj", "{BBE5A22C-4774-4066-A51C-D689B1E8A2E6}"
 EndProject
 Global
 	GlobalSection(Performance) = preSolution

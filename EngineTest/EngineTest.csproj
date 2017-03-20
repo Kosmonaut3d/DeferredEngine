@@ -142,7 +142,7 @@
     <None Include="app.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\ShaderPlayground\HelperSuite\HelperSuite.csproj">
+    <ProjectReference Include="..\HelperSuite\HelperSuite.csproj">
       <Project>{bbe5a22c-4774-4066-a51c-d689b1e8a2e6}</Project>
       <Name>HelperSuite</Name>
     </ProjectReference>
