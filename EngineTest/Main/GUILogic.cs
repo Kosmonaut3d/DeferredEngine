@@ -20,6 +20,7 @@ namespace DeferredEngine.Main
         private GUITextBlockButton _objectButton1;
         private GUITextBlockToggle _objectToggle1;
         private GuiSliderFloatText _objectSlider1;
+        private GuiSliderFloatText _objectSlider2;
         private GUIColorPicker _objectColorPicker1;
 
         private GUIStyle defaultStyle;
@@ -59,6 +60,7 @@ namespace DeferredEngine.Main
 
             GuiCanvas.AddElement(_rightSideList = new GuiListToggleScroll(Vector2.Zero, defaultStyle));
             _rightSideList.Alignment = GUIStyle.GUIAlignment.TopRight;
+            
 
             _objectDescriptionList = new GUIList(Vector2.Zero, defaultStyle);
 
@@ -73,6 +75,7 @@ namespace DeferredEngine.Main
             _objectDescriptionList.AddElement(_objectButton1 = new GUITextBlockButton(defaultStyle, "objButton1") {IsHidden = true});
             _objectDescriptionList.AddElement(_objectToggle1 = new GUITextBlockToggle(defaultStyle, "objToggle1") { IsHidden = true });
             _objectDescriptionList.AddElement(_objectSlider1 = new GuiSliderFloatText(defaultStyle, 0,1,2,"objToggle1") { IsHidden = true });
+            _objectDescriptionList.AddElement(_objectSlider2 = new GuiSliderFloatText(defaultStyle, 0, 1, 2, "objToggle2") { IsHidden = true });
             _objectDescriptionList.AddElement(_objectColorPicker1 = new GUIColorPicker(defaultStyle) { IsHidden = true });
 
             _rightSideList.AddElement(_objectDescriptionList);
@@ -220,12 +223,14 @@ namespace DeferredEngine.Main
                 _objectButton1.IsHidden = true;
                 _objectToggle1.IsHidden = true;
                 _objectSlider1.IsHidden = true;
+                _objectSlider2.IsHidden = true;
                 _objectColorPicker1.IsHidden = true;
 
                 if (selectedObject is PointLightSource)
                 {
                     _objectToggle1.IsHidden = false;
                     _objectSlider1.IsHidden = false;
+                    _objectSlider2.IsHidden = false;
                     _objectColorPicker1.IsHidden = false;
 
                     if (activeObject != selectedObject)
@@ -238,6 +243,12 @@ namespace DeferredEngine.Main
 
                         _objectSlider1.SetProperty(selectedObject, "Radius");
                         _objectSlider1.SetText(new StringBuilder("Radius: "));
+
+                        _objectSlider2.MinValue = 0.01f;
+                        _objectSlider2.MaxValue = 1000;
+
+                        _objectSlider2.SetField(selectedObject, "Intensity");
+                        _objectSlider2.SetText(new StringBuilder("Intensity: "));
 
                         _objectColorPicker1.ReferenceObject = selectedObject;
                         _objectColorPicker1.ReferenceProperty = selectedObject.GetType().GetProperty("Color");

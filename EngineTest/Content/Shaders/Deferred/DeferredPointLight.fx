@@ -767,12 +767,11 @@ PixelShaderOutput VolumetricPixelShaderFunctionShadowed(VertexShaderOutput input
 	lightVector /= distanceLtoR;
 													 //compute diffuse light
 	float NdL = saturate(dot(normal, lightVector));
-
 	float3 lightVectorWS = -mul(float4(lightVector, 0), InverseView).xyz;
 
 	float depthInLS = getDepthInLS(float4(positionFromDepthVS, 1), lightVectorWS);
 
-	float shadowVSM = chebyshevUpperBound(depthInLS, lightVectorWS);
+	float shadowVSM = CalcShadowTermPCF(depthInLS, NdL, lightVectorWS);
 
 	float3 diffuseLight = float3(0, 0, 0);
 	float3 specular = float3(0, 0, 0);
@@ -787,9 +786,7 @@ PixelShaderOutput VolumetricPixelShaderFunctionShadowed(VertexShaderOutput input
 		}
 		specular = SpecularCookTorrance(NdL, normal, lightVector, -cameraDirection, lightIntensity, lightColor, f0, roughness);
 	}
-
-	//return attenuation * lightIntensity * float4(diffuseLight.rgb, specular);
-	output.Diffuse.rgb = (attenuation * diffuseLight * (1 - f0)) * 0.1f * shadowVSM; //* (1 - f0)) * (f0 + 1) * (f0 + 1);
+	output.Diffuse.rgb = (attenuation * diffuseLight * (1 - f0)) * 0.1f * shadowVSM;
 	output.Specular.rgb = specular * attenuation * 0.1f * max(shadowVSM - 0.1f, 0);
 
 	return output;

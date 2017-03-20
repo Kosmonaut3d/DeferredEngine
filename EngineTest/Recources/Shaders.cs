@@ -51,19 +51,7 @@ namespace DeferredEngine.Recources
         public static EffectParameter TemporalAntiAliasingEffect_Resolution;
         public static EffectParameter TemporalAntiAliasingEffect_FrustumCorners;
         public static EffectParameter TemporalAntiAliasingEffect_Threshold;
-
-        //test shadow
-
-        public static Effect TestShadowEffect;
-
-        public static EffectParameter TestShadowEffect_DepthMap;
-        public static EffectParameter TestShadowEffect_AccumulationMap;
-        public static EffectParameter TestShadowEffect_UpdateMap;
-        public static EffectParameter TestShadowEffect_CurrentToPrevious;
-        public static EffectParameter TestShadowEffect_Resolution;
-        public static EffectParameter TestShadowEffect_FrustumCorners;
-        public static EffectParameter TestShadowEffect_Threshold;
-
+        
         //Vignette and CA
 
         public static Effect PostProcessing;
@@ -355,17 +343,7 @@ namespace DeferredEngine.Recources
             TemporalAntiAliasingEffect_Resolution = TemporalAntiAliasingEffect.Parameters["Resolution"];
             TemporalAntiAliasingEffect_FrustumCorners = TemporalAntiAliasingEffect.Parameters["FrustumCorners"];
             TemporalAntiAliasingEffect_Threshold = TemporalAntiAliasingEffect.Parameters["Threshold"];
-
-
-            //TEST shadow
-            TestShadowEffect = content.Load<Effect>("Shaders/Shadow/testshadow");
-
-            TestShadowEffect_AccumulationMap = TestShadowEffect.Parameters["AccumulationMap"];
-            TestShadowEffect_DepthMap = TestShadowEffect.Parameters["DepthMap"];
-            TestShadowEffect_CurrentToPrevious = TestShadowEffect.Parameters["CurrentToPrevious"];
-            TestShadowEffect_Resolution = TestShadowEffect.Parameters["Resolution"];
-            TestShadowEffect_FrustumCorners = TestShadowEffect.Parameters["FrustumCorners"];
-
+            
             //Post
 
             PostProcessing = content.Load<Effect>("Shaders/PostProcessing/PostProcessing");

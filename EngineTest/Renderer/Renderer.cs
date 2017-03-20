@@ -130,9 +130,6 @@ namespace DeferredEngine.Renderer
         private readonly Stopwatch _performanceTimer = new Stopwatch();
         private long _performancePreviousTime;
 
-        //TEST
-        private TestShadow testShadow;
-
         #endregion
 
         #region FUNCTIONS
@@ -182,9 +179,6 @@ namespace DeferredEngine.Renderer
 
             _lightRenderer = new LightRenderer();
             _lightRenderer.Initialize(graphicsDevice, _quadRenderer, assets);
-
-            testShadow = new TestShadow();
-            testShadow.Initialize(graphicsDevice);
             
             _assets = assets;
 
@@ -1099,7 +1093,6 @@ namespace DeferredEngine.Renderer
             Shaders.TemporalAntiAliasingEffect_FrustumCorners.SetValue(_currentFrustumCorners);
             Shaders.ReconstructDepthParameter_FrustumCorners.SetValue(_currentFrustumCorners);
             Shaders.deferredDirectionalLightParameterFrustumCorners.SetValue(_currentFrustumCorners);
-            Shaders.TestShadowEffect_FrustumCorners.SetValue(_currentFrustumCorners);
         }
 
         /// <summary>
@@ -1626,8 +1619,6 @@ namespace DeferredEngine.Renderer
             _haltonSequence = null;
 
             SetUpRenderTargets(GameSettings.g_ScreenWidth, GameSettings.g_ScreenHeight, false);
-
-            testShadow.UpdateResolution();
         }
 
         private void SetUpRenderTargets(int width, int height, bool onlyEssentials)
@@ -1800,10 +1791,7 @@ namespace DeferredEngine.Renderer
             Shaders.EmissiveEffectParameter_EmissiveMap.SetValue(_renderTargetEmissive);
             Shaders.EmissiveEffectParameter_NormalMap.SetValue(_renderTargetNormal);
 
-            Shaders.TemporalAntiAliasingEffect_DepthMap.SetValue(_renderTargetDepth);
-
-            Shaders.TestShadowEffect_DepthMap.SetValue(_renderTargetDepth);
-            Shaders.TestShadowEffect_Resolution.SetValue(new Vector2(GameSettings.g_ScreenWidth, GameSettings.g_ScreenHeight));
+            Shaders.TemporalAntiAliasingEffect_DepthMap.SetValue(_renderTargetDepth);  
         }
 
             #endregion

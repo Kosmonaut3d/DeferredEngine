@@ -120,6 +120,8 @@ float4 GetSSR(float2 TexCoord)
 	//Get our current Position in viewspace
 	float4 similarSampleAcc = ReflectionMap.Load(texCoord);
 
+	float alpha = similarSampleAcc.a;
+
 	if(similarSampleAcc.a <= 0.01) return float4(0,0,0,0);
 
 	if (!FireflyReduction) 
@@ -167,7 +169,7 @@ float4 GetSSR(float2 TexCoord)
 	similarSampleAcc /= similarSamples;
 	differentSampleAcc /= differentSamples;
 
-	return similarSamples > differentSamples ? similarSampleAcc : differentSampleAcc;
+	return float4(similarSamples > differentSamples ? similarSampleAcc.rgb : differentSampleAcc.rgb, alpha);
 }
 
 //float GetNormalVariance(float2 texCoord, float3 baseNormal, float offset)

@@ -94,7 +94,6 @@
     <Compile Include="Renderer\Renderer_old.cs" />
     <Compile Include="Renderer\RenderModules\IdAndOutlineRenderer.cs" />
     <Compile Include="Renderer\RenderModules\LightRenderer.cs" />
-    <Compile Include="Renderer\RenderModules\TestShadow.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="BEPUphysics, Version=1.4.0.0, Culture=neutral, PublicKeyToken=31f6a8732a21de19, processorArchitecture=MSIL">
