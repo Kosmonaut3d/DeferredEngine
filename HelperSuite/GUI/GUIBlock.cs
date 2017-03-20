@@ -56,5 +56,19 @@ namespace HelperSuite.GUI
         
 
         public override GUIStyle.GUIAlignment Alignment { get; set; }
+
+        public bool IsVisible
+        {
+            get
+            {
+                return !IsHidden;
+            }
+
+            set
+            {
+                IsHidden = !value;
+            }
+        }
+        
     }
 }

@@ -50,6 +50,7 @@
     <Compile Include="GUI\GUIBlock.cs" />
     <Compile Include="GUI\GUICanvas.cs" />
     <Compile Include="GUI\GUIColorPicker.cs" />
+    <Compile Include="GUI\GUIElement.cs" />
     <Compile Include="GUI\GUIList.cs" />
     <Compile Include="GUI\GuiListToggle.cs" />
     <Compile Include="GUI\GuiListToggleScroll.cs" />

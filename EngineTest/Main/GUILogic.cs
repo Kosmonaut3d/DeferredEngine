@@ -61,7 +61,9 @@ namespace DeferredEngine.Main
 
             GuiCanvas.AddElement(_rightSideList = new GuiListToggleScroll(new Vector2(-20,0), defaultStyle));
             _rightSideList.Alignment = GUIStyle.GUIAlignment.TopRight;
-            
+
+            GUITextBlock helperText = new GUITextBlock(new Vector2(0, 100), new Vector2(300, 200), CreateHelperText(), defaultStyle.TextFontStyle, new Color(Color.DimGray, 0.2f), Color.White, GUIStyle.TextAlignment.Left, new Vector2(10, 1)) {IsHidden = true};
+            GuiCanvas.AddElement(helperText);
 
             _objectDescriptionList = new GUIList(Vector2.Zero, defaultStyle);
 
@@ -70,6 +72,14 @@ namespace DeferredEngine.Main
                 ToggleField = typeof(GameStats).GetField("e_EnableSelection"),
                 Toggle = GameStats.e_EnableSelection
             });
+
+            _rightSideList.AddElement(new GUITextBlockToggle(defaultStyle, "Show Controls")
+            {
+                ToggleProperty = typeof(GUITextBlock).GetProperty("IsVisible"),
+                ToggleObject = helperText,
+                Toggle = helperText.IsVisible
+            });
+
 
             _objectDescriptionList.AddElement(_objectDescriptionName = new GUITextBlock(defaultStyle, "objDescName"));
             _objectDescriptionList.AddElement(_objectDescriptionPos = new GUITextBlock(defaultStyle, "objDescName"));
@@ -188,6 +198,21 @@ namespace DeferredEngine.Main
                 SliderProperty = typeof(GameSettings).GetProperty("g_SSReflections_RefinementSamples"),
                 SliderValue = GameSettings.g_SSReflections_RefinementSamples
             });
+        }
+
+        private string CreateHelperText()
+        {
+            return "Deferred Engine Controls\n" +
+                    "Space - toggle on/off tools\n" +
+                    "W A S D - move camera\n" +
+                    "Right Mouse Button - Rotate Camera\n" +
+                    "\n" +
+                    "In Editor mode:\n" +
+                    "Left Mouse Button - Select Object\n" +
+                    "CTRL-C / Insert - duplicate object\n" +
+                    "Del - delete object\n" +
+                    "T - select translation gizmo\n" +
+                    "R - select rotation gizmo";
         }
 
         public void Update(GameTime gameTime, bool isActive, TransformableObject selectedObject)
