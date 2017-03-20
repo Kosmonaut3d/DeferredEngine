@@ -65,10 +65,10 @@ namespace DeferredEngine.Main
 
             _objectDescriptionList = new GUIList(Vector2.Zero, defaultStyle);
 
-            _rightSideList.AddElement(new GUITextBlockToggle(defaultStyle, "Enable Selection ")
+            _rightSideList.AddElement(new GUITextBlockToggle(defaultStyle, "Enable Editor")
             {
                 ToggleField = typeof(GameStats).GetField("e_EnableSelection"),
-                Toggle = true
+                Toggle = GameStats.e_EnableSelection
             });
 
             _objectDescriptionList.AddElement(_objectDescriptionName = new GUITextBlock(defaultStyle, "objDescName"));

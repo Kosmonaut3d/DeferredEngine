@@ -160,7 +160,7 @@ float SampleShadowMap(float3 texCoord)
 float GetVariableBias(float nDotL)
 {
 	//return /*(1 - abs(nDotL)) * DepthBias;*/clamp(0.001 * tan(acos(nDotL)), 0, DepthBias);
-	return clamp(0.001 * sqrt(1 - nDotL * nDotL) / nDotL, 0, DepthBias);
+	return clamp(0.01 * sqrt(1 - nDotL * nDotL) / nDotL, 0, DepthBias);
 }
 
 float CalcShadowTermPCF(float linearDepthLV, float ndotl, float3 shadowTexCoord)
