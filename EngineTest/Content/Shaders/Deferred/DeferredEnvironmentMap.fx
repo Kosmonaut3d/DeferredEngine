@@ -151,17 +151,21 @@ float4 GetSSR(float2 TexCoord)
 			neighbor = ReflectionMap.Load(int3(texCoord.x + x, texCoord.y + y, 0));
 			neighborLuma = GetLuma(neighbor.rgb);
 
+			float weight = 1;
+
+			if (abs(x) > 1 || abs(y) > 1) weight = 0.5f;
+
 			//is similar?
 			if (abs(neighborLuma - similarLuma) < FireflyThreshold)
 			{
 				//Join to similar samples
-				similarSamples++;
-				similarSampleAcc += neighbor;
+				similarSamples += weight;
+				similarSampleAcc += neighbor * weight;
 			}
 			else
 			{
-				differentSamples++;
-				differentSampleAcc += neighbor;
+				differentSamples += weight;
+				differentSampleAcc += neighbor * weight;
 			}
 		}
 	}

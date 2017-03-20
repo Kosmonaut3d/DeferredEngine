@@ -58,7 +58,7 @@ namespace DeferredEngine.Main
                 textBorderStyle: new Vector2(10, 1),
                 parentDimensionsStyle: GuiCanvas.Dimensions);
 
-            GuiCanvas.AddElement(_rightSideList = new GuiListToggleScroll(Vector2.Zero, defaultStyle));
+            GuiCanvas.AddElement(_rightSideList = new GuiListToggleScroll(new Vector2(-20,0), defaultStyle));
             _rightSideList.Alignment = GUIStyle.GUIAlignment.TopRight;
             
 
