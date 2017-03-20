@@ -37,14 +37,6 @@ float lightVolumeDensity = 1;
 float ShadowMapSize = 512;
 float DepthBias = 0.02;
 
-//For shadow mapping
-float4x4 LightViewProjectionPositiveX;
-float4x4 LightViewProjectionNegativeX;
-float4x4 LightViewProjectionPositiveY;
-float4x4 LightViewProjectionNegativeY;
-float4x4 LightViewProjectionPositiveZ;
-float4x4 LightViewProjectionNegativeZ;
-
 //Needed for manual texture sampling
 float2 Resolution = float2(1280, 800);
 
@@ -161,48 +153,52 @@ float chebyshevUpperBound(float distance, float3 texCoord)
 
 float SampleShadowMap(float3 texCoord)
 {
-	texCoord.z = -texCoord.z;
+	//texCoord.z = -texCoord.z;
 	return 1 - shadowCubeMap.SampleLevel(shadowCubeMapSampler, texCoord, 0).r;
 }
 
 float GetVariableBias(float nDotL)
 {
 	//return /*(1 - abs(nDotL)) * DepthBias;*/clamp(0.001 * tan(acos(nDotL)), 0, DepthBias);
-	return clamp(0.0001 * sqrt(1 - nDotL * nDotL) / nDotL, 0, DepthBias);
+	return clamp(0.001 * sqrt(1 - nDotL * nDotL) / nDotL, 0, DepthBias);
 }
 
 float CalcShadowTermPCF(float linearDepthLV, float ndotl, float3 shadowTexCoord)
 {
-	float lightTerm = 0;
 
-	float2 fractionals = frac(ShadowMapSize * shadowTexCoord);
+	float2 fractionals = frac(ShadowMapSize * shadowTexCoord.xy);
 
 	////safe to assume it's a square
-	/*float size = 1.0f / ShadowMapSize;*/
+	float size = 1.0f / ShadowMapSize;
 
 	float variableBias = GetVariableBias(ndotl);
 
 	float testDepth = linearDepthLV - variableBias;
 	//Center
-	lightTerm = testDepth < SampleShadowMap(shadowTexCoord);
+	//lightTerm = testDepth < SampleShadowMap(shadowTexCoord);
 
-	//////Right
-	//lightTerm += (testDepth < SampleShadowMap(shadowTexCoord + float3(size, 0,0)) * fractionals.x;
+	const float3 sampleOffsetDirections[20] =
+	{
+		float3(1, 1, 1), float3(1, -1, 1), float3(-1, -1, 1), float3(-1, 1, 1),
+		float3(1, 1, -1), float3(1, -1, -1), float3(-1, -1, -1), float3(-1, 1, -1),
+		float3(1, 1, 0), float3(1, -1, 0), float3(-1, -1, 0), float3(-1, 1, 0),
+		float3(1, 0, 1), float3(-1, 0, 1), float3(1, 0, -1), float3(-1, 0, -1),
+		float3(0, 1, 1), float3(0, -1, 1), float3(0, -1, -1), float3(0, 1, -1)
+	};
 
-	//////Left
-	//lightTerm += (testDepth < SampleShadowMap(shadowTexCoord + float3(-size, 0,0)) * (1- fractionals.x);
+	float shadow = 0.0;
+	int samples = 20;
+	float diskRadius = size*2;
+	for (int i = 0; i < samples; ++i)
+	{
+		float closestDepth = SampleShadowMap(shadowTexCoord + sampleOffsetDirections[i] * diskRadius).r;
+		//closestDepth *= far_plane;   // Undo mapping [0;1]
+		if (testDepth < closestDepth)
+			shadow += 1.0;
+	}
+	shadow /= samples;
 
-	//////Top
-	//lightTerm += (testDepth < SampleShadowMap(shadowTexCoord + float3(0, size,0)) * fractionals.y;
-
-	//////Bot
-	//lightTerm += (testDepth < SampleShadowMap(shadowTexCoord + float3(0, -size,0)) * (1 - fractionals.y);
-
-	////samples[1] = (light_space_depth - variableBias < ShadowMap.SampleLevel(pointSampler, shadow_coord + float2(size, 0), 0).r) * fractionals;
-	//
-	//ligitghtTerm /= 5;
-
-	return lightTerm;
+	return shadow;
 }
 
 //Plain Shadow Depth difference, no bias
@@ -224,42 +220,6 @@ float integrateVolume(float d2, float d1, float radius)
 
 	// 1 - x^2 / r^2 -> x - x^3 / r^2*3
 	//return max(d2 - d2*d2*d2 / (radius*radius * 3) - d1 + d1*d1*d1 / (radius*radius * 3), 0);
-}
-
-//Get the right projection
-float getDepthInLS(float4 position, float3 lightVector)
-{
-	matrix lightProjection = LightViewProjectionPositiveX;
-
-	[branch]
-	if (lightVector.z >= abs(lightVector.x) && lightVector.z >= abs(lightVector.y))
-	{
-		lightProjection = LightViewProjectionNegativeZ;
-	}
-	else
-		[branch] if (lightVector.z <= -abs(lightVector.x) && lightVector.z <= -abs(lightVector.y))
-	{
-		lightProjection = LightViewProjectionPositiveZ;
-	}
-		else
-			[branch] if (lightVector.y >= abs(lightVector.x) && lightVector.y >= abs(lightVector.z))
-	{
-		lightProjection = LightViewProjectionPositiveY;
-	}
-			else
-				[branch] if (lightVector.y <= -abs(lightVector.x) && lightVector.y <= -abs(lightVector.z))
-	{
-		lightProjection = LightViewProjectionNegativeY;
-	}
-				else
-					[branch] if (lightVector.x <= -abs(lightVector.y) && lightVector.x <= -abs(lightVector.y))
-	{
-		lightProjection = LightViewProjectionNegativeX;
-	}
-
-	float4 positionInLS = mul(position, lightProjection);
-	float depth = (positionInLS.z / positionInLS.w);
-	return depth;
 }
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -592,10 +552,9 @@ PixelShaderOutput BasePixelShaderFunctionShadow(PixelShaderInput input)
 		float NdL = saturate(dot(normal, lightVector));
 
 		float3 lightVectorWS = -mul(float4(lightVector, 0), InverseView).xyz;
-
-		float depthInLS = getDepthInLS(float4(input.PositionVS, 1), lightVectorWS);
-
-		float shadowVSM = CalcShadowTermPCF(depthInLS, NdL, lightVectorWS);// chebyshevUpperBound(depthInLS, lightVectorWS);
+		lightVectorWS.z = -lightVectorWS.z;
+		
+		float shadowVSM = CalcShadowTermPCF(lengthLight / lightRadius, NdL, lightVectorWS);
 
 		float3 diffuseLight = float3(0, 0, 0);
 		float3 specular = float3(0, 0, 0);
@@ -726,7 +685,7 @@ PixelShaderOutput VolumetricPixelShaderFunctionShadowed(VertexShaderOutput input
 
 			float3 lightVectorWS = -mul(float4(lightVectorRay, 0), InverseView).xyz;
 
-			float depthInLS = getDepthInLS(rayPosition, lightVectorWS);
+			//float depthInLS = getDepthInLS(rayPosition, lightVectorWS);
 
 			if (length(rayPosition.xyz) > distanceCtoR || previousLightDistance < lightDistance) break;
 			else
@@ -734,7 +693,7 @@ PixelShaderOutput VolumetricPixelShaderFunctionShadowed(VertexShaderOutput input
 				previousLightDistance = lightDistance;
 				float dist = saturate( lightDistance / lightRadius * 1.1f) - 1;
 				dist = dist*dist;
-				visibility += ShadowCheck(depthInLS, lightVectorWS) * saturate(dist*dist);//1 - dist*dist / (lightRadius*lightRadius));
+				visibility += ShadowCheck(lightDistance / lightRadius, lightVectorWS) * saturate(dist*dist);//1 - dist*dist / (lightRadius*lightRadius));
 			}
 		}
 		visibility /= steps;
@@ -768,10 +727,9 @@ PixelShaderOutput VolumetricPixelShaderFunctionShadowed(VertexShaderOutput input
 													 //compute diffuse light
 	float NdL = saturate(dot(normal, lightVector));
 	float3 lightVectorWS = -mul(float4(lightVector, 0), InverseView).xyz;
+	lightVectorWS.z = -lightVectorWS.z;
 
-	float depthInLS = getDepthInLS(float4(positionFromDepthVS, 1), lightVectorWS);
-
-	float shadowVSM = CalcShadowTermPCF(depthInLS, NdL, lightVectorWS);
+	float shadowVSM = CalcShadowTermPCF(distanceLtoR / lightRadius, NdL, lightVectorWS);
 
 	float3 diffuseLight = float3(0, 0, 0);
 	float3 specular = float3(0, 0, 0);

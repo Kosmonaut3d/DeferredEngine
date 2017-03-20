@@ -5,6 +5,9 @@
 
 matrix WorldViewProj;
 matrix WorldView;
+matrix World;
+
+float3 LightPositionWorld = float3(0,0,0);
 
 static bool transparent = false;
 
@@ -35,6 +38,13 @@ struct DrawZW_VSOut
 	float3 Normal : NORMAL;
 };
 
+struct DrawLinear2_VSOut
+{
+	float4 Position : SV_POSITION;
+	float3 WorldPosition : TEXCOORD0;
+	float3 Normal : NORMAL;
+};
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  FUNCTION DEFINITIONS
@@ -51,14 +61,20 @@ DrawLinear_VSOut DrawLinear_VertexShader(DrawBasic_VSIn input)
     return Output;
 }
 
-DrawZW_VSOut DrawZW_VertexShader(DrawBasic_VSIn input)
+DrawLinear2_VSOut DrawZW_VertexShader(DrawBasic_VSIn input)
 {
-	DrawZW_VSOut Output;
+	DrawLinear2_VSOut Output;
+	Output.Position = mul(input.Position, WorldViewProj);
+	Output.WorldPosition = mul(input.Position, World).xyz;
+	Output.Normal = mul(float4(input.Normal, 0), World).xyz;
+	return Output;
+
+	/*DrawZW_VSOut Output;
 	Output.Position = mul(input.Position, WorldViewProj);
 	Output.Depth.x = Output.Position.z;
 	Output.Depth.y = Output.Position.w;
 	Output.Normal = mul(float4(input.Normal, 0), WorldViewProj).xyz;
-	return Output;
+	return Output;*/
 }
 
 // VSM
@@ -93,11 +109,13 @@ float4 DrawLinear_PixelShader(DrawLinear_VSOut input) : SV_TARGET
 	return float4(depth,0,0,0);
 }
 
-float4 DrawZW_PixelShader(DrawZW_VSOut input) : SV_TARGET
+float4 DrawZW_PixelShader(DrawLinear2_VSOut input) : SV_TARGET
 {
-	float depth = input.Depth.x / input.Depth.y;
+	float dist = length(input.WorldPosition - LightPositionWorld) / FarClip;
+	return 1-dist;
+	/*float depth = input.Depth.x / input.Depth.y;
 
-	return float4(1-depth, 0, 0, 0);
+	return float4(1-depth, 0, 0, 0);*/
 }
 
 technique DrawDepthLinear

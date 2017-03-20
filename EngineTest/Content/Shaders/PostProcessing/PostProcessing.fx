@@ -163,6 +163,7 @@ float4 VignetteChromaShiftPixelShaderFunction(float4 pos : SV_POSITION, float2 t
     dist *= 0.60f;
     base.rgb *= smoothstep(radiusX, radiusY, dist);
 
+
     return float4(base,1);
 }
 

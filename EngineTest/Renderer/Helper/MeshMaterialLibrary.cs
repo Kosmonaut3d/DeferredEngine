@@ -653,6 +653,9 @@ namespace DeferredEngine.Renderer.Helper
                             if(renderType == RenderType.ShadowLinear)
                             Shaders.virtualShadowMappingEffectParameter_WorldView.SetValue(localWorldMatrix * (Matrix)view);
 
+                            if (renderType == RenderType.ShadowZW)
+                                Shaders.virtualShadowMappingEffectParameter_World.SetValue(localWorldMatrix);
+
                             shader.CurrentTechnique.Passes[0].Apply();
                         }
                         else if (renderType == RenderType.Hologram)

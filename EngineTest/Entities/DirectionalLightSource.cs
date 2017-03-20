@@ -16,7 +16,7 @@ namespace DeferredEngine.Entities
 
         public Vector3 DirectionViewSpace;
         
-        public readonly bool DrawShadows;
+        public readonly bool CastShadows;
         public readonly float ShadowSize;
         public readonly float ShadowDepth;
         public readonly int ShadowResolution;
@@ -44,14 +44,14 @@ namespace DeferredEngine.Entities
         /// <param name="color"></param>
         /// <param name="intensity"></param>
         /// <param name="direction"></param>
-        /// <param name="drawShadows"></param>
+        /// <param name="castShadows"></param>
         /// <param name="shadowSize"></param>
         /// <param name="shadowDepth"></param>
         /// <param name="shadowResolution"></param>
         /// <param name="shadowFiltering"></param>
         /// <param name="screenspaceshadowblur"></param>
         /// <param name="staticshadows"></param>
-        public DirectionalLightSource(Color color, float intensity, Vector3 direction,Vector3 position = default(Vector3), bool drawShadows = false, float shadowSize = 100, float shadowDepth = 100, int shadowResolution = 512, ShadowFilteringTypes shadowFiltering = ShadowFilteringTypes.Poisson, bool screenspaceshadowblur = false, bool staticshadows = false)
+        public DirectionalLightSource(Color color, float intensity, Vector3 direction,Vector3 position = default(Vector3), bool castShadows = false, float shadowSize = 100, float shadowDepth = 100, int shadowResolution = 512, ShadowFilteringTypes shadowFiltering = ShadowFilteringTypes.Poisson, bool screenspaceshadowblur = false, bool staticshadows = false)
         {
             Color = color;
             Intensity = intensity;
@@ -60,9 +60,9 @@ namespace DeferredEngine.Entities
             normalizedDirection.Normalize();
             Direction = normalizedDirection;
 
-            DrawShadows = drawShadows;
+            CastShadows = castShadows;
 
-            DrawShadows = drawShadows;
+            CastShadows = castShadows;
             ShadowSize = shadowSize;
             ShadowDepth = shadowDepth;
             ShadowResolution = shadowResolution;
@@ -132,14 +132,14 @@ namespace DeferredEngine.Entities
         
         public override TransformableObject Clone
         {
-            get { return new DirectionalLightSource(Color, Intensity, Direction, Position, DrawShadows, ShadowSize, ShadowDepth, ShadowResolution, ShadowFiltering, false, _staticShadow); }
+            get { return new DirectionalLightSource(Color, Intensity, Direction, Position, CastShadows, ShadowSize, ShadowDepth, ShadowResolution, ShadowFiltering, false, _staticShadow); }
         }
 
         public override string Name { get; set; }
 
         public void ApplyShader()
         {
-            if (DrawShadows)
+            if (CastShadows)
             {
                 //Shaders.deferredDirectionalLightParameterLightViewProjection.SetValue(LightViewProjection);
                 //Shaders.deferredDirectionalLightParameter_ShadowMap.SetValue(shadowMap);

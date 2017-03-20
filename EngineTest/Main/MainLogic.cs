@@ -389,7 +389,7 @@ namespace DeferredEngine.Main
                 intensity: intensity, 
                 direction: direction, 
                 position: position, 
-                drawShadows: drawShadows, 
+                castShadows: drawShadows, 
                 shadowSize: shadowWorldSize, 
                 shadowDepth: shadowDepth, 
                 shadowResolution: shadowResolution, 

@@ -311,13 +311,14 @@ namespace DeferredEngine.Renderer
                     {
                         int size = 512;
                         DirectionalLightSource light = (DirectionalLightSource)editorData.SelectedObject;
-                        if (light.DrawShadows)
+                        if (light.CastShadows)
                         {
                             _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.PointClamp);
                             _spriteBatch.Draw(light.ShadowMap, new Rectangle(0, GameSettings.g_ScreenHeight - size, size, size), Color.White);
                             _spriteBatch.End();
                         }
                     }
+
                 }
             }
 
@@ -658,7 +659,7 @@ namespace DeferredEngine.Renderer
                 DirectionalLightSource light = dirLights[index];
                 if (!light.IsEnabled) continue;
 
-                if (light.DrawShadows)
+                if (light.CastShadows)
                 {
                     GameStats.shadowMaps += 1;
 
@@ -774,6 +775,9 @@ namespace DeferredEngine.Renderer
 
                     _graphicsDevice.SetRenderTarget(light.shadowMapCube, cubeMapFace);
                     _graphicsDevice.Clear(Color.TransparentBlack);
+
+                    Shaders.virtualShadowMappingEffectParameter_FarClip.SetValue(light.Radius);
+                    Shaders.virtualShadowMappingEffectParameter_LightPositionWorld.SetValue(light.Position);
                     meshMaterialLibrary.Draw(renderType: MeshMaterialLibrary.RenderType.ShadowZW, 
                         graphicsDevice: _graphicsDevice,
                         viewProjection: lightViewProjection, 
@@ -1249,7 +1253,7 @@ namespace DeferredEngine.Renderer
             }
             foreach (DirectionalLightSource light in dirLights)
             {
-                if (light.DrawShadows && light.ScreenSpaceShadowBlur)
+                if (light.CastShadows && light.ScreenSpaceShadowBlur)
                 {
                     throw new NotImplementedException();
 

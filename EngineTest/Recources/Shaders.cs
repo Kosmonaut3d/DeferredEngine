@@ -235,12 +235,6 @@ namespace DeferredEngine.Recources
         public static EffectTechnique deferredPointLightWriteStencil;
         public static EffectParameter deferredPointLightParameterResolution;
         public static EffectParameter deferredPointLightParameterShadowMap;
-        public static EffectParameter deferredPointLightParameterLightViewProjectionPositiveX;
-        public static EffectParameter deferredPointLightParameterLightViewProjectionNegativeX;
-        public static EffectParameter deferredPointLightParameterLightViewProjectionPositiveY;
-        public static EffectParameter deferredPointLightParameterLightViewProjectionNegativeY;
-        public static EffectParameter deferredPointLightParameterLightViewProjectionPositiveZ;
-        public static EffectParameter deferredPointLightParameterLightViewProjectionNegativeZ;
 
         public static EffectParameter deferredPointLightParameter_WorldView;
         public static EffectParameter deferredPointLightParameter_WorldViewProjection;
@@ -279,6 +273,8 @@ namespace DeferredEngine.Recources
         public static Effect virtualShadowMappingEffect;
         public static EffectParameter virtualShadowMappingEffectParameter_WorldViewProj;
         public static EffectParameter virtualShadowMappingEffectParameter_WorldView;
+        public static EffectParameter virtualShadowMappingEffectParameter_World;
+        public static EffectParameter virtualShadowMappingEffectParameter_LightPositionWorld;
         public static EffectParameter virtualShadowMappingEffectParameter_FarClip;
         public static EffectParameter virtualShadowMappingEffectParameter_SizeBias;
         public static EffectTechnique virtualShadowMappingEffect_Technique_Linear;
@@ -535,12 +531,6 @@ namespace DeferredEngine.Recources
             deferredPointLightParameterShadowMap = deferredPointLight.Parameters["shadowMap"];
 
             deferredPointLightParameterShadowMap = deferredPointLight.Parameters["shadowCubeMap"];
-            deferredPointLightParameterLightViewProjectionPositiveX = deferredPointLight.Parameters["LightViewProjectionPositiveX"];
-            deferredPointLightParameterLightViewProjectionNegativeX = deferredPointLight.Parameters["LightViewProjectionNegativeX"];
-            deferredPointLightParameterLightViewProjectionPositiveY = deferredPointLight.Parameters["LightViewProjectionPositiveY"];
-            deferredPointLightParameterLightViewProjectionNegativeY = deferredPointLight.Parameters["LightViewProjectionNegativeY"];
-            deferredPointLightParameterLightViewProjectionPositiveZ = deferredPointLight.Parameters["LightViewProjectionPositiveZ"];
-            deferredPointLightParameterLightViewProjectionNegativeZ = deferredPointLight.Parameters["LightViewProjectionNegativeZ"];
 
             deferredPointLightParameterResolution = deferredPointLight.Parameters["Resolution"];
             deferredPointLightParameter_WorldView = deferredPointLight.Parameters["WorldView"];
@@ -579,6 +569,8 @@ namespace DeferredEngine.Recources
             virtualShadowMappingEffect = content.Load<Effect>("Shaders/Shadow/VirtualShadowMapsGenerate");
             virtualShadowMappingEffectParameter_WorldViewProj = virtualShadowMappingEffect.Parameters["WorldViewProj"];
             virtualShadowMappingEffectParameter_WorldView= virtualShadowMappingEffect.Parameters["WorldView"];
+            virtualShadowMappingEffectParameter_World = virtualShadowMappingEffect.Parameters["World"];
+            virtualShadowMappingEffectParameter_LightPositionWorld = virtualShadowMappingEffect.Parameters["LightPositionWorld"];
             virtualShadowMappingEffectParameter_FarClip = virtualShadowMappingEffect.Parameters["FarClip"];
             virtualShadowMappingEffectParameter_SizeBias = virtualShadowMappingEffect.Parameters["SizeBias"];
 

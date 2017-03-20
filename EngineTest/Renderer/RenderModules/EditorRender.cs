@@ -126,7 +126,7 @@ namespace DeferredEngine.Renderer.RenderModules
                 LineHelperManager.AddLineStartDir(light.Position + Vector3.UnitZ * 10, light.Direction * 10, 1, Color.Black, light.Color);
                 LineHelperManager.AddLineStartDir(light.Position - Vector3.UnitZ * 10, light.Direction * 10, 1, Color.Black, light.Color);
 
-                if (light.DrawShadows)
+                if (light.CastShadows)
                 {
                     BoundingFrustum boundingFrustumShadow = new BoundingFrustum(light.LightViewProjection);
 
