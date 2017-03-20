@@ -118,7 +118,8 @@ namespace DeferredEngine.Renderer.RenderModules
                 _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2);
             }
 
-            //foreach (var light in dirLights)
+
+            Shaders.BillboardEffectParameter_Texture.SetValue(_assets.IconEnvmap);
             {
                 Matrix world = Matrix.CreateTranslation(envSample.Position);
                 Shaders.BillboardEffectParameter_WorldViewProj.SetValue(world * staticViewProjection);

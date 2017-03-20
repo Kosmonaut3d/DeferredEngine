@@ -212,7 +212,9 @@ namespace DeferredEngine.Main
                     "CTRL-C / Insert - duplicate object\n" +
                     "Del - delete object\n" +
                     "T - select translation gizmo\n" +
-                    "R - select rotation gizmo";
+                    "R - select rotation gizmo\n" +
+                   "\n" +
+                   "F1 - Cycle through render targets\n";
         }
 
         public void Update(GameTime gameTime, bool isActive, TransformableObject selectedObject)

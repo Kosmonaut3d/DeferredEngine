@@ -138,6 +138,8 @@ namespace DeferredEngine.Renderer.RenderModules
 
             //EnvMap
 
+            Shaders.BillboardEffectParameter_Texture.SetValue(_assets.IconEnvmap);
+
             Matrix world2 = Matrix.CreateTranslation(envSample.Position);
             Shaders.BillboardEffectParameter_WorldViewProj.SetValue(world2 * staticViewProjection);
             Shaders.BillboardEffectParameter_WorldView.SetValue(world2 * view);
