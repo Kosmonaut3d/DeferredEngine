@@ -15,6 +15,8 @@ Texture2D AlbedoMap;
 Texture2D NormalMap;
 Texture2D ReflectionMap;
 
+float2 Resolution = { 1280, 800 };
+
 sampler PointSampler
 {
     Texture = <AlbedoMap>;
@@ -100,6 +102,46 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 		////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		//  HELPER FUNCTIONS
 		////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+float4 GetSSR(float2 TexCoord)
+{
+	
+	//Just a bit shorter
+	int3 texCoord = int3(TexCoord * Resolution, 0);
+
+	//Get our current Position in viewspace
+	float4 centerSample = ReflectionMap.Load(texCoord);
+
+	if(centerSample.a <= 0.01f) return float4(0,0,0,0);
+
+	float lumaCenter = 0.299 * centerSample.r + 0.587 * centerSample.g + 0.114 * centerSample.b;
+
+	if (lumaCenter < 0.4f) return centerSample;
+
+	float4 sampleAcc = centerSample;
+
+
+	[loop]
+	for (int x = -1; x <= 1; x++)
+	{
+		for (int y = -1; y <= 1; y++)
+		{
+			//Don't sample mid again
+			if (y == 0 && x == 0) continue;
+
+			sampleAcc += ReflectionMap.Load(int3(texCoord.x + x, texCoord.y + y, 0));
+		}
+	}
+
+	//Get the average
+	sampleAcc /= 9;
+	//Luminance
+	float lumaAvg = 0.299 * sampleAcc.r + 0.587 * sampleAcc.g + 0.114 * sampleAcc.b;
+
+	if (abs(lumaAvg - lumaCenter) > 0.2f) return sampleAcc;
+
+	return centerSample;
+}
 
 //float GetNormalVariance(float2 texCoord, float3 baseNormal, float offset)
 //{
@@ -193,7 +235,8 @@ PixelShaderOutput PixelShaderFunctionBasic(VertexShaderOutput input)
     DiffuseReflectColor *= fresnel; //* NdotC * NdotC * NdotC;
 
 	//Sample our screen space reflection map and use the environment map only as fallback
-    float4 ssreflectionMap = ReflectionMap.Sample(PointSampler, input.TexCoord);
+	float4 ssreflectionMap = GetSSR(input.TexCoord);
+	
 	if (ssreflectionMap.a > 0) ReflectColor.rgb = ssreflectionMap.rgb * 10;
 	else ReflectColor.rgb = pow(abs(ReflectColor.rgb), 2.2f);
 	DiffuseReflectColor.rgb = pow(abs(DiffuseReflectColor.rgb), 2.2f);

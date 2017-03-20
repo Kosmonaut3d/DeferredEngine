@@ -264,7 +264,7 @@ technique TechniqueUnlinearize
 	}
 }
 
-technique Technique1                                         
+technique TechniqueNonLinear                                      
 {
     pass Pass1
     {
@@ -273,7 +273,7 @@ technique Technique1
     }
 }
 
-technique TechniqueSSR
+technique TechniqueLinear
 {
     pass Pass1
     {

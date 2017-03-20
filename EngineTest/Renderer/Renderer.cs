@@ -457,11 +457,12 @@ namespace DeferredEngine.Renderer
                 //We don't use temporal AA obviously for the cubemap
                 bool tempAa = GameSettings.g_TemporalAntiAliasing;
                 GameSettings.g_TemporalAntiAliasing = false;
-                Shaders.DeferredCompose.CurrentTechnique = Shaders.DeferredComposeTechnique_NonLinear;
+                
+                //Shaders.DeferredCompose.CurrentTechnique = Shaders.DeferredComposeTechnique_NonLinear;
                 Compose();
-                Shaders.DeferredCompose.CurrentTechnique = GameSettings.g_SSReflection
-                    ? Shaders.DeferredComposeTechnique_Linear
-                    : Shaders.DeferredComposeTechnique_NonLinear;
+                //Shaders.DeferredCompose.CurrentTechnique = GameSettings.g_SSReflection
+                //    ? Shaders.DeferredComposeTechnique_Linear
+                //    : Shaders.DeferredComposeTechnique_NonLinear;
                 GameSettings.g_TemporalAntiAliasing = tempAa;
                 DrawMapToScreenToCube(_renderTargetFinal, _renderTargetCubeMap, cubeMapFace);
             }
@@ -469,6 +470,9 @@ namespace DeferredEngine.Renderer
 
             //Change RTs back to normal
             SetUpRenderTargets(GameSettings.g_ScreenWidth, GameSettings.g_ScreenHeight, false);
+
+            _graphicsDevice.SetRenderTarget(_renderTargetScreenSpaceEffectReflection);
+            _graphicsDevice.Clear(Color.TransparentBlack);
 
             //Our camera has changed we need to reinitialize stuff because we used a different camera in the cubemap render
             camera.HasChanged = true;
@@ -1720,8 +1724,10 @@ namespace DeferredEngine.Renderer
                     targetHeight, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
 
                 Shaders.ScreenSpaceReflectionParameter_Resolution.SetValue(new Vector2(targetWidth, targetHeight));
+                Shaders.deferredEnvironmentParameter_Resolution.SetValue(new Vector2(targetWidth, targetHeight));
                 _renderTargetScreenSpaceEffectReflection = new RenderTarget2D(_graphicsDevice, targetWidth,
-                    targetHeight, false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
+                    targetHeight, false, SurfaceFormat.HalfVector4, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
+
 
                 ///////////////////
                 // HALF RESOLUTION

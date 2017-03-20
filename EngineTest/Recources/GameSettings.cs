@@ -108,6 +108,28 @@ namespace DeferredEngine.Recources
             }
         }
 
+        private static float _whitePoint = 1.1f;
+        public static float WhitePoint
+        {
+            get { return _whitePoint; }
+            set
+            {
+                _whitePoint = value;
+                Shaders.PostProcessingParameter_WhitePoint.SetValue(_whitePoint);
+            }
+        }
+
+        private static float _exposure = 1;
+        public static float Exposure
+        {
+            get { return _exposure; }
+            set
+            {
+                _exposure = value;
+                Shaders.PostProcessingParameter_Exposure.SetValue((float) Math.Pow(2,_exposure));
+            }
+        }
+
         // SSR
 
         private static bool _g_SSReflection = true;
@@ -124,7 +146,7 @@ namespace DeferredEngine.Recources
             }
         }
 
-        private static bool _g_Linear = false;
+        private static bool _g_Linear = true;
         public static bool g_Linear
         {
             get { return _g_Linear; }
@@ -317,9 +339,11 @@ namespace DeferredEngine.Recources
 
             g_SSReflections_Samples = 13;
 
+            g_Linear = _g_Linear;
 
             d_defaultMaterial = false;
             SCurveStrength = _sCurveStrength;
+            Exposure = _exposure;
             ChromaticAbberationStrength = _chromaticAbberationStrength;
             
         }

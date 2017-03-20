@@ -541,8 +541,10 @@ float4 PixelShaderFunctionTAA(VertexShaderOutput input) : COLOR0
 		startingDepth = rayPosition.z;
 	}
 
-return output;
+return saturate(output);
 }
+
+
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -567,6 +569,7 @@ technique Default
         PixelShader = compile ps_4_0 PixelShaderFunction();
     }
 }
+
 
 //float roughnessToConeAngle(float roughness)
 //{

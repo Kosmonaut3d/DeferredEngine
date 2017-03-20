@@ -71,6 +71,8 @@ namespace DeferredEngine.Recources
         public static EffectParameter PostProcessingParameter_ScreenTexture;
         public static EffectParameter PostProcessingParameter_ChromaticAbberationStrength;
         public static EffectParameter PostProcessingParameter_SCurveStrength;
+        public static EffectParameter PostProcessingParameter_WhitePoint;
+        public static EffectParameter PostProcessingParameter_Exposure;
 
         public static EffectTechnique PostProcessingTechnique_Vignette;
         public static EffectTechnique PostProcessingTechnique_Base;
@@ -199,7 +201,7 @@ namespace DeferredEngine.Recources
 
         public static EffectTechnique DeferredComposeTechnique_NonLinear;
         public static EffectTechnique DeferredComposeTechnique_Linear;
-        public static EffectTechnique DeferredComposeTechnique_Unlinearize;
+        //public static EffectTechnique DeferredComposeTechnique_Unlinearize;
 
         //Deferred Light
         //public static Effect deferredSpotLight;
@@ -279,6 +281,7 @@ namespace DeferredEngine.Recources
         public static EffectParameter deferredEnvironmentParameter_SSRMap;
         public static EffectParameter deferredEnvironmentParameter_FrustumCorners;
         public static EffectParameter deferredEnvironmentParameter_ReflectionCubeMap;
+        public static EffectParameter deferredEnvironmentParameter_Resolution;
         public static EffectParameter deferredEnvironmentParameterTransposeView;
 
         //SHADOW MAPPING
@@ -368,6 +371,9 @@ namespace DeferredEngine.Recources
             PostProcessingParameter_ChromaticAbberationStrength =
                 PostProcessing.Parameters["ChromaticAbberationStrength"];
             PostProcessingParameter_SCurveStrength = PostProcessing.Parameters["SCurveStrength"];
+            PostProcessingParameter_WhitePoint = PostProcessing.Parameters["WhitePoint"];
+            PostProcessingParameter_Exposure = PostProcessing.Parameters["Exposure"];
+
             PostProcessingParameter_ScreenTexture = PostProcessing.Parameters["ScreenTexture"];
             PostProcessingTechnique_Vignette = PostProcessing.Techniques["Vignette"];
             PostProcessingTechnique_VignetteChroma = PostProcessing.Techniques["VignetteChroma"];
@@ -496,9 +502,10 @@ namespace DeferredEngine.Recources
             DeferredComposeEffectParameter_SSRMap = DeferredCompose.Parameters["SSRMap"];
             DeferredComposeEffectParameter_UseSSAO = DeferredCompose.Parameters["useSSAO"];
 
-            DeferredComposeTechnique_NonLinear = DeferredCompose.Techniques["Technique1"];
-            DeferredComposeTechnique_Linear = DeferredCompose.Techniques["TechniqueSSR"];
-            DeferredComposeTechnique_Unlinearize = DeferredCompose.Techniques["Unlinearize"];
+            DeferredComposeTechnique_NonLinear = DeferredCompose.Techniques["TechniqueNonLinear"];
+            DeferredComposeTechnique_Linear = DeferredCompose.Techniques["TechniqueLinear"];
+            //DeferredComposeTechnique_Unlinearize = DeferredCompose.Techniques["Unlinearize"];
+
             ////DeferredLights
 
             //deferredSpotLight = content.Load<Effect>("Shaders/Deferred/DeferredSpotLight");
@@ -582,7 +589,7 @@ namespace DeferredEngine.Recources
             deferredEnvironmentParameter_FrustumCorners = deferredEnvironment.Parameters["FrustumCorners"];
             deferredEnvironmentParameter_SSRMap = deferredEnvironment.Parameters["ReflectionMap"];
             deferredEnvironmentParameter_ReflectionCubeMap = deferredEnvironment.Parameters["ReflectionCubeMap"];
-
+            deferredEnvironmentParameter_Resolution = deferredEnvironment.Parameters["Resolution"];
             deferredEnvironmentParameterTransposeView = deferredEnvironment.Parameters["TransposeView"];
 
             //VSM

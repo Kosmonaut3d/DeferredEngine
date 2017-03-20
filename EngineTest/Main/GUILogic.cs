@@ -92,6 +92,30 @@ namespace DeferredEngine.Main
                 ToggleField = typeof(GameSettings).GetField("d_defaultMaterial"),
                 Toggle = GameSettings.d_defaultMaterial
             });
+
+            optionList.AddElement(new GuiSliderFloatText(defaultStyle, 0, 2, 2, "WhitePoint: ")
+            {
+                SliderProperty = typeof(GameSettings).GetProperty("WhitePoint"),
+                SliderValue = GameSettings.WhitePoint
+            });
+
+            optionList.AddElement(new GuiSliderFloatText(defaultStyle, -4, 4, 2, "Exposure: ")
+            {
+                SliderProperty = typeof(GameSettings).GetProperty("Exposure"),
+                SliderValue = GameSettings.Exposure
+            });
+
+            optionList.AddElement(new GuiSliderFloatText(defaultStyle, -1, 1, 2, "S-Curve: ")
+            {
+                SliderProperty = typeof(GameSettings).GetProperty("SCurveStrength"),
+                SliderValue = GameSettings.SCurveStrength
+            });
+
+            optionList.AddElement(new GuiSliderFloatText(defaultStyle, -1, 1, 2, "Chromatic Abberation: ")
+            {
+                SliderProperty = typeof(GameSettings).GetProperty("ChromaticAbberationStrength"),
+                SliderValue = GameSettings.ChromaticAbberationStrength
+            });
         }
 
         public void Update(GameTime gameTime, bool isActive, TransformableObject selectedObject)

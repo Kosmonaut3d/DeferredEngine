@@ -13,6 +13,10 @@ float ChromaticAbberationStrength = 10;
 
 float SCurveStrength; //= -0.05f;
 
+float WhitePoint = 1.1f;
+
+float Exposure = 2;
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  STRUCT DEFINITIONS
 
@@ -92,6 +96,31 @@ float3 ToneMapFilmic_Hejl2015(float3 hdr, float whitePt)
 	float4 va = (1.425 * vh) + 0.05f;
 	float4 vf = ((vh * va + 0.004f) / ((vh * (va + 0.55f) + 0.0491f))) - 0.0821f;
 	return vf.rgb / vf.www;
+	
+}
+
+float3 ReinhardTonemap(float3 hdr, float whitePt)
+{
+	float x = hdr.r + hdr.b + hdr.g;
+	x /= 3;
+	return hdr * (x / (x + 1));
+}
+
+float3 Uncharted2Tonemap(float3 x)
+{
+	float A = 0.15;
+
+	float B = 0.50;
+
+	float C = 0.10;
+
+	float D = 0.20;
+
+	float E = 0.02;
+
+	float F = 0.30;
+
+	return ((x*(A*x + C*B) + D*E) / (x*(A*x + B) + D*F)) - E / F;
 }
 
 float4 VignetteChromaShiftPixelShaderFunction(float4 pos : SV_POSITION, float2 texCoord : TEXCOORD0) : SV_TARGET0
@@ -100,21 +129,27 @@ float4 VignetteChromaShiftPixelShaderFunction(float4 pos : SV_POSITION, float2 t
 
 
     //float chromaStrength = (base.r + base.g + base.b) / 3;
+	float dist = distance(texCoord, float2(0.5.xx));
 
-    float2 chromaDist = (texCoord - float2(0.5, 0.5)) * ChromaticAbberationStrength; //*(0.5f+chromaStrength);
+	//if (dist > 0.2)
+	//{
+	//	float2 chromaDist = (texCoord - float2(0.5, 0.5)) * ChromaticAbberationStrength; //*(0.5f+chromaStrength);
 
-    float chromaR = tex2D(TextureSampler, texCoord.xy + chromaDist).r;
-    
-	base.r = chromaR;
+	//	float chromaR = tex2D(TextureSampler, texCoord.xy + chromaDist).r;
 
-	base.rgb = ToneMapFilmic_Hejl2015(base.rgb, 1.1f);
+	//	base.r = chromaR;
+	//}
+
+
+	base.rgb = /*Uncharted2Tonemap(base.rgb * 0.5f) / Uncharted2Tonemap(WhitePoint.xxx);*/
+		ToneMapFilmic_Hejl2015(base.rgb * Exposure/*pow(2, Exposure)*/, WhitePoint);
 
 	base = pow(abs(base), 0.4545454545f);
 
 
     base = ColorSCurve(base);
 
-    float dist = distance(texCoord, float2(0.5.xx)) * 0.60f;
+    dist *= 0.60f;
     base.rgb *= smoothstep(radiusX, radiusY, dist);
 
     return float4(base,1);
