@@ -3,7 +3,6 @@ using DeferredEngine.Entities;
 using DeferredEngine.Recources;
 using HelperSuite.GUI;
 using HelperSuite.GUIHelper;
-using HelperSuite.GUIRenderer.Helper;
 using Microsoft.Xna.Framework;
 
 namespace DeferredEngine.Main
@@ -46,16 +45,16 @@ namespace DeferredEngine.Main
             GuiCanvas = new GUICanvas(Vector2.Zero, new Vector2(GameSettings.g_ScreenWidth, GameSettings.g_ScreenHeight));
 
             defaultStyle = new GUIStyle(
-                new Vector2(200,35),
-                _assets.MonospaceFont,
-                Color.Gray, 
-                Color.White,
-                Color.White,
-                GUIStyle.GUIAlignment.None,
-                GUIStyle.TextAlignment.Left,
-                GUIStyle.TextAlignment.Center,
-                Vector2.Zero,
-                GuiCanvas.Dimensions);
+                dimensionsStyle: new Vector2(200,35),
+                textFontStyle: _assets.MonospaceFont,
+                blockColorStyle: Color.Gray, 
+                textColorStyle: Color.White,
+                sliderColorStyle: Color.White,
+                guiAlignmentStyle: GUIStyle.GUIAlignment.None,
+                textAlignmentStyle: GUIStyle.TextAlignment.Left,
+                textButtonAlignmentStyle: GUIStyle.TextAlignment.Center,
+                textBorderStyle: new Vector2(10, 1),
+                parentDimensionsStyle: GuiCanvas.Dimensions);
 
             GuiCanvas.AddElement(_rightSideList = new GuiListToggleScroll(Vector2.Zero, defaultStyle));
             _rightSideList.Alignment = GUIStyle.GUIAlignment.TopRight;
@@ -75,46 +74,112 @@ namespace DeferredEngine.Main
             _objectDescriptionList.AddElement(_objectSlider1 = new GuiSliderFloatText(defaultStyle, 0,1,2,"objToggle1") { IsHidden = true });
 
             _rightSideList.AddElement(_objectDescriptionList);
+
+            /////////////////////////////////////////////////////////////////
             //Options
+            /////////////////////////////////////////////////////////////////
+            
             _rightSideList.AddElement(new GUITextBlock(defaultStyle, "Options") {BlockColor = Color.DimGray, Dimensions = new Vector2(200,10), TextAlignment = GUIStyle.TextAlignment.Center});
 
             GuiListToggle optionList = new GuiListToggle(Vector2.Zero, defaultStyle);
             _rightSideList.AddElement(optionList);
 
-            optionList.AddElement(new GUITextBlockToggle(defaultStyle, "Temporal AA")
+                /////////////////////////////////////////////////////////////////
+                //Post Processing
+                /////////////////////////////////////////////////////////////////
+
+            optionList.AddElement(new GUITextBlock(defaultStyle, "PostProcessing") { BlockColor = Color.DarkSlateGray, Dimensions = new Vector2(200, 10), TextAlignment = GUIStyle.TextAlignment.Center });
+
+            GuiListToggle postprocessingList = new GuiListToggle(Vector2.Zero, defaultStyle) {ToggleBlockColor = Color.DarkSlateGray};
+            optionList.AddElement(postprocessingList);
+
+            postprocessingList.AddElement(new GUITextBlockToggle(defaultStyle, "Temporal AA")
             {
                 ToggleField = typeof(GameSettings).GetField("g_TemporalAntiAliasing"),
                 Toggle = GameSettings.g_TemporalAntiAliasing
             });
 
-            optionList.AddElement(new GUITextBlockToggle(defaultStyle, "Default Material")
+            postprocessingList.AddElement(new GUITextBlockToggle(defaultStyle, "Default Material")
             {
                 ToggleField = typeof(GameSettings).GetField("d_defaultMaterial"),
                 Toggle = GameSettings.d_defaultMaterial
             });
 
-            optionList.AddElement(new GuiSliderFloatText(defaultStyle, 0, 2, 2, "WhitePoint: ")
+            postprocessingList.AddElement(new GuiSliderFloatText(defaultStyle, 0, 4, 2, "WhitePoint: ")
             {
                 SliderProperty = typeof(GameSettings).GetProperty("WhitePoint"),
                 SliderValue = GameSettings.WhitePoint
             });
 
-            optionList.AddElement(new GuiSliderFloatText(defaultStyle, -4, 4, 2, "Exposure: ")
+            postprocessingList.AddElement(new GuiSliderFloatText(defaultStyle, -8, 8, 2, "Exposure: ")
             {
                 SliderProperty = typeof(GameSettings).GetProperty("Exposure"),
                 SliderValue = GameSettings.Exposure
             });
 
-            optionList.AddElement(new GuiSliderFloatText(defaultStyle, -1, 1, 2, "S-Curve: ")
+            postprocessingList.AddElement(new GuiSliderFloatText(defaultStyle, -1, 1, 2, "S-Curve: ")
             {
                 SliderProperty = typeof(GameSettings).GetProperty("SCurveStrength"),
                 SliderValue = GameSettings.SCurveStrength
             });
 
-            optionList.AddElement(new GuiSliderFloatText(defaultStyle, -1, 1, 2, "Chromatic Abberation: ")
+            postprocessingList.AddElement(new GuiSliderFloatText(defaultStyle, 0, 1, 2, "Chr. Abb.: ")
             {
                 SliderProperty = typeof(GameSettings).GetProperty("ChromaticAbberationStrength"),
                 SliderValue = GameSettings.ChromaticAbberationStrength
+            });
+
+                /////////////////////////////////////////////////////////////////
+                //SSR
+                /////////////////////////////////////////////////////////////////
+
+            optionList.AddElement(new GUITextBlock(Vector2.Zero, new Vector2(200, 10), "Screen Space Reflections",
+                defaultStyle.TextFontStyle, Color.DarkSlateGray, Color.White, GUIStyle.TextAlignment.Center,
+                Vector2.Zero));
+
+            GuiListToggle ssrList = new GuiListToggle(Vector2.Zero, defaultStyle) { ToggleBlockColor = Color.DarkSlateGray };
+            optionList.AddElement(ssrList);
+
+            ssrList.AddElement(new GUITextBlockToggle(defaultStyle, "Enable SSR")
+            {
+                ToggleProperty = typeof(GameSettings).GetProperty("g_SSReflection"),
+                Toggle = GameSettings.g_SSReflection
+            });
+
+            ssrList.AddElement(new GUITextBlockToggle(defaultStyle, "Stochastic distr.")
+            {
+                ToggleProperty = typeof(GameSettings).GetProperty("g_SSReflectionTaa"),
+                Toggle = GameSettings.g_SSReflectionTaa
+            });
+
+            ssrList.AddElement(new GUITextBlockToggle(defaultStyle, "Temporal Noise")
+            {
+                ToggleField = typeof(GameSettings).GetField("g_SSReflectionNoise"),
+                Toggle = GameSettings.g_SSReflectionNoise
+            });
+
+            ssrList.AddElement(new GUITextBlockToggle(defaultStyle, "Firefly Reduction")
+            {
+                ToggleProperty = typeof(GameSettings).GetProperty("g_SSReflection_FireflyReduction"),
+                Toggle = GameSettings.g_SSReflection_FireflyReduction
+            });
+
+            ssrList.AddElement(new GuiSliderFloatText(defaultStyle, 0, 5, 2, "Firefly Threshold ")
+            {
+                SliderProperty = typeof(GameSettings).GetProperty("g_SSReflection_FireflyThreshold"),
+                SliderValue = GameSettings.g_SSReflection_FireflyThreshold
+            });
+
+            ssrList.AddElement(new GuiSliderIntText(defaultStyle, 1, 100, 1, "Samples: ")
+            {
+                SliderProperty = typeof(GameSettings).GetProperty("g_SSReflections_Samples"),
+                SliderValue = GameSettings.g_SSReflections_Samples
+            });
+
+            ssrList.AddElement(new GuiSliderIntText(defaultStyle, 1, 100, 1, "Search Samples: ")
+            {
+                SliderProperty = typeof(GameSettings).GetProperty("g_SSReflections_RefinementSamples"),
+                SliderValue = GameSettings.g_SSReflections_RefinementSamples
             });
         }
 

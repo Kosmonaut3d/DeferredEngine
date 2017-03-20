@@ -282,6 +282,8 @@ namespace DeferredEngine.Recources
         public static EffectParameter deferredEnvironmentParameter_FrustumCorners;
         public static EffectParameter deferredEnvironmentParameter_ReflectionCubeMap;
         public static EffectParameter deferredEnvironmentParameter_Resolution;
+        public static EffectParameter deferredEnvironmentParameter_FireflyReduction;
+        public static EffectParameter deferredEnvironmentParameter_FireflyThreshold;
         public static EffectParameter deferredEnvironmentParameterTransposeView;
 
         //SHADOW MAPPING
@@ -590,6 +592,8 @@ namespace DeferredEngine.Recources
             deferredEnvironmentParameter_SSRMap = deferredEnvironment.Parameters["ReflectionMap"];
             deferredEnvironmentParameter_ReflectionCubeMap = deferredEnvironment.Parameters["ReflectionCubeMap"];
             deferredEnvironmentParameter_Resolution = deferredEnvironment.Parameters["Resolution"];
+            deferredEnvironmentParameter_FireflyReduction = deferredEnvironment.Parameters["FireflyReduction"];
+            deferredEnvironmentParameter_FireflyThreshold = deferredEnvironment.Parameters["FireflyThreshold"];
             deferredEnvironmentParameterTransposeView = deferredEnvironment.Parameters["TransposeView"];
 
             //VSM

@@ -54,7 +54,7 @@ namespace DeferredEngine.Recources
         private static float _ssao_falloffmax = 0.03f;
         private static int _ssao_samples = 8;
         private static float _ssao_sampleradius = 30;
-        private static float _ssao_strength = 1.2f;
+        private static float _ssao_strength = 0.5f;
         public static bool ssao_Blur = true;
         private static bool _ssao_active = true;
 
@@ -119,7 +119,7 @@ namespace DeferredEngine.Recources
             }
         }
 
-        private static float _exposure = 1;
+        private static float _exposure = 0.25f;
         public static float Exposure
         {
             get { return _exposure; }
@@ -140,11 +140,33 @@ namespace DeferredEngine.Recources
             set
             {
                 _g_SSReflection = value;
-                //Shaders.DeferredCompose.CurrentTechnique = value
-                //    ? Shaders.DeferredComposeTechnique_Linear
-                //    : Shaders.DeferredComposeTechnique_NonLinear;
             }
         }
+
+        private static bool _g_SSReflection_FireflyReduction = true;
+
+        public static bool g_SSReflection_FireflyReduction
+        {
+            get { return _g_SSReflection_FireflyReduction; }
+            set
+            {
+                _g_SSReflection_FireflyReduction = value;
+                Shaders.deferredEnvironmentParameter_FireflyReduction.SetValue(value);
+            }
+        }
+
+        private static float _g_SSReflection_FireflyThreshold = 1.75f;
+
+        public static float g_SSReflection_FireflyThreshold
+        {
+            get { return _g_SSReflection_FireflyThreshold; }
+            set
+            {
+                _g_SSReflection_FireflyThreshold = value;
+                Shaders.deferredEnvironmentParameter_FireflyThreshold.SetValue(_g_SSReflection_FireflyThreshold);
+            }
+        }
+
 
         private static bool _g_Linear = true;
         public static bool g_Linear
@@ -328,16 +350,17 @@ namespace DeferredEngine.Recources
         {
             ApplySSAO();
             
-            g_SSReflection = _g_SSReflection;
-            
             g_EmissiveDraw = false;
             ssao_Active = true;
             g_PostProcessing = true;
             g_TemporalAntiAliasing = true;
             g_EnvironmentMapping = true;
-            g_SSReflection = false;
 
-            g_SSReflections_Samples = 13;
+            g_SSReflection = true;
+            g_SSReflections_Samples = msamples;
+            g_SSReflections_RefinementSamples = ssamples;
+            g_SSReflection_FireflyReduction = _g_SSReflection_FireflyReduction;
+            g_SSReflection_FireflyThreshold = _g_SSReflection_FireflyThreshold;
 
             g_Linear = _g_Linear;
 

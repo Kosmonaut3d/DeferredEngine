@@ -17,6 +17,9 @@ Texture2D ReflectionMap;
 
 float2 Resolution = { 1280, 800 };
 
+bool FireflyReduction;
+float FireflyThreshold = 0.1f;
+
 sampler PointSampler
 {
     Texture = <AlbedoMap>;
@@ -103,6 +106,11 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 		//  HELPER FUNCTIONS
 		////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+float GetLuma(float3 rgb)
+{
+	return (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b)*10;
+}
+
 float4 GetSSR(float2 TexCoord)
 {
 	
@@ -110,37 +118,56 @@ float4 GetSSR(float2 TexCoord)
 	int3 texCoord = int3(TexCoord * Resolution, 0);
 
 	//Get our current Position in viewspace
-	float4 centerSample = ReflectionMap.Load(texCoord);
+	float4 similarSampleAcc = ReflectionMap.Load(texCoord);
 
-	if(centerSample.a <= 0.01f) return float4(0,0,0,0);
+	if(similarSampleAcc.a <= 0.01) return float4(0,0,0,0);
 
-	float lumaCenter = 0.299 * centerSample.r + 0.587 * centerSample.g + 0.114 * centerSample.b;
+	if (!FireflyReduction) 
+		return similarSampleAcc;
 
-	if (lumaCenter < 0.4f) return centerSample;
+	float similarLuma = GetLuma(similarSampleAcc.rgb);
 
-	float4 sampleAcc = centerSample;
+	//Ignore rest for dark values
+	//if (similarLuma < 0.1f) return similarSampleAcc;
 
+	float4 neighbor;
+	float neighborLuma;
+
+	float similarSamples = 1;
+
+	float4 differentSampleAcc;
+	float differentSamples = 0;
 
 	[loop]
-	for (int x = -1; x <= 1; x++)
+	for (int x = -2; x <= 2; x++)
 	{
-		for (int y = -1; y <= 1; y++)
+		for (int y = -2; y <= 2; y++)
 		{
 			//Don't sample mid again
 			if (y == 0 && x == 0) continue;
 
-			sampleAcc += ReflectionMap.Load(int3(texCoord.x + x, texCoord.y + y, 0));
+			neighbor = ReflectionMap.Load(int3(texCoord.x + x, texCoord.y + y, 0));
+			neighborLuma = GetLuma(neighbor.rgb);
+
+			//is similar?
+			if (abs(neighborLuma - similarLuma) < FireflyThreshold)
+			{
+				//Join to similar samples
+				similarSamples++;
+				similarSampleAcc += neighbor;
+			}
+			else
+			{
+				differentSamples++;
+				differentSampleAcc += neighbor;
+			}
 		}
 	}
 
-	//Get the average
-	sampleAcc /= 9;
-	//Luminance
-	float lumaAvg = 0.299 * sampleAcc.r + 0.587 * sampleAcc.g + 0.114 * sampleAcc.b;
+	similarSampleAcc /= similarSamples;
+	differentSampleAcc /= differentSamples;
 
-	if (abs(lumaAvg - lumaCenter) > 0.2f) return sampleAcc;
-
-	return centerSample;
+	return similarSamples > differentSamples ? similarSampleAcc : differentSampleAcc;
 }
 
 //float GetNormalVariance(float2 texCoord, float3 baseNormal, float offset)

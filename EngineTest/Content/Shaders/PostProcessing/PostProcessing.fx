@@ -96,14 +96,25 @@ float3 ToneMapFilmic_Hejl2015(float3 hdr, float whitePt)
 	float4 va = (1.425 * vh) + 0.05f;
 	float4 vf = ((vh * va + 0.004f) / ((vh * (va + 0.55f) + 0.0491f))) - 0.0821f;
 	return vf.rgb / vf.www;
-	
 }
 
-float3 ReinhardTonemap(float3 hdr, float whitePt)
+float GetLuma(float3 rgb)
 {
-	float x = hdr.r + hdr.b + hdr.g;
-	x /= 3;
+	return (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b);
+}
+
+//http://www.cs.utah.edu/~reinhard/cdrom/tonemap.pdf
+
+float3 ReinhardTonemap(float3 hdr)
+{
+	float x = GetLuma(hdr);
 	return hdr * (x / (x + 1));
+}
+
+float3 ReinhardTonemap(float3 hdr, float WhitePoint)
+{
+	float x = GetLuma(hdr);
+	return hdr * (x * ( 1 + x / (WhitePoint*WhitePoint)) / (x + 1));
 }
 
 float3 Uncharted2Tonemap(float3 x)
@@ -131,21 +142,21 @@ float4 VignetteChromaShiftPixelShaderFunction(float4 pos : SV_POSITION, float2 t
     //float chromaStrength = (base.r + base.g + base.b) / 3;
 	float dist = distance(texCoord, float2(0.5.xx));
 
-	//if (dist > 0.2)
-	//{
-	//	float2 chromaDist = (texCoord - float2(0.5, 0.5)) * ChromaticAbberationStrength; //*(0.5f+chromaStrength);
+	if (dist > 0.1)
+	{
+		float2 chromaDist = (texCoord - float2(0.5, 0.5)) * ChromaticAbberationStrength * 0.1f; //*(0.5f+chromaStrength);
 
-	//	float chromaR = tex2D(TextureSampler, texCoord.xy + chromaDist).r;
+		float chromaR = tex2D(TextureSampler, texCoord.xy + chromaDist).r;
 
-	//	base.r = chromaR;
-	//}
-
-
-	base.rgb = /*Uncharted2Tonemap(base.rgb * 0.5f) / Uncharted2Tonemap(WhitePoint.xxx);*/
-		ToneMapFilmic_Hejl2015(base.rgb * Exposure/*pow(2, Exposure)*/, WhitePoint);
+		base.r = chromaR;
+	}
 
 	base = pow(abs(base), 0.4545454545f);
+	base.rgb = ToneMapFilmic_Hejl2015(base.rgb * Exposure, WhitePoint);
 
+	//base.rgb = //ReinhardTonemap(base.rgb * Exposure, WhitePoint);
+	//		   //Uncharted2Tonemap(base.rgb * Exposure) / Uncharted2Tonemap(WhitePoint.xxx);
+	//base = pow(abs(base), 0.4545454545f);
 
     base = ColorSCurve(base);
 
@@ -159,7 +170,10 @@ float4 BasePixelShaderFunction(float4 pos : SV_POSITION, float2 texCoord : TEXCO
 {
 	float3 base = tex2D(TextureSampler, texCoord).rgb;
 
-	base = pow(abs(base), 0.4545454545f);
+	base.rgb = //ReinhardTonemap(base.rgb * Exposure, WhitePoint);
+			   		   Uncharted2Tonemap(base.rgb * Exposure) / Uncharted2Tonemap(WhitePoint.xxx);
+			   base = pow(abs(base), 0.4545454545f);
+
 	base = ColorSCurve(base);
 	return float4(base,1);
 }
