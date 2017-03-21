@@ -11,6 +11,7 @@ namespace DeferredEngine.Entities
         public Color Color;
         public float Intensity;
         private Vector3 _direction;
+        private Vector3 _initialDirection;
         private Vector3 _position;
         public bool HasChanged;
 
@@ -59,6 +60,7 @@ namespace DeferredEngine.Entities
             Vector3 normalizedDirection = direction;
             normalizedDirection.Normalize();
             Direction = normalizedDirection;
+            _initialDirection = normalizedDirection;
 
             CastShadows = castShadows;
 
@@ -79,6 +81,8 @@ namespace DeferredEngine.Entities
             IsEnabled = true;
 
             TransformDirectionToAngles();
+
+            _rotationMatrix = Matrix.Identity;
 
             Name = GetType().Name + " " + Id;
         }
@@ -111,20 +115,26 @@ namespace DeferredEngine.Entities
             set { _id = value; }
         }
 
-        public override Matrix RotationMatrix { get; set; }
-        
+        public override Matrix RotationMatrix
+        {
+            get { return _rotationMatrix; }
+            set
+            {
+                _rotationMatrix = value; 
+                TransformAnglesToDirection();
+            }
+        }
+
         public override bool IsEnabled { get; set; }
 
-        private void TransformAnglesToDirection(float angleX, float angleY, float angleZ)
+        private void TransformAnglesToDirection()
         {
-            RotationMatrix = Matrix.CreateRotationX(angleX) * Matrix.CreateRotationY(angleY) *
-                                  Matrix.CreateRotationZ(angleZ);
-
-            
-            Direction = Vector3.Transform(Direction, RotationMatrix);
+            Direction = Vector3.Transform(_initialDirection, RotationMatrix);
         }
 
         private Matrix Trafo;
+        private Matrix _rotationMatrix;
+
         private void TransformDirectionToAngles()
         {
             Trafo = Matrix.CreateLookAt(Vector3.Zero, Direction, Vector3.UnitZ);

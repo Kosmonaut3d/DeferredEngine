@@ -260,7 +260,7 @@ namespace DeferredEngine.Main
             //    drawShadows: true,
             //    shadowWorldSize: 250,
             //    shadowDepth: 180,
-            //    shadowResolution: 512,
+            //    shadowResolution: 1024,
             //    shadowFilteringFiltering: DirectionalLightSource.ShadowFilteringTypes.SoftPCF3x,
             //    screenspaceShadowBlur: false);
         }

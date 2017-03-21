@@ -260,23 +260,23 @@ namespace DeferredEngine.Renderer.Helper
 
         public void FrustumCullingStartFrame(List<BasicEntity> entities)
         {
-            if (_previousEditorMode != GameSettings.Editor_enable)
-            {
-                _previousEditorMode = GameSettings.Editor_enable;
-                //Set Changed to true
-                for (int index1 = 0; index1 < entities.Count; index1++)
-                {
-                    BasicEntity entity = entities[index1];
-                    entity.WorldTransform.HasChanged = true;
-                }
+            //if (_previousEditorMode != GameSettings.Editor_enable)
+            //{
+            //    _previousEditorMode = GameSettings.Editor_enable;
+            //    //Set Changed to true
+            //    for (int index1 = 0; index1 < entities.Count; index1++)
+            //    {
+            //        BasicEntity entity = entities[index1];
+            //        entity.WorldTransform.HasChanged = true;
+            //    }
 
-                for (int index1 = 0; index1 < Index; index1++)
-                {
-                    MaterialLibrary matLib = GameSettings.g_CPU_Sort ? MaterialLib[MaterialLibPointer[index1]] : MaterialLib[index1];
+            //    for (int index1 = 0; index1 < Index; index1++)
+            //    {
+            //        MaterialLibrary matLib = GameSettings.g_CPU_Sort ? MaterialLib[MaterialLibPointer[index1]] : MaterialLib[index1];
 
-                    matLib.HasChangedThisFrame = true;
-                }
-            }
+            //        matLib.HasChangedThisFrame = true;
+            //    }
+            //}
             
             for (int index1 = 0; index1 < entities.Count; index1++)
             {

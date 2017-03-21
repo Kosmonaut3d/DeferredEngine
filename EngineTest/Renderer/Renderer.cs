@@ -305,21 +305,21 @@ namespace DeferredEngine.Renderer
                 DrawMapToScreenToFullScreen(_editorRender.GetOutlines(), BlendState.Additive);
                 _editorRender.DrawEditorElements(meshMaterialLibrary, pointLights, directionalLights, envSample, _staticViewProjection, _view, editorData);
                 
-                if (editorData.SelectedObject != null)
-                {
-                    if (editorData.SelectedObject is DirectionalLightSource)
-                    {
-                        int size = 512;
-                        DirectionalLightSource light = (DirectionalLightSource)editorData.SelectedObject;
-                        if (light.CastShadows)
-                        {
-                            _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.PointClamp);
-                            _spriteBatch.Draw(light.ShadowMap, new Rectangle(0, GameSettings.g_ScreenHeight - size, size, size), Color.White);
-                            _spriteBatch.End();
-                        }
-                    }
+                //if (editorData.SelectedObject != null)
+                //{
+                //    if (editorData.SelectedObject is DirectionalLightSource)
+                //    {
+                //        int size = 512;
+                //        DirectionalLightSource light = (DirectionalLightSource)editorData.SelectedObject;
+                //        if (light.CastShadows)
+                //        {
+                //            _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.PointClamp);
+                //            _spriteBatch.Draw(light.ShadowMap, new Rectangle(0, GameSettings.g_ScreenHeight - size, size, size), Color.White);
+                //            _spriteBatch.End();
+                //        }
+                //    }
 
-                }
+                //}
             }
 
             //Debug ray marching
