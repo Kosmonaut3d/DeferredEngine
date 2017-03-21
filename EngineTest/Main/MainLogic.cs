@@ -76,7 +76,7 @@ namespace DeferredEngine.Main
 
             Camera = new Camera(position: new Vector3(-88, -11f, 4), lookat: new Vector3(38, 8, 32));
 
-            EnvironmentSample = new EnvironmentSample(Camera.Position);
+            EnvironmentSample = new EnvironmentSample(Camera.Position + Camera.Forward*10);
 
             ////////////////////////////////////////////////////////////////////////
             // GUI
@@ -225,15 +225,15 @@ namespace DeferredEngine.Main
                 isVolumetric: false);
 
             //volumetric light!
-            //AddPointLight(position: new Vector3(-4, 40, 66),
-            //    radius: 80,
-            //    color: Color.White,
-            //    intensity: 50,
-            //    castShadows: true,
-            //    shadowResolution: 1024,
-            //    staticShadow: false,
-            //    isVolumetric: true,
-            //    volumetricDensity: 3);
+            AddPointLight(position: new Vector3(-4, 40, 66),
+                radius: 80,
+                color: Color.White,
+                intensity: 50,
+                castShadows: true,
+                shadowResolution: 1024,
+                staticShadow: false,
+                isVolumetric: true,
+                volumetricDensity: 3);
 
 
             // Spawn a lot of lights to test performance 
@@ -253,16 +253,16 @@ namespace DeferredEngine.Main
             //        }
 
 
-            //AddDirectionalLight(direction: new Vector3(0.2f, -0.2f, -1),
-            //    intensity: 100,
-            //    color: Color.White,
-            //    position: Vector3.UnitZ * 2,
-            //    drawShadows: true,
-            //    shadowWorldSize: 250,
-            //    shadowDepth: 180,
-            //    shadowResolution: 1024,
-            //    shadowFilteringFiltering: DirectionalLightSource.ShadowFilteringTypes.SoftPCF3x,
-            //    screenspaceShadowBlur: false);
+            AddDirectionalLight(direction: new Vector3(0.2f, -0.2f, -1),
+                intensity: 100,
+                color: Color.White,
+                position: Vector3.UnitZ * 2,
+                drawShadows: true,
+                shadowWorldSize: 250,
+                shadowDepth: 180,
+                shadowResolution: 1024,
+                shadowFilteringFiltering: DirectionalLightSource.ShadowFilteringTypes.SoftPCF3x,
+                screenspaceShadowBlur: false);
         }
 
 

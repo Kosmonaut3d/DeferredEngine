@@ -152,11 +152,12 @@ float CalcShadowTermSoftPCF(float fLightDepth, float ndotl, float2 vTexCoord, in
 		{
 			float2 vOffset = 0;
 			vOffset = float2(x, y);
-			vOffset /= shadowMapSize;
+			//vOffset /= shadowMapSize;
+
 			//vOffset *= 2;
 			//vOffset /= variableBias*200;
-			float2 vSamplePoint = vTexCoord + vOffset;
-			float fDepth = ShadowMap.SampleLevel(pointSampler, vSamplePoint, 0).x;
+			int3 vSamplePoint = int3(vTexCoord * ShadowMapSize + vOffset, 0);
+			float fDepth = ShadowMap.Load(vSamplePoint).x;
 			float fSample = (fLightDepth <= fDepth /*+ variableBias*(x+y)*/);
 
 			// Edge tap smoothing
