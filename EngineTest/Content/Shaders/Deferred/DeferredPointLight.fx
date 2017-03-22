@@ -191,34 +191,15 @@ float CalcShadowTermPCF(float linearDepthLV, float ndotl, float3 vec3)
 
 	float fShadowTerm = 0.0;
 
-	////Center
-	////lightTerm = testDepth < SampleShadowMap(shadowTexCoord);
-
-	//const float3 sampleOffsetDirections[20] =
-	//{
-	//	float3(1, 1, 1), float3(1, -1, 1), float3(-1, -1, 1), float3(-1, 1, 1),
-	//	float3(1, 1, -1), float3(1, -1, -1), float3(-1, -1, -1), float3(-1, 1, -1),
-	//	float3(1, 1, 0), float3(1, -1, 0), float3(-1, -1, 0), float3(-1, 1, 0),
-	//	float3(1, 0, 1), float3(-1, 0, 1), float3(1, 0, -1), float3(-1, 0, -1),
-	//	float3(0, 1, 1), float3(0, -1, 1), float3(0, -1, -1), float3(0, 1, -1)
-	//};
-
-	//int samples = 20;
-	//float diskRadius = size*2;
-	//for (int i = 0; i < samples; ++i)
-	//{
-	//	float closestDepth = 1 - LoadShadowMap(shadowTexCoord + sampleOffsetDirections[i] * diskRadius).r;
-	//	//closestDepth *= far_plane;   // Undo mapping [0;1]
-	//	if (testDepth < closestDepth)
-	//		shadow += 1.0;
-	//}
-	//shadow /= samples;
-
 	float2 sampleCoord = GetSampleCoordinate(vec3);
+
+	float centerDepth = 1 - LoadShadowMapUV(sampleCoord).r;
 
 	float iSqrtSamples = ShadowMapRadius;
 
 	float fRadius = iSqrtSamples - 1; //mad(iSqrtSamples, 0.5, -0.5);//(iSqrtSamples - 1.0f) / 2;
+
+	float closestDepth;
 
 	//[unroll] is better
 	[loop]
@@ -227,7 +208,14 @@ float CalcShadowTermPCF(float linearDepthLV, float ndotl, float3 vec3)
 		[loop]
 		for (float x = -fRadius; x <= fRadius; x++)
 		{
-			float closestDepth = 1 - LoadShadowMapUV(GetSampleOffset(sampleCoord, float2(x, y)*size)).r;
+			if (x != 0 || y != 0)
+			{
+				closestDepth = 1 - LoadShadowMapUV(GetSampleOffset(sampleCoord, float2(x, y)*size)).r;
+			}
+			else
+			{
+				closestDepth = centerDepth;
+			}
 			//closestDepth *= far_plane;   // Undo mapping [0;1]
 
 			float fSample = testDepth < closestDepth;
@@ -258,12 +246,11 @@ float CalcShadowTermPCF(float linearDepthLV, float ndotl, float3 vec3)
 //Plain Shadow Depth difference, no bias
 float ShadowCheck(float distance, float3 texCoord)
 {
-	texCoord.z = -texCoord.z;
-	float moments = 1;// 1 - shadowCubeMap.SampleLevel(shadowCubeMapSampler, texCoord, 0).r;
-	if (distance > moments)
-		return 0.0f;
-	else
-		return 1;
+	float2 sampleCoord = GetSampleCoordinate(texCoord);
+
+	float centerDepth = 1 - LoadShadowMapUV(sampleCoord).r;
+
+	return distance < centerDepth;
 }
 
 //Integrate our path through some volume. Depends only on distance from light.
@@ -781,7 +768,7 @@ PixelShaderOutput VolumetricPixelShaderFunctionShadowed(VertexShaderOutput input
 	float NdL = saturate(dot(normal, lightVector));
 	float3 lightVectorWS = -mul(float4(lightVector, 0), InverseView).xyz;
 
-	float shadowVSM = 1;//CalcShadowTermPCF(distanceLtoR / lightRadius, NdL, lightVectorWS);
+	float shadowVSM = CalcShadowTermPCF(distanceLtoR / lightRadius, NdL, lightVectorWS);
 
 	float3 diffuseLight = float3(0, 0, 0);
 	float3 specular = float3(0, 0, 0);
