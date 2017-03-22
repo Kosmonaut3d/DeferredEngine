@@ -1244,3 +1244,9 @@
 /processorParam:TextureFormat=Color
 /build:Art/Editor/texStrip.png
 
+#begin Shaders/Deferred/DeferredClear.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/Deferred/DeferredClear.fx
+

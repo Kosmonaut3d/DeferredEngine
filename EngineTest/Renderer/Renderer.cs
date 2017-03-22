@@ -310,20 +310,29 @@ namespace DeferredEngine.Renderer
                 DrawMapToScreenToFullScreen(_editorRender.GetOutlines(), BlendState.Additive);
                 _editorRender.DrawEditorElements(meshMaterialLibrary, pointLights, directionalLights, envSample, _staticViewProjection, _view, editorData);
 
-                if (editorData.SelectedObject != null)
-                {
-                    if (editorData.SelectedObject is PointLightSource)
-                    {
-                        int size = 128;
-                        PointLightSource light = (PointLightSource)editorData.SelectedObject;
-                        if (light.CastShadows)
-                        {
-                            _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.PointClamp);
-                            _spriteBatch.Draw(light.ShadowMapArray, new Rectangle(0, GameSettings.g_ScreenHeight - size * 6, size, size * 6), Color.White);
-                            _spriteBatch.End();
-                        }
-                    }
+                //if (editorData.SelectedObject != null)
+                //{
+                //    if (editorData.SelectedObject is PointLightSource)
+                //    {
+                //        int size = 128;
+                //        PointLightSource light = (PointLightSource)editorData.SelectedObject;
+                //        if (light.CastShadows)
+                //        {
+                //            _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.PointClamp);
+                //            _spriteBatch.Draw(light.ShadowMapArray, new Rectangle(0, GameSettings.g_ScreenHeight - size * 6, size, size * 6), Color.White);
+                //            _spriteBatch.End();
+                //        }
+                //    }
 
+                //}
+
+                int size = 128;
+                PointLightSource light = pointLights[2];
+                if (light.CastShadows)
+                {
+                    _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.PointClamp);
+                    _spriteBatch.Draw(light.ShadowMapArray, new Rectangle(0, GameSettings.g_ScreenHeight - size * 6, size, size * 6), Color.White);
+                    _spriteBatch.End();
                 }
             }
 
@@ -707,13 +716,15 @@ namespace DeferredEngine.Renderer
 
             //todo: check if we need preserve contents
             if (light.ShadowMapArray == null)
-                light.ShadowMapArray = new RenderTarget2D(_graphicsDevice, size, size * 6, false, SurfaceFormat.Vector2, DepthFormat.Depth24, 0, RenderTargetUsage.PreserveContents);
+                light.ShadowMapArray = new RenderTarget2D(_graphicsDevice, size, size * 6, false, SurfaceFormat.Single, DepthFormat.Depth24, 0, RenderTargetUsage.PreserveContents);
 
             Matrix lightViewProjection = new Matrix();
             CubeMapFace cubeMapFace; // = CubeMapFace.NegativeX;
 
             if (light.HasChanged)
             {
+                _graphicsDevice.SetRenderTarget(light.ShadowMapArray);
+
                 Matrix lightProjection = Matrix.CreatePerspectiveFieldOfView((float)(Math.PI / 2), 1, 1, light.Radius);
                 Matrix lightView; // = identity
 
@@ -786,6 +797,9 @@ namespace DeferredEngine.Renderer
 
                     Shaders.virtualShadowMappingEffectParameter_FarClip.SetValue(light.Radius);
                     Shaders.virtualShadowMappingEffectParameter_LightPositionWorld.SetValue(light.Position);
+
+                    _graphicsDevice.ScissorRectangle = new Rectangle(0, light.ShadowResolution * (int)cubeMapFace, light.ShadowResolution, light.ShadowResolution);
+
                     meshMaterialLibrary.Draw(renderType: MeshMaterialLibrary.RenderType.ShadowZW, 
                         graphicsDevice: _graphicsDevice,
                         viewProjection: lightViewProjection, 
@@ -796,7 +810,7 @@ namespace DeferredEngine.Renderer
             }
             else
             {
-                _graphicsDevice.SetRenderTarget(light.ShadowMapArray);
+                bool draw = false;
 
                 for (int i = 0; i < 6; i++)
                 {
@@ -832,11 +846,19 @@ namespace DeferredEngine.Renderer
                     
                     if (!hasAnyObjectMoved) continue;
 
-                    _graphicsDevice.Viewport = new Viewport(0, light.ShadowResolution * (int)cubeMapFace, light.ShadowResolution, light.ShadowResolution);
+                    if (!draw)
+                    {
 
+                        _graphicsDevice.SetRenderTarget(light.ShadowMapArray);
+                        draw = true;
+                    }
+
+                    _graphicsDevice.Viewport = new Viewport(0, light.ShadowResolution * (int)cubeMapFace, light.ShadowResolution, light.ShadowResolution);
+                    
                     Shaders.virtualShadowMappingEffectParameter_ArraySlice.SetValue((float)cubeMapFace);
                     //_graphicsDevice.Clear(Color.TransparentBlack);
                     //_graphicsDevice.Clear(ClearOptions.DepthBuffer, Color.White, 0, 0);
+                    _graphicsDevice.ScissorRectangle = new Rectangle(0, light.ShadowResolution * (int)cubeMapFace, light.ShadowResolution, light.ShadowResolution);
 
                     meshMaterialLibrary.Draw(renderType: MeshMaterialLibrary.RenderType.ShadowZW,
                         graphicsDevice: _graphicsDevice,

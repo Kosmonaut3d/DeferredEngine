@@ -23,6 +23,8 @@ namespace DeferredEngine.Renderer.Helper
         private bool _previousEditorMode = GameSettings.Editor_enable;
         private readonly BoundingSphere _defaultBoundingSphere;
         private RasterizerState _shadowGenerationRasterizerState;
+        private QuadRenderer _quadRenderer;
+        private DepthStencilState _depthWrite;
 
         public MeshMaterialLibrary()
         {
@@ -33,6 +35,15 @@ namespace DeferredEngine.Renderer.Helper
                 CullMode = CullMode.CullCounterClockwiseFace,
                 ScissorTestEnable = true
             };
+
+            _depthWrite = new DepthStencilState()
+            {
+                DepthBufferEnable = true,
+                DepthBufferWriteEnable = true,
+                DepthBufferFunction = CompareFunction.Always
+            };
+
+            _quadRenderer = new QuadRenderer();
         }
 
         /// <summary>
@@ -389,7 +400,12 @@ namespace DeferredEngine.Renderer.Helper
                 if (discardFrame) return;
 
                 //graphicsDevice.Clear(new Color(0.51f, 0.501f, 0, 0));
-                graphicsDevice.Clear(Color.TransparentBlack);
+                //graphicsDevice.Clear(Color.TransparentBlack);
+
+                graphicsDevice.DepthStencilState = _depthWrite;
+                ClearFrame(graphicsDevice);
+                graphicsDevice.DepthStencilState = DepthStencilState.Default;
+                
             }
 
             if (renderType == RenderType.ShadowZW || renderType == RenderType.ShadowLinear) GameStats.activeShadowMaps++;
@@ -748,6 +764,12 @@ namespace DeferredEngine.Renderer.Helper
 
             //Update the drawcalls in our stats
 
+        }
+
+        private void ClearFrame(GraphicsDevice graphicsDevice)
+        {
+            Shaders.DeferredClear.CurrentTechnique.Passes[0].Apply();
+            _quadRenderer.RenderQuad(graphicsDevice, -Vector2.One, Vector2.One);
         }
 
         //I don't want to fill up the main Draw as much! Not used right  now

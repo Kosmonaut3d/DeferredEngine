@@ -175,6 +175,7 @@ namespace DeferredEngine.Recources
         public static EffectTechnique GBufferEffectTechniques_DrawBasic;
 
         //COMPOSE
+       
 
         public static Effect DeferredCompose;
         public static EffectParameter DeferredComposeEffectParameter_ColorMap;
@@ -190,6 +191,9 @@ namespace DeferredEngine.Recources
         public static EffectTechnique DeferredComposeTechnique_NonLinear;
         public static EffectTechnique DeferredComposeTechnique_Linear;
         //public static EffectTechnique DeferredComposeTechnique_Unlinearize;
+
+
+        public static Effect DeferredClear;
 
         //Deferred Light
         //public static Effect deferredSpotLight;
@@ -481,6 +485,10 @@ namespace DeferredEngine.Recources
 
             DeferredComposeTechnique_NonLinear = DeferredCompose.Techniques["TechniqueNonLinear"];
             DeferredComposeTechnique_Linear = DeferredCompose.Techniques["TechniqueLinear"];
+
+
+            DeferredClear = content.Load<Effect>("Shaders/Deferred/DeferredClear");
+
             //DeferredComposeTechnique_Unlinearize = DeferredCompose.Techniques["Unlinearize"];
 
             ////DeferredLights

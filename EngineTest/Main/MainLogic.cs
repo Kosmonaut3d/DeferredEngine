@@ -214,6 +214,24 @@ namespace DeferredEngine.Main
             //    staticShadow: false,
             //    isVolumetric: false);
 
+            AddPointLight(position: new Vector3(-61, 0, 107),
+                        radius: 200,
+                        color: new Color(104, 163, 223),
+                        intensity: 40,
+                        castShadows: false,
+                        shadowResolution: 1024,
+                        staticShadow: false,
+                        isVolumetric: false);
+
+            AddPointLight(position: new Vector3(-4, 0, 107),
+                        radius: 200,
+                        color: new Color(104, 163, 223),
+                        intensity: 40,
+                        castShadows: false,
+                        shadowResolution: 1024,
+                        staticShadow: false,
+                        isVolumetric: false);
+
             AddPointLight(position: new Vector3(66, 0, 40),
                 radius: 120,
                 color: Color.White,
