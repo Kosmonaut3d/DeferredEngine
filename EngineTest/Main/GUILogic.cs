@@ -22,6 +22,7 @@ namespace DeferredEngine.Main
         private GUITextBlockToggle _objectToggle2;
         private GuiSliderFloatText _objectSlider1;
         private GuiSliderFloatText _objectSlider2;
+        private GuiSliderIntText _objectSlider3;
         private GUIColorPicker _objectColorPicker1;
 
         private GUIStyle defaultStyle;
@@ -88,6 +89,7 @@ namespace DeferredEngine.Main
             _objectDescriptionList.AddElement(_objectToggle2 = new GUITextBlockToggle(defaultStyle, "objToggle2") { IsHidden = true });
             _objectDescriptionList.AddElement(_objectSlider1 = new GuiSliderFloatText(defaultStyle, 0,1,2,"objToggle1") { IsHidden = true });
             _objectDescriptionList.AddElement(_objectSlider2 = new GuiSliderFloatText(defaultStyle, 0, 1, 2, "objToggle2") { IsHidden = true });
+            _objectDescriptionList.AddElement(_objectSlider3 = new GuiSliderIntText(defaultStyle, 0, 10, 1, "objToggle3") { IsHidden = true });
             _objectDescriptionList.AddElement(_objectColorPicker1 = new GUIColorPicker(defaultStyle) { IsHidden = true });
 
             _rightSideList.AddElement(_objectDescriptionList);
@@ -198,6 +200,47 @@ namespace DeferredEngine.Main
                 SliderProperty = typeof(GameSettings).GetProperty("g_SSReflections_RefinementSamples"),
                 SliderValue = GameSettings.g_SSReflections_RefinementSamples
             });
+
+            /////////////////////////////////////////////////////////////////
+            //SSAO
+            /////////////////////////////////////////////////////////////////
+            /// 
+            optionList.AddElement(new GUITextBlock(Vector2.Zero, new Vector2(200, 10), "Ambient Occlusion",
+                defaultStyle.TextFontStyle, Color.DarkSlateGray, Color.White, GUIStyle.TextAlignment.Center,
+                Vector2.Zero));
+
+            GuiListToggle ssaoList = new GuiListToggle(Vector2.Zero, defaultStyle) { ToggleBlockColor = Color.DarkSlateGray };
+            optionList.AddElement(ssaoList);
+
+            ssaoList.AddElement(new GUITextBlockToggle(defaultStyle, "Enable SSAO")
+            {
+                ToggleProperty = typeof(GameSettings).GetProperty("ssao_Active"),
+                Toggle = GameSettings.ssao_Active
+            });
+
+            ssaoList.AddElement(new GUITextBlockToggle(defaultStyle, "SSAO Blur: ")
+            {
+                ToggleProperty = typeof(GameSettings).GetProperty("ssao_Blur"),
+                Toggle = GameSettings.ssao_Blur
+            });
+
+            ssaoList.AddElement(new GuiSliderIntText(defaultStyle, 1, 32, 1, "SSAO Samples: ")
+            {
+                SliderProperty = typeof(GameSettings).GetProperty("ssao_Samples"),
+                SliderValue = GameSettings.ssao_Samples
+            });
+
+            ssaoList.AddElement(new GuiSliderFloatText(defaultStyle, 1, 100, 2, "Sample Radius: ")
+            {
+                SliderProperty = typeof(GameSettings).GetProperty("ssao_SampleRadius"),
+                SliderValue = GameSettings.ssao_SampleRadius
+            });
+
+            ssaoList.AddElement(new GuiSliderFloatText(defaultStyle, 0, 4, 1, "SSAO Strength: ")
+            {
+                SliderProperty = typeof(GameSettings).GetProperty("ssao_Strength"),
+                SliderValue = GameSettings.ssao_Strength
+            });
         }
 
         private string CreateHelperText()
@@ -254,6 +297,7 @@ namespace DeferredEngine.Main
                 _objectToggle2.IsHidden = true;
                 _objectSlider1.IsHidden = true;
                 _objectSlider2.IsHidden = true;
+                _objectSlider3.IsHidden = true;
                 _objectColorPicker1.IsHidden = true;
 
                 if (selectedObject is PointLightSource)
@@ -262,6 +306,7 @@ namespace DeferredEngine.Main
                     _objectToggle2.IsHidden = false;
                     _objectSlider1.IsHidden = false;
                     _objectSlider2.IsHidden = false;
+                    _objectSlider3.IsHidden = false;
                     _objectColorPicker1.IsHidden = false;
 
                     if (activeObject != selectedObject)
@@ -283,6 +328,9 @@ namespace DeferredEngine.Main
 
                         _objectSlider2.SetField(selectedObject, "Intensity");
                         _objectSlider2.SetText(new StringBuilder("Intensity: "));
+
+                        _objectSlider3.SetValues("Shadow Softness: ", 2, 20, 1);
+                        _objectSlider3.SetField(selectedObject, "ShadowMapRadius");
 
                         _objectColorPicker1.ReferenceObject = selectedObject;
                         _objectColorPicker1.ReferenceProperty = selectedObject.GetType().GetProperty("Color");

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+using System.Text;
 using HelperSuite.GUIHelper;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -58,6 +59,22 @@ namespace HelperSuite.GUI
             StepSize = stepSize;
         }
 
+        public new void SetField(Object obj, string field)
+        {
+            SliderObject = obj;
+            SliderField = obj.GetType().GetField(field);
+            SliderValue = (int)SliderField.GetValue(obj);
+        }
+
+        public void SetValues(string text, int minValue, int maxValue, int stepSize)
+        {
+            SetText(new StringBuilder(text));
+            MinValueInt = minValue;
+            MaxValueInt = maxValue;
+            MinValue = minValue;
+            MaxValue = maxValue;
+            StepSize = stepSize;
+        }
 
         public override void Update(GameTime gameTime, Vector2 mousePosition, Vector2 parentPosition)
         {

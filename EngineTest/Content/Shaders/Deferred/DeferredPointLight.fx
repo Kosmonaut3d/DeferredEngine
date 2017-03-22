@@ -35,6 +35,7 @@ float lightIntensity = 1.0f;
 float lightVolumeDensity = 1;
 
 float ShadowMapSize = 512;
+float ShadowMapRadius = 3;
 float DepthBias = 0.02;
 
 //Needed for manual texture sampling
@@ -215,14 +216,15 @@ float CalcShadowTermPCF(float linearDepthLV, float ndotl, float3 vec3)
 
 	float2 sampleCoord = GetSampleCoordinate(vec3);
 
-	const float iSqrtSamples = 3;
+	float iSqrtSamples = ShadowMapRadius;
 
 	float fRadius = iSqrtSamples - 1; //mad(iSqrtSamples, 0.5, -0.5);//(iSqrtSamples - 1.0f) / 2;
 
-	[unroll]
+	//[unroll] is better
+	[loop]
 	for (float y = -fRadius; y <= fRadius; y++)
 	{
-		[unroll]
+		[loop]
 		for (float x = -fRadius; x <= fRadius; x++)
 		{
 			float closestDepth = 1 - LoadShadowMapUV(GetSampleOffset(sampleCoord, float2(x, y)*size)).r;

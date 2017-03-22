@@ -249,6 +249,7 @@ namespace DeferredEngine.Recources
         public static EffectParameter deferredPointLightParameter_LightRadius;
         public static EffectParameter deferredPointLightParameter_LightIntensity;
         public static EffectParameter deferredPointLightParameter_ShadowMapSize;
+        public static EffectParameter deferredPointLightParameter_ShadowMapRadius;
         public static EffectParameter deferredPointLightParameter_Inside;
         public static EffectParameter deferredPointLightParameter_Time;
         public static EffectParameter deferredPointLightParameter_FarClip;
@@ -549,6 +550,7 @@ namespace DeferredEngine.Recources
             deferredPointLightParameter_LightRadius = deferredPointLight.Parameters["lightRadius"];
             deferredPointLightParameter_LightIntensity = deferredPointLight.Parameters["lightIntensity"];
             deferredPointLightParameter_ShadowMapSize = deferredPointLight.Parameters["ShadowMapSize"];
+            deferredPointLightParameter_ShadowMapRadius = deferredPointLight.Parameters["ShadowMapRadius"];
             deferredPointLightParameter_Inside = deferredPointLight.Parameters["inside"];
             deferredPointLightParameter_Time = deferredPointLight.Parameters["Time"];
             deferredPointLightParameter_FarClip = deferredPointLight.Parameters["FarClip"];

@@ -325,15 +325,6 @@ namespace DeferredEngine.Renderer
                 //    }
 
                 //}
-
-                int size = 128;
-                PointLightSource light = pointLights[2];
-                if (light.CastShadows)
-                {
-                    _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.PointClamp);
-                    _spriteBatch.Draw(light.ShadowMapArray, new Rectangle(0, GameSettings.g_ScreenHeight - size * 6, size, size * 6), Color.White);
-                    _spriteBatch.End();
-                }
             }
 
             //Debug ray marching

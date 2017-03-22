@@ -13,6 +13,7 @@ namespace DeferredEngine.Entities
         private Color _color;
         public Vector3 ColorV3;
         public float Intensity;
+        public int ShadowMapRadius = 3;
 
         public bool HasChanged = true;
 
@@ -133,7 +134,7 @@ namespace DeferredEngine.Entities
             if (ShadowMapArray != null && CastShadows)
             {
                 Shaders.deferredPointLightParameterShadowMap.SetValue(ShadowMapArray);
-
+                Shaders.deferredPointLightParameter_ShadowMapRadius.SetValue((float)ShadowMapRadius);
                 Shaders.deferredPointLightParameter_ShadowMapSize.SetValue((float)ShadowResolution);
                 
                 if (IsVolumetric && GameSettings.g_VolumetricLights)
