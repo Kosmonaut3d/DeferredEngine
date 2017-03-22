@@ -81,6 +81,12 @@ namespace DeferredEngine.Main
                 Toggle = helperText.IsVisible
             });
 
+            _rightSideList.AddElement(new GUITextBlockToggle(defaultStyle, "Default Material")
+            {
+                ToggleField = typeof(GameSettings).GetField("d_defaultMaterial"),
+                Toggle = GameSettings.d_defaultMaterial
+            });
+
 
             _objectDescriptionList.AddElement(_objectDescriptionName = new GUITextBlock(defaultStyle, "objDescName"));
             _objectDescriptionList.AddElement(_objectDescriptionPos = new GUITextBlock(defaultStyle, "objDescName"));
@@ -117,13 +123,7 @@ namespace DeferredEngine.Main
                 ToggleField = typeof(GameSettings).GetField("g_TemporalAntiAliasing"),
                 Toggle = GameSettings.g_TemporalAntiAliasing
             });
-
-            postprocessingList.AddElement(new GUITextBlockToggle(defaultStyle, "Default Material")
-            {
-                ToggleField = typeof(GameSettings).GetField("d_defaultMaterial"),
-                Toggle = GameSettings.d_defaultMaterial
-            });
-
+            
             postprocessingList.AddElement(new GuiSliderFloatText(defaultStyle, 0, 4, 2, "WhitePoint: ")
             {
                 SliderProperty = typeof(GameSettings).GetProperty("WhitePoint"),
@@ -220,7 +220,7 @@ namespace DeferredEngine.Main
 
             ssaoList.AddElement(new GUITextBlockToggle(defaultStyle, "SSAO Blur: ")
             {
-                ToggleProperty = typeof(GameSettings).GetProperty("ssao_Blur"),
+                ToggleField = typeof(GameSettings).GetField("ssao_Blur"),
                 Toggle = GameSettings.ssao_Blur
             });
 
