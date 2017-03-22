@@ -14,6 +14,8 @@ static bool transparent = false;
 float FarClip = 200;
 float SizeBias = 0.005f; //0.005f * 2048 / ShadowMapSize
 
+float ArraySlice = 0; //0 to 5
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  STRUCT DEFINITIONS
@@ -64,7 +66,13 @@ DrawLinear_VSOut DrawLinear_VertexShader(DrawBasic_VSIn input)
 DrawLinear2_VSOut DrawZW_VertexShader(DrawBasic_VSIn input)
 {
 	DrawLinear2_VSOut Output;
-	Output.Position = mul(input.Position, WorldViewProj);
+	float4 position = mul(input.Position, WorldViewProj);
+	//Transform to position in array
+	//position.y = -(position.y) / 6 + -(ArraySlice - 3) / 3.0f - 1.0f/6 ;
+
+	Output.Position = position;
+
+
 	Output.WorldPosition = mul(input.Position, World).xyz;
 	Output.Normal = mul(float4(input.Normal, 0), World).xyz;
 	return Output;

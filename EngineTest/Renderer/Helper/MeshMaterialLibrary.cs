@@ -22,10 +22,17 @@ namespace DeferredEngine.Renderer.Helper
         private bool _previousMode = GameSettings.g_CPU_Culling;
         private bool _previousEditorMode = GameSettings.Editor_enable;
         private readonly BoundingSphere _defaultBoundingSphere;
+        private RasterizerState _shadowGenerationRasterizerState;
 
         public MeshMaterialLibrary()
         {
             _defaultBoundingSphere = new BoundingSphere(Vector3.Zero, 0);
+
+            _shadowGenerationRasterizerState = new RasterizerState()
+            {
+                CullMode = CullMode.CullCounterClockwiseFace,
+                ScissorTestEnable = true
+            };
         }
 
         /// <summary>
@@ -324,8 +331,17 @@ namespace DeferredEngine.Renderer.Helper
         {
             if (renderType != RenderType.Alpha)
             {
-                graphicsDevice.BlendState = BlendState.Opaque;
-                graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+                if (renderType != RenderType.ShadowZW)
+                {
+
+                    graphicsDevice.BlendState = BlendState.Opaque;
+                    graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+                }
+                else
+                {
+                    graphicsDevice.BlendState = BlendState.Opaque;
+                    graphicsDevice.RasterizerState = _shadowGenerationRasterizerState;
+                }
             }
             else //if (renderType == RenderType.alpha)
             {
@@ -855,7 +871,7 @@ namespace DeferredEngine.Renderer.Helper
 
                             foreach (ModelMesh mesh in sphereModel)
                             {
-                                foreach (ModelMeshPart meshpart in mesh.MeshParts)
+                                foreach(ModelMeshPart meshpart in mesh.MeshParts)
                                 {
                                     graphicsDevice.SetVertexBuffer(meshpart.VertexBuffer);
                                     graphicsDevice.Indices = (meshpart.IndexBuffer);

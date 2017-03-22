@@ -276,6 +276,7 @@ namespace DeferredEngine.Recources
         public static EffectParameter virtualShadowMappingEffectParameter_World;
         public static EffectParameter virtualShadowMappingEffectParameter_LightPositionWorld;
         public static EffectParameter virtualShadowMappingEffectParameter_FarClip;
+        public static EffectParameter virtualShadowMappingEffectParameter_ArraySlice;
         public static EffectParameter virtualShadowMappingEffectParameter_SizeBias;
         public static EffectTechnique virtualShadowMappingEffect_Technique_Linear;
         public static EffectTechnique virtualShadowMappingEffect_Technique_ZW;
@@ -527,10 +528,8 @@ namespace DeferredEngine.Recources
             deferredPointLightShadowed = deferredPointLight.Techniques["Shadowed"];
             deferredPointLightShadowedVolumetric = deferredPointLight.Techniques["ShadowedVolume"];
             deferredPointLightWriteStencil = deferredPointLight.Techniques["WriteStencilMask"];
-
-            deferredPointLightParameterShadowMap = deferredPointLight.Parameters["shadowMap"];
-
-            deferredPointLightParameterShadowMap = deferredPointLight.Parameters["shadowCubeMap"];
+            
+            deferredPointLightParameterShadowMap = deferredPointLight.Parameters["ShadowMap"];
 
             deferredPointLightParameterResolution = deferredPointLight.Parameters["Resolution"];
             deferredPointLightParameter_WorldView = deferredPointLight.Parameters["WorldView"];
@@ -572,6 +571,7 @@ namespace DeferredEngine.Recources
             virtualShadowMappingEffectParameter_World = virtualShadowMappingEffect.Parameters["World"];
             virtualShadowMappingEffectParameter_LightPositionWorld = virtualShadowMappingEffect.Parameters["LightPositionWorld"];
             virtualShadowMappingEffectParameter_FarClip = virtualShadowMappingEffect.Parameters["FarClip"];
+            virtualShadowMappingEffectParameter_ArraySlice = virtualShadowMappingEffect.Parameters["ArraySlice"];
             virtualShadowMappingEffectParameter_SizeBias = virtualShadowMappingEffect.Parameters["SizeBias"];
 
             virtualShadowMappingEffect_Technique_ZW = virtualShadowMappingEffect.Techniques["DrawDepthZW"];

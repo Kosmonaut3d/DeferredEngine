@@ -60,18 +60,16 @@ SamplerState PointSampler
 };
 
 //ShadowCube
-//TextureCube shadowCubeMap;
-//sampler shadowCubeMapSampler = sampler_state
-//{
-//    texture = <shadowCubeMap>;
-//    AddressU = CLAMP;
-//    AddressV = CLAMP;
-//    MagFilter = LINEAR;
-//    MinFilter = LINEAR;
-//    Mipfilter = LINEAR;
-//};
-
-Texture2D ShadowMap;
+TextureCube shadowCubeMap;
+sampler shadowCubeMapSampler = sampler_state
+{
+    texture = <shadowCubeMap>;
+    AddressU = CLAMP;
+    AddressV = CLAMP;
+    MagFilter = LINEAR;
+    MinFilter = LINEAR;
+    Mipfilter = LINEAR;
+};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  STRUCTS
@@ -134,130 +132,80 @@ float4 VertexShaderBasic(VertexShaderInput input) : POSITION0
 		//  HELPER FUNCTIONS
 		////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	//Check helper.fx
-	float4 LoadShadowMap(float3 vec3)
-	{
-		return ShadowMap.Load(int3(GetSampleCoordinate(vec3) * float2(ShadowMapSize, 6 * ShadowMapSize), 0)).r;
-	}
-
-	float4 LoadShadowMapUV(float2 coord)
-	{
-		return ShadowMap.Load(int3(coord * float2(ShadowMapSize, 6 * ShadowMapSize), 0)).r;
-	}
-
 //For Virtual Shadow Maps
-//float chebyshevUpperBound(float distance, float3 texCoord)
-//{
-//	texCoord.z = -texCoord.z;
-//	// We retrive the two moments previously stored (depth and depth*depth)
-//	float2 moments = 1 - shadowCubeMap.SampleLevel(shadowCubeMapSampler, texCoord,0).rg;
-//
-//	// Surface is fully lit. as the current fragment is before the light occluder
-//	// The fragment is either in shadow or penumbra. We now use chebyshev's upperBound to check
-//	// How likely this pixel is to be lit (p_max)
-//	float variance = moments.y - (moments.x * moments.x);
-//	variance = max(variance, 0.000002);
-//
-//	float d = distance - moments.x;
-//	float p_max = variance / (variance + d * d);
-//
-//	return p_max;
-//}
+float chebyshevUpperBound(float distance, float3 texCoord)
+{
+	texCoord.z = -texCoord.z;
+	// We retrive the two moments previously stored (depth and depth*depth)
+	float2 moments = 1 - shadowCubeMap.SampleLevel(shadowCubeMapSampler, texCoord,0).rg;
 
-//float SampleShadowMap(float3 texCoord)
-//{
-//	//texCoord.z = -texCoord.z;
-//	return 1 - shadowCubeMap.SampleLevel(shadowCubeMapSampler, texCoord, 0).r;
-//}
+	// Surface is fully lit. as the current fragment is before the light occluder
+	// The fragment is either in shadow or penumbra. We now use chebyshev's upperBound to check
+	// How likely this pixel is to be lit (p_max)
+	float variance = moments.y - (moments.x * moments.x);
+	variance = max(variance, 0.000002);
+
+	float d = distance - moments.x;
+	float p_max = variance / (variance + d * d);
+
+	return p_max;
+}
+
+float SampleShadowMap(float3 texCoord)
+{
+	//texCoord.z = -texCoord.z;
+	return 1 - shadowCubeMap.SampleLevel(shadowCubeMapSampler, texCoord, 0).r;
+}
 
 float GetVariableBias(float nDotL)
 {
 	//return /*(1 - abs(nDotL)) * DepthBias;*/clamp(0.001 * tan(acos(nDotL)), 0, DepthBias);
-	return clamp(0.005 * sqrt(1 - nDotL * nDotL) / nDotL, 0, DepthBias);
+	return clamp(0.01 * sqrt(1 - nDotL * nDotL) / nDotL, 0, DepthBias);
 }
 
-float CalcShadowTermPCF(float linearDepthLV, float ndotl, float3 vec3)
+float CalcShadowTermPCF(float linearDepthLV, float ndotl, float3 shadowTexCoord)
 {
 
-	//float2 fractionals = frac(ShadowMapSize * shadowTexCoord.xy);
+	float2 fractionals = frac(ShadowMapSize * shadowTexCoord.xy);
 
-	//////safe to assume it's a square
+	////safe to assume it's a square
 	float size = 1.0f / ShadowMapSize;
 
 	float variableBias = GetVariableBias(ndotl);
 
 	float testDepth = linearDepthLV - variableBias;
+	//Center
+	//lightTerm = testDepth < SampleShadowMap(shadowTexCoord);
 
-	float fShadowTerm = 0.0;
-
-	////Center
-	////lightTerm = testDepth < SampleShadowMap(shadowTexCoord);
-
-	//const float3 sampleOffsetDirections[20] =
-	//{
-	//	float3(1, 1, 1), float3(1, -1, 1), float3(-1, -1, 1), float3(-1, 1, 1),
-	//	float3(1, 1, -1), float3(1, -1, -1), float3(-1, -1, -1), float3(-1, 1, -1),
-	//	float3(1, 1, 0), float3(1, -1, 0), float3(-1, -1, 0), float3(-1, 1, 0),
-	//	float3(1, 0, 1), float3(-1, 0, 1), float3(1, 0, -1), float3(-1, 0, -1),
-	//	float3(0, 1, 1), float3(0, -1, 1), float3(0, -1, -1), float3(0, 1, -1)
-	//};
-
-	//int samples = 20;
-	//float diskRadius = size*2;
-	//for (int i = 0; i < samples; ++i)
-	//{
-	//	float closestDepth = 1 - LoadShadowMap(shadowTexCoord + sampleOffsetDirections[i] * diskRadius).r;
-	//	//closestDepth *= far_plane;   // Undo mapping [0;1]
-	//	if (testDepth < closestDepth)
-	//		shadow += 1.0;
-	//}
-	//shadow /= samples;
-
-	float2 sampleCoord = GetSampleCoordinate(vec3);
-
-	const float iSqrtSamples = 3;
-
-	float fRadius = iSqrtSamples - 1; //mad(iSqrtSamples, 0.5, -0.5);//(iSqrtSamples - 1.0f) / 2;
-
-	[unroll]
-	for (float y = -fRadius; y <= fRadius; y++)
+	const float3 sampleOffsetDirections[20] =
 	{
-		[unroll]
-		for (float x = -fRadius; x <= fRadius; x++)
-		{
-			float closestDepth = 1 - LoadShadowMapUV(GetSampleOffset(sampleCoord, float2(x, y)*size)).r;
-			//closestDepth *= far_plane;   // Undo mapping [0;1]
+		float3(1, 1, 1), float3(1, -1, 1), float3(-1, -1, 1), float3(-1, 1, 1),
+		float3(1, 1, -1), float3(1, -1, -1), float3(-1, -1, -1), float3(-1, 1, -1),
+		float3(1, 1, 0), float3(1, -1, 0), float3(-1, -1, 0), float3(-1, 1, 0),
+		float3(1, 0, 1), float3(-1, 0, 1), float3(1, 0, -1), float3(-1, 0, -1),
+		float3(0, 1, 1), float3(0, -1, 1), float3(0, -1, -1), float3(0, 1, -1)
+	};
 
-			float fSample = testDepth < closestDepth;
-
-			// Edge tap smoothing
-			float xWeight = 1;
-			float yWeight = 1;
-
-			if (x == -fRadius)
-				xWeight = 1 - frac(sampleCoord.x * ShadowMapSize);
-			else if (x == fRadius)
-				xWeight = frac(sampleCoord.x * ShadowMapSize);
-
-			if (y == -fRadius)
-				yWeight = 1 - frac(sampleCoord.y * ShadowMapSize * 6);
-			else if (y == fRadius)
-				yWeight = frac(sampleCoord.y * ShadowMapSize * 6);
-
-			fShadowTerm += fSample * xWeight * yWeight;
-		}
+	float shadow = 0.0;
+	int samples = 20;
+	float diskRadius = size*2;
+	for (int i = 0; i < samples; ++i)
+	{
+		float closestDepth = SampleShadowMap(shadowTexCoord + sampleOffsetDirections[i] * diskRadius).r;
+		//closestDepth *= far_plane;   // Undo mapping [0;1]
+		if (testDepth < closestDepth)
+			shadow += 1.0;
 	}
+	shadow /= samples;
 
-	fShadowTerm /= (fRadius * fRadius * 4);
-
-	return fShadowTerm;
+	return shadow;
 }
 
 //Plain Shadow Depth difference, no bias
 float ShadowCheck(float distance, float3 texCoord)
 {
 	texCoord.z = -texCoord.z;
-	float moments = 1;// 1 - shadowCubeMap.SampleLevel(shadowCubeMapSampler, texCoord, 0).r;
+	float moments = 1 - shadowCubeMap.SampleLevel(shadowCubeMapSampler, texCoord,0).r;
 	if (distance > moments)
 		return 0.0f;
 	else
@@ -604,6 +552,7 @@ PixelShaderOutput BasePixelShaderFunctionShadow(PixelShaderInput input)
 		float NdL = saturate(dot(normal, lightVector));
 
 		float3 lightVectorWS = -mul(float4(lightVector, 0), InverseView).xyz;
+		lightVectorWS.z = -lightVectorWS.z;
 		
 		float shadowVSM = CalcShadowTermPCF(lengthLight / lightRadius, NdL, lightVectorWS);
 
@@ -778,8 +727,9 @@ PixelShaderOutput VolumetricPixelShaderFunctionShadowed(VertexShaderOutput input
 													 //compute diffuse light
 	float NdL = saturate(dot(normal, lightVector));
 	float3 lightVectorWS = -mul(float4(lightVector, 0), InverseView).xyz;
+	lightVectorWS.z = -lightVectorWS.z;
 
-	float shadowVSM = 1;//CalcShadowTermPCF(distanceLtoR / lightRadius, NdL, lightVectorWS);
+	float shadowVSM = CalcShadowTermPCF(distanceLtoR / lightRadius, NdL, lightVectorWS);
 
 	float3 diffuseLight = float3(0, 0, 0);
 	float3 specular = float3(0, 0, 0);

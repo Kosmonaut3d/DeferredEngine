@@ -1226,3 +1226,21 @@
 /processorParam:TextureFormat=Color
 /build:Art/Editor/icon_envmap.png
 
+#begin Shaders/Test/TexFilter.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/Test/TexFilter.fx
+
+#begin Art/Editor/texStrip.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Art/Editor/texStrip.png
+

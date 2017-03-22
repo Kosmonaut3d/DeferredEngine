@@ -269,7 +269,7 @@ namespace DeferredEngine.Main
                         _objectToggle1.SetField(selectedObject, "IsVolumetric");
                         _objectToggle1.Text = new StringBuilder("Volumetric");
 
-                        _objectToggle2.SetField(selectedObject, "CastShadow");
+                        _objectToggle2.SetField(selectedObject, "CastShadows");
                         _objectToggle2.Text = new StringBuilder("Cast Shadows");
 
                         _objectSlider1.MinValue = 1.1f;

@@ -19,7 +19,7 @@ namespace DeferredEngine.Entities
         public readonly int ShadowResolution;
         public readonly bool StaticShadows;
 
-        public RenderTargetCube shadowMapCube;
+        public RenderTarget2D ShadowMapArray;
 
         public Matrix LightViewProjectionPositiveX;
         public Matrix LightViewProjectionNegativeX;
@@ -35,7 +35,7 @@ namespace DeferredEngine.Entities
 
         public BoundingSphere BoundingSphere;
 
-        public bool CastShadow;
+        public bool CastShadows;
         public int SoftShadowBlurAmount = 0;
 
         public readonly bool IsVolumetric;
@@ -52,17 +52,17 @@ namespace DeferredEngine.Entities
         /// <param name="isVolumetric"></param>
         /// <param name="shadowResolution">shadow map resolution per face. Optional</param>
         /// <param name="staticShadow">if set to true the shadows will not update at all. Dynamic shadows in contrast update only when needed.</param>
-        /// <param name="castShadow"></param>
+        /// <param name="castShadows"></param>
         /// <param name="volumeDensity"></param>
         /// <returns></returns>
-        public PointLightSource(Vector3 position, float radius, Color color, float intensity, bool castShadow, bool isVolumetric, int shadowResolution, int softShadowBlurAmount, bool staticShadow, float volumeDensity = 1, bool isEnabled = true)
+        public PointLightSource(Vector3 position, float radius, Color color, float intensity, bool castShadows, bool isVolumetric, int shadowResolution, int softShadowBlurAmount, bool staticShadow, float volumeDensity = 1, bool isEnabled = true)
         {
             BoundingSphere = new BoundingSphere(position, radius);
             Position = position;
             Radius = radius;
             Color = color;
             Intensity = intensity;
-            CastShadow = castShadow;
+            CastShadows = castShadows;
             IsVolumetric = isVolumetric;
             SoftShadowBlurAmount = softShadowBlurAmount;
 
@@ -118,7 +118,7 @@ namespace DeferredEngine.Entities
 
         public override TransformableObject Clone
         {
-            get { return new PointLightSource(Position, Radius, Color, Intensity, CastShadow, IsVolumetric, ShadowResolution, SoftShadowBlurAmount, StaticShadows);}
+            get { return new PointLightSource(Position, Radius, Color, Intensity, CastShadows, IsVolumetric, ShadowResolution, SoftShadowBlurAmount, StaticShadows);}
         }
 
         public override string Name { get; set; }
@@ -130,9 +130,9 @@ namespace DeferredEngine.Entities
 
         public virtual void ApplyShader(Matrix inverseView)
         {
-            if (shadowMapCube != null && CastShadow)
+            if (ShadowMapArray != null && CastShadows)
             {
-                Shaders.deferredPointLightParameterShadowMap.SetValue(shadowMapCube);
+                Shaders.deferredPointLightParameterShadowMap.SetValue(ShadowMapArray);
 
                 Shaders.deferredPointLightParameter_ShadowMapSize.SetValue((float)ShadowResolution);
                 

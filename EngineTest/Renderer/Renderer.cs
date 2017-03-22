@@ -33,6 +33,7 @@ namespace DeferredEngine.Renderer
         private CPURayMarch _cpuRayMarch;
         private BloomFilter _bloomFilter;
         private LightRenderer _lightRenderer;
+        
 
         //Assets
         private Assets _assets;
@@ -121,6 +122,8 @@ namespace DeferredEngine.Renderer
 
         private RenderTarget2D _renderTargetEmissive;
 
+        private Viewport _viewport;
+
         //Cubemap
         private RenderTargetCube _renderTargetCubeMap;
         
@@ -154,6 +157,7 @@ namespace DeferredEngine.Renderer
             _bloomFilter.Load(content, _quadRenderer);
 
             _inverseResolution = new Vector3(1.0f / GameSettings.g_ScreenWidth, 1.0f / GameSettings.g_ScreenHeight, 0);
+            
         }
 
         /// <summary>
@@ -182,6 +186,7 @@ namespace DeferredEngine.Renderer
             
             _assets = assets;
 
+            _viewport = new Viewport();
             //Apply some base settings to overwrite shader defaults with game settings defaults
             GameSettings.ApplySettings();
 
@@ -304,22 +309,22 @@ namespace DeferredEngine.Renderer
             {
                 DrawMapToScreenToFullScreen(_editorRender.GetOutlines(), BlendState.Additive);
                 _editorRender.DrawEditorElements(meshMaterialLibrary, pointLights, directionalLights, envSample, _staticViewProjection, _view, editorData);
-                
-                //if (editorData.SelectedObject != null)
-                //{
-                //    if (editorData.SelectedObject is DirectionalLightSource)
-                //    {
-                //        int size = 512;
-                //        DirectionalLightSource light = (DirectionalLightSource)editorData.SelectedObject;
-                //        if (light.CastShadows)
-                //        {
-                //            _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.PointClamp);
-                //            _spriteBatch.Draw(light.ShadowMap, new Rectangle(0, GameSettings.g_ScreenHeight - size, size, size), Color.White);
-                //            _spriteBatch.End();
-                //        }
-                //    }
 
-                //}
+                if (editorData.SelectedObject != null)
+                {
+                    if (editorData.SelectedObject is PointLightSource)
+                    {
+                        int size = 128;
+                        PointLightSource light = (PointLightSource)editorData.SelectedObject;
+                        if (light.CastShadows)
+                        {
+                            _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.PointClamp);
+                            _spriteBatch.Draw(light.ShadowMapArray, new Rectangle(0, GameSettings.g_ScreenHeight - size * 6, size, size * 6), Color.White);
+                            _spriteBatch.End();
+                        }
+                    }
+
+                }
             }
 
             //Debug ray marching
@@ -337,7 +342,7 @@ namespace DeferredEngine.Renderer
                 long performanceCurrentTime = _performanceTimer.ElapsedTicks;
                 GameStats.d_profileTotalRender = performanceCurrentTime;
             }
-
+            
             //return data we have recovered from the editor id, so we know what entity gets hovered/clicked on and can manipulate in the update function
             return new EditorLogic.EditorReceivedData
             {
@@ -632,13 +637,13 @@ namespace DeferredEngine.Renderer
                 //    continue;
                 //}
 
-                if (light.CastShadow)
+                if (light.CastShadows)
                 {
                     //A poing light has 6 shadow maps, add that to our stat counter. These are total shadow maps, not updated ones
                     GameStats.shadowMaps += 6;
                     
                     //Update if we didn't initialize yet or if we are dynamic
-                    if (!light.StaticShadows || light.shadowMapCube == null)
+                    if (!light.StaticShadows || light.ShadowMapArray == null)
                     {
                         CreateShadowCubeMap(light, light.ShadowResolution, meshMaterialLibrary, entities);
                         
@@ -699,8 +704,10 @@ namespace DeferredEngine.Renderer
         private void CreateShadowCubeMap(PointLightSource light, int size, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities)
         {
             //For VSM we need 2 channels, -> Vector2
-            if (light.shadowMapCube == null)
-                light.shadowMapCube = new RenderTargetCube(_graphicsDevice, size, false, SurfaceFormat.Vector2, DepthFormat.Depth24, 0, RenderTargetUsage.PreserveContents);
+
+            //todo: check if we need preserve contents
+            if (light.ShadowMapArray == null)
+                light.ShadowMapArray = new RenderTarget2D(_graphicsDevice, size, size * 6, false, SurfaceFormat.Vector2, DepthFormat.Depth24, 0, RenderTargetUsage.PreserveContents);
 
             Matrix lightViewProjection = new Matrix();
             CubeMapFace cubeMapFace; // = CubeMapFace.NegativeX;
@@ -712,6 +719,9 @@ namespace DeferredEngine.Renderer
 
                 //Reset the blur array
                 light.faceBlurCount = new int[6];
+                
+                _graphicsDevice.SetRenderTarget(light.ShadowMapArray);
+                _graphicsDevice.Clear(Color.Black);
 
                 for (int i = 0; i < 6; i++)
                 {
@@ -719,49 +729,46 @@ namespace DeferredEngine.Renderer
                     cubeMapFace = (CubeMapFace)i;
                     switch (cubeMapFace)
                     {
-                        case CubeMapFace.NegativeX:
-                            {
-                                lightView = Matrix.CreateLookAt(light.Position, light.Position + Vector3.Left, Vector3.Up);
-                                lightViewProjection = lightView * lightProjection;
-                                light.LightViewProjectionNegativeX = lightViewProjection;
-                                break;
-                            }
-                        case CubeMapFace.NegativeY:
-                            {
-                                lightView = Matrix.CreateLookAt(light.Position, light.Position + Vector3.Down,
-                                    Vector3.Forward);
-                                lightViewProjection = lightView * lightProjection;
-                                light.LightViewProjectionNegativeY = lightViewProjection;
-                                break;
-                            }
-                        case CubeMapFace.NegativeZ:
-                            {
-                                lightView = Matrix.CreateLookAt(light.Position, light.Position + Vector3.Backward,
-                                    Vector3.Up);
-                                lightViewProjection = lightView * lightProjection;
-                                light.LightViewProjectionNegativeZ = lightViewProjection;
-                                break;
-                            }
                         case CubeMapFace.PositiveX:
                             {
-                                lightView = Matrix.CreateLookAt(light.Position, light.Position + Vector3.Right, Vector3.Up);
+                                lightView = Matrix.CreateLookAt(light.Position, light.Position + Vector3.UnitX, Vector3.UnitZ);
                                 lightViewProjection = lightView * lightProjection;
                                 light.LightViewProjectionPositiveX = lightViewProjection;
                                 break;
                             }
+                        case CubeMapFace.NegativeX:
+                            {
+                                lightView = Matrix.CreateLookAt(light.Position, light.Position - Vector3.UnitX, Vector3.UnitZ);
+                                lightViewProjection = lightView * lightProjection;
+                                light.LightViewProjectionNegativeX = lightViewProjection;
+                                break;
+                            }
                         case CubeMapFace.PositiveY:
                             {
-                                lightView = Matrix.CreateLookAt(light.Position, light.Position + Vector3.Up,
-                                    Vector3.Backward);
+                                lightView = Matrix.CreateLookAt(light.Position, light.Position + Vector3.UnitY, Vector3.UnitZ);
                                 lightViewProjection = lightView * lightProjection;
                                 light.LightViewProjectionPositiveY = lightViewProjection;
                                 break;
                             }
+                        case CubeMapFace.NegativeY:
+                            {
+                                lightView = Matrix.CreateLookAt(light.Position, light.Position - Vector3.UnitY, Vector3.UnitZ);
+                                lightViewProjection = lightView * lightProjection;
+                                light.LightViewProjectionNegativeY = lightViewProjection;
+                                break;
+                            }
                         case CubeMapFace.PositiveZ:
                             {
-                                lightView = Matrix.CreateLookAt(light.Position, light.Position + Vector3.Forward, Vector3.Up);
+                                lightView = Matrix.CreateLookAt(light.Position, light.Position + Vector3.UnitZ, Vector3.UnitX);
                                 lightViewProjection = lightView * lightProjection;
                                 light.LightViewProjectionPositiveZ = lightViewProjection;
+                                break;
+                            }
+                        case CubeMapFace.NegativeZ:
+                            {
+                                lightView = Matrix.CreateLookAt(light.Position, light.Position - Vector3.UnitZ, Vector3.UnitX);
+                                lightViewProjection = lightView * lightProjection;
+                                light.LightViewProjectionNegativeZ = lightViewProjection;
                                 break;
                             }
                     }
@@ -772,9 +779,10 @@ namespace DeferredEngine.Renderer
                     meshMaterialLibrary.FrustumCulling(entities, _boundingFrustumShadow, true, light.Position);
 
                     // Rendering!
-
-                    _graphicsDevice.SetRenderTarget(light.shadowMapCube, cubeMapFace);
-                    _graphicsDevice.Clear(Color.TransparentBlack);
+                    
+                    _graphicsDevice.Viewport = new Viewport(0, light.ShadowResolution * (int)cubeMapFace, light.ShadowResolution, light.ShadowResolution);
+                    //_graphicsDevice.ScissorRectangle = new Rectangle(0, light.ShadowResolution* (int) cubeMapFace,  light.ShadowResolution, light.ShadowResolution);
+                    Shaders.virtualShadowMappingEffectParameter_ArraySlice.SetValue((float) cubeMapFace);
 
                     Shaders.virtualShadowMappingEffectParameter_FarClip.SetValue(light.Radius);
                     Shaders.virtualShadowMappingEffectParameter_LightPositionWorld.SetValue(light.Position);
@@ -783,25 +791,13 @@ namespace DeferredEngine.Renderer
                         viewProjection: lightViewProjection, 
                         lightViewPointChanged: true, 
                         hasAnyObjectMoved: light.HasChanged);
-
-                    if (GameStats.ShadowsBlurred < GameSettings.g_ShadowBlurBudget && light.SoftShadowBlurAmount>0)
-                    {
-                        //i is cubeface
-
-                        throw new NotImplementedException();
-
-                        if (light.faceBlurCount[i] < light.SoftShadowBlurAmount)
-                        {
-                            GameStats.ShadowsBlurred++;
-                            light.faceBlurCount[i]++;
-
-                            _gaussianBlur.DrawGaussianBlur(light.shadowMapCube, cubeMapFace);
-                        }
-                    }
+                    
                 }
             }
             else
             {
+                _graphicsDevice.SetRenderTarget(light.ShadowMapArray);
+
                 for (int i = 0; i < 6; i++)
                 {
                     // render the scene to all cubemap faces
@@ -836,7 +832,9 @@ namespace DeferredEngine.Renderer
                     
                     if (!hasAnyObjectMoved) continue;
 
-                    _graphicsDevice.SetRenderTarget(light.shadowMapCube, cubeMapFace);
+                    _graphicsDevice.Viewport = new Viewport(0, light.ShadowResolution * (int)cubeMapFace, light.ShadowResolution, light.ShadowResolution);
+
+                    Shaders.virtualShadowMappingEffectParameter_ArraySlice.SetValue((float)cubeMapFace);
                     //_graphicsDevice.Clear(Color.TransparentBlack);
                     //_graphicsDevice.Clear(ClearOptions.DepthBuffer, Color.White, 0, 0);
 
