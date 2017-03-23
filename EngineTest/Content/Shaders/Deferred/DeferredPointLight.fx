@@ -182,8 +182,8 @@ float CalcShadowTermPCF(float linearDepthLV, float ndotl, float3 vec3)
 
 	//float2 fractionals = frac(ShadowMapSize * shadowTexCoord.xy);
 
-	//////safe to assume it's a square
-	float size = 1.0f / ShadowMapSize;
+	float Size = ShadowMapSize;
+	float texelSize = 1.0f / Size;
 
 	float variableBias = GetVariableBias(ndotl);
 
@@ -210,13 +210,12 @@ float CalcShadowTermPCF(float linearDepthLV, float ndotl, float3 vec3)
 		{
 			if (x != 0 || y != 0)
 			{
-				closestDepth = 1 - LoadShadowMapUV(GetSampleOffset(sampleCoord, float2(x, y)*size)).r;
+				closestDepth = 1 - LoadShadowMapUV(GetSampleOffset(sampleCoord, float2(x, y)*texelSize)).r;
 			}
 			else
 			{
 				closestDepth = centerDepth;
 			}
-			//closestDepth *= far_plane;   // Undo mapping [0;1]
 
 			float fSample = testDepth < closestDepth;
 
@@ -225,14 +224,14 @@ float CalcShadowTermPCF(float linearDepthLV, float ndotl, float3 vec3)
 			float yWeight = 1;
 
 			if (x == -fRadius)
-				xWeight = 1 - frac(sampleCoord.x * ShadowMapSize);
+				xWeight = 1 - frac(sampleCoord.x * Size);
 			else if (x == fRadius)
-				xWeight = frac(sampleCoord.x * ShadowMapSize);
+				xWeight = frac(sampleCoord.x * Size);
 
 			if (y == -fRadius)
-				yWeight = 1 - frac(sampleCoord.y * ShadowMapSize * 6);
+				yWeight = 1 - frac(sampleCoord.y * Size * 6);
 			else if (y == fRadius)
-				yWeight = frac(sampleCoord.y * ShadowMapSize * 6);
+				yWeight = frac(sampleCoord.y * Size * 6);
 
 			fShadowTerm += fSample * xWeight * yWeight;
 		}
