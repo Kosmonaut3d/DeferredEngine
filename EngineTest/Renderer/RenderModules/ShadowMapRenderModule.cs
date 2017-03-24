@@ -12,7 +12,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace DeferredEngine.Renderer.RenderModules
 {
-    public class ShadowMapShader : IShader
+    public class ShadowMapRenderModule : IRenderModule
     {
         private Effect _shader;
 
@@ -40,7 +40,7 @@ namespace DeferredEngine.Renderer.RenderModules
             Omnidirectional
         };
 
-        public ShadowMapShader(ContentManager content, string shaderPath)
+        public ShadowMapRenderModule(ContentManager content, string shaderPath)
         {
             Load(content, shaderPath);
             Initialize();
@@ -225,7 +225,7 @@ namespace DeferredEngine.Renderer.RenderModules
                         viewProjection: lightViewProjection, 
                         lightViewPointChanged: true, 
                         hasAnyObjectMoved: light.HasChanged, 
-                        shader: this);
+                        renderModule: this);
                     
                 }
             }
@@ -284,7 +284,7 @@ namespace DeferredEngine.Renderer.RenderModules
                         viewProjection: lightViewProjection,
                         lightViewPointChanged: light.HasChanged,
                         hasAnyObjectMoved: true,
-                        shader: this);
+                        renderModule: this);
                 }
             }
         }
@@ -334,7 +334,7 @@ namespace DeferredEngine.Renderer.RenderModules
                 _SizeBias.SetValue(GameSettings.ShadowBias * 2048 / lightSource.ShadowResolution);
 
                 meshMaterialLibrary.Draw(MeshMaterialLibrary.RenderType.ShadowLinear,
-                    lightSource.LightViewProjection, lightSource.HasChanged, false, false, 0, lightSource.LightView, shader: this);
+                    lightSource.LightViewProjection, lightSource.HasChanged, false, false, 0, lightSource.LightView, renderModule: this);
             }
             else
             {
@@ -353,7 +353,7 @@ namespace DeferredEngine.Renderer.RenderModules
                 _SizeBias.SetValue(GameSettings.ShadowBias * 2048 / lightSource.ShadowResolution);
 
                 meshMaterialLibrary.Draw(MeshMaterialLibrary.RenderType.ShadowLinear,
-                    lightSource.LightViewProjection, false, true, false, 0, lightSource.LightView, shader: this);
+                    lightSource.LightViewProjection, false, true, false, 0, lightSource.LightView, renderModule: this);
             }
 
             //Blur!

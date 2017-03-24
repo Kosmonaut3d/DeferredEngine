@@ -82,6 +82,7 @@
     <Compile Include="Entities\PointLightSource.cs" />
     <Compile Include="Entities\Camera.cs" />
     <Compile Include="Main\DebugScreen.cs" />
+    <Compile Include="Renderer\Helper\FullScreenQuadRenderer.cs" />
     <Compile Include="Renderer\RenderModules\BloomFilter.cs" />
     <Compile Include="Renderer\Helper\FastRand.cs" />
     <Compile Include="Renderer\Helper\LineHelper.cs" />
@@ -94,9 +95,10 @@
     <Compile Include="Renderer\Renderer_old.cs" />
     <Compile Include="Renderer\RenderModules\IdAndOutlineRenderer.cs" />
     <Compile Include="Renderer\RenderModules\LightRenderer.cs" />
-    <Compile Include="Renderer\RenderModules\IShader.cs" />
-    <Compile Include="Renderer\RenderModules\ShaderTemplate.cs" />
-    <Compile Include="Renderer\RenderModules\ShadowMapShader.cs" />
+    <Compile Include="Renderer\RenderModules\IRenderModule.cs" />
+    <Compile Include="Renderer\RenderModules\GBufferRenderModule.cs" />
+    <Compile Include="Renderer\RenderModules\RenderModuleTemplate.cs" />
+    <Compile Include="Renderer\RenderModules\ShadowMapRenderModule.cs" />
     <Compile Include="Renderer\RenderModules\TexFilter.cs" />
   </ItemGroup>
   <ItemGroup>

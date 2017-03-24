@@ -1,6 +1,6 @@
 ﻿struct VertexShaderInput
 {
-    float3 Position : POSITION0;
+    float2 Position : POSITION0;
 };
 struct VertexShaderOutput
 {
@@ -9,7 +9,7 @@ struct VertexShaderOutput
 VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 {
     VertexShaderOutput output;
-    output.Position = float4(input.Position, 1);
+    output.Position = float4(input.Position,1, 1);
     return output;
 }
 struct PixelShaderOutput
@@ -29,7 +29,7 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input)
     output.Depth = 1.0f;
     return output;
 }
-technique Technique1
+technique Clear
 {
     pass Pass1
     {

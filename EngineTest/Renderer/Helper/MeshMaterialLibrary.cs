@@ -343,7 +343,7 @@ namespace DeferredEngine.Renderer.Helper
             IdOutline
         }
 
-        public void Draw(RenderType renderType, Matrix viewProjection, bool lightViewPointChanged = false, bool hasAnyObjectMoved = false, bool outlined = false, int outlineId = 0, Matrix? view = null, IShader shader = null)
+        public void Draw(RenderType renderType, Matrix viewProjection, bool lightViewPointChanged = false, bool hasAnyObjectMoved = false, bool outlined = false, int outlineId = 0, Matrix? view = null, IRenderModule renderModule = null)
         {
             SetBlendAndRasterizerState(renderType);
 
@@ -411,7 +411,7 @@ namespace DeferredEngine.Renderer.Helper
                  if(renderType != RenderType.IdRender && renderType != RenderType.IdOutline)
                 GameStats.MaterialDraws++;
 
-                PerMaterialSettings(renderType, material);
+                PerMaterialSettings(renderType, material, renderModule);
 
                 for (int i = 0; i < matLib.Index; i++)
                 {
@@ -435,7 +435,7 @@ namespace DeferredEngine.Renderer.Helper
 
                         Matrix localWorldMatrix = meshLib.GetWorldMatrices()[index].World;
 
-                        if (!ApplyShaders(renderType, shader, localWorldMatrix, view, viewProjection, meshLib, index,
+                        if (!ApplyShaders(renderType, renderModule, localWorldMatrix, view, viewProjection, meshLib, index,
                                 outlineId, outlined)) continue;
 
                         GameStats.MeshDraws++;
@@ -531,23 +531,16 @@ namespace DeferredEngine.Renderer.Helper
             }
         }
 
-        private bool ApplyShaders(RenderType renderType, IShader shader, Matrix localWorldMatrix, Matrix? view, Matrix viewProjection, MeshLibrary meshLib, int index, int outlineId, bool outlined)
+        private bool ApplyShaders(RenderType renderType, IRenderModule renderModule, Matrix localWorldMatrix, Matrix? view, Matrix viewProjection, MeshLibrary meshLib, int index, int outlineId, bool outlined)
         {
             
             if (renderType == RenderType.Opaque || renderType == RenderType.Alpha)
             {
-                Matrix worldView = localWorldMatrix * (Matrix)view;
-                Shaders.GBufferEffectParameter_WorldView.SetValue(worldView);
-                Shaders.GBufferEffectParameter_WorldViewProj.SetValue(localWorldMatrix * viewProjection);
-
-                worldView = Matrix.Transpose(Matrix.Invert(worldView));
-                Shaders.GBufferEffectParameter_WorldViewIT.SetValue(worldView);
-
-                Shaders.GBufferEffect.CurrentTechnique.Passes[0].Apply();
+                renderModule.Apply(localWorldMatrix, view, viewProjection);
             }
             else if (renderType == RenderType.ShadowLinear || renderType == RenderType.ShadowOmnidirectional)
             {
-                shader.Apply(localWorldMatrix, view, viewProjection);
+                renderModule.Apply(localWorldMatrix, view, viewProjection);
             }
             else if (renderType == RenderType.Hologram)
             {
@@ -596,7 +589,7 @@ namespace DeferredEngine.Renderer.Helper
             return true;
         }
 
-        private void PerMaterialSettings(RenderType renderType, MaterialEffect material)
+        private void PerMaterialSettings(RenderType renderType, MaterialEffect material, IRenderModule renderModule)
         {
             if (material.RenderCClockwise)
             {
@@ -611,148 +604,7 @@ namespace DeferredEngine.Renderer.Helper
             //todo: We only need textures for non shadow mapping, right? Not quite actually, for alpha textures we need materials
             else if (renderType == RenderType.Opaque || renderType == RenderType.Alpha)
             {
-                if (GameSettings.d_defaultMaterial)
-                {
-                    Shaders.GBufferEffectParameter_Material_DiffuseColor.SetValue(Color.Gray.ToVector3());
-                    Shaders.GBufferEffectParameter_Material_Roughness.SetValue(GameSettings.m_defaultRoughness > 0
-                            ? GameSettings.m_defaultRoughness
-                            : 0.3f);
-                    Shaders.GBufferEffectParameter_Material_Metallic.SetValue(0.0f);
-                    Shaders.GBufferEffectParameter_Material_MaterialType.SetValue(0);
-                    Shaders.GBufferEffect.CurrentTechnique = Shaders.GBufferEffectTechniques_DrawBasic;
-
-                }
-                else
-                {
-
-
-                    if (material.HasDisplacement)
-                    {
-                        Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
-                        Shaders.GBufferEffectParameter_Material_NormalMap.SetValue(material.NormalMap);
-                        Shaders.GBufferEffectParameter_Material_DisplacementMap.SetValue(material.DisplacementMap);
-                        Shaders.GBufferEffect.CurrentTechnique =
-                            Shaders.GBufferEffectTechniques_DrawTextureDisplacement;
-                    }
-                    else if (material.HasMask) //Has diffuse for sure then
-                    {
-                        if (material.HasNormalMap && material.HasRoughnessMap)
-                        {
-                            Shaders.GBufferEffectParameter_Material_MaskMap.SetValue(material.Mask);
-                            Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
-                            Shaders.GBufferEffectParameter_Material_NormalMap.SetValue(material.NormalMap);
-                            Shaders.GBufferEffectParameter_Material_RoughnessMap.SetValue(material.RoughnessMap);
-                            Shaders.GBufferEffect.CurrentTechnique =
-                                Shaders.GBufferEffectTechniques_DrawTextureSpecularNormalMask;
-                        }
-
-                        else if (material.HasNormalMap)
-                        {
-                            Shaders.GBufferEffectParameter_Material_MaskMap.SetValue(material.Mask);
-                            Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
-                            Shaders.GBufferEffectParameter_Material_NormalMap.SetValue(material.NormalMap);
-                            Shaders.GBufferEffect.CurrentTechnique =
-                                Shaders.GBufferEffectTechniques_DrawTextureNormalMask;
-                        }
-
-                        else if (material.HasRoughnessMap)
-                        {
-                            Shaders.GBufferEffectParameter_Material_MaskMap.SetValue(material.Mask);
-                            Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
-                            Shaders.GBufferEffectParameter_Material_RoughnessMap.SetValue(material.RoughnessMap);
-                            Shaders.GBufferEffect.CurrentTechnique =
-                                Shaders.GBufferEffectTechniques_DrawTextureSpecularMask;
-                        }
-                        else
-                        {
-                            Shaders.GBufferEffectParameter_Material_MaskMap.SetValue(material.Mask);
-                            Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
-                            Shaders.GBufferEffect.CurrentTechnique =
-                                Shaders.GBufferEffectTechniques_DrawTextureSpecularMask;
-                        }
-                    }
-                    else
-                    {
-                        if (material.HasNormalMap && material.HasRoughnessMap && material.HasDiffuse &&
-                            material.HasMetallic)
-                        {
-                            Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
-                            Shaders.GBufferEffectParameter_Material_NormalMap.SetValue(material.NormalMap);
-                            Shaders.GBufferEffectParameter_Material_RoughnessMap.SetValue(material.RoughnessMap);
-                            Shaders.GBufferEffectParameter_Material_MetallicMap.SetValue(material.MetallicMap);
-                            Shaders.GBufferEffect.CurrentTechnique =
-                                Shaders.GBufferEffectTechniques_DrawTextureSpecularNormalMetallic;
-                        }
-
-                        else if (material.HasNormalMap && material.HasRoughnessMap && material.HasDiffuse)
-                        {
-                            Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
-                            Shaders.GBufferEffectParameter_Material_NormalMap.SetValue(material.NormalMap);
-                            Shaders.GBufferEffectParameter_Material_RoughnessMap.SetValue(material.RoughnessMap);
-                            Shaders.GBufferEffect.CurrentTechnique =
-                                Shaders.GBufferEffectTechniques_DrawTextureSpecularNormal;
-                        }
-
-                        else if (material.HasNormalMap && material.HasDiffuse)
-                        {
-                            Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
-                            Shaders.GBufferEffectParameter_Material_NormalMap.SetValue(material.NormalMap);
-                            Shaders.GBufferEffect.CurrentTechnique =
-                                Shaders.GBufferEffectTechniques_DrawTextureNormal;
-                        }
-
-                        else if (material.HasMetallic && material.HasRoughnessMap && material.HasDiffuse)
-                        {
-                            Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
-                            Shaders.GBufferEffectParameter_Material_RoughnessMap.SetValue(material.RoughnessMap);
-                            Shaders.GBufferEffect.CurrentTechnique =
-                                Shaders.GBufferEffectTechniques_DrawTextureSpecularMetallic;
-                        }
-
-                        else if (material.HasRoughnessMap && material.HasDiffuse)
-                        {
-                            Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
-                            Shaders.GBufferEffectParameter_Material_RoughnessMap.SetValue(material.RoughnessMap);
-                            Shaders.GBufferEffect.CurrentTechnique =
-                                Shaders.GBufferEffectTechniques_DrawTextureSpecular;
-                        }
-
-                        else if (material.HasDiffuse)
-                        {
-                            Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
-                            Shaders.GBufferEffect.CurrentTechnique = Shaders.GBufferEffectTechniques_DrawTexture;
-                        }
-
-                        else
-                        {
-                            Shaders.GBufferEffect.CurrentTechnique = Shaders.GBufferEffectTechniques_DrawBasic;
-                        }
-                    }
-
-
-                    if (!material.HasDiffuse)
-                    {
-                        if (material.Type == MaterialEffect.MaterialTypes.Emissive && material.EmissiveStrength > 0)
-                        {
-                            Shaders.GBufferEffectParameter_Material_DiffuseColor.SetValue(material.DiffuseColor);
-                            Shaders.GBufferEffectParameter_Material_Metallic.SetValue(material.EmissiveStrength / 8);
-                        }
-                        //* Math.Max(material.EmissiveStrength,1));
-                        //}
-                        else
-                            //{
-                            Shaders.GBufferEffectParameter_Material_DiffuseColor.SetValue(material.DiffuseColor);
-                        //}
-                    }
-
-                    if (!material.HasRoughnessMap)
-                        Shaders.GBufferEffectParameter_Material_Roughness.SetValue(GameSettings.m_defaultRoughness >
-                                                                                   0
-                            ? GameSettings.m_defaultRoughness
-                            : material.Roughness);
-                    Shaders.GBufferEffectParameter_Material_Metallic.SetValue(material.Metallic);
-                    Shaders.GBufferEffectParameter_Material_MaterialType.SetValue(material.MaterialTypeNumber);
-                }
+                ((GBufferRenderModule) renderModule).SetMaterialSettings(material);
             }
         }
 

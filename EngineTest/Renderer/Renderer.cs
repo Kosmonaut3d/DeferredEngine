@@ -33,7 +33,9 @@ namespace DeferredEngine.Renderer
         private CPURayMarch _cpuRayMarch;
         private BloomFilter _bloomFilter;
         private LightRenderer _lightRenderer;
-        private ShadowMapShader _shadowMapShader;
+
+        private ShadowMapRenderModule _shadowMapRenderModule;
+        private GBufferRenderModule _gBufferRenderModule;
         
         //Assets
         private Assets _assets;
@@ -155,7 +157,8 @@ namespace DeferredEngine.Renderer
             _bloomFilter = new BloomFilter();
             _bloomFilter.Load(content, _quadRenderer);
 
-            _shadowMapShader = new ShadowMapShader(content, "Shaders/Shadow/ShadowMap");
+            _shadowMapRenderModule = new ShadowMapRenderModule(content, "Shaders/Shadow/ShadowMap");
+            _gBufferRenderModule = new GBufferRenderModule(content, "Shaders/GbufferSetup/ClearGBuffer", "Shaders/GbufferSetup/Gbuffer");
 
             _inverseResolution = new Vector3(1.0f / GameSettings.g_ScreenWidth, 1.0f / GameSettings.g_ScreenHeight, 0);
             
@@ -185,6 +188,8 @@ namespace DeferredEngine.Renderer
 
             _lightRenderer = new LightRenderer();
             _lightRenderer.Initialize(graphicsDevice, _quadRenderer, assets);
+
+            _gBufferRenderModule.Initialize(_graphicsDevice);
             
             _assets = assets;
 
@@ -257,10 +262,7 @@ namespace DeferredEngine.Renderer
             
             //Update our view projection matrices if the camera moved
             UpdateViewProjection(camera, meshMaterialLibrary, entities);
-
-            //Set up our deferred renderer
-            SetUpGBuffer();
-
+            
             //Draw our meshes to the G Buffer
             DrawGBuffer(meshMaterialLibrary);
 
@@ -447,7 +449,7 @@ namespace DeferredEngine.Renderer
 
                 //Base stuff, for description look in Draw()
                 meshMaterialLibrary.FrustumCulling(entities, _boundingFrustum, true, origin);
-                SetUpGBuffer();
+
                 DrawGBuffer(meshMaterialLibrary);
 
                 bool volumeEnabled = GameSettings.g_VolumetricLights;
@@ -529,7 +531,7 @@ namespace DeferredEngine.Renderer
             if (Math.Abs(_g_FarClip - GameSettings.g_FarPlane) > 0.0001f)
             {
                 _g_FarClip = GameSettings.g_FarPlane;
-                Shaders.GBufferEffectParameter_FarClip.SetValue(_g_FarClip);
+                _gBufferRenderModule.FarClip = _g_FarClip;
                 Shaders.deferredPointLightParameter_FarClip.SetValue(_g_FarClip);
                 Shaders.BillboardEffectParameter_FarClip.SetValue(_g_FarClip);
                 Shaders.ScreenSpaceReflectionParameter_FarClip.SetValue(_g_FarClip);
@@ -619,7 +621,7 @@ namespace DeferredEngine.Renderer
             //Don't render for the first frame, we need a guideline first
             if (_boundingFrustum == null) UpdateViewProjection(camera, meshMaterialLibrary, entities);
 
-            _shadowMapShader.Draw(_graphicsDevice, meshMaterialLibrary, entities, pointLights, dirLights, camera);
+            _shadowMapRenderModule.Draw(_graphicsDevice, meshMaterialLibrary, entities, pointLights, dirLights, camera);
 
             //Performance Profiler
             if (GameSettings.d_profiler)
@@ -666,7 +668,7 @@ namespace DeferredEngine.Renderer
                 _projection = Matrix.CreatePerspectiveFieldOfView(camera.FieldOfView,
                     GameSettings.g_ScreenWidth / (float)GameSettings.g_ScreenHeight, 1, GameSettings.g_FarPlane);
                 
-                Shaders.GBufferEffectParameter_Camera.SetValue(camera.Position);
+                _gBufferRenderModule.Camera = camera.Position;
 
                 _viewProjection = _view * _projection;
 
@@ -800,44 +802,15 @@ namespace DeferredEngine.Renderer
             Shaders.ReconstructDepthParameter_FrustumCorners.SetValue(_currentFrustumCorners);
             Shaders.deferredDirectionalLightParameterFrustumCorners.SetValue(_currentFrustumCorners);
         }
-
-        /// <summary>
-        /// Clear the GBuffer and prepare it for drawing the meshes
-        /// </summary>
-        private void SetUpGBuffer()
-        {
-            _graphicsDevice.SetRenderTargets(_renderTargetBinding);
-
-            _graphicsDevice.RasterizerState = RasterizerState.CullNone;
-            _graphicsDevice.BlendState = BlendState.Opaque;
-            _graphicsDevice.DepthStencilState = DepthStencilState.Default;
-
-            //Clear the GBuffer
-            if (GameSettings.g_ClearGBuffer)
-            {
-                Shaders.ClearGBufferEffect.CurrentTechnique.Passes[0].Apply();
-                _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
-            }
-
-            //Performance Profiler
-            if (GameSettings.d_profiler)
-            {
-                long performanceCurrentTime = _performanceTimer.ElapsedTicks;
-                GameStats.d_profileSetupGBuffer = performanceCurrentTime - _performancePreviousTime;
-
-                _performancePreviousTime = performanceCurrentTime;
-            }
-        }
-
+        
         /// <summary>
         /// Draw all our meshes to the GBuffer - albedo, normal, depth - for further computation
         /// </summary>
         /// <param name="meshMaterialLibrary"></param>
         private void DrawGBuffer(MeshMaterialLibrary meshMaterialLibrary)
         {
-            _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
-            meshMaterialLibrary.Draw(renderType: MeshMaterialLibrary.RenderType.Opaque, viewProjection: _viewProjection, lightViewPointChanged: true, view: _view);
-
+            _gBufferRenderModule.Draw(_graphicsDevice, _renderTargetBinding, meshMaterialLibrary, _viewProjection, _view);
+            
             //Performance Profiler
             if (GameSettings.d_profiler)
             {

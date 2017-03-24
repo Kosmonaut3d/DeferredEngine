@@ -137,46 +137,8 @@ namespace DeferredEngine.Recources
         public static Effect GaussianBlurEffect;
         public static EffectParameter GaussianBlurEffectParameter_InverseResolution;
         public static EffectParameter GaussianBlurEffectParameter_TargetMap;
-
-        //ClearGBuffer
-        public static Effect ClearGBufferEffect;
-
-        //GBuffer
-        public static Effect GBufferEffect;
-
-        public static EffectParameter GBufferEffectParameter_WorldView;
-        public static EffectParameter GBufferEffectParameter_WorldViewProj;
-        public static EffectParameter GBufferEffectParameter_WorldViewIT;
-        public static EffectParameter GBufferEffectParameter_Camera;
-        public static EffectParameter GBufferEffectParameter_FarClip;
-
-        public static EffectParameter GBufferEffectParameter_Material_Metallic;
-        public static EffectParameter GBufferEffectParameter_Material_MetallicMap;
-        public static EffectParameter GBufferEffectParameter_Material_DiffuseColor;
-        public static EffectParameter GBufferEffectParameter_Material_Roughness;
-        public static EffectParameter GBufferEffectParameter_Material_MaskMap;
-        public static EffectParameter GBufferEffectParameter_Material_Texture;
-        public static EffectParameter GBufferEffectParameter_Material_NormalMap;
-        public static EffectParameter GBufferEffectParameter_Material_DisplacementMap;
-        public static EffectParameter GBufferEffectParameter_Material_RoughnessMap;
-        public static EffectParameter GBufferEffectParameter_Material_MaterialType;
-
-        public static EffectTechnique GBufferEffectTechniques_DrawTextureDisplacement;
-        public static EffectTechnique GBufferEffectTechniques_DrawTextureSpecularNormalMask;
-        public static EffectTechnique GBufferEffectTechniques_DrawTextureNormalMask;
-        public static EffectTechnique GBufferEffectTechniques_DrawTextureSpecularMask;
-        public static EffectTechnique GBufferEffectTechniques_DrawTextureMask;
-        public static EffectTechnique GBufferEffectTechniques_DrawTextureSpecularNormalMetallic;
-        public static EffectTechnique GBufferEffectTechniques_DrawTextureSpecularNormal;
-        public static EffectTechnique GBufferEffectTechniques_DrawTextureNormal;
-        public static EffectTechnique GBufferEffectTechniques_DrawTextureSpecular;
-        public static EffectTechnique GBufferEffectTechniques_DrawTextureSpecularMetallic;
-        public static EffectTechnique GBufferEffectTechniques_DrawTexture;
-        public static EffectTechnique GBufferEffectTechniques_DrawBasic;
-
+        
         //COMPOSE
-       
-
         public static Effect DeferredCompose;
         public static EffectParameter DeferredComposeEffectParameter_ColorMap;
         public static EffectParameter DeferredComposeEffectParameter_diffuseLightMap;
@@ -272,7 +234,7 @@ namespace DeferredEngine.Recources
         public static EffectParameter deferredEnvironmentParameter_FireflyReduction;
         public static EffectParameter deferredEnvironmentParameter_FireflyThreshold;
         public static EffectParameter deferredEnvironmentParameterTransposeView;
-        
+
         //SSR
 
         //public static Effect SSReflectionEffect;
@@ -416,44 +378,6 @@ namespace DeferredEngine.Recources
             GaussianBlurEffectParameter_InverseResolution = GaussianBlurEffect.Parameters["InverseResolution"];
             GaussianBlurEffectParameter_TargetMap = GaussianBlurEffect.Parameters["TargetMap"];
 
-            //Gbuffer
-            GBufferEffect = content.Load<Effect>("Shaders/GbufferSetup/GBuffer");
-
-            GBufferEffectParameter_WorldView = GBufferEffect.Parameters["WorldView"];
-            GBufferEffectParameter_WorldViewProj = GBufferEffect.Parameters["WorldViewProj"];
-            GBufferEffectParameter_WorldViewIT = GBufferEffect.Parameters["WorldViewIT"];
-            GBufferEffectParameter_Camera = GBufferEffect.Parameters["Camera"];
-            GBufferEffectParameter_FarClip = GBufferEffect.Parameters["FarClip"];
-
-            GBufferEffectParameter_Material_Metallic = GBufferEffect.Parameters["Metallic"];
-            GBufferEffectParameter_Material_MetallicMap = GBufferEffect.Parameters["MetallicMap"];
-            GBufferEffectParameter_Material_DiffuseColor = GBufferEffect.Parameters["DiffuseColor"];
-            GBufferEffectParameter_Material_Roughness = GBufferEffect.Parameters["Roughness"];
-
-            GBufferEffectParameter_Material_MaskMap = GBufferEffect.Parameters["Mask"];
-            GBufferEffectParameter_Material_Texture = GBufferEffect.Parameters["Texture"];
-            GBufferEffectParameter_Material_NormalMap = GBufferEffect.Parameters["NormalMap"];
-            GBufferEffectParameter_Material_RoughnessMap = GBufferEffect.Parameters["RoughnessMap"];
-            GBufferEffectParameter_Material_DisplacementMap = GBufferEffect.Parameters["DisplacementMap"];
-
-            GBufferEffectParameter_Material_MaterialType = GBufferEffect.Parameters["MaterialType"];
-
-            ClearGBufferEffect = content.Load<Effect>("Shaders/GbufferSetup/ClearGBuffer");
-
-            //Techniques
-
-            GBufferEffectTechniques_DrawTextureDisplacement = GBufferEffect.Techniques["DrawTextureDisplacement"];
-            GBufferEffectTechniques_DrawTextureSpecularNormalMask = GBufferEffect.Techniques["DrawTextureSpecularNormalMask"];
-            GBufferEffectTechniques_DrawTextureNormalMask = GBufferEffect.Techniques["DrawTextureNormalMask"];
-            GBufferEffectTechniques_DrawTextureSpecularMask = GBufferEffect.Techniques["DrawTextureSpecularMask"];
-            GBufferEffectTechniques_DrawTextureMask = GBufferEffect.Techniques["DrawTextureMask"];
-            GBufferEffectTechniques_DrawTextureSpecularNormalMetallic = GBufferEffect.Techniques["DrawTextureSpecularNormalMetallic"];
-            GBufferEffectTechniques_DrawTextureSpecularNormal = GBufferEffect.Techniques["DrawTextureSpecularNormal"];
-            GBufferEffectTechniques_DrawTextureNormal = GBufferEffect.Techniques["DrawTextureNormal"];
-            GBufferEffectTechniques_DrawTextureSpecular = GBufferEffect.Techniques["DrawTextureSpecular"];
-            GBufferEffectTechniques_DrawTextureSpecularMetallic = GBufferEffect.Techniques["DrawTextureSpecularMetallic"];
-            GBufferEffectTechniques_DrawTexture = GBufferEffect.Techniques["DrawTexture"];
-            GBufferEffectTechniques_DrawBasic = GBufferEffect.Techniques["DrawBasic"];
 
 
             //DeferredCompose
