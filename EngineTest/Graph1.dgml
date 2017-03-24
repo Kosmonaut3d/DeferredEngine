@@ -1,78 +1,117 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <DirectedGraph DataVirtualized="True" Layout="Sugiyama" ZoomLevel="-1" xmlns="http://schemas.microsoft.com/vs/2009/dgml">
   <Nodes>
-    <Node Id="Bloom" Bounds="-93.2186761176492,36.2190198982931,79.9466666666667,73.84" Label="Bloom&#xD;&#xA;&#xD;&#xA;Gamma 1.0&#xD;&#xA;FP 16" UseManualLocation="True" />
-    <Node Id="DeferredEngine" Bounds="-133.139798836457,-169.019621687231,105.6,25.96" Label="Deferred Engine" UseManualLocation="True" />
-    <Node Id="DirectionalLights" Bounds="-718.450436328294,82.7659224794361,145.76,25.96" Label="Input: Directional Lights" UseManualLocation="True" />
-    <Node Id="EnvironmentMap" Bounds="-267.1182697451,334.20947424908,114.2,73.8400000000001" Label="Environment Map&#xD;&#xA;&#xD;&#xA;Gamma 1.0&#xD;&#xA;HDR FP16" UseManualLocation="True" />
-    <Node Id="EnvironmentSamples" Bounds="-276.554136352539,242.349482220459,134.41,25.96" Label="Environment Samples" UseManualLocation="True" />
-    <Node Id="FinalOutput" Bounds="565.371980170263,54.9863982391357,85.6700000000001,41.92" Label="Final Output&#xD;&#xA;R8G8B8A8" UseManualLocation="True" />
-    <Node Id="GBuffer" Bounds="-408.609261390007,-97.6156271489373,59.8666666666667,25.96" UseManualLocation="True" />
-    <Node Id="Gamma1.0" Bounds="-572.221335509007,-148.964040948435,115.07,25.96" Label="Gamma 2.2 -&gt; 1.0" UseManualLocation="True" />
-    <Node Id="ImageBasedLighting" Bounds="-721.031722386206,138.726022397815,134.22,25.96" Label="Image Based Lighting" UseManualLocation="True" />
-    <Node Id="LastFrameAccumulation" Category="Comment" Bounds="229.410593620205,260.298963387155,165.126666666667,25.96" Label="Last Frame(s) Accumulation" UseManualLocation="True" />
-    <Node Id="Light" Bounds="-450.417210768046,37.4497594172992,139.08,73.84" Label="Lighting Accumulation&#xD;&#xA;&#xD;&#xA;Gamma 1.0&#xD;&#xA;HDR FP16" UseManualLocation="True" />
-    <Node Id="LightingCalculations" Bounds="-252.089443247435,37.0512829589844,82.5466666666667,73.84" Label="Compose&#xD;&#xA;&#xD;&#xA;Gamma 1.0,&#xD;&#xA;HDR FP16" UseManualLocation="True" />
-    <Node Id="NeedFp16ForPrecision?" Category="Comment" Bounds="204.071845063349,-56.0817587763741,150.32,25.96" Label="Need fp16 for precision?" UseManualLocation="True" />
-    <Node Id="NotAntialiased" Category="Comment" Bounds="90.8096436811344,259.283730175681,99.6933333333333,25.96" Label="Not antialiased" UseManualLocation="True" />
-    <Node Id="PointLights" Bounds="-716.494124817716,26.8058261604224,115.71,25.96" Label="Input: Point Lights" UseManualLocation="True" />
-    <Node Id="PostProcessingChromaShift,VignetteEtc." Bounds="407.374225463867,17.6675708671137,115.07,121.72" Label="Post Processing&#xD;&#xA;&#xD;&#xA;Chroma Shift,&#xD;&#xA;Vignette etc.&#xD;&#xA;&#xD;&#xA;Gamma 1.0 -&gt; 2.2&#xD;&#xA;RGBA 8888" UseManualLocation="True" />
-    <Node Id="ScreenSpaceReflections" Bounds="-78.4404212733184,334.139713330587,150.833333333333,73.84" Label="Screen Space Reflections&#xD;&#xA;&#xD;&#xA;Gamma 1.0&#xD;&#xA;FP16?" UseManualLocation="True" />
-    <Node Id="TempTarget" Bounds="238.09714547702,193.884579075864,84.7,25.96" Label="Temp Target" UseManualLocation="True" />
-    <Node Id="TemporalAnti-AliasingGamma1.0-&gt;FP16?" Bounds="209.424786811694,37.1480694580078,140.106666666667,73.84" Label="Temporal Anti-Aliasing&#xD;&#xA;&#xD;&#xA;Gamma 1.0&#xD;&#xA;FP16" UseManualLocation="True" />
-    <Node Id="TemporalTarget" Bounds="-50.9831841786703,204.805818304443,104.916666666667,41.92" Label="Temporal Target&#xD;&#xA;(Last Frame)" UseManualLocation="True" />
-    <Node Id="Textures" Bounds="-709.788226891554,-149.443810546621,97.08,25.96" Label="Input: Textures" UseManualLocation="True" />
-    <Node Id="Tonemapping" Bounds="65.6847868116942,37.6319580841064,113.74,73.84" Label="Tonemapping&#xD;&#xA;&#xD;&#xA;Gamma 1.0&#xD;&#xA;FP16 HDR -&gt; LDR" UseManualLocation="True" />
-    <Node Id="UntonemappedComposedHdr" Category="Comment" Bounds="-304.9798534139,162.429382220459,192.546666666667,41.92" Label="Cubemap pipeline ends here (no tonemapping etc.)" UseManualLocation="True" />
+    <Node Id="(@1 Namespace=DeferredEngine.Renderer.RenderModules Type=LightAccumulationModule)" Category="CodeSchema_Class" Bounds="0,0,200.876666666667,25" CodeSchemaProperty_IsPublic="True" CommonLabel="LightAccumulationModule" DelayedChildNodesState="NotFetched" Group="Collapsed" Icon="CodeSchema_Class" Label="LightAccumulationModule" SourceLocation="(Assembly=&quot;file:///C:/Users/Thomy/Documents/Visual Studio 2015/Projects/DeferredEngine/EngineTest/Renderer/RenderModules/LightAccumulationModule.cs&quot; StartLineNumber=14 StartCharacterOffset=17 EndLineNumber=14 EndCharacterOffset=40)" />
+    <Node Id="@2" Category="CodeSchema_Assembly" CommonLabel="DeferredEngine" DelayedChildNodesState="Incomplete" Group="Expanded" Label="DeferredEngine.exe" />
+    <Node Id="@3" Category="CodeSchema_Namespace" CodeSchemaProperty_IsPublic="True" CodeSchemaProperty_IsStatic="True" CommonLabel="DeferredEngine.Renderer.RenderModules" DelayedChildNodesState="Incomplete" Group="Expanded" Label="DeferredEngine.Renderer.RenderModules" />
+    <Node Id="@4" Category="CodeSchema_Class" Bounds="112.755,309.0825,100.866666666667,25" CodeSchemaProperty_IsPublic="True" CommonLabel="GBufferRenderModule" DelayedChildNodesState="NotFetched" Group="Collapsed" Icon="CodeSchema_Class" Label="GBuffer" SourceLocation="(Assembly=&quot;file:///C:/Users/Thomy/Documents/Visual Studio 2015/Projects/DeferredEngine/EngineTest/Renderer/RenderModules/GBufferRenderModule.cs&quot; StartLineNumber=15 StartCharacterOffset=17 EndLineNumber=15 EndCharacterOffset=36)" />
+    <Node Id="AlternateEndToCubemapPipeline" Category="Comment" Bounds="324.603333333333,15.96,237.17,41.92" Label="Alternate end to Cubemap pipeline / SSR target" />
+    <Node Id="Bloom" Bounds="50.59,1023.355,111.196666666667,89.8000000000002" Label="HDR Bloom&#xD;&#xA;(+ other HDR PP)&#xD;&#xA;&#xD;&#xA;Gamma 1.0&#xD;&#xA;FP 16" />
+    <Node Id="DeferredEngine" Bounds="850.241666666667,0,105.6,25.96" Label="Deferred Engine" />
+    <Node Id="DirectionalLights" Bounds="397.308333333333,398.170000000001,145.76,25.96" Label="Input: Directional Lights" />
+    <Node Id="EnvironmentMap" Bounds="575.088333333333,284.6625,114.2,73.8400000000001" Label="Environment Map&#xD;&#xA;&#xD;&#xA;Gamma 1.0&#xD;&#xA;HDR FP16" />
+    <Node Id="EnvironmentSamples" Bounds="414.983333333333,113.5075,134.41,25.9600000000001" Label="Environment Samples" />
+    <Node Id="FinalOutput" Bounds="63.3533333333335,1419.7375,85.6700000000001,41.9200000000001" Label="Final Output&#xD;&#xA;R8G8B8A8" />
+    <Node Id="Gamma1.0" Bounds="105.653333333333,390.190000000001,115.07,41.9200000000001" Label="Gamma 2.2 -&gt; 1.0&#xD;&#xA;(if required)" />
+    <Node Id="ImageBasedLighting" Bounds="573.078333333333,398.170000000001,134.22,25.96" Label="Image Based Lighting" />
+    <Node Id="InverseTonemappingLDR-&gt;HDRFP16" Bounds="39.506666666667,901.867500000001,133.363333333333,89.8" Label="Inverse Tonemapping&#xD;&#xA;1/x - 1&#xD;&#xA;&#xD;&#xA;LDR -&gt; HDR&#xD;&#xA;FP16" />
+    <Node Id="LastFrameAccumulation" Category="Comment" Bounds="275.625,812.300000000001,165.126666666667,25.96" Label="Last Frame(s) Accumulation" />
+    <Node Id="Light" Bounds="239.648333333334,463.797500000001,139.08,73.84" Label="Lighting Accumulation&#xD;&#xA;&#xD;&#xA;Gamma 1.0&#xD;&#xA;HDR FP16" />
+    <Node Id="LightingCalculations" Bounds="166.915,569.325000000001,82.5466666666667,73.8399999999999" Label="Compose&#xD;&#xA;&#xD;&#xA;Gamma 1.0,&#xD;&#xA;HDR FP16" />
+    <Node Id="PointLights" Bounds="251.333333333333,398.170000000001,115.71,25.96" Label="Input: Point Lights" />
+    <Node Id="PostProcessingChromaShift,VignetteEtc." Bounds="42.7016666666671,1266.33,126.973333333333,121.72" Label="LDR Post Processing&#xD;&#xA;&#xD;&#xA;Chroma Shift,&#xD;&#xA;Vignette etc.&#xD;&#xA;&#xD;&#xA;Gamma 2.2&#xD;&#xA;R8G8B8A8" />
+    <Node Id="ScreenSpaceReflections" Bounds="556.771666666667,179.135,150.833333333333,73.84" Label="Screen Space Reflections&#xD;&#xA;&#xD;&#xA;Gamma 1.0&#xD;&#xA;FP16?" />
+    <Node Id="TempTarget" Bounds="203.838333333334,933.787500000001,84.7,25.96" Label="Temp Target" />
+    <Node Id="TemporalAnti-AliasingGamma1.0-&gt;FP16?" Bounds="105.135,780.380000000001,140.106666666667,89.8" Label="Temporal Anti-Aliasing&#xD;&#xA;&#xD;&#xA;LDR&#xD;&#xA;Gamma 1.0&#xD;&#xA;FP16" />
+    <Node Id="TemporalTarget" Bounds="579.73,105.5275,104.916666666667,41.92" Label="Temporal Target&#xD;&#xA;(Last Frame)" />
+    <Node Id="Textures" Bounds="114.648333333333,203.075,97.0799999999999,25.96" Label="Input: Textures" />
+    <Node Id="Tonemapping" Bounds="0,1144.8425,212.376666666667,89.8000000000002" Label="Tonemapping &amp; Gamma Conversion&#xD;&#xA;(+ Optional LUT)&#xD;&#xA;&#xD;&#xA;Gamma 1.0 -&gt; 2.2&#xD;&#xA;FP16 HDR -&gt; R8G8B8A8 LDR" />
+    <Node Id="Tonemapping(Reinhard,1/x+1)HDR-&gt;LDR" Bounds="148.87,674.852500000001,118.636666666667,73.8399999999999" Label="Tonemapping&#xD;&#xA;(Reinhard, 1/(x+1))&#xD;&#xA;&#xD;&#xA;HDR -&gt; LDR" />
+    <Node Id="UntonemappedComposedHdr" Category="Comment" Bounds="592.135,0,228.106666666667,73.84" Label="Cubemap pipeline ends here (no tonemapping etc.)&#xD;&#xA;&#xD;&#xA;SSR uses this color info for reprojection" />
   </Nodes>
   <Links>
-    <Link Source="Bloom" Target="Tonemapping" Bounds="-13.2720094509825,73.4602929781862,69.9570869321457,0.562258058181399" />
-    <Link Source="DirectionalLights" Target="Light" Bounds="-572.690436328294,80.7101541760134,113.302431311021,9.15010666372224" />
-    <Link Source="EnvironmentMap" Target="ImageBasedLighting" Bounds="-619.59446032288,168.674140779692,352.47619057778,174.230549394918" />
-    <Link Source="EnvironmentSamples" Target="EnvironmentMap" Bounds="-209.752934775973,268.309483032227,0.328794227925357,56.9001380460432" />
-    <Link Source="GBuffer" Target="Light" Bounds="-380.241502720432,-71.6556271489373,1.38587855276074,100.106248905307" />
-    <Link Source="GBuffer" Target="LightingCalculations" Bounds="-364.938692787365,-71.6556271489373,108.597282743714,102.611093308032" />
-    <Link Source="Gamma1.0" Target="GBuffer" Bounds="-480.305232801048,-123.004040948435,63.536432088311,23.9870982472989" />
-    <Link Source="ImageBasedLighting" Target="Light" Bounds="-608.094349505561,96.5186984615623,149.017779069401,42.2073239362526" />
-    <Link Source="LastFrameAccumulation" Target="TempTarget" Bounds="290.468234740896,227.975034243176,15.3441099791683,32.3239291439791" />
-    <Link Source="Light" Target="LightingCalculations" Bounds="-311.337210768046,74.0890802087312,50.2477922268188,0.117737461325021" />
-    <Link Source="LightingCalculations" Target="Bloom" Bounds="-169.542776580768,73.3976883845516,67.3242260005876,0.355595567696739" />
-    <Link Source="LightingCalculations" Target="TemporalTarget" Bounds="-169.542776580768,103.482937734215,134.383429149918,96.0881287817168" />
-    <Link Source="NeedFp16ForPrecision?" Target="TemporalAnti-AliasingGamma1.0-&gt;FP16?" Bounds="279.259124574696,-30.1217589569092,0.122476818080543,58.2698482955904" />
-    <Link Source="NotAntialiased" Target="TemporalTarget" Bounds="62.4697131110197,246.142998910265,39.3338552587226,13.1407312654161" />
-    <Link Source="PointLights" Target="Light" Bounds="-600.784124817716,46.9893099980907,141.43587478947,17.6100775751867" />
-    <Link Source="PostProcessingChromaShift,VignetteEtc." Target="FinalOutput" Bounds="522.444225463867,76.8800561334485,33.9292349660047,0.61115598385814" />
-    <Link Source="ScreenSpaceReflections" Target="EnvironmentMap" Bounds="-143.918280540362,371.085128870962,65.4778592670439,0.0220661459787834" />
-    <Link Source="TempTarget" Target="TemporalAnti-AliasingGamma1.0-&gt;FP16?" Bounds="282.853790283203,119.987770080566,0.515289306640625,73.8968124389648" />
-    <Link Source="TemporalAnti-AliasingGamma1.0-&gt;FP16?" Target="PostProcessingChromaShift,VignetteEtc." Bounds="349.531453478361,75.7528083533081,48.8453735330706,1.17470071345598" />
-    <Link Source="TemporalAnti-AliasingGamma1.0-&gt;FP16?" Target="TempTarget" Bounds="276.779968261719,110.988067626953,0.534820556640625,73.8966827392578" />
-    <Link Source="TemporalTarget" Target="ScreenSpaceReflections" Bounds="-1.6020137934928,246.725815734863,2.42815411573033,78.4182090026418" />
-    <Link Source="Textures" Target="Gamma1.0" Bounds="-612.708226891554,-136.304915106092,31.4869396031182,0.103072334963713" />
-    <Link Source="Tonemapping" Target="TemporalAnti-AliasingGamma1.0-&gt;FP16?" Bounds="179.424786811694,74.3118381018279,21.0000427883161,0.0647557099189697" />
-    <Link Source="UntonemappedComposedHdr" Target="EnvironmentSamples" Bounds="-209.152800918356,204.349381408691,0.259049638080455,29.0004606634329" />
-    <Link Source="UntonemappedComposedHdr" Target="LightingCalculations" Bounds="-209.930802423382,119.889610684326,0.820168754860475,42.539770724365" />
+    <Link Source="@2" Target="@3" Category="Contains" FetchingParent="@2" />
+    <Link Source="@3" Target="(@1 Namespace=DeferredEngine.Renderer.RenderModules Type=LightAccumulationModule)" Category="Contains" FetchingParent="@3" />
+    <Link Source="@3" Target="@4" Category="Contains" FetchingParent="@3" />
+    <Link Source="@4" Target="Gamma1.0" Bounds="163.188339233398,334.082489013672,0,47.1075134277344" />
+    <Link Source="AlternateEndToCubemapPipeline" Target="EnvironmentSamples" Bounds="452.314849853516,57.8800010681152,20.628662109375,47.3758125305176" />
+    <Link Source="AlternateEndToCubemapPipeline" Target="InverseTonemappingLDR-&gt;HDRFP16" Bounds="74.1883316040039,53.8766098022461,250.415000915527,839.09366607666" />
+    <Link Source="AlternateEndToCubemapPipeline" Target="TemporalTarget" Bounds="487.416870117188,57.8800010681152,92.4099731445313,43.7932777404785" />
+    <Link Source="Bloom" Target="Tonemapping" Bounds="106.188331604004,1113.15502929688,0,22.6875" />
+    <Link Source="DirectionalLights" Target="Light" Bounds="383.417907714844,424.130004882813,63.4385375976563,35.2921142578125" />
+    <Link Source="EnvironmentMap" Target="ImageBasedLighting" Bounds="635.485961914063,358.502502441406,2.74237060546875,30.7031860351563" />
+    <Link Source="EnvironmentSamples" Target="EnvironmentMap" Bounds="482.188323974609,139.467498779297,84.4099426269531,159.043151855469" />
+    <Link Source="Gamma1.0" Target="Light" Bounds="206.379501342773,432.109985351563,45.8080139160156,26.6274108886719" />
+    <Link Source="Gamma1.0" Target="LightingCalculations" Bounds="188.432510375977,432.109985351563,19.7558288574219,128.215026855469" />
+    <Link Source="ImageBasedLighting" Target="Light" Bounds="387.415893554688,424.130004882813,204.804382324219,55.4193725585938" />
+    <Link Source="InverseTonemappingLDR-&gt;HDRFP16" Target="Bloom" Bounds="106.188331604004,991.66748046875,0,22.6875" />
+    <Link Source="LastFrameAccumulation" Target="TempTarget" Bounds="264.255004882813,838.260009765625,81.9669799804688,88.910400390625" />
+    <Link Source="Light" Target="LightingCalculations" Bounds="249.747283935547,537.637512207031,24.1050415039063,25.1856079101563" />
+    <Link Source="LightingCalculations" Target="Tonemapping(Reinhard,1/x+1)HDR-&gt;LDR" Bounds="208.188339233398,643.164978027344,0,22.6875" />
+    <Link Source="PointLights" Target="Light" Bounds="309.188323974609,424.130004882813,0,30.66748046875" />
+    <Link Source="PostProcessingChromaShift,VignetteEtc." Target="FinalOutput" Bounds="106.188331604004,1388.05004882813,0,22.6875" />
+    <Link Source="ScreenSpaceReflections" Target="EnvironmentMap" Bounds="632.188354492188,252.975006103516,0,22.6875" />
+    <Link Source="TempTarget" Target="TemporalAnti-AliasingGamma1.0-&gt;FP16?" Bounds="180.274978637695,878.645263671875,50.7417602539063,55.1422119140625" />
+    <Link Source="TemporalAnti-AliasingGamma1.0-&gt;FP16?" Target="InverseTonemappingLDR-&gt;HDRFP16" Bounds="136.134490966797,870.179992675781,13.5524597167969,23.8616333007813" />
+    <Link Source="TemporalAnti-AliasingGamma1.0-&gt;FP16?" Target="TempTarget" Bounds="230.412536621094,870.179992675781,19.5640411376953,54.6666870117188" />
+    <Link Source="TemporalTarget" Target="ScreenSpaceReflections" Bounds="632.188354492188,147.447494506836,0,22.6875" />
+    <Link Source="Textures" Target="@4" Bounds="163.188339233398,229.035003662109,0,71.0474853515625" />
+    <Link Source="Tonemapping" Target="PostProcessingChromaShift,VignetteEtc." Bounds="106.188331604004,1234.64245605469,0,22.6875" />
+    <Link Source="Tonemapping(Reinhard,1/x+1)HDR-&gt;LDR" Target="TemporalAnti-AliasingGamma1.0-&gt;FP16?" Bounds="190.754638671875,748.692504882813,6.699951171875,23.0453491210938" />
+    <Link Source="UntonemappedComposedHdr" Target="EnvironmentSamples" Bounds="527.112426757813,73.8399963378906,94.2391357421875,36.6479721069336" />
+    <Link Source="UntonemappedComposedHdr" Target="LightingCalculations" Bounds="258.417388916016,73.8399963378906,479.770965576172,527.404510498047" />
+    <Link Source="UntonemappedComposedHdr" Target="TemporalTarget" Bounds="655.237670898438,73.8399963378906,20.4476318359375,24.7492065429688" />
   </Links>
   <Categories>
+    <Category Id="CodeSchema_Assembly" Label="Assembly" BasedOn="File" CanBeDataDriven="True" DefaultAction="Microsoft.Contains" Icon="CodeSchema_Assembly" NavigationActionLabel="Assemblies" />
+    <Category Id="CodeSchema_Class" Label="Class" BasedOn="CodeSchema_Type" CanBeDataDriven="True" DefaultAction="Node:Both:CodeSchema_Member" Icon="CodeSchema_Class" NavigationActionLabel="Classes" />
+    <Category Id="CodeSchema_Namespace" Label="Namespace" CanBeDataDriven="True" DefaultAction="Node:Both:CodeSchema_Type" Icon="CodeSchema_Namespace" NavigationActionLabel="Namespaces" />
+    <Category Id="CodeSchema_Type" Label="Type" CanBeDataDriven="True" DefaultAction="Node:Both:CodeSchema_Member" Icon="CodeSchema_Class" NavigationActionLabel="Types" />
     <Category Id="Comment" Label="Comment" Description="Represents a user defined comment on the diagram" CanBeDataDriven="True" IsProviderRoot="False" NavigationActionLabel="Comments" />
+    <Category Id="Contains" Label="Contains" Description="Whether the source of the link contains the target object" CanBeDataDriven="False" CanLinkedNodesBeDataDriven="True" IncomingActionLabel="Contained By" IsContainment="True" OutgoingActionLabel="Contains" />
+    <Category Id="File" Label="File" CanBeDataDriven="True" DefaultAction="Microsoft.Contains" Icon="File" NavigationActionLabel="Files" />
   </Categories>
   <Properties>
     <Property Id="Bounds" DataType="System.Windows.Rect" />
     <Property Id="CanBeDataDriven" Label="CanBeDataDriven" Description="CanBeDataDriven" DataType="System.Boolean" />
+    <Property Id="CanLinkedNodesBeDataDriven" Label="CanLinkedNodesBeDataDriven" Description="CanLinkedNodesBeDataDriven" DataType="System.Boolean" />
+    <Property Id="CodeSchemaProperty_IsPublic" Label="Is Public" Description="Flag to indicate the scope is Public" DataType="System.Boolean" />
+    <Property Id="CodeSchemaProperty_IsStatic" Label="Is Static" Description="Flag to indicate the member is a static member" DataType="System.Boolean" />
+    <Property Id="CommonLabel" DataType="System.String" />
     <Property Id="DataVirtualized" Label="Data Virtualized" Description="If true, the graph can contain nodes and links that represent data for virtualized nodes/links (i.e. not actually created in the graph)." DataType="System.Boolean" />
+    <Property Id="DefaultAction" Label="DefaultAction" Description="DefaultAction" DataType="System.String" />
+    <Property Id="DelayedChildNodesState" Label="Delayed Child Nodes State" Description="Unspecified if the delayed child nodes state is not specified. NotFetched if the group contains child nodes that are not fetched into the graph yet. Fetched if the group has all its delayed child nodes already fetched." DataType="Microsoft.VisualStudio.GraphModel.DelayedDataState" />
     <Property Id="Expression" DataType="System.String" />
+    <Property Id="FetchingParent" DataType="Microsoft.VisualStudio.GraphModel.GraphNodeId" />
+    <Property Id="Group" Label="Group" Description="Display the node as a group" DataType="Microsoft.VisualStudio.GraphModel.GraphGroupStyle" />
     <Property Id="GroupLabel" DataType="System.String" />
+    <Property Id="Icon" Label="Icon" Description="Icon" DataType="System.String" />
+    <Property Id="IncomingActionLabel" Label="IncomingActionLabel" Description="IncomingActionLabel" DataType="System.String" />
+    <Property Id="IsContainment" DataType="System.Boolean" />
     <Property Id="IsEnabled" DataType="System.Boolean" />
     <Property Id="IsProviderRoot" Label="IsProviderRoot" Description="IsProviderRoot" DataType="System.Boolean" />
     <Property Id="Label" Label="Label" Description="Displayable label of an Annotatable object" DataType="System.String" />
     <Property Id="Layout" DataType="System.String" />
     <Property Id="NavigationActionLabel" Label="NavigationActionLabel" Description="NavigationActionLabel" DataType="System.String" />
+    <Property Id="OutgoingActionLabel" Label="OutgoingActionLabel" Description="OutgoingActionLabel" DataType="System.String" />
+    <Property Id="SourceLocation" Label="Start Line Number" DataType="Microsoft.VisualStudio.GraphModel.CodeSchema.SourceLocation" />
     <Property Id="TargetType" DataType="System.Type" />
-    <Property Id="UseManualLocation" DataType="System.Boolean" />
     <Property Id="Value" DataType="System.String" />
     <Property Id="ValueLabel" DataType="System.String" />
     <Property Id="Visibility" Label="Visibility" Description="Defines whether a node in the graph is visible or not" DataType="System.Windows.Visibility" />
     <Property Id="ZoomLevel" DataType="System.String" />
   </Properties>
+  <QualifiedNames>
+    <Name Id="Assembly" Label="Assembly" ValueType="Uri" />
+    <Name Id="Namespace" Label="Namespace" ValueType="System.String" />
+    <Name Id="Type" Label="Type" ValueType="System.Object" />
+  </QualifiedNames>
+  <IdentifierAliases>
+    <Alias n="1" Uri="Assembly=$(510fb9fe-b461-47b4-b4af-8a0801aa4f26.OutputPathUri)" />
+    <Alias n="2" Id="(@1)" />
+    <Alias n="3" Id="(@1 Namespace=DeferredEngine.Renderer.RenderModules)" />
+    <Alias n="4" Id="(@1 Namespace=DeferredEngine.Renderer.RenderModules Type=GBufferRenderModule)" />
+  </IdentifierAliases>
   <Styles>
     <Style TargetType="Node" GroupLabel="Results" ValueLabel="True">
       <Condition Expression="HasCategory('QueryResult')" />
@@ -298,4 +337,7 @@
       <Setter Property="MaxWidth" Value="250" />
     </Style>
   </Styles>
+  <Paths>
+    <Path Id="510fb9fe-b461-47b4-b4af-8a0801aa4f26.OutputPathUri" Value="file:///C:/Users/Thomy/Documents/Visual Studio 2015/Projects/DeferredEngine/EngineTest/bin/Windows/x86/Debug/DeferredEngine.exe" />
+  </Paths>
 </DirectedGraph>

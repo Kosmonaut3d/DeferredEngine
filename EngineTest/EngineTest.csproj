@@ -94,7 +94,7 @@
     <Compile Include="Renderer\Renderer.cs" />
     <Compile Include="Renderer\Renderer_old.cs" />
     <Compile Include="Renderer\RenderModules\IdAndOutlineRenderer.cs" />
-    <Compile Include="Renderer\RenderModules\LightRenderer.cs" />
+    <Compile Include="Renderer\RenderModules\LightAccumulationModule.cs" />
     <Compile Include="Renderer\RenderModules\IRenderModule.cs" />
     <Compile Include="Renderer\RenderModules\GBufferRenderModule.cs" />
     <Compile Include="Renderer\RenderModules\RenderModuleTemplate.cs" />

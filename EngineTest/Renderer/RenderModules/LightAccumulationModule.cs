@@ -12,7 +12,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace DeferredEngine.Renderer.RenderModules
 {
-    public class LightRenderer
+    public class LightAccumulationModule
     {
         private GraphicsDevice _graphicsDevice;
         private QuadRenderer _quadRenderer;
