@@ -61,7 +61,7 @@ namespace DeferredEngine.Renderer.RenderModules
             _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
             _graphicsDevice.DepthStencilState = DepthStencilState.Default;
 
-            meshMat.Draw(MeshMaterialLibrary.RenderType.IdRender, _graphicsDevice, viewProjection);
+            meshMat.Draw(MeshMaterialLibrary.RenderType.IdRender, viewProjection);
 
             //Now onto the billboards
             DrawBillboards(pointLights, dirLights, envSample, viewProjection, view);
@@ -217,20 +217,20 @@ namespace DeferredEngine.Renderer.RenderModules
                 //UPdate the size of our outlines!
 
                 if (!drawAll)
-                    meshMat.Draw(MeshMaterialLibrary.RenderType.IdOutline, _graphicsDevice, viewProjection, false, false,
+                    meshMat.Draw(MeshMaterialLibrary.RenderType.IdOutline, viewProjection, false, false,
                         false, selectedId);
 
                 Shaders.IdRenderEffectParameterColorId.SetValue(_selectedColor);
-                meshMat.Draw(MeshMaterialLibrary.RenderType.IdOutline, _graphicsDevice, viewProjection, false, false,
+                meshMat.Draw(MeshMaterialLibrary.RenderType.IdOutline, viewProjection, false, false,
                     outlined: true, outlineId: selectedId);
             }
 
             if (selectedId != hoveredId && hoveredId!=0 && mouseMoved)
             {
-                if (!drawAll) meshMat.Draw(MeshMaterialLibrary.RenderType.IdOutline, _graphicsDevice, viewProjection, false, false, false, hoveredId);
+                if (!drawAll) meshMat.Draw(MeshMaterialLibrary.RenderType.IdOutline, viewProjection, false, false, false, hoveredId);
 
                 Shaders.IdRenderEffectParameterColorId.SetValue(_hoveredColor);
-                meshMat.Draw(MeshMaterialLibrary.RenderType.IdOutline, _graphicsDevice, viewProjection, false, false, outlined: true, outlineId: hoveredId);
+                meshMat.Draw(MeshMaterialLibrary.RenderType.IdOutline, viewProjection, false, false, outlined: true, outlineId: hoveredId);
             }
         }
 

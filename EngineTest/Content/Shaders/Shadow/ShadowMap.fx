@@ -7,15 +7,10 @@ matrix WorldViewProj;
 matrix WorldView;
 matrix World;
 
-float3 LightPositionWorld = float3(0,0,0);
-
-static bool transparent = false;
+float3 LightPositionWS = float3(0,0,0);
 
 float FarClip = 200;
 float SizeBias = 0.005f; //0.005f * 2048 / ShadowMapSize
-
-float ArraySlice = 0; //0 to 5
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  STRUCT DEFINITIONS
@@ -30,13 +25,6 @@ struct DrawLinear_VSOut
 {
     float4 Position : SV_POSITION;
     float Depth : TEXCOORD0;
-	float3 Normal : NORMAL;
-};
-
-struct DrawZW_VSOut
-{
-	float4 Position : SV_POSITION;
-	float2 Depth : TEXCOORD0;
 	float3 Normal : NORMAL;
 };
 
@@ -56,33 +44,19 @@ DrawLinear_VSOut DrawLinear_VertexShader(DrawBasic_VSIn input)
 {
 	DrawLinear_VSOut Output;
     Output.Position = mul(input.Position, WorldViewProj);
-    /*Output.Depth.x = Output.Position.z;
-    Output.Depth.y = Output.Position.w;*/
 	Output.Depth = mul(input.Position, WorldView).z / -FarClip;
 	Output.Normal = mul(float4(input.Normal, 0), WorldView).xyz;
     return Output;
 }
 
-DrawLinear2_VSOut DrawZW_VertexShader(DrawBasic_VSIn input)
+DrawLinear2_VSOut DrawDistance_VertexShader(DrawBasic_VSIn input)
 {
 	DrawLinear2_VSOut Output;
 	float4 position = mul(input.Position, WorldViewProj);
-	//Transform to position in array
-	//position.y = -(position.y) / 6 + -(ArraySlice - 3) / 3.0f - 1.0f/6 ;
-
 	Output.Position = position;
-
-
 	Output.WorldPosition = mul(input.Position, World).xyz;
 	Output.Normal = mul(float4(input.Normal, 0), World).xyz;
 	return Output;
-
-	/*DrawZW_VSOut Output;
-	Output.Position = mul(input.Position, WorldViewProj);
-	Output.Depth.x = Output.Position.z;
-	Output.Depth.y = Output.Position.w;
-	Output.Normal = mul(float4(input.Normal, 0), WorldViewProj).xyz;
-	return Output;*/
 }
 
 // VSM
@@ -117,16 +91,13 @@ float4 DrawLinear_PixelShader(DrawLinear_VSOut input) : SV_TARGET
 	return float4(depth,0,0,0);
 }
 
-float4 DrawZW_PixelShader(DrawLinear2_VSOut input) : SV_TARGET
+float4 DrawDistance_PixelShader(DrawLinear2_VSOut input) : SV_TARGET
 {
-	float dist = length(input.WorldPosition - LightPositionWorld) / FarClip;
+	float dist = length(input.WorldPosition - LightPositionWS) / FarClip;
 	return 1-dist;
-	/*float depth = input.Depth.x / input.Depth.y;
-
-	return float4(1-depth, 0, 0, 0);*/
 }
 
-technique DrawDepthLinear
+technique DrawLinearDepth
 {
     pass Pass1
     {
@@ -135,21 +106,12 @@ technique DrawDepthLinear
     }
 }
 
-technique DrawDepthZW
+technique DrawDistanceDepth
 {
 	pass Pass1
 	{
-		VertexShader = compile vs_5_0 DrawZW_VertexShader();
-		PixelShader = compile ps_5_0 DrawZW_PixelShader();
+		VertexShader = compile vs_5_0 DrawDistance_VertexShader();
+		PixelShader = compile ps_5_0 DrawDistance_PixelShader();
 	}
 }
-
-//technique DrawVSM
-//{
-//    pass Pass1
-//    {
-//        VertexShader = compile vs_4_0 DrawBasic_VertexShader();
-//        PixelShader = compile ps_5_0 DrawBasic_PixelShader();
-//    }
-//}
 

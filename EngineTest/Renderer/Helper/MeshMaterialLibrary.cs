@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using DeferredEngine.Entities;
 using DeferredEngine.Recources;
 using DeferredEngine.Recources.Helper;
+using DeferredEngine.Renderer.RenderModules;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -26,8 +27,12 @@ namespace DeferredEngine.Renderer.Helper
         private QuadRenderer _quadRenderer;
         private DepthStencilState _depthWrite;
 
-        public MeshMaterialLibrary()
+        private GraphicsDevice graphicsDevice;
+
+        public MeshMaterialLibrary(GraphicsDevice graphics)
         {
+            graphicsDevice = graphics;
+
             _defaultBoundingSphere = new BoundingSphere(Vector3.Zero, 0);
 
             _shadowGenerationRasterizerState = new RasterizerState()
@@ -276,7 +281,7 @@ namespace DeferredEngine.Renderer.Helper
         }
 
 
-        public void FrustumCullingStartFrame(List<BasicEntity> entities)
+        public void FlagMovedObjects(List<BasicEntity> entities)
         {
             //if (_previousEditorMode != GameSettings.Editor_enable)
             //{
@@ -331,85 +336,24 @@ namespace DeferredEngine.Renderer.Helper
         {
             Opaque,
             Alpha,
-            ShadowZW,
+            ShadowOmnidirectional,
             ShadowLinear,
             Hologram,
             IdRender,
             IdOutline
         }
 
-        public void Draw(RenderType renderType, GraphicsDevice graphicsDevice, Matrix viewProjection, bool lightViewPointChanged = false, bool hasAnyObjectMoved = false, bool outlined = false, int outlineId = 0, Matrix? view = null)
+        public void Draw(RenderType renderType, Matrix viewProjection, bool lightViewPointChanged = false, bool hasAnyObjectMoved = false, bool outlined = false, int outlineId = 0, Matrix? view = null, IShader shader = null)
         {
-            if (renderType != RenderType.Alpha)
+            SetBlendAndRasterizerState(renderType);
+
+            if (renderType == RenderType.ShadowLinear || renderType == RenderType.ShadowOmnidirectional)
             {
-                if (renderType != RenderType.ShadowZW)
-                {
-
-                    graphicsDevice.BlendState = BlendState.Opaque;
-                    graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
-                }
-                else
-                {
-                    graphicsDevice.BlendState = BlendState.Opaque;
-                    graphicsDevice.RasterizerState = _shadowGenerationRasterizerState;
-                }
+                //For shadowmaps we need to find out whether any object has moved and if so if it is rendered. If yes, redraw the whole frame, if no don't do anything
+                if (!CheckShadowMapUpdateNeeds(lightViewPointChanged, hasAnyObjectMoved))
+                    return;
             }
-            else //if (renderType == RenderType.alpha)
-            {
-                graphicsDevice.BlendState = BlendState.NonPremultiplied;
-                graphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
-                graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
-            }
-
-            //For shadowmaps we need to find out whether any object has moved and if so if it is rendered. If yes, redraw the whole frame, if no don't do anything
-            if (!lightViewPointChanged && hasAnyObjectMoved)
-            {
-                bool discardFrame = true;
-
-                for (int index1 = 0; index1 < Index; index1++)
-                {
-                    MaterialLibrary matLib = MaterialLib[index1];
-
-                    //We determined beforehand whether something changed this frame
-                    if (matLib.HasChangedThisFrame)
-                    {
-                        for (int i = 0; i < matLib.Index; i++)
-                        {
-                            //Now we have to check whether we have a rendered thing in here
-                            MeshLibrary meshLib = matLib.GetMeshLibrary()[i];
-                            for (int index = 0; index < meshLib.Index; index++)
-                            {
-                                //If it's set to "not rendered" skip
-                                for (int j = 0; j < meshLib.Rendered.Length; j++)
-                                {
-                                    if (meshLib.Rendered[j])
-                                    {
-                                        discardFrame = false;
-                                        break;
-                                    }
-                                }
-
-                                if (!discardFrame) break;
-
-                            }
-                        }
-                        if (!discardFrame) break;
-                    }
-                }
-
-                if (discardFrame) return;
-
-                //graphicsDevice.Clear(new Color(0.51f, 0.501f, 0, 0));
-                //graphicsDevice.Clear(Color.TransparentBlack);
-
-                graphicsDevice.DepthStencilState = _depthWrite;
-                ClearFrame(graphicsDevice);
-                graphicsDevice.DepthStencilState = DepthStencilState.Default;
-                
-            }
-
-            if (renderType == RenderType.ShadowZW || renderType == RenderType.ShadowLinear) GameStats.activeShadowMaps++;
-
+            
             for (int index1 = 0; index1 < Index; index1++)
             {
                 MaterialLibrary matLib = MaterialLib[index1];
@@ -448,202 +392,26 @@ namespace DeferredEngine.Renderer.Helper
 
                 //Count the draws of different materials!
 
-                MaterialEffect material = /*GameSettings.DebugDrawUntextured==2 ? Art.DefaultMaterial :*/ matLib.GetMaterial();
+                MaterialEffect material = matLib.GetMaterial();
 
                 //Check if alpha or opaque!
                 if (renderType == RenderType.Opaque && material.IsTransparent) continue;
                 if (renderType == RenderType.Alpha && !material.IsTransparent) continue;
-
                 if (renderType == RenderType.Hologram && material.Type != MaterialEffect.MaterialTypes.Hologram)
                     continue;
-
                 if (renderType != RenderType.Hologram && material.Type == MaterialEffect.MaterialTypes.Hologram)
                     continue;
-
-                Effect shader;
                 //Set the appropriate Shader for the material
-                if (renderType == RenderType.ShadowZW || renderType == RenderType.ShadowLinear)
+                if (renderType == RenderType.ShadowOmnidirectional || renderType == RenderType.ShadowLinear)
                 {
-                    if (material.HasShadow)
-                    {
-                        //if we have special shadow shaders for the material
-                        shader = Shaders.virtualShadowMappingEffect;
-
-                        shader.CurrentTechnique = renderType == RenderType.ShadowZW
-                            ? Shaders.virtualShadowMappingEffect_Technique_ZW
-                            : Shaders.virtualShadowMappingEffect_Technique_Linear;
-                    }
-                    else continue;
+                    if (!material.HasShadow)
+                        continue;
                 }
-                else
-                {
-                    if (renderType == RenderType.Hologram)
-                    {
-                        shader = Shaders.HologramEffect;
-                    }
-                    else if (renderType == RenderType.IdRender || renderType == RenderType.IdOutline)
-                    {
-                        shader = Shaders.IdRenderEffect;
-
-                        if(renderType == RenderType.IdOutline && !outlined)
-                            Shaders.IdRenderEffectParameterColorId.SetValue(Color.Transparent.ToVector4());
-
-                    }
-                    else
-                    {
-                        shader = Shaders.GBufferEffect;
-                    }
-                }
-
+                
                  if(renderType != RenderType.IdRender && renderType != RenderType.IdOutline)
                 GameStats.MaterialDraws++;
 
-                //todo: We only need textures for non shadow mapping, right? Not quite actually, for alpha textures we need materials
-                if (renderType == RenderType.Opaque || renderType == RenderType.Alpha)
-                {
-                    if (GameSettings.d_defaultMaterial)
-                    {
-                        Shaders.GBufferEffectParameter_Material_DiffuseColor.SetValue(Color.Gray.ToVector3());
-                        Shaders.GBufferEffectParameter_Material_Roughness.SetValue(GameSettings.m_defaultRoughness > 0
-                                ? GameSettings.m_defaultRoughness
-                                : 0.3f);
-                        Shaders.GBufferEffectParameter_Material_Metallic.SetValue(0.0f);
-                        Shaders.GBufferEffectParameter_Material_MaterialType.SetValue(0);
-                        Shaders.GBufferEffect.CurrentTechnique = Shaders.GBufferEffectTechniques_DrawBasic;
-
-                    }
-                    else
-                    {
-
-
-                        if (material.HasDisplacement)
-                        {
-                            Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
-                            Shaders.GBufferEffectParameter_Material_NormalMap.SetValue(material.NormalMap);
-                            Shaders.GBufferEffectParameter_Material_DisplacementMap.SetValue(material.DisplacementMap);
-                            Shaders.GBufferEffect.CurrentTechnique =
-                                Shaders.GBufferEffectTechniques_DrawTextureDisplacement;
-                        }
-                        else if (material.HasMask) //Has diffuse for sure then
-                        {
-                            if (material.HasNormalMap && material.HasRoughnessMap)
-                            {
-                                Shaders.GBufferEffectParameter_Material_MaskMap.SetValue(material.Mask);
-                                Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
-                                Shaders.GBufferEffectParameter_Material_NormalMap.SetValue(material.NormalMap);
-                                Shaders.GBufferEffectParameter_Material_RoughnessMap.SetValue(material.RoughnessMap);
-                                Shaders.GBufferEffect.CurrentTechnique =
-                                    Shaders.GBufferEffectTechniques_DrawTextureSpecularNormalMask;
-                            }
-
-                            else if (material.HasNormalMap)
-                            {
-                                Shaders.GBufferEffectParameter_Material_MaskMap.SetValue(material.Mask);
-                                Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
-                                Shaders.GBufferEffectParameter_Material_NormalMap.SetValue(material.NormalMap);
-                                Shaders.GBufferEffect.CurrentTechnique =
-                                    Shaders.GBufferEffectTechniques_DrawTextureNormalMask;
-                            }
-
-                            else if (material.HasRoughnessMap)
-                            {
-                                Shaders.GBufferEffectParameter_Material_MaskMap.SetValue(material.Mask);
-                                Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
-                                Shaders.GBufferEffectParameter_Material_RoughnessMap.SetValue(material.RoughnessMap);
-                                Shaders.GBufferEffect.CurrentTechnique =
-                                    Shaders.GBufferEffectTechniques_DrawTextureSpecularMask;
-                            }
-                            else
-                            {
-                                Shaders.GBufferEffectParameter_Material_MaskMap.SetValue(material.Mask);
-                                Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
-                                Shaders.GBufferEffect.CurrentTechnique =
-                                    Shaders.GBufferEffectTechniques_DrawTextureSpecularMask;
-                            }
-                        }
-                        else
-                        {
-                            if (material.HasNormalMap && material.HasRoughnessMap && material.HasDiffuse &&
-                                material.HasMetallic)
-                            {
-                                Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
-                                Shaders.GBufferEffectParameter_Material_NormalMap.SetValue(material.NormalMap);
-                                Shaders.GBufferEffectParameter_Material_RoughnessMap.SetValue(material.RoughnessMap);
-                                Shaders.GBufferEffectParameter_Material_MetallicMap.SetValue(material.MetallicMap);
-                                Shaders.GBufferEffect.CurrentTechnique =
-                                    Shaders.GBufferEffectTechniques_DrawTextureSpecularNormalMetallic;
-                            }
-
-                            else if (material.HasNormalMap && material.HasRoughnessMap && material.HasDiffuse)
-                            {
-                                Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
-                                Shaders.GBufferEffectParameter_Material_NormalMap.SetValue(material.NormalMap);
-                                Shaders.GBufferEffectParameter_Material_RoughnessMap.SetValue(material.RoughnessMap);
-                                Shaders.GBufferEffect.CurrentTechnique =
-                                    Shaders.GBufferEffectTechniques_DrawTextureSpecularNormal;
-                            }
-
-                            else if (material.HasNormalMap && material.HasDiffuse)
-                            {
-                                Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
-                                Shaders.GBufferEffectParameter_Material_NormalMap.SetValue(material.NormalMap);
-                                Shaders.GBufferEffect.CurrentTechnique =
-                                    Shaders.GBufferEffectTechniques_DrawTextureNormal;
-                            }
-
-                            else if (material.HasMetallic && material.HasRoughnessMap && material.HasDiffuse)
-                            {
-                                Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
-                                Shaders.GBufferEffectParameter_Material_RoughnessMap.SetValue(material.RoughnessMap);
-                                Shaders.GBufferEffect.CurrentTechnique =
-                                    Shaders.GBufferEffectTechniques_DrawTextureSpecularMetallic;
-                            }
-
-                            else if (material.HasRoughnessMap && material.HasDiffuse)
-                            {
-                                Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
-                                Shaders.GBufferEffectParameter_Material_RoughnessMap.SetValue(material.RoughnessMap);
-                                Shaders.GBufferEffect.CurrentTechnique =
-                                    Shaders.GBufferEffectTechniques_DrawTextureSpecular;
-                            }
-
-                            else if (material.HasDiffuse)
-                            {
-                                Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
-                                Shaders.GBufferEffect.CurrentTechnique = Shaders.GBufferEffectTechniques_DrawTexture;
-                            }
-
-                            else
-                            {
-                                Shaders.GBufferEffect.CurrentTechnique = Shaders.GBufferEffectTechniques_DrawBasic;
-                            }
-                        }
-
-
-                        if (!material.HasDiffuse)
-                        {
-                            if (material.Type == MaterialEffect.MaterialTypes.Emissive && material.EmissiveStrength > 0)
-                                {
-                                Shaders.GBufferEffectParameter_Material_DiffuseColor.SetValue(material.DiffuseColor);
-                            Shaders.GBufferEffectParameter_Material_Metallic.SetValue(material.EmissiveStrength/8);
-                        }
-                        //* Math.Max(material.EmissiveStrength,1));
-                        //}
-                        else
-                            //{
-                            Shaders.GBufferEffectParameter_Material_DiffuseColor.SetValue(material.DiffuseColor);
-                        //}
-                        }
-
-                        if (!material.HasRoughnessMap)
-                            Shaders.GBufferEffectParameter_Material_Roughness.SetValue(GameSettings.m_defaultRoughness >
-                                                                                       0
-                                ? GameSettings.m_defaultRoughness
-                                : material.Roughness);
-                        Shaders.GBufferEffectParameter_Material_Metallic.SetValue(material.Metallic);
-                        Shaders.GBufferEffectParameter_Material_MaterialType.SetValue(material.MaterialTypeNumber);
-                    }
-                }
+                PerMaterialSettings(renderType, material);
 
                 for (int i = 0; i < matLib.Index; i++)
                 {
@@ -665,105 +433,327 @@ namespace DeferredEngine.Renderer.Helper
                         //if (!meshLib.GetWorldMatrices()[index].Rendered) continue;
                         if (!meshLib.Rendered[index]) continue;
 
-
                         Matrix localWorldMatrix = meshLib.GetWorldMatrices()[index].World;
-                        if (renderType == RenderType.Opaque || renderType == RenderType.Alpha)
-                        {
-                            Matrix worldView = localWorldMatrix*(Matrix)view;
-                            Shaders.GBufferEffectParameter_WorldView.SetValue(worldView);
-                            Shaders.GBufferEffectParameter_WorldViewProj.SetValue(localWorldMatrix * viewProjection);
 
-                            worldView = Matrix.Transpose(Matrix.Invert(worldView));
-                            Shaders.GBufferEffectParameter_WorldViewIT.SetValue(worldView);
-
-                            shader.CurrentTechnique.Passes[0].Apply();
-                        }
-                        else if (renderType == RenderType.ShadowLinear || renderType == RenderType.ShadowZW)
-                        {
-                            Shaders.virtualShadowMappingEffectParameter_WorldViewProj.SetValue(localWorldMatrix * viewProjection);
-
-                            if(renderType == RenderType.ShadowLinear)
-                            Shaders.virtualShadowMappingEffectParameter_WorldView.SetValue(localWorldMatrix * (Matrix)view);
-
-                            if (renderType == RenderType.ShadowZW)
-                                Shaders.virtualShadowMappingEffectParameter_World.SetValue(localWorldMatrix);
-
-                            shader.CurrentTechnique.Passes[0].Apply();
-                        }
-                        else if (renderType == RenderType.Hologram)
-                        {
-                            Shaders.HologramEffectParameter_World.SetValue(localWorldMatrix);
-                            Shaders.HologramEffectParameter_WorldViewProj.SetValue(localWorldMatrix * viewProjection);
-
-                            shader.CurrentTechnique.Passes[0].Apply();
-                        }
-                        else if (renderType == RenderType.IdRender || renderType == RenderType.IdOutline)
-                        {
-                            Shaders.IdRenderEffectParameterWorldViewProj.SetValue(localWorldMatrix * viewProjection);
-
-                            int id = meshLib.GetWorldMatrices()[index].Id;
-
-                            if (renderType == RenderType.IdRender)
-                            {
-                                Shaders.IdRenderEffectParameterColorId.SetValue(IdGenerator.GetColorFromId(id).ToVector4() );
-
-                                Shaders.IdRenderEffectDrawId.Apply();
-                            }
-
-                            if (renderType == RenderType.IdOutline)
-                            {
-                                //Is this the Id we want to outline?
-                                if (id == outlineId)
-                                {
-                                    graphicsDevice.RasterizerState = RasterizerState.CullNone;
-                                    
-                                    Shaders.IdRenderEffectParameterWorld.SetValue(localWorldMatrix);
-
-                                    if(outlined)
-                                    Shaders.IdRenderEffectDrawOutline.Apply();
-                                    else
-                                    {
-                                        Shaders.IdRenderEffectDrawId.Apply();
-                                    }
-                                }
-                                else
-                                {
-                                    continue;
-                                    //graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
-                                    //Shaders.IdRenderEffectDrawId.Apply();
-                                }
-                            }
-
-                        }
-
-                        if (material.RenderCClockwise)
-                        {
-                            graphicsDevice.RasterizerState = RasterizerState.CullClockwise;
-                        }
+                        if (!ApplyShaders(renderType, shader, localWorldMatrix, view, viewProjection, meshLib, index,
+                                outlineId, outlined)) continue;
 
                         GameStats.MeshDraws++;
-
-                        try
-                        {
-                            graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset, startIndex, primitiveCount);
-                        }
-                        catch (Exception)
-                        {
-                            // do nothing
-                        }
-
-                        if (material.RenderCClockwise)
-                            graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
-
-
+                        
+                        graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset, startIndex,
+                                primitiveCount);
                     }
+                }
 
+                //Reset to 
+                if (material.RenderCClockwise)
+                    graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+            }
+        }
+
+        /// <summary>
+        /// Checks whether or not anything has moved, if no then we ignore the frame
+        /// </summary>
+        /// <param name="lightViewPointChanged"></param>
+        /// <param name="hasAnyObjectMoved"></param>
+        /// <returns></returns>
+        private bool CheckShadowMapUpdateNeeds(bool lightViewPointChanged, bool hasAnyObjectMoved)
+        {
+            if (!lightViewPointChanged && hasAnyObjectMoved)
+            {
+                bool discardFrame = true;
+
+                for (int index1 = 0; index1 < Index; index1++)
+                {
+                    MaterialLibrary matLib = MaterialLib[index1];
+
+                    //We determined beforehand whether something changed this frame
+                    if (matLib.HasChangedThisFrame)
+                    {
+                        for (int i = 0; i < matLib.Index; i++)
+                        {
+                            //Now we have to check whether we have a rendered thing in here
+                            MeshLibrary meshLib = matLib.GetMeshLibrary()[i];
+                            for (int index = 0; index < meshLib.Index; index++)
+                            {
+                                //If it's set to "not rendered" skip
+                                for (int j = 0; j < meshLib.Rendered.Length; j++)
+                                {
+                                    if (meshLib.Rendered[j])
+                                    {
+                                        discardFrame = false;
+                                        break;
+                                    }
+                                }
+
+                                if (!discardFrame) break;
+
+                            }
+                        }
+                        if (!discardFrame) break;
+                    }
+                }
+
+                if (discardFrame) return false;
+
+                graphicsDevice.DepthStencilState = _depthWrite;
+                ClearFrame(graphicsDevice);
+                graphicsDevice.DepthStencilState = DepthStencilState.Default;
+
+            }
+
+            GameStats.activeShadowMaps++;
+
+            return true;
+        }
+
+        private void SetBlendAndRasterizerState(RenderType renderType)
+        {
+            //Default, Opaque!
+            if (renderType != RenderType.Alpha)
+            {
+                if (renderType != RenderType.ShadowOmnidirectional)
+                {
+                    graphicsDevice.BlendState = BlendState.Opaque;
+                    graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+                }
+                else //Need special rasterization
+                {
+                    graphicsDevice.BlendState = BlendState.Opaque;
+                    graphicsDevice.RasterizerState = _shadowGenerationRasterizerState;
+                }
+            }
+            else //if (renderType == RenderType.alpha)
+            {
+                graphicsDevice.BlendState = BlendState.NonPremultiplied;
+                graphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
+                graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+            }
+        }
+
+        private bool ApplyShaders(RenderType renderType, IShader shader, Matrix localWorldMatrix, Matrix? view, Matrix viewProjection, MeshLibrary meshLib, int index, int outlineId, bool outlined)
+        {
+            
+            if (renderType == RenderType.Opaque || renderType == RenderType.Alpha)
+            {
+                Matrix worldView = localWorldMatrix * (Matrix)view;
+                Shaders.GBufferEffectParameter_WorldView.SetValue(worldView);
+                Shaders.GBufferEffectParameter_WorldViewProj.SetValue(localWorldMatrix * viewProjection);
+
+                worldView = Matrix.Transpose(Matrix.Invert(worldView));
+                Shaders.GBufferEffectParameter_WorldViewIT.SetValue(worldView);
+
+                Shaders.GBufferEffect.CurrentTechnique.Passes[0].Apply();
+            }
+            else if (renderType == RenderType.ShadowLinear || renderType == RenderType.ShadowOmnidirectional)
+            {
+                shader.Apply(localWorldMatrix, view, viewProjection);
+            }
+            else if (renderType == RenderType.Hologram)
+            {
+                Shaders.HologramEffectParameter_World.SetValue(localWorldMatrix);
+                Shaders.HologramEffectParameter_WorldViewProj.SetValue(localWorldMatrix * viewProjection);
+
+                Shaders.HologramEffect.CurrentTechnique.Passes[0].Apply();
+            }
+            else if (renderType == RenderType.IdRender || renderType == RenderType.IdOutline)
+            {
+                Shaders.IdRenderEffectParameterWorldViewProj.SetValue(localWorldMatrix * viewProjection);
+
+                int id = meshLib.GetWorldMatrices()[index].Id;
+
+                if (renderType == RenderType.IdRender)
+                {
+                    Shaders.IdRenderEffectParameterColorId.SetValue(IdGenerator.GetColorFromId(id).ToVector4());
+
+                    Shaders.IdRenderEffectDrawId.Apply();
+                }
+
+                if (renderType == RenderType.IdOutline)
+                {
+                    //Is this the Id we want to outline?
+                    if (id == outlineId)
+                    {
+                        graphicsDevice.RasterizerState = RasterizerState.CullNone;
+
+                        Shaders.IdRenderEffectParameterWorld.SetValue(localWorldMatrix);
+
+                        if (outlined)
+                            Shaders.IdRenderEffectDrawOutline.Apply();
+                        else
+                        {
+                            Shaders.IdRenderEffectDrawId.Apply();
+                        }
+                    }
+                    else
+                    {
+                        return false;
+                    }
                 }
 
             }
 
-            //Update the drawcalls in our stats
+            return true;
+        }
 
+        private void PerMaterialSettings(RenderType renderType, MaterialEffect material)
+        {
+            if (material.RenderCClockwise)
+            {
+                graphicsDevice.RasterizerState = RasterizerState.CullClockwise;
+            }
+
+            if (renderType == RenderType.IdRender || renderType == RenderType.IdOutline)
+            {
+                Shaders.IdRenderEffectParameterColorId.SetValue(Color.Transparent.ToVector4());
+
+            }
+            //todo: We only need textures for non shadow mapping, right? Not quite actually, for alpha textures we need materials
+            else if (renderType == RenderType.Opaque || renderType == RenderType.Alpha)
+            {
+                if (GameSettings.d_defaultMaterial)
+                {
+                    Shaders.GBufferEffectParameter_Material_DiffuseColor.SetValue(Color.Gray.ToVector3());
+                    Shaders.GBufferEffectParameter_Material_Roughness.SetValue(GameSettings.m_defaultRoughness > 0
+                            ? GameSettings.m_defaultRoughness
+                            : 0.3f);
+                    Shaders.GBufferEffectParameter_Material_Metallic.SetValue(0.0f);
+                    Shaders.GBufferEffectParameter_Material_MaterialType.SetValue(0);
+                    Shaders.GBufferEffect.CurrentTechnique = Shaders.GBufferEffectTechniques_DrawBasic;
+
+                }
+                else
+                {
+
+
+                    if (material.HasDisplacement)
+                    {
+                        Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
+                        Shaders.GBufferEffectParameter_Material_NormalMap.SetValue(material.NormalMap);
+                        Shaders.GBufferEffectParameter_Material_DisplacementMap.SetValue(material.DisplacementMap);
+                        Shaders.GBufferEffect.CurrentTechnique =
+                            Shaders.GBufferEffectTechniques_DrawTextureDisplacement;
+                    }
+                    else if (material.HasMask) //Has diffuse for sure then
+                    {
+                        if (material.HasNormalMap && material.HasRoughnessMap)
+                        {
+                            Shaders.GBufferEffectParameter_Material_MaskMap.SetValue(material.Mask);
+                            Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
+                            Shaders.GBufferEffectParameter_Material_NormalMap.SetValue(material.NormalMap);
+                            Shaders.GBufferEffectParameter_Material_RoughnessMap.SetValue(material.RoughnessMap);
+                            Shaders.GBufferEffect.CurrentTechnique =
+                                Shaders.GBufferEffectTechniques_DrawTextureSpecularNormalMask;
+                        }
+
+                        else if (material.HasNormalMap)
+                        {
+                            Shaders.GBufferEffectParameter_Material_MaskMap.SetValue(material.Mask);
+                            Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
+                            Shaders.GBufferEffectParameter_Material_NormalMap.SetValue(material.NormalMap);
+                            Shaders.GBufferEffect.CurrentTechnique =
+                                Shaders.GBufferEffectTechniques_DrawTextureNormalMask;
+                        }
+
+                        else if (material.HasRoughnessMap)
+                        {
+                            Shaders.GBufferEffectParameter_Material_MaskMap.SetValue(material.Mask);
+                            Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
+                            Shaders.GBufferEffectParameter_Material_RoughnessMap.SetValue(material.RoughnessMap);
+                            Shaders.GBufferEffect.CurrentTechnique =
+                                Shaders.GBufferEffectTechniques_DrawTextureSpecularMask;
+                        }
+                        else
+                        {
+                            Shaders.GBufferEffectParameter_Material_MaskMap.SetValue(material.Mask);
+                            Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
+                            Shaders.GBufferEffect.CurrentTechnique =
+                                Shaders.GBufferEffectTechniques_DrawTextureSpecularMask;
+                        }
+                    }
+                    else
+                    {
+                        if (material.HasNormalMap && material.HasRoughnessMap && material.HasDiffuse &&
+                            material.HasMetallic)
+                        {
+                            Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
+                            Shaders.GBufferEffectParameter_Material_NormalMap.SetValue(material.NormalMap);
+                            Shaders.GBufferEffectParameter_Material_RoughnessMap.SetValue(material.RoughnessMap);
+                            Shaders.GBufferEffectParameter_Material_MetallicMap.SetValue(material.MetallicMap);
+                            Shaders.GBufferEffect.CurrentTechnique =
+                                Shaders.GBufferEffectTechniques_DrawTextureSpecularNormalMetallic;
+                        }
+
+                        else if (material.HasNormalMap && material.HasRoughnessMap && material.HasDiffuse)
+                        {
+                            Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
+                            Shaders.GBufferEffectParameter_Material_NormalMap.SetValue(material.NormalMap);
+                            Shaders.GBufferEffectParameter_Material_RoughnessMap.SetValue(material.RoughnessMap);
+                            Shaders.GBufferEffect.CurrentTechnique =
+                                Shaders.GBufferEffectTechniques_DrawTextureSpecularNormal;
+                        }
+
+                        else if (material.HasNormalMap && material.HasDiffuse)
+                        {
+                            Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
+                            Shaders.GBufferEffectParameter_Material_NormalMap.SetValue(material.NormalMap);
+                            Shaders.GBufferEffect.CurrentTechnique =
+                                Shaders.GBufferEffectTechniques_DrawTextureNormal;
+                        }
+
+                        else if (material.HasMetallic && material.HasRoughnessMap && material.HasDiffuse)
+                        {
+                            Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
+                            Shaders.GBufferEffectParameter_Material_RoughnessMap.SetValue(material.RoughnessMap);
+                            Shaders.GBufferEffect.CurrentTechnique =
+                                Shaders.GBufferEffectTechniques_DrawTextureSpecularMetallic;
+                        }
+
+                        else if (material.HasRoughnessMap && material.HasDiffuse)
+                        {
+                            Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
+                            Shaders.GBufferEffectParameter_Material_RoughnessMap.SetValue(material.RoughnessMap);
+                            Shaders.GBufferEffect.CurrentTechnique =
+                                Shaders.GBufferEffectTechniques_DrawTextureSpecular;
+                        }
+
+                        else if (material.HasDiffuse)
+                        {
+                            Shaders.GBufferEffectParameter_Material_Texture.SetValue(material.AlbedoMap);
+                            Shaders.GBufferEffect.CurrentTechnique = Shaders.GBufferEffectTechniques_DrawTexture;
+                        }
+
+                        else
+                        {
+                            Shaders.GBufferEffect.CurrentTechnique = Shaders.GBufferEffectTechniques_DrawBasic;
+                        }
+                    }
+
+
+                    if (!material.HasDiffuse)
+                    {
+                        if (material.Type == MaterialEffect.MaterialTypes.Emissive && material.EmissiveStrength > 0)
+                        {
+                            Shaders.GBufferEffectParameter_Material_DiffuseColor.SetValue(material.DiffuseColor);
+                            Shaders.GBufferEffectParameter_Material_Metallic.SetValue(material.EmissiveStrength / 8);
+                        }
+                        //* Math.Max(material.EmissiveStrength,1));
+                        //}
+                        else
+                            //{
+                            Shaders.GBufferEffectParameter_Material_DiffuseColor.SetValue(material.DiffuseColor);
+                        //}
+                    }
+
+                    if (!material.HasRoughnessMap)
+                        Shaders.GBufferEffectParameter_Material_Roughness.SetValue(GameSettings.m_defaultRoughness >
+                                                                                   0
+                            ? GameSettings.m_defaultRoughness
+                            : material.Roughness);
+                    Shaders.GBufferEffectParameter_Material_Metallic.SetValue(material.Metallic);
+                    Shaders.GBufferEffectParameter_Material_MaterialType.SetValue(material.MaterialTypeNumber);
+                }
+            }
         }
 
         private void ClearFrame(GraphicsDevice graphicsDevice)

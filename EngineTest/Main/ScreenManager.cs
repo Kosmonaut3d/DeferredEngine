@@ -34,7 +34,7 @@ namespace DeferredEngine.Main
         public void Initialize(GraphicsDevice graphicsDevice, Space space)
         {
             _renderer.Initialize(graphicsDevice, _assets);
-            _logic.Initialize(_assets, space);
+            _logic.Initialize(_assets, space, graphicsDevice);
             _guiLogic.Initialize(_assets);
             _editorLogic.Initialize(graphicsDevice);
             _debug.Initialize(graphicsDevice);

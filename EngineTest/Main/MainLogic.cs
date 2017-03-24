@@ -53,12 +53,12 @@ namespace DeferredEngine.Main
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         //Done after Load
-        public void Initialize(Assets assets, Space space)
+        public void Initialize(Assets assets, Space space, GraphicsDevice graphicsDevice)
         {
             _assets = assets;
             _physicsSpace = space;
 
-            MeshMaterialLibrary = new MeshMaterialLibrary();
+            MeshMaterialLibrary = new MeshMaterialLibrary(graphicsDevice);
 
             SetUpEditorScene();
         }

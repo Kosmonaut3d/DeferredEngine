@@ -20,7 +20,7 @@ namespace DeferredEngine.Entities
         public readonly int ShadowResolution;
         public readonly bool StaticShadows;
 
-        public RenderTarget2D ShadowMapArray;
+        public RenderTarget2D ShadowMap;
 
         public Matrix LightViewProjectionPositiveX;
         public Matrix LightViewProjectionNegativeX;
@@ -131,9 +131,9 @@ namespace DeferredEngine.Entities
 
         public virtual void ApplyShader(Matrix inverseView)
         {
-            if (ShadowMapArray != null && CastShadows)
+            if (ShadowMap != null && CastShadows)
             {
-                Shaders.deferredPointLightParameterShadowMap.SetValue(ShadowMapArray);
+                Shaders.deferredPointLightParameterShadowMap.SetValue(ShadowMap);
                 Shaders.deferredPointLightParameter_ShadowMapRadius.SetValue((float)ShadowMapRadius);
                 Shaders.deferredPointLightParameter_ShadowMapSize.SetValue((float)ShadowResolution);
                 

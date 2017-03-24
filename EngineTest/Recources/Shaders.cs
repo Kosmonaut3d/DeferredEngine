@@ -272,21 +272,7 @@ namespace DeferredEngine.Recources
         public static EffectParameter deferredEnvironmentParameter_FireflyReduction;
         public static EffectParameter deferredEnvironmentParameter_FireflyThreshold;
         public static EffectParameter deferredEnvironmentParameterTransposeView;
-
-        //SHADOW MAPPING
-
-        public static Effect virtualShadowMappingEffect;
-        public static EffectParameter virtualShadowMappingEffectParameter_WorldViewProj;
-        public static EffectParameter virtualShadowMappingEffectParameter_WorldView;
-        public static EffectParameter virtualShadowMappingEffectParameter_World;
-        public static EffectParameter virtualShadowMappingEffectParameter_LightPositionWorld;
-        public static EffectParameter virtualShadowMappingEffectParameter_FarClip;
-        public static EffectParameter virtualShadowMappingEffectParameter_ArraySlice;
-        public static EffectParameter virtualShadowMappingEffectParameter_SizeBias;
-        public static EffectTechnique virtualShadowMappingEffect_Technique_Linear;
-        public static EffectTechnique virtualShadowMappingEffect_Technique_ZW;
-
-
+        
         //SSR
 
         //public static Effect SSReflectionEffect;
@@ -572,33 +558,7 @@ namespace DeferredEngine.Recources
             deferredEnvironmentParameter_FireflyReduction = deferredEnvironment.Parameters["FireflyReduction"];
             deferredEnvironmentParameter_FireflyThreshold = deferredEnvironment.Parameters["FireflyThreshold"];
             deferredEnvironmentParameterTransposeView = deferredEnvironment.Parameters["TransposeView"];
-
-            //VSM
-
-            virtualShadowMappingEffect = content.Load<Effect>("Shaders/Shadow/VirtualShadowMapsGenerate");
-            virtualShadowMappingEffectParameter_WorldViewProj = virtualShadowMappingEffect.Parameters["WorldViewProj"];
-            virtualShadowMappingEffectParameter_WorldView= virtualShadowMappingEffect.Parameters["WorldView"];
-            virtualShadowMappingEffectParameter_World = virtualShadowMappingEffect.Parameters["World"];
-            virtualShadowMappingEffectParameter_LightPositionWorld = virtualShadowMappingEffect.Parameters["LightPositionWorld"];
-            virtualShadowMappingEffectParameter_FarClip = virtualShadowMappingEffect.Parameters["FarClip"];
-            virtualShadowMappingEffectParameter_ArraySlice = virtualShadowMappingEffect.Parameters["ArraySlice"];
-            virtualShadowMappingEffectParameter_SizeBias = virtualShadowMappingEffect.Parameters["SizeBias"];
-
-            virtualShadowMappingEffect_Technique_ZW = virtualShadowMappingEffect.Techniques["DrawDepthZW"];
-            virtualShadowMappingEffect_Technique_Linear = virtualShadowMappingEffect.Techniques["DrawDepthLinear"];
-            //SSReflections
-            //SSReflectionEffect = content.Load<Effect>("Shaders/SSReflectionEffect");
-
-            //SSReflectionEffectParameter_InvertViewProjection = SSReflectionEffect.Parameters["InvertViewProjection"];
-            //SSReflectionEffectParameter_ViewProjection = SSReflectionEffect.Parameters["ViewProjection"];
-            //SSReflectionEffectParameter_Projection = SSReflectionEffect.Parameters["Projection"];
-            //SSReflectionEffectParameter_CameraPosition = SSReflectionEffect.Parameters["cameraPosition"];
-
-            //SSReflectionEffectParameter_DepthMap = SSReflectionEffect.Parameters["depthMap"];
-            //SSReflectionEffectParameter_NormalMap = SSReflectionEffect.Parameters["normalMap"];
-            //SSReflectionEffectParameter_AlbedoMap = SSReflectionEffect.Parameters["albedoMap"];
-
-            //SSReflectionEffectParameter_Resolution = SSReflectionEffect.Parameters["resolution"];
+            
         }
     }
 }

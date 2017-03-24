@@ -844,12 +844,6 @@
 /processorParam:DebugMode=Auto
 /build:Shaders/ScreenSpace/ScreenSpaceEffect2.fx
 
-#begin Shaders/Shadow/VirtualShadowMapsGenerate.fx
-/importer:EffectImporter
-/processor:EffectProcessor
-/processorParam:DebugMode=Auto
-/build:Shaders/Shadow/VirtualShadowMapsGenerate.fx
-
 #begin Shaders/TemporalAntiAliasing/TemporalAntiAliasing.fx
 /importer:EffectImporter
 /processor:EffectProcessor
@@ -1249,4 +1243,10 @@
 /processor:EffectProcessor
 /processorParam:DebugMode=Auto
 /build:Shaders/Deferred/DeferredClear.fx
+
+#begin Shaders/Shadow/ShadowMap.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/Shadow/ShadowMap.fx
 

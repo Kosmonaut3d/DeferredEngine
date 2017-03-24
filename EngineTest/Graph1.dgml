@@ -1,29 +1,71 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <DirectedGraph DataVirtualized="True" Layout="Sugiyama" ZoomLevel="-1" xmlns="http://schemas.microsoft.com/vs/2009/dgml">
   <Nodes>
-    <Node Id="DeferredEngine" Bounds="-69,-183,105.6,25.96" Label="Deferred Engine" UseManualLocation="True" />
-    <Node Id="FinalOutput" Bounds="227.932703882853,57.0774993896484,85.67,25.96" Label="Final Output" UseManualLocation="True" />
-    <Node Id="Gamma1.0" Bounds="-388.559167429606,-37.78,79.9466666666667,25.96" Label="Gamma 1.0" UseManualLocation="True" />
-    <Node Id="Light" Bounds="-502.559162139893,58.59,50,25.96" UseManualLocation="True" />
-    <Node Id="LightingCalculations" Bounds="-262.059162139893,32.275,130.206666666667,73.84" Label="Lighting Calculations&#xD;&#xA;&#xD;&#xA;-&gt; Gamma 1.0,&#xD;&#xA;HDR FP16" UseManualLocation="True" />
-    <Node Id="Textures" Bounds="-506.718333333333,-39.52,63.3,25.96" UseManualLocation="True" />
-    <Node Id="Tonemapping" Bounds="4.0203971862793,37.2750015258789,96.2433333333333,73.84" Label="Tonemapping&#xD;&#xA;&#xD;&#xA;-&gt; Gamma 2.2&#xD;&#xA;-&gt; RGB8" UseManualLocation="True" />
+    <Node Id="Bloom" Bounds="-93.2186761176492,36.2190198982931,79.9466666666667,73.84" Label="Bloom&#xD;&#xA;&#xD;&#xA;Gamma 1.0&#xD;&#xA;FP 16" UseManualLocation="True" />
+    <Node Id="DeferredEngine" Bounds="-133.139798836457,-169.019621687231,105.6,25.96" Label="Deferred Engine" UseManualLocation="True" />
+    <Node Id="DirectionalLights" Bounds="-718.450436328294,82.7659224794361,145.76,25.96" Label="Input: Directional Lights" UseManualLocation="True" />
+    <Node Id="EnvironmentMap" Bounds="-267.1182697451,334.20947424908,114.2,73.8400000000001" Label="Environment Map&#xD;&#xA;&#xD;&#xA;Gamma 1.0&#xD;&#xA;HDR FP16" UseManualLocation="True" />
+    <Node Id="EnvironmentSamples" Bounds="-276.554136352539,242.349482220459,134.41,25.96" Label="Environment Samples" UseManualLocation="True" />
+    <Node Id="FinalOutput" Bounds="565.371980170263,54.9863982391357,85.6700000000001,41.92" Label="Final Output&#xD;&#xA;R8G8B8A8" UseManualLocation="True" />
+    <Node Id="GBuffer" Bounds="-408.609261390007,-97.6156271489373,59.8666666666667,25.96" UseManualLocation="True" />
+    <Node Id="Gamma1.0" Bounds="-572.221335509007,-148.964040948435,115.07,25.96" Label="Gamma 2.2 -&gt; 1.0" UseManualLocation="True" />
+    <Node Id="ImageBasedLighting" Bounds="-721.031722386206,138.726022397815,134.22,25.96" Label="Image Based Lighting" UseManualLocation="True" />
+    <Node Id="LastFrameAccumulation" Category="Comment" Bounds="229.410593620205,260.298963387155,165.126666666667,25.96" Label="Last Frame(s) Accumulation" UseManualLocation="True" />
+    <Node Id="Light" Bounds="-450.417210768046,37.4497594172992,139.08,73.84" Label="Lighting Accumulation&#xD;&#xA;&#xD;&#xA;Gamma 1.0&#xD;&#xA;HDR FP16" UseManualLocation="True" />
+    <Node Id="LightingCalculations" Bounds="-252.089443247435,37.0512829589844,82.5466666666667,73.84" Label="Compose&#xD;&#xA;&#xD;&#xA;Gamma 1.0,&#xD;&#xA;HDR FP16" UseManualLocation="True" />
+    <Node Id="NeedFp16ForPrecision?" Category="Comment" Bounds="204.071845063349,-56.0817587763741,150.32,25.96" Label="Need fp16 for precision?" UseManualLocation="True" />
+    <Node Id="NotAntialiased" Category="Comment" Bounds="90.8096436811344,259.283730175681,99.6933333333333,25.96" Label="Not antialiased" UseManualLocation="True" />
+    <Node Id="PointLights" Bounds="-716.494124817716,26.8058261604224,115.71,25.96" Label="Input: Point Lights" UseManualLocation="True" />
+    <Node Id="PostProcessingChromaShift,VignetteEtc." Bounds="407.374225463867,17.6675708671137,115.07,121.72" Label="Post Processing&#xD;&#xA;&#xD;&#xA;Chroma Shift,&#xD;&#xA;Vignette etc.&#xD;&#xA;&#xD;&#xA;Gamma 1.0 -&gt; 2.2&#xD;&#xA;RGBA 8888" UseManualLocation="True" />
+    <Node Id="ScreenSpaceReflections" Bounds="-78.4404212733184,334.139713330587,150.833333333333,73.84" Label="Screen Space Reflections&#xD;&#xA;&#xD;&#xA;Gamma 1.0&#xD;&#xA;FP16?" UseManualLocation="True" />
+    <Node Id="TempTarget" Bounds="238.09714547702,193.884579075864,84.7,25.96" Label="Temp Target" UseManualLocation="True" />
+    <Node Id="TemporalAnti-AliasingGamma1.0-&gt;FP16?" Bounds="209.424786811694,37.1480694580078,140.106666666667,73.84" Label="Temporal Anti-Aliasing&#xD;&#xA;&#xD;&#xA;Gamma 1.0&#xD;&#xA;FP16" UseManualLocation="True" />
+    <Node Id="TemporalTarget" Bounds="-50.9831841786703,204.805818304443,104.916666666667,41.92" Label="Temporal Target&#xD;&#xA;(Last Frame)" UseManualLocation="True" />
+    <Node Id="Textures" Bounds="-709.788226891554,-149.443810546621,97.08,25.96" Label="Input: Textures" UseManualLocation="True" />
+    <Node Id="Tonemapping" Bounds="65.6847868116942,37.6319580841064,113.74,73.84" Label="Tonemapping&#xD;&#xA;&#xD;&#xA;Gamma 1.0&#xD;&#xA;FP16 HDR -&gt; LDR" UseManualLocation="True" />
+    <Node Id="UntonemappedComposedHdr" Category="Comment" Bounds="-304.9798534139,162.429382220459,192.546666666667,41.92" Label="Cubemap pipeline ends here (no tonemapping etc.)" UseManualLocation="True" />
   </Nodes>
   <Links>
-    <Link Source="Gamma1.0" Target="LightingCalculations" Bounds="-327.646871803403,-11.8199992370605,63.4832949525389,39.3531107734003" />
-    <Link Source="Light" Target="LightingCalculations" Bounds="-452.559173583984,69.8222012542988,181.500333796788,1.53620258484159" />
-    <Link Source="LightingCalculations" Target="Tonemapping" Bounds="-131.852500101725,70.5017817618296,126.874710996508,2.54668368880331" />
-    <Link Source="Textures" Target="Gamma1.0" Bounds="-443.418328857422,-26.104596561111,45.8600129363078,0.630889394188195" />
-    <Link Source="Tonemapping" Target="FinalOutput" Bounds="100.263731714884,71.0384483308329,118.670579756208,2.24584648524601" />
+    <Link Source="Bloom" Target="Tonemapping" Bounds="-13.2720094509825,73.4602929781862,69.9570869321457,0.562258058181399" />
+    <Link Source="DirectionalLights" Target="Light" Bounds="-572.690436328294,80.7101541760134,113.302431311021,9.15010666372224" />
+    <Link Source="EnvironmentMap" Target="ImageBasedLighting" Bounds="-619.59446032288,168.674140779692,352.47619057778,174.230549394918" />
+    <Link Source="EnvironmentSamples" Target="EnvironmentMap" Bounds="-209.752934775973,268.309483032227,0.328794227925357,56.9001380460432" />
+    <Link Source="GBuffer" Target="Light" Bounds="-380.241502720432,-71.6556271489373,1.38587855276074,100.106248905307" />
+    <Link Source="GBuffer" Target="LightingCalculations" Bounds="-364.938692787365,-71.6556271489373,108.597282743714,102.611093308032" />
+    <Link Source="Gamma1.0" Target="GBuffer" Bounds="-480.305232801048,-123.004040948435,63.536432088311,23.9870982472989" />
+    <Link Source="ImageBasedLighting" Target="Light" Bounds="-608.094349505561,96.5186984615623,149.017779069401,42.2073239362526" />
+    <Link Source="LastFrameAccumulation" Target="TempTarget" Bounds="290.468234740896,227.975034243176,15.3441099791683,32.3239291439791" />
+    <Link Source="Light" Target="LightingCalculations" Bounds="-311.337210768046,74.0890802087312,50.2477922268188,0.117737461325021" />
+    <Link Source="LightingCalculations" Target="Bloom" Bounds="-169.542776580768,73.3976883845516,67.3242260005876,0.355595567696739" />
+    <Link Source="LightingCalculations" Target="TemporalTarget" Bounds="-169.542776580768,103.482937734215,134.383429149918,96.0881287817168" />
+    <Link Source="NeedFp16ForPrecision?" Target="TemporalAnti-AliasingGamma1.0-&gt;FP16?" Bounds="279.259124574696,-30.1217589569092,0.122476818080543,58.2698482955904" />
+    <Link Source="NotAntialiased" Target="TemporalTarget" Bounds="62.4697131110197,246.142998910265,39.3338552587226,13.1407312654161" />
+    <Link Source="PointLights" Target="Light" Bounds="-600.784124817716,46.9893099980907,141.43587478947,17.6100775751867" />
+    <Link Source="PostProcessingChromaShift,VignetteEtc." Target="FinalOutput" Bounds="522.444225463867,76.8800561334485,33.9292349660047,0.61115598385814" />
+    <Link Source="ScreenSpaceReflections" Target="EnvironmentMap" Bounds="-143.918280540362,371.085128870962,65.4778592670439,0.0220661459787834" />
+    <Link Source="TempTarget" Target="TemporalAnti-AliasingGamma1.0-&gt;FP16?" Bounds="282.853790283203,119.987770080566,0.515289306640625,73.8968124389648" />
+    <Link Source="TemporalAnti-AliasingGamma1.0-&gt;FP16?" Target="PostProcessingChromaShift,VignetteEtc." Bounds="349.531453478361,75.7528083533081,48.8453735330706,1.17470071345598" />
+    <Link Source="TemporalAnti-AliasingGamma1.0-&gt;FP16?" Target="TempTarget" Bounds="276.779968261719,110.988067626953,0.534820556640625,73.8966827392578" />
+    <Link Source="TemporalTarget" Target="ScreenSpaceReflections" Bounds="-1.6020137934928,246.725815734863,2.42815411573033,78.4182090026418" />
+    <Link Source="Textures" Target="Gamma1.0" Bounds="-612.708226891554,-136.304915106092,31.4869396031182,0.103072334963713" />
+    <Link Source="Tonemapping" Target="TemporalAnti-AliasingGamma1.0-&gt;FP16?" Bounds="179.424786811694,74.3118381018279,21.0000427883161,0.0647557099189697" />
+    <Link Source="UntonemappedComposedHdr" Target="EnvironmentSamples" Bounds="-209.152800918356,204.349381408691,0.259049638080455,29.0004606634329" />
+    <Link Source="UntonemappedComposedHdr" Target="LightingCalculations" Bounds="-209.930802423382,119.889610684326,0.820168754860475,42.539770724365" />
   </Links>
+  <Categories>
+    <Category Id="Comment" Label="Comment" Description="Represents a user defined comment on the diagram" CanBeDataDriven="True" IsProviderRoot="False" NavigationActionLabel="Comments" />
+  </Categories>
   <Properties>
     <Property Id="Bounds" DataType="System.Windows.Rect" />
+    <Property Id="CanBeDataDriven" Label="CanBeDataDriven" Description="CanBeDataDriven" DataType="System.Boolean" />
     <Property Id="DataVirtualized" Label="Data Virtualized" Description="If true, the graph can contain nodes and links that represent data for virtualized nodes/links (i.e. not actually created in the graph)." DataType="System.Boolean" />
     <Property Id="Expression" DataType="System.String" />
     <Property Id="GroupLabel" DataType="System.String" />
     <Property Id="IsEnabled" DataType="System.Boolean" />
+    <Property Id="IsProviderRoot" Label="IsProviderRoot" Description="IsProviderRoot" DataType="System.Boolean" />
     <Property Id="Label" Label="Label" Description="Displayable label of an Annotatable object" DataType="System.String" />
     <Property Id="Layout" DataType="System.String" />
+    <Property Id="NavigationActionLabel" Label="NavigationActionLabel" Description="NavigationActionLabel" DataType="System.String" />
     <Property Id="TargetType" DataType="System.Type" />
     <Property Id="UseManualLocation" DataType="System.Boolean" />
     <Property Id="Value" DataType="System.String" />
@@ -246,6 +288,14 @@
       <Setter Property="Stroke" Value="#9A9A9A" />
       <Setter Property="StrokeDashArray" Value="2 2" />
       <Setter Property="DrawArrow" Value="true" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Comment" ValueLabel="Has comment">
+      <Condition Expression="HasCategory('Comment')" />
+      <Setter Property="Background" Value="#FFFFFACD" />
+      <Setter Property="Stroke" Value="#FFE5C365" />
+      <Setter Property="StrokeThickness" Value="1" />
+      <Setter Property="NodeRadius" Value="2" />
+      <Setter Property="MaxWidth" Value="250" />
     </Style>
   </Styles>
 </DirectedGraph>

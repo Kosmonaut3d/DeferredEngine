@@ -28,7 +28,6 @@
         public static long d_profileCombineTemporalAntialiasing;
         public static long d_profileDrawFinalRender;
         public static long d_profileTotalRender;
-        public static int ShadowsBlurred;
         public static bool UIIsHovered;
         public static bool e_EnableSelection = false;
     }
