@@ -81,7 +81,7 @@ namespace DeferredEngine.Entities
             set
             {
                 _color = value;
-                ColorV3 = _color.ToVector3();
+                ColorV3 =  (_color.ToVector3().Pow(2.2f));
             }
         }
 

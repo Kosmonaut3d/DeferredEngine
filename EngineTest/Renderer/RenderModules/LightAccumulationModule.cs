@@ -315,7 +315,7 @@ namespace DeferredEngine.Renderer.RenderModules
                 lightSource.LightView_ViewSpace = _inverseView*lightSource.LightView;
             }
 
-            Shaders.deferredDirectionalLightParameter_LightColor.SetValue(lightSource.Color.ToVector3());
+            Shaders.deferredDirectionalLightParameter_LightColor.SetValue(lightSource.ColorV3);
             Shaders.deferredDirectionalLightParameter_LightDirection.SetValue(lightSource.DirectionViewSpace);
             Shaders.deferredDirectionalLightParameter_LightIntensity.SetValue(lightSource.Intensity);
             lightSource.ApplyShader();

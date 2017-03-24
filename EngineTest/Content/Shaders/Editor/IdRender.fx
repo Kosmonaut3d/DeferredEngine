@@ -72,7 +72,7 @@ DrawNormal_VSOut DrawOutline_VertexShader(DrawNormal_VSIn input)
 
 float4 Outline_PixelShader(DrawNormal_VSOut input) : SV_Target
 {
-	if (input.Normal.z > 0.03) return float4(ColorId.rgb,0.8f);
+	if (input.Normal.z > 0.03) return float4(ColorId.rgb,0.4f);
 
     if (input.Position.x % 8 + input.Position.y % 8 > 6) return float4(0, 0, 0, 0);
     return ColorId;

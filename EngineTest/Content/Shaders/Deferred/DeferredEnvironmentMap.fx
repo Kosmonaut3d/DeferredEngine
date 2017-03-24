@@ -17,6 +17,8 @@ Texture2D ReflectionMap;
 
 float2 Resolution = { 1280, 800 };
 
+float3 SkyColor = float3(0.1385, 0.3735f, 0.9805f);
+
 bool FireflyReduction;
 float FireflyThreshold = 0.1f;
 
@@ -215,7 +217,7 @@ PixelShaderOutput PixelShaderFunctionBasic(VertexShaderOutput input)
     if (normalData.x + normalData.y <= 0.001f)
     {
             output.Diffuse = float4(0, 0, 0, 0);
-            output.Specular = float4(0.6706f, 0.8078f, 0.9216f,0)*0.05f; //float4(0, 0.4431f, 0.78, 0) * 0.05f;
+			output.Specular = output.Specular = float4(SkyColor, 0) * 0.5f;/*float4(0.4072f, 0.6392f, 0.9911f, 0)*/ ;//float4(0.6706f, 0.8078f, 0.9216f,0)*0.05f; //float4(0, 0.4431f, 0.78, 0) * 0.05f;
             return output;
     }
 
@@ -282,6 +284,30 @@ PixelShaderOutput PixelShaderFunctionBasic(VertexShaderOutput input)
     return output;
 }
 
+PixelShaderOutput PixelShaderFunctionSky(VertexShaderOutput input)
+{
+	PixelShaderOutput output;
+	float2 texCoord = float2(input.TexCoord);
+
+	//get normal data from the NormalMap
+	float4 normalData = tex2D(PointSampler2, texCoord);
+	//tranform normal back into [-1,1] range
+	float3 normal = decode(normalData.xyz); //2.0f * normalData.xyz - 1.0f;    //could do mad
+
+											//We use this to fake a sky color in the specular component
+	if (normalData.x + normalData.y <= 0.001f)
+	{
+		output.Diffuse = float4(0, 0, 0, 0);
+		output.Specular = float4(SkyColor, 0) * 0.5f;/*float4(0.4072f, 0.6392f, 0.9911f, 0)*///float4(0.6706f, 0.8078f, 0.9216f,0)*0.05f; //float4(0, 0.4431f, 0.78, 0) * 0.05f;
+		return output;
+	}
+
+	output.Diffuse = 0;
+	output.Specular = 0;
+
+	return output;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  TECHNIQUES
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -295,4 +321,12 @@ technique Basic
     }
 }
 
+technique Sky
+{
+	pass Pass1
+	{
+		VertexShader = compile vs_5_0 VertexShaderFunction();
+		PixelShader = compile ps_5_0 PixelShaderFunctionSky();
+	}
+}
 

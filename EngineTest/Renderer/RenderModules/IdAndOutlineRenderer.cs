@@ -20,7 +20,7 @@ namespace DeferredEngine.Renderer.RenderModules
 
         public int HoveredId;
 
-        private readonly Vector4 _hoveredColor = new Vector4(1,1,1,0.2f);
+        private readonly Vector4 _hoveredColor = new Vector4(1,1,1,0.1f);
         private readonly Vector4 _selectedColor = new Vector4(1,1,0,0.1f);
 
         private BillboardBuffer _billboardBuffer;
@@ -49,7 +49,8 @@ namespace DeferredEngine.Renderer.RenderModules
                 DrawIds(meshMat, pointLights, dirLights, envSample, viewProjection, view, editorData);
             }
 
-            DrawOutlines(meshMat, viewProjection, mouseMoved, HoveredId, editorData, mouseMoved);
+            if(GameSettings.e_DrawOutlines)
+                DrawOutlines(meshMat, viewProjection, mouseMoved, HoveredId, editorData, mouseMoved);
         }
 
         public void DrawIds(MeshMaterialLibrary meshMat, List<PointLightSource> pointLights, List<DirectionalLightSource> dirLights, EnvironmentSample envSample, Matrix viewProjection, Matrix view, EditorLogic.EditorSendData editorData)
@@ -204,9 +205,15 @@ namespace DeferredEngine.Renderer.RenderModules
         public void DrawOutlines(MeshMaterialLibrary meshMat, Matrix viewProjection, bool drawAll, int hoveredId, EditorLogic.EditorSendData editorData, bool mouseMoved)
         {
             _graphicsDevice.SetRenderTarget(_idRenderTarget2D);
+
+            if(!mouseMoved)
+            _graphicsDevice.Clear(ClearOptions.Target, Color.Black, 0, 0);
+            else
+            {
+                _graphicsDevice.Clear(Color.Black);
+            }
             _graphicsDevice.BlendState = BlendState.Opaque;
             _graphicsDevice.DepthStencilState = DepthStencilState.Default;
-
             _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
 
             int selectedId = editorData.SelectedObjectId;

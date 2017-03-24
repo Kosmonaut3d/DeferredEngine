@@ -561,9 +561,9 @@ namespace DeferredEngine.Renderer.Helper
 
                     Shaders.IdRenderEffectDrawId.Apply();
                 }
-
                 if (renderType == RenderType.IdOutline)
                 {
+                    
                     //Is this the Id we want to outline?
                     if (id == outlineId)
                     {
@@ -596,11 +596,10 @@ namespace DeferredEngine.Renderer.Helper
                 graphicsDevice.RasterizerState = RasterizerState.CullClockwise;
             }
 
-            if (renderType == RenderType.IdRender || renderType == RenderType.IdOutline)
-            {
-                Shaders.IdRenderEffectParameterColorId.SetValue(Color.Transparent.ToVector4());
-
-            }
+            //if (renderType == RenderType.IdRender || renderType == RenderType.IdOutline)
+            //{
+            //    Shaders.IdRenderEffectParameterColorId.SetValue(Color.Transparent.ToVector4());
+            //}
             //todo: We only need textures for non shadow mapping, right? Not quite actually, for alpha textures we need materials
             else if (renderType == RenderType.Opaque || renderType == RenderType.Alpha)
             {

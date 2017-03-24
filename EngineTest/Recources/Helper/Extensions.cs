@@ -1,4 +1,6 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+using System.Windows.Forms;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics.PackedVector;
 
 namespace DeferredEngine.Recources.Helper
@@ -19,6 +21,11 @@ namespace DeferredEngine.Recources.Helper
        {
            return vec3.ToVector4().Xyz();
        }
+
+        public static Vector3 Pow(this Vector3 vec3, float power)
+        {
+            return new Vector3((float) Math.Pow(vec3.X, power), (float)Math.Pow(vec3.Y, power), (float)Math.Pow(vec3.Z, power));
+        }
 
         public static Matrix CopyFromBepuMatrix(Matrix mat, BEPUutilities.Matrix matrix)
         {

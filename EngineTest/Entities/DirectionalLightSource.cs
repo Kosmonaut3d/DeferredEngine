@@ -8,7 +8,6 @@ namespace DeferredEngine.Entities
 {
     public sealed class DirectionalLightSource : TransformableObject
     {
-        public Color Color;
         public float Intensity;
         private Vector3 _direction;
         private Vector3 _initialDirection;
@@ -87,6 +86,16 @@ namespace DeferredEngine.Entities
             Name = GetType().Name + " " + Id;
         }
 
+        public Color Color
+        {
+            get { return _color; }
+            set
+            {
+                _color = value;
+                ColorV3 = (_color.ToVector3().Pow(2.2f));
+            }
+        }
+
         public Vector3 Direction
         {
             get { return _direction; }
@@ -134,6 +143,8 @@ namespace DeferredEngine.Entities
 
         private Matrix Trafo;
         private Matrix _rotationMatrix;
+        private Color _color;
+        public Vector3 ColorV3;
 
         private void TransformDirectionToAngles()
         {

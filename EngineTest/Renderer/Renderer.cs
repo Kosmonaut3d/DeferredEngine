@@ -260,7 +260,7 @@ namespace DeferredEngine.Renderer
             //We do this either when pressing C or at the start of the program (_renderTargetCube == null) or when the game settings want us to do it every frame
             if (envSample.NeedsUpdate || GameSettings.g_EnvironmentMappingEveryFrame)
             {
-                DrawCubeMap(envSample.Position, meshMaterialLibrary, entities, pointLights, directionalLights, 300, gameTime, camera);
+                DrawCubeMap(envSample.Position, meshMaterialLibrary, entities, pointLights, directionalLights, envSample, 300, gameTime, camera);
                 envSample.NeedsUpdate = false;
             }
             
@@ -313,24 +313,24 @@ namespace DeferredEngine.Renderer
             //Additional editor elements that overlay our screen
             if (GameSettings.Editor_enable && GameStats.e_EnableSelection)
             {
-                DrawMapToScreenToFullScreen(_editorRender.GetOutlines(), BlendState.Additive);
+                if(GameSettings.e_DrawOutlines) DrawMapToScreenToFullScreen(_editorRender.GetOutlines(), BlendState.Additive);
                 _editorRender.DrawEditorElements(meshMaterialLibrary, pointLights, directionalLights, envSample, _staticViewProjection, _view, editorData);
 
-                if (editorData.SelectedObject != null)
-                {
-                    if (editorData.SelectedObject is PointLightSource)
-                    {
-                        int size = 128;
-                        PointLightSource light = (PointLightSource)editorData.SelectedObject;
-                        if (light.CastShadows)
-                        {
-                            _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.PointClamp);
-                            _spriteBatch.Draw(light.ShadowMap, new Rectangle(0, GameSettings.g_ScreenHeight - size * 6, size, size * 6), Color.White);
-                            _spriteBatch.End();
-                        }
-                    }
+                //if (editorData.SelectedObject != null)
+                //{
+                //    if (editorData.SelectedObject is PointLightSource)
+                //    {
+                //        int size = 128;
+                //        PointLightSource light = (PointLightSource)editorData.SelectedObject;
+                //        if (light.CastShadows)
+                //        {
+                //            _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.PointClamp);
+                //            _spriteBatch.Draw(light.ShadowMap, new Rectangle(0, GameSettings.g_ScreenHeight - size * 6, size, size * 6), Color.White);
+                //            _spriteBatch.End();
+                //        }
+                //    }
 
-                }
+                //}
             }
 
             //Debug ray marching
@@ -369,7 +369,7 @@ namespace DeferredEngine.Renderer
         /// <param name="farPlane"></param>
         /// <param name="gameTime"></param>
         /// <param name="camera"></param>
-        private void DrawCubeMap(Vector3 origin, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities, List<PointLightSource> pointLights, List<DirectionalLightSource> dirLights, float farPlane, GameTime gameTime, Camera camera)
+        private void DrawCubeMap(Vector3 origin, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities, List<PointLightSource> pointLights, List<DirectionalLightSource> dirLights, EnvironmentSample envSample, float farPlane, GameTime gameTime, Camera camera)
         {
             //If our cubemap is not yet initialized, create a new one
             if (_renderTargetCubeMap == null)
@@ -448,7 +448,7 @@ namespace DeferredEngine.Renderer
                 ComputeFrustumCorners(_boundingFrustum);
 
                 _lightAccumulationModule.UpdateViewProjection(_boundingFrustum, _viewProjectionHasChanged, _view, _inverseView, _viewIT, _projection, _viewProjection, _inverseViewProjection);
-
+                
                 //Base stuff, for description look in Draw()
                 meshMaterialLibrary.FrustumCulling(entities, _boundingFrustum, true, origin);
 
@@ -457,6 +457,8 @@ namespace DeferredEngine.Renderer
                 bool volumeEnabled = GameSettings.g_VolumetricLights;
                 GameSettings.g_VolumetricLights = false;
                 _lightAccumulationModule.DrawLights(pointLights, dirLights, origin, gameTime, _renderTargetLightBinding, _renderTargetDiffuse);
+
+                _deferredEnvironmentMapRenderModule.DrawSky(_graphicsDevice, _quadRenderer);
 
                 GameSettings.g_VolumetricLights = volumeEnabled;
 
@@ -852,6 +854,8 @@ namespace DeferredEngine.Renderer
         {
             if (!GameSettings.g_SSReflection) return;
 
+
+            //todo: more samples for more reflective materials!
             _graphicsDevice.SetRenderTarget(_renderTargetScreenSpaceEffectReflection);
             _graphicsDevice.BlendState = BlendState.Opaque;
             _graphicsDevice.DepthStencilState = DepthStencilState.Default;
@@ -1033,7 +1037,7 @@ namespace DeferredEngine.Renderer
         {
             if (!GameSettings.g_EnvironmentMapping) return;
 
-            _deferredEnvironmentMapRenderModule.Draw(_graphicsDevice, _view, _quadRenderer, envSample, GameSettings.g_SSReflection_FireflyReduction, GameSettings.g_SSReflection_FireflyThreshold);
+            _deferredEnvironmentMapRenderModule.DrawEnvironmentMap(_graphicsDevice, _view, _quadRenderer, envSample, GameSettings.g_SSReflection_FireflyReduction, GameSettings.g_SSReflection_FireflyThreshold);
 
             //Performance Profiler
             if (GameSettings.d_profiler)

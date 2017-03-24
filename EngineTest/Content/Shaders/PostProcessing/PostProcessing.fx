@@ -150,8 +150,8 @@ float4 VignetteChromaShiftPixelShaderFunction(float4 pos : SV_POSITION, float2 t
 
 	if (dist > 0.1)
 	{
-		float2 dist = (texCoord - float2(0.5, 0.5));
-		float2 chromaDist = dist*dist  * ChromaticAbberationStrength * 0.1f; //*(0.5f+chromaStrength);
+		float2 distcr = (texCoord - float2(0.5, 0.5)) * float2(1.6f, 1);
+		float2 chromaDist = distcr*distcr  * ChromaticAbberationStrength * 0.1f; //*(0.5f+chromaStrength);
 
 		float chromaR = tex2D(TextureSampler, texCoord.xy + chromaDist).r;
 

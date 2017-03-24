@@ -27,6 +27,8 @@ namespace DeferredEngine.Renderer.RenderModules
         private EffectParameter _paramSpecularStrength;
         private EffectParameter _paramSpecularStrengthRcp;
         private EffectParameter _paramDiffuseStrength;
+        private EffectPass _passBasic;
+        private EffectPass _passSky;
         private bool _fireflyReduction;
         private float _fireflyThreshold;
         private float _specularStrength;
@@ -132,6 +134,9 @@ namespace DeferredEngine.Renderer.RenderModules
             _paramSpecularStrength = _deferredEnvironmentShader.Parameters["EnvironmentMapSpecularStrength"];
             _paramSpecularStrengthRcp = _deferredEnvironmentShader.Parameters["EnvironmentMapSpecularStrengthRcp"];
             _paramDiffuseStrength = _deferredEnvironmentShader.Parameters["EnvironmentMapDiffuseStrength"];
+
+            _passSky = _deferredEnvironmentShader.Techniques["Sky"].Passes[0];
+            _passBasic = _deferredEnvironmentShader.Techniques["Basic"].Passes[0];
         }
         
         public void Load(ContentManager content, string shaderPath)
@@ -140,7 +145,7 @@ namespace DeferredEngine.Renderer.RenderModules
 
         }
 
-        public void Draw(GraphicsDevice graphicsDevice, Matrix view, QuadRenderer quadRenderer, EnvironmentSample envSample, bool fireflyReduction, float ffThreshold)
+        public void DrawEnvironmentMap(GraphicsDevice graphicsDevice, Matrix view, QuadRenderer quadRenderer, EnvironmentSample envSample, bool fireflyReduction, float ffThreshold)
         {
             FireflyReduction = fireflyReduction;
             FireflyThreshold = ffThreshold;
@@ -152,9 +157,20 @@ namespace DeferredEngine.Renderer.RenderModules
             graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
             _paramTransposeView.SetValue(Matrix.Transpose(view));
             
-            _deferredEnvironmentShader.CurrentTechnique.Passes[0].Apply();
+            _passBasic.Apply();
             quadRenderer.RenderQuad(graphicsDevice, Vector2.One * -1, Vector2.One);
 
         }
+
+        public void DrawSky(GraphicsDevice graphicsDevice, QuadRenderer quadRenderer)
+        {
+            graphicsDevice.DepthStencilState = DepthStencilState.None;
+            graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+
+            _passSky.Apply();
+            quadRenderer.RenderQuad(graphicsDevice, Vector2.One * -1, Vector2.One);
+
+        }
+
     }
 }

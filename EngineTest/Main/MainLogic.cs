@@ -234,7 +234,7 @@ namespace DeferredEngine.Main
 
             AddPointLight(position: new Vector3(66, 0, 40),
                 radius: 120,
-                color: Color.White,
+                color: new Color(255, 248, 212),
                 intensity: 120,
                 castShadows: true,
                 shadowResolution: 1024,
