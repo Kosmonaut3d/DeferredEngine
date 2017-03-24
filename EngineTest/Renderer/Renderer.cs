@@ -247,6 +247,14 @@ namespace DeferredEngine.Renderer
             //Reset the stat counter, so we can count stats/information for this frame only
             ResetStats();
             
+            //Render EnvironmentMaps
+            //We do this either when pressing C or at the start of the program (_renderTargetCube == null) or when the game settings want us to do it every frame
+            if (envSample.NeedsUpdate || GameSettings.g_EnvironmentMappingEveryFrame)
+            {
+                DrawCubeMap(envSample.Position, meshMaterialLibrary, entities, pointLights, directionalLights, envSample, 300, gameTime, camera);
+                envSample.NeedsUpdate = false;
+            }
+
             //Update the mesh data for changes in physics etc.
             meshMaterialLibrary.FlagMovedObjects(entities);
 
@@ -255,14 +263,6 @@ namespace DeferredEngine.Renderer
 
             //Render ShadowMaps
             DrawShadowMaps(meshMaterialLibrary, entities, pointLights, directionalLights, camera);
-
-            //Render EnvironmentMaps
-            //We do this either when pressing C or at the start of the program (_renderTargetCube == null) or when the game settings want us to do it every frame
-            if (envSample.NeedsUpdate || GameSettings.g_EnvironmentMappingEveryFrame)
-            {
-                DrawCubeMap(envSample.Position, meshMaterialLibrary, entities, pointLights, directionalLights, envSample, 300, gameTime, camera);
-                envSample.NeedsUpdate = false;
-            }
             
             //Update our view projection matrices if the camera moved
             UpdateViewProjection(camera, meshMaterialLibrary, entities);
@@ -383,7 +383,7 @@ namespace DeferredEngine.Renderer
             }
 
             //Set up all the base rendertargets with the resolution of our cubemap
-            SetUpRenderTargets(GameSettings.g_CubeMapResolution, GameSettings.g_CubeMapResolution, false);
+            SetUpRenderTargets(GameSettings.g_CubeMapResolution, GameSettings.g_CubeMapResolution, true);
 
             //We don't want to use SSAO in this cubemap
             Shaders.DeferredComposeEffectParameter_UseSSAO.SetValue(false);
@@ -477,11 +477,8 @@ namespace DeferredEngine.Renderer
             Shaders.DeferredComposeEffectParameter_UseSSAO.SetValue(GameSettings.ssao_Active);
 
             //Change RTs back to normal
-            SetUpRenderTargets(GameSettings.g_ScreenWidth, GameSettings.g_ScreenHeight, false);
-
-            _graphicsDevice.SetRenderTarget(_renderTargetScreenSpaceEffectReflection);
-            _graphicsDevice.Clear(Color.TransparentBlack);
-
+            SetUpRenderTargets(GameSettings.g_ScreenWidth, GameSettings.g_ScreenHeight, true);
+            
             //Our camera has changed we need to reinitialize stuff because we used a different camera in the cubemap render
             camera.HasChanged = true;
 

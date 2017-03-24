@@ -301,7 +301,7 @@ namespace DeferredEngine.Recources
         }
 
         //private static float _g_TemporalAntiAliasingThreshold = 0.9f;
-        public static int g_CubeMapResolution = 512;
+        public static int g_CubeMapResolution = 1024;
         public static bool c_UseStringBuilder = true;
         public static int g_UseDepthStencilLightCulling = 1; //None, Depth, Depth+Stencil
         public static bool g_BloomEnable = true;

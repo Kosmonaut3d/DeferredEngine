@@ -95,6 +95,7 @@ namespace HelperSuite.GUI
         {
             SliderObject = obj;
             SliderField = obj.GetType().GetField(field);
+            SliderProperty = null;
             SliderValue = (float)SliderField.GetValue(obj);
         }
 
@@ -102,6 +103,7 @@ namespace HelperSuite.GUI
         {
             SliderObject = obj;
             SliderProperty = obj.GetType().GetProperty(property);
+            SliderField = null;
             SliderValue = (float)SliderProperty.GetValue(obj);
         }
 
