@@ -68,9 +68,7 @@ namespace DeferredEngine.Renderer.RenderModules
         private EffectPass _bloomPassExtract;
         private EffectPass _bloomPassExtractLuminance;
         private EffectPass _bloomPassDownsample;
-        private EffectPass _bloomPassDownsampleLuminance;
         private EffectPass _bloomPassUpsample;
-        private EffectPass _bloomPassUpsampleLuminance;
 
         private EffectParameter _bloomParameterScreenTexture;
         private EffectParameter _bloomInverseResolutionParameter;
@@ -244,9 +242,7 @@ namespace DeferredEngine.Renderer.RenderModules
             _bloomPassExtract = _bloomEffect.Techniques["Extract"].Passes[0];
             _bloomPassExtractLuminance = _bloomEffect.Techniques["ExtractLuminance"].Passes[0];
             _bloomPassDownsample = _bloomEffect.Techniques["Downsample"].Passes[0];
-            _bloomPassDownsampleLuminance = _bloomEffect.Techniques["DownsampleLuminance"].Passes[0];
             _bloomPassUpsample = _bloomEffect.Techniques["Upsample"].Passes[0];
-            _bloomPassUpsampleLuminance = _bloomEffect.Techniques["UpsampleLuminance"].Passes[0];
             
             //An interesting blendstate for merging the initial image with the bloom.
             //BlendStateBloom = new BlendState();
@@ -403,8 +399,7 @@ namespace DeferredEngine.Renderer.RenderModules
 
                 BloomScreenTexture = _bloomRenderTarget2DMip0;
                 //Pass
-                if (BloomUseLuminance) _bloomPassDownsampleLuminance.Apply();
-                else _bloomPassDownsample.Apply();
+                _bloomPassDownsample.Apply();
                 _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
 
                 if (BloomDownsamplePasses > 1)
@@ -417,8 +412,7 @@ namespace DeferredEngine.Renderer.RenderModules
 
                     BloomScreenTexture = _bloomRenderTarget2DMip1;
                     //Pass
-                    if (BloomUseLuminance) _bloomPassDownsampleLuminance.Apply();
-                    else _bloomPassDownsample.Apply();
+                    _bloomPassDownsample.Apply();
                     _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
 
                     if (BloomDownsamplePasses > 2)
@@ -430,8 +424,7 @@ namespace DeferredEngine.Renderer.RenderModules
 
                         BloomScreenTexture = _bloomRenderTarget2DMip2;
                         //Pass
-                        if (BloomUseLuminance) _bloomPassDownsampleLuminance.Apply();
-                        else _bloomPassDownsample.Apply();
+                        _bloomPassDownsample.Apply();
                         _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
                         
                         if (BloomDownsamplePasses > 3)
@@ -443,8 +436,7 @@ namespace DeferredEngine.Renderer.RenderModules
 
                             BloomScreenTexture = _bloomRenderTarget2DMip3;
                             //Pass
-                            if (BloomUseLuminance) _bloomPassDownsampleLuminance.Apply();
-                            else _bloomPassDownsample.Apply();
+                            _bloomPassDownsample.Apply();
                             _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
 
                             if (BloomDownsamplePasses > 4)
@@ -456,8 +448,7 @@ namespace DeferredEngine.Renderer.RenderModules
 
                                 BloomScreenTexture = _bloomRenderTarget2DMip4;
                                 //Pass
-                                if (BloomUseLuminance) _bloomPassDownsampleLuminance.Apply();
-                                else _bloomPassDownsample.Apply();
+                                _bloomPassDownsample.Apply();
                                 _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
 
                                 ChangeBlendState();
@@ -468,8 +459,7 @@ namespace DeferredEngine.Renderer.RenderModules
                                 
                                 BloomStrength = _bloomStrength5;
                                 BloomRadius = _bloomRadius5;
-                                if (BloomUseLuminance) _bloomPassUpsampleLuminance.Apply();
-                                else _bloomPassUpsample.Apply();
+                                _bloomPassUpsample.Apply();
                                 _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
 
                                 BloomInverseResolution /= 2;
@@ -483,8 +473,7 @@ namespace DeferredEngine.Renderer.RenderModules
 
                             BloomStrength = _bloomStrength4;
                             BloomRadius = _bloomRadius4;
-                            if (BloomUseLuminance) _bloomPassUpsampleLuminance.Apply();
-                            else _bloomPassUpsample.Apply();
+                            _bloomPassUpsample.Apply();
                             _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
 
                             BloomInverseResolution /= 2;
@@ -499,8 +488,7 @@ namespace DeferredEngine.Renderer.RenderModules
 
                         BloomStrength = _bloomStrength3;
                         BloomRadius = _bloomRadius3;
-                        if (BloomUseLuminance) _bloomPassUpsampleLuminance.Apply();
-                        else _bloomPassUpsample.Apply();
+                        _bloomPassUpsample.Apply();
                         _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
 
                         BloomInverseResolution /= 2;
@@ -515,8 +503,7 @@ namespace DeferredEngine.Renderer.RenderModules
 
                     BloomStrength = _bloomStrength2;
                     BloomRadius = _bloomRadius2;
-                    if (BloomUseLuminance) _bloomPassUpsampleLuminance.Apply();
-                    else _bloomPassUpsample.Apply();
+                    _bloomPassUpsample.Apply();
                     _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
 
                     BloomInverseResolution /= 2;
@@ -531,8 +518,7 @@ namespace DeferredEngine.Renderer.RenderModules
                 BloomStrength = _bloomStrength1;
                 BloomRadius = _bloomRadius1;
 
-                if (BloomUseLuminance) _bloomPassUpsampleLuminance.Apply();
-                else _bloomPassUpsample.Apply();
+                _bloomPassUpsample.Apply();
                 _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
             }
 
@@ -555,12 +541,12 @@ namespace DeferredEngine.Renderer.RenderModules
             _bloomStrength4 = GameSettings.g_BloomStrength4;
             _bloomStrength5 = GameSettings.g_BloomStrength5;
 
-            BloomThreshold = GameSettings.g_BloomThreshold;
+            BloomThreshold = GameSettings.g_BloomThreshold * 0.1f;
         }
 
         private void ChangeBlendState()
         {
-            _graphicsDevice.BlendState = BlendState.Opaque;
+            _graphicsDevice.BlendState = BlendState.AlphaBlend;
         }
 
         /// <summary>

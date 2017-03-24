@@ -51,21 +51,26 @@ float4 ExtractPS(float4 pos : SV_POSITION,  float2 texCoord : TEXCOORD0) : SV_TA
 
 	if (avg>Threshold)
 	{
-		return color * (avg - Threshold) / (10 - Threshold);// * (avg - Threshold);
+		return color /** (avg - Threshold) / (10 - Threshold)*/;// * (avg - Threshold);
 	}
 
 	return float4(0, 0, 0, 0);
+}
+
+float GetLuma(float3 rgb)
+{
+	return (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b);
 }
 
 float4 ExtractLuminancePS(float4 pos : SV_POSITION,  float2 texCoord : TEXCOORD0) : SV_TARGET0
 {
     float4 color = ScreenTexture.Sample(u_texture, texCoord);
 
-    float luminance = color.r * 0.21f + color.g * 0.72f + color.b * 0.07f;
+	float luminance = GetLuma(color.rgb);
 
     if(luminance>Threshold)
     {
-		return color * (luminance - Threshold) / (1 - Threshold);// *(luminance - Threshold);
+		return float4(color.rgb, luminance);// *(luminance - Threshold);
         //return saturate((color - Threshold) / (1 - Threshold));
     }
 
@@ -97,42 +102,6 @@ float4 DownsamplePS(float4 pos : SV_POSITION,  float2 texCoord : TEXCOORD0) : SV
     Box4(c3, c4, c8, c9) * 0.5f;
 }
 
-//IDEA: Why don't we sample the distance based on brightness?
-float4 DownsampleLuminancePS(float4 pos : SV_POSITION,  float2 texCoord : TEXCOORD0) : SV_TARGET0
-{
-
-	float4 c6 = ScreenTexture.Sample(u_texture, texCoord);
-
-	float2 offset = float2(StreakLength * InverseResolution.x, 1 * InverseResolution.y);
-
-	float4 c0 = ScreenTexture.Sample(u_texture, texCoord + float2(-2, -2) * offset);
-	float4 c1 = ScreenTexture.Sample(u_texture, texCoord + float2(0, -2) * offset);
-	float4 c2 = ScreenTexture.Sample(u_texture, texCoord + float2(2, -2) * offset);
-	float4 c3 = ScreenTexture.Sample(u_texture, texCoord + float2(-1, -1) * offset);
-	float4 c4 = ScreenTexture.Sample(u_texture, texCoord + float2(1, -1) * offset);
-	float4 c5 = ScreenTexture.Sample(u_texture, texCoord + float2(-2, 0) * offset);
-	float4 c7 = ScreenTexture.Sample(u_texture, texCoord + float2(2, 0) * offset);
-	float4 c8 = ScreenTexture.Sample(u_texture, texCoord + float2(-1, 1) * offset);
-	float4 c9 = ScreenTexture.Sample(u_texture, texCoord + float2(1, 1) * offset);
-	float4 c10 = ScreenTexture.Sample(u_texture, texCoord + float2(-2, 2) * offset);
-	float4 c11 = ScreenTexture.Sample(u_texture, texCoord + float2(0, 2) * offset);
-	float4 c12 = ScreenTexture.Sample(u_texture, texCoord + float2(2, 2) * offset);
-
-	float4 output = Box4(c0, c1, c5, c6) * 0.125f +
-		Box4(c1, c2, c6, c7) * 0.125f +
-		Box4(c5, c6, c10, c11) * 0.125f +
-		Box4(c6, c7, c11, c12) * 0.125f +
-		Box4(c3, c4, c8, c9) * 0.5f;
-
-	return min(output, 1);
-
-	/*return Box4(c0, c1, c5, c6) * 0.125f +
-		Box4(c1, c2, c6, c7) * 0.125f +
-		Box4(c5, c6, c10, c11) * 0.125f +
-		Box4(c6, c7, c11, c12) * 0.125f +
-		Box4(c3, c4, c8, c9) * 0.5f;*/
-}
-
 float4 UpsamplePS(float4 pos : SV_POSITION,  float2 texCoord : TEXCOORD0) : SV_TARGET0
 {
     float2 offset = float2(StreakLength * InverseResolution.x, 1 * InverseResolution.y) * Radius;
@@ -148,30 +117,7 @@ float4 UpsamplePS(float4 pos : SV_POSITION,  float2 texCoord : TEXCOORD0) : SV_T
     float4 c8 = ScreenTexture.Sample(u_texture, texCoord + float2(1, 1) * offset);
 
     //Tentfilter  0.0625f    
-    return clamp(0.0625f * (c0 + 2 * c1 + c2 + 2 * c3 + 4 * c4 + 2 * c5 + c6 + 2 * c7 + c8) * Strength, 0, 10) + float4(0, 0,0,0); //+ 0.5f * ScreenTexture.Sample(c_texture, texCoord);
-
-}
-
-
-
-float4 UpsampleLuminancePS(float4 pos : SV_POSITION,  float2 texCoord : TEXCOORD0) : SV_TARGET0
-{
-    float4 c4 = ScreenTexture.Sample(u_texture, texCoord);  //middle one
- /*
-    float luminance = c4.r * 0.21f + c4.g * 0.72f + c4.b * 0.07f;
-    luminance = max(luminance, 0.4f);
-*/
-	float2 offset = float2(StreakLength * InverseResolution.x, 1 * InverseResolution.y) * Radius;
-    float4 c0 = ScreenTexture.Sample(u_texture, texCoord + float2(-1, -1) * offset);
-    float4 c1 = ScreenTexture.Sample(u_texture, texCoord + float2(0, -1) * offset);
-    float4 c2 = ScreenTexture.Sample(u_texture, texCoord + float2(1, -1) * offset);
-    float4 c3 = ScreenTexture.Sample(u_texture, texCoord + float2(-1, 0) * offset);
-    float4 c5 = ScreenTexture.Sample(u_texture, texCoord + float2(1, 0) * offset);
-    float4 c6 = ScreenTexture.Sample(u_texture, texCoord + float2(-1, 1) * offset);
-    float4 c7 = ScreenTexture.Sample(u_texture, texCoord + float2(0, 1) * offset);
-    float4 c8 = ScreenTexture.Sample(u_texture, texCoord + float2(1, 1) * offset);
- 
-    return abs(0.0625f * (c0 + 2 * c1 + c2 + 2 * c3 + 4 * c4 + 2 * c5 + c6 + 2 * c7 + c8)) * Strength + float4(0, 0, 0, 0); //+ 0.5f * ScreenTexture.Sample(c_texture, texCoord);
+    return 0.0625f * (c0 + 2 * c1 + c2 + 2 * c3 + 4 * c4 + 2 * c5 + c6 + 2 * c7 + c8) * Strength; //+ 0.5f * ScreenTexture.Sample(c_texture, texCoord);
 
 }
 
@@ -204,30 +150,11 @@ technique Downsample
     }
 }
 
-technique DownsampleLuminance
-{
-	pass Pass1
-	{
-		VertexShader = compile vs_4_0 VertexShaderFunction();
-		PixelShader = compile ps_4_0 DownsampleLuminancePS();
-	}
-}
-
 technique Upsample
 {
     pass Pass1
     {
 		VertexShader = compile vs_4_0 VertexShaderFunction();
         PixelShader = compile ps_4_0 UpsamplePS();
-    }
-}
-
-
-technique UpsampleLuminance
-{
-    pass Pass1
-    {
-		VertexShader = compile vs_4_0 VertexShaderFunction();
-        PixelShader = compile ps_4_0 UpsampleLuminancePS();
     }
 }

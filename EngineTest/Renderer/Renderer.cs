@@ -36,6 +36,7 @@ namespace DeferredEngine.Renderer
 
         private ShadowMapRenderModule _shadowMapRenderModule;
         private GBufferRenderModule _gBufferRenderModule;
+        private TemporalAntialiasingRenderModule _temporalAntialiasingRenderModule;
         
         //Assets
         private Assets _assets;
@@ -101,10 +102,8 @@ namespace DeferredEngine.Renderer
         private RenderTarget2D _renderTargetVolume;
         private readonly RenderTargetBinding[] _renderTargetLightBinding = new RenderTargetBinding[3];
 
-        private RenderTarget2D _renderTargetFinal;
-        private readonly RenderTargetBinding[] _renderTargetFinalBinding = new RenderTargetBinding[1];
-        private RenderTarget2D _renderTargetFinal8Bit;
-        private readonly RenderTargetBinding[] _renderTargetFinal8BitBinding = new RenderTargetBinding[1];
+        private RenderTarget2D _renderTargetComposed;
+        private RenderTarget2D _renderTargetBloom;
 
         //TAA
         private RenderTarget2D _renderTargetTAA_1;
@@ -122,6 +121,8 @@ namespace DeferredEngine.Renderer
         private RenderTarget2D _renderTargetScreenSpaceEffectBlurFinal;
 
         private RenderTarget2D _renderTargetEmissive;
+
+        private RenderTarget2D _currentOutput;
 
         private Viewport _viewport;
 
@@ -159,6 +160,7 @@ namespace DeferredEngine.Renderer
 
             _shadowMapRenderModule = new ShadowMapRenderModule(content, "Shaders/Shadow/ShadowMap");
             _gBufferRenderModule = new GBufferRenderModule(content, "Shaders/GbufferSetup/ClearGBuffer", "Shaders/GbufferSetup/Gbuffer");
+            _temporalAntialiasingRenderModule = new TemporalAntialiasingRenderModule(content, "Shaders/TemporalAntiAliasing/TemporalAntiAliasing");
 
             _inverseResolution = new Vector3(1.0f / GameSettings.g_ScreenWidth, 1.0f / GameSettings.g_ScreenHeight, 0);
             
@@ -291,22 +293,20 @@ namespace DeferredEngine.Renderer
             DrawEmissiveEffect(camera, meshMaterialLibrary, gameTime);
 
             //Compose the scene by combining our lighting data with the gbuffer data
-            Compose();
-
-            //Do Bloom
-            DrawBloom();
+            Compose(); //-> output _renderTargetComposed
 
             //Compose the image and add information from previous frames to apply temporal super sampling
-            CombineTemporalAntialiasing();
+            _currentOutput = TonemapAndCombineTemporalAntialiasing(_renderTargetComposed); // -> output: _temporalAAOffFrame ? _renderTargetTAA_2 : _renderTargetTAA_1
 
-            DrawTestShadow(camera);
-                
+            //Do Bloom
+            _currentOutput = DrawBloom(_currentOutput); // -> output: _renderTargetBloom
+             
             //Draw the elements that we are hovering over with outlines
             if(GameSettings.Editor_enable && GameStats.e_EnableSelection)
                 _editorRender.DrawIds(meshMaterialLibrary, pointLights, directionalLights, envSample, _staticViewProjection, _view, editorData);
 
             //Draw the final rendered image, change the output based on user input to show individual buffers/rendertargets
-            RenderMode();
+            RenderMode(_currentOutput);
 
             //Additional editor elements that overlay our screen
             if (GameSettings.Editor_enable && GameStats.e_EnableSelection)
@@ -468,7 +468,7 @@ namespace DeferredEngine.Renderer
                 //    ? Shaders.DeferredComposeTechnique_Linear
                 //    : Shaders.DeferredComposeTechnique_NonLinear;
                 GameSettings.g_TemporalAntiAliasing = tempAa;
-                DrawMapToScreenToCube(_renderTargetFinal, _renderTargetCubeMap, cubeMapFace);
+                DrawMapToScreenToCube(_renderTargetComposed, _renderTargetCubeMap, cubeMapFace);
             }
             Shaders.DeferredComposeEffectParameter_UseSSAO.SetValue(GameSettings.ssao_Active);
 
@@ -798,7 +798,7 @@ namespace DeferredEngine.Renderer
             Shaders.deferredEnvironmentParameter_FrustumCorners.SetValue(_currentFrustumCorners);
             Shaders.ScreenSpaceReflectionParameter_FrustumCorners.SetValue(_currentFrustumCorners);
             Shaders.ScreenSpaceEffectParameter_FrustumCorners.SetValue(_currentFrustumCorners);
-            Shaders.TemporalAntiAliasingEffect_FrustumCorners.SetValue(_currentFrustumCorners);
+            _temporalAntialiasingRenderModule.FrustumCorners = _currentFrustumCorners;
             Shaders.ReconstructDepthParameter_FrustumCorners.SetValue(_currentFrustumCorners);
             Shaders.deferredDirectionalLightParameterFrustumCorners.SetValue(_currentFrustumCorners);
         }
@@ -855,14 +855,14 @@ namespace DeferredEngine.Renderer
             _graphicsDevice.DepthStencilState = DepthStencilState.Default;
             _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
 
-            if (GameSettings.g_TemporalAntiAliasing)
-            {
-                Shaders.ScreenSpaceReflectionParameter_TargetMap.SetValue(_temporalAAOffFrame ? _renderTargetTAA_1 : _renderTargetTAA_2);
-            }
-            else
-            {
-                Shaders.ScreenSpaceReflectionParameter_TargetMap.SetValue(_renderTargetFinal);
-            }
+            //if (GameSettings.g_TemporalAntiAliasing)
+            //{
+            //    Shaders.ScreenSpaceReflectionParameter_TargetMap.SetValue(_temporalAAOffFrame ? _renderTargetTAA_1 : _renderTargetTAA_2);
+            //}
+            //else
+            //{
+                Shaders.ScreenSpaceReflectionParameter_TargetMap.SetValue(_renderTargetComposed);
+            //}
 
             if (GameSettings.g_SSReflectionNoise)
                 Shaders.ScreenSpaceReflectionParameter_Time.SetValue((float)gameTime.TotalGameTime.TotalSeconds % 1000);
@@ -1089,7 +1089,7 @@ namespace DeferredEngine.Renderer
         {
             _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
 
-            _graphicsDevice.SetRenderTargets(_renderTargetFinalBinding);
+            _graphicsDevice.SetRenderTarget(_renderTargetComposed);
             _graphicsDevice.BlendState = BlendState.Opaque;
 
             //combine!
@@ -1106,64 +1106,53 @@ namespace DeferredEngine.Renderer
             }
         }
 
-        private void DrawBloom()
+        private RenderTarget2D DrawBloom(RenderTarget2D input)
         {
-
             if (GameSettings.g_BloomEnable)
             {
-                Texture2D bloom = _bloomFilter.Draw(_renderTargetFinal, GameSettings.g_ScreenWidth,
+                Texture2D bloom = _bloomFilter.Draw(input, GameSettings.g_ScreenWidth,
                     GameSettings.g_ScreenHeight);
-
-                _graphicsDevice.SetRenderTargets(_renderTargetFinal8BitBinding);
+                
+                _graphicsDevice.SetRenderTargets(_renderTargetBloom);
 
                 _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Additive);
 
-                _spriteBatch.Draw(_renderTargetFinal,
+                _spriteBatch.Draw(input,
                     new Rectangle(0, 0, GameSettings.g_ScreenWidth, GameSettings.g_ScreenHeight), Color.White);
                 _spriteBatch.Draw(bloom, new Rectangle(0, 0, GameSettings.g_ScreenWidth, GameSettings.g_ScreenHeight),
                     Color.White);
 
                 _spriteBatch.End();
-                
+
+                return _renderTargetBloom;
             }
             else
             {
 
-                _graphicsDevice.SetRenderTarget(_renderTargetFinal8Bit);
-                _spriteBatch.Begin(0, BlendState.Opaque, _supersampling > 1 ? SamplerState.LinearWrap : SamplerState.PointClamp);
-                _spriteBatch.Draw(_renderTargetFinal, new Rectangle(0, 0, GameSettings.g_ScreenWidth, GameSettings.g_ScreenHeight), Color.White);
-                _spriteBatch.End();
+                //_graphicsDevice.SetRenderTarget(_renderTargetBloom);
+                //_spriteBatch.Begin(0, BlendState.Opaque, _supersampling > 1 ? SamplerState.LinearWrap : SamplerState.PointClamp);
+                //_spriteBatch.Draw(_renderTargetComposed, new Rectangle(0, 0, GameSettings.g_ScreenWidth, GameSettings.g_ScreenHeight), Color.White);
+                //_spriteBatch.End();
+                return input;
             }
         }
 
         /// <summary>
         /// Combine the render with previous frames to get more information per sample and make the image anti-aliased / super sampled
         /// </summary>
-        private void CombineTemporalAntialiasing()
+        private RenderTarget2D TonemapAndCombineTemporalAntialiasing(RenderTarget2D input)
         {
-            if (!GameSettings.g_TemporalAntiAliasing) return;
+            if (!GameSettings.g_TemporalAntiAliasing) return input;
 
-            //TEST
-            //if (GameSettings.d_debugTAA)
-            //{
-            //    RenderTargetBinding[] testAA = new RenderTargetBinding[2];
-            //    testAA[0] = new RenderTargetBinding(_temporalAAOffFrame ? _renderTargetTAA_2 : _renderTargetTAA_1);
-            //    testAA[1] = new RenderTargetBinding(_renderTargetScreenSpaceEffectUpsampleBlurVertical);
-            //    _graphicsDevice.SetRenderTargets(testAA);
-            //}
-            //else
-            //{
-                _graphicsDevice.SetRenderTarget(_temporalAAOffFrame ? _renderTargetTAA_2 : _renderTargetTAA_1);
-            //}
+            RenderTarget2D output = _temporalAAOffFrame ? _renderTargetTAA_2 : _renderTargetTAA_1;
 
-            _graphicsDevice.BlendState = BlendState.Opaque;
-            
-            Shaders.TemporalAntiAliasingEffect_AccumulationMap.SetValue(_temporalAAOffFrame ? _renderTargetTAA_1 : _renderTargetTAA_2);
-            Shaders.TemporalAntiAliasingEffect_UpdateMap.SetValue(_renderTargetFinal8Bit);
-            Shaders.TemporalAntiAliasingEffect_CurrentToPrevious.SetValue(_currentViewToPreviousViewProjection);
-            
-            Shaders.TemporalAntiAliasingEffect.CurrentTechnique.Passes[0].Apply();
-            _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+            _temporalAntialiasingRenderModule.Draw(_graphicsDevice, 
+                useTonemap: GameSettings.g_TemporalAntiAliasingUseTonemap,
+                currentFrame: input,
+                previousFrames: _temporalAAOffFrame? _renderTargetTAA_1 : _renderTargetTAA_2,
+                output: output,
+                quadRenderer: _quadRenderer, 
+                currentViewToPreviousViewProjection: _currentViewToPreviousViewProjection);
             
             //Performance Profiler
             if (GameSettings.d_profiler)
@@ -1173,19 +1162,16 @@ namespace DeferredEngine.Renderer
 
                 _performancePreviousTime = performanceCurrentTime;
             }
-        }
-        
-        private void DrawTestShadow(Camera camera)
-        {
-            //testShadow.Draw(_renderTargetDepth, _view, camera, _projection);
-        }
 
+            return GameSettings.g_TemporalAntiAliasingUseTonemap ? input : output;
+        }
 
         /// <summary>
         /// Draw the final rendered image, change the output based on user input to show individual buffers/rendertargets
         /// </summary>
+        /// <param name="currentOutput"></param>
         /// <param name="editorData"></param>
-        private void RenderMode()
+        private void RenderMode(RenderTarget2D currentInput)
         {
             switch (GameSettings.g_RenderMode)
             {
@@ -1223,17 +1209,10 @@ namespace DeferredEngine.Renderer
                     DrawMapToScreenToFullScreen(_renderTargetScreenSpaceEffectReflection);
                     break;
                 case RenderModes.HDR:
-                    if (GameSettings.g_TemporalAntiAliasing)
-                    {
-                        DrawMapToScreenToFullScreen(_temporalAAOffFrame ? _renderTargetTAA_2 : _renderTargetTAA_1);
-                    }
-                    else
-                    {
-                        DrawMapToScreenToFullScreen(_renderTargetFinal8Bit);
-                    }
+                        DrawMapToScreenToFullScreen(currentInput);
                     break;
                 default:
-                    DrawPostProcessing();
+                    DrawPostProcessing(currentInput);
                     break;
             }
 
@@ -1247,29 +1226,20 @@ namespace DeferredEngine.Renderer
                 _performancePreviousTime = performanceCurrentTime;
             }
         }
-        
+
         /// <summary>
         /// Add some post processing to the image
         /// </summary>
-        private void DrawPostProcessing()
+        /// <param name="currentInput"></param>
+        private void DrawPostProcessing(RenderTarget2D currentInput)
         {
             if (!GameSettings.g_PostProcessing) return;
-
-            RenderTarget2D baseRenderTarget;
+            
             RenderTarget2D destinationRenderTarget;
-
-            if (GameSettings.g_TemporalAntiAliasing)
-            {
-                baseRenderTarget = (_temporalAAOffFrame ? _renderTargetTAA_2 : _renderTargetTAA_1);
-            }
-            else
-            {
-                baseRenderTarget = _renderTargetFinal8Bit;
-            }
-
+            
             destinationRenderTarget = _renderTargetScreenSpaceEffectUpsampleBlurVertical;
             
-            Shaders.PostProcessingParameter_ScreenTexture.SetValue(baseRenderTarget);
+            Shaders.PostProcessingParameter_ScreenTexture.SetValue(currentInput);
             _graphicsDevice.SetRenderTarget(destinationRenderTarget);
 
             _graphicsDevice.DepthStencilState = DepthStencilState.Default;
@@ -1308,8 +1278,8 @@ namespace DeferredEngine.Renderer
                 _renderTargetAlbedo.Dispose();
                 _renderTargetDepth.Dispose();
                 _renderTargetNormal.Dispose();
-                _renderTargetFinal.Dispose();
-                _renderTargetFinal8Bit.Dispose();
+                _renderTargetComposed.Dispose();
+                _renderTargetBloom.Dispose();
                 _renderTargetDiffuse.Dispose();
                 _renderTargetSpecular.Dispose();
                 _renderTargetVolume.Dispose();
@@ -1366,16 +1336,12 @@ namespace DeferredEngine.Renderer
             _renderTargetLightBinding[1] = new RenderTargetBinding(_renderTargetSpecular);
             _renderTargetLightBinding[2] = new RenderTargetBinding(_renderTargetVolume);
 
-            _renderTargetFinal = new RenderTarget2D(_graphicsDevice, targetWidth,
+            _renderTargetComposed = new RenderTarget2D(_graphicsDevice, targetWidth,
                targetHeight, false, SurfaceFormat.HalfVector4, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
-
-            _renderTargetFinalBinding[0] = new RenderTargetBinding(_renderTargetFinal);
-
-            _renderTargetFinal8Bit = new RenderTarget2D(_graphicsDevice, targetWidth,
+            
+            _renderTargetBloom = new RenderTarget2D(_graphicsDevice, targetWidth,
                targetHeight, false, SurfaceFormat.HalfVector4, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
-
-            _renderTargetFinal8BitBinding[0] = new RenderTargetBinding(_renderTargetFinal8Bit);
-
+            
             _renderTargetScreenSpaceEffectUpsampleBlurVertical = new RenderTarget2D(_graphicsDevice, targetWidth,
                 targetHeight, false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
 
@@ -1386,7 +1352,7 @@ namespace DeferredEngine.Renderer
                 _renderTargetTAA_1 = new RenderTarget2D(_graphicsDevice, targetWidth, targetHeight, false, SurfaceFormat.HalfVector4, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
                 _renderTargetTAA_2 = new RenderTarget2D(_graphicsDevice, targetWidth, targetHeight, false, SurfaceFormat.HalfVector4, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
 
-                Shaders.TemporalAntiAliasingEffect_Resolution.SetValue(new Vector2(targetWidth, targetHeight));
+                _temporalAntialiasingRenderModule.Resolution = new Vector2(targetWidth, targetHeight);
                 // Shaders.SSReflectionEffectParameter_Resolution.SetValue(new Vector2(target_width, target_height));
                 Shaders.EmissiveEffectParameter_Resolution.SetValue(new Vector2(targetWidth, targetHeight));
 
@@ -1470,7 +1436,7 @@ namespace DeferredEngine.Renderer
             Shaders.EmissiveEffectParameter_EmissiveMap.SetValue(_renderTargetEmissive);
             Shaders.EmissiveEffectParameter_NormalMap.SetValue(_renderTargetNormal);
 
-            Shaders.TemporalAntiAliasingEffect_DepthMap.SetValue(_renderTargetDepth);  
+            _temporalAntialiasingRenderModule.DepthMap = _renderTargetDepth;  
         }
 
             #endregion

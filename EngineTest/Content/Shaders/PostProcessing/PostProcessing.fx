@@ -111,6 +111,12 @@ float3 ReinhardTonemap(float3 hdr)
 	return hdr * (x / (x + 1));
 }
 
+float3 InverseReinhardTonemap(float3 ldr)
+{
+	float x = GetLuma(ldr);
+	return ldr * ((x + 1) / x);
+}
+
 float3 ReinhardTonemap(float3 hdr, float WhitePoint)
 {
 	float x = GetLuma(hdr);
@@ -144,7 +150,8 @@ float4 VignetteChromaShiftPixelShaderFunction(float4 pos : SV_POSITION, float2 t
 
 	if (dist > 0.1)
 	{
-		float2 chromaDist = (texCoord - float2(0.5, 0.5)) * ChromaticAbberationStrength * 0.1f; //*(0.5f+chromaStrength);
+		float2 dist = (texCoord - float2(0.5, 0.5));
+		float2 chromaDist = dist*dist  * ChromaticAbberationStrength * 0.1f; //*(0.5f+chromaStrength);
 
 		float chromaR = tex2D(TextureSampler, texCoord.xy + chromaDist).r;
 

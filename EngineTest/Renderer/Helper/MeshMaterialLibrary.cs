@@ -437,7 +437,6 @@ namespace DeferredEngine.Renderer.Helper
 
                         if (!ApplyShaders(renderType, renderModule, localWorldMatrix, view, viewProjection, meshLib, index,
                                 outlineId, outlined)) continue;
-
                         GameStats.MeshDraws++;
                         
                         graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset, startIndex,
@@ -519,6 +518,7 @@ namespace DeferredEngine.Renderer.Helper
                 }
                 else //Need special rasterization
                 {
+                    graphicsDevice.DepthStencilState = DepthStencilState.Default;
                     graphicsDevice.BlendState = BlendState.Opaque;
                     graphicsDevice.RasterizerState = _shadowGenerationRasterizerState;
                 }

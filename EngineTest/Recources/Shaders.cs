@@ -42,15 +42,6 @@ namespace DeferredEngine.Recources
 
         //Temporal AntiAliasing
 
-        public static Effect TemporalAntiAliasingEffect;
-
-        public static EffectParameter TemporalAntiAliasingEffect_DepthMap;
-        public static EffectParameter TemporalAntiAliasingEffect_AccumulationMap;
-        public static EffectParameter TemporalAntiAliasingEffect_UpdateMap;
-        public static EffectParameter TemporalAntiAliasingEffect_CurrentToPrevious;
-        public static EffectParameter TemporalAntiAliasingEffect_Resolution;
-        public static EffectParameter TemporalAntiAliasingEffect_FrustumCorners;
-        public static EffectParameter TemporalAntiAliasingEffect_Threshold;
         
         //Vignette and CA
 
@@ -234,19 +225,7 @@ namespace DeferredEngine.Recources
         public static EffectParameter deferredEnvironmentParameter_FireflyReduction;
         public static EffectParameter deferredEnvironmentParameter_FireflyThreshold;
         public static EffectParameter deferredEnvironmentParameterTransposeView;
-
-        //SSR
-
-        //public static Effect SSReflectionEffect;
-        //public static EffectParameter SSReflectionEffectParameter_CameraPosition;
-        //public static EffectParameter SSReflectionEffectParameter_InvertViewProjection;
-        //public static EffectParameter SSReflectionEffectParameter_Projection;
-        //public static EffectParameter SSReflectionEffectParameter_ViewProjection;
-        //public static EffectParameter SSReflectionEffectParameter_DepthMap;
-        //public static EffectParameter SSReflectionEffectParameter_NormalMap;
-        //public static EffectParameter SSReflectionEffectParameter_AlbedoMap;
-        //public static EffectParameter SSReflectionEffectParameter_Resolution;
-
+        
         public static void Load(ContentManager content)
         {
             //Depth reconstr
@@ -281,18 +260,6 @@ namespace DeferredEngine.Recources
 
             LineEffect = content.Load<Effect>("Shaders/Editor/LineEffect");
             LineEffectParameter_WorldViewProj = LineEffect.Parameters["WorldViewProj"];
-
-            //TAA
-
-            TemporalAntiAliasingEffect = content.Load<Effect>("Shaders/TemporalAntiAliasing/TemporalAntiAliasing");
-
-            TemporalAntiAliasingEffect_AccumulationMap = TemporalAntiAliasingEffect.Parameters["AccumulationMap"];
-            TemporalAntiAliasingEffect_UpdateMap = TemporalAntiAliasingEffect.Parameters["UpdateMap"];
-            TemporalAntiAliasingEffect_DepthMap = TemporalAntiAliasingEffect.Parameters["DepthMap"];
-            TemporalAntiAliasingEffect_CurrentToPrevious = TemporalAntiAliasingEffect.Parameters["CurrentToPrevious"];
-            TemporalAntiAliasingEffect_Resolution = TemporalAntiAliasingEffect.Parameters["Resolution"];
-            TemporalAntiAliasingEffect_FrustumCorners = TemporalAntiAliasingEffect.Parameters["FrustumCorners"];
-            TemporalAntiAliasingEffect_Threshold = TemporalAntiAliasingEffect.Parameters["Threshold"];
             
             //Post
 

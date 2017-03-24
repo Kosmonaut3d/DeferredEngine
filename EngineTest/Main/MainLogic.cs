@@ -102,7 +102,7 @@ namespace DeferredEngine.Main
             //    scale: 10.4f);
 
             AddEntity(model: _assets.Plane,
-                materialEffect: _assets.MetalRough01Material,
+                materialEffect: _assets.MirrorMaterial,
                 position: new Vector3(30, 0, 0),
                 angleX: 0,
                 angleY: 0,

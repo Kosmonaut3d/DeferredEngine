@@ -123,7 +123,13 @@ namespace DeferredEngine.Main
                 ToggleField = typeof(GameSettings).GetField("g_TemporalAntiAliasing"),
                 Toggle = GameSettings.g_TemporalAntiAliasing
             });
-            
+
+            postprocessingList.AddElement(new GUITextBlockToggle(defaultStyle, "Tonemap TAA")
+            {
+                ToggleField = typeof(GameSettings).GetField("g_TemporalAntiAliasingUseTonemap"),
+                Toggle = GameSettings.g_TemporalAntiAliasingUseTonemap
+            });
+
             postprocessingList.AddElement(new GuiSliderFloatText(defaultStyle, 0, 4, 2, "WhitePoint: ")
             {
                 SliderProperty = typeof(GameSettings).GetProperty("WhitePoint"),
@@ -241,6 +247,92 @@ namespace DeferredEngine.Main
                 SliderProperty = typeof(GameSettings).GetProperty("ssao_Strength"),
                 SliderValue = GameSettings.ssao_Strength
             });
+
+            /////////////////////////////////////////////////////////////////
+            //Bloom
+            /////////////////////////////////////////////////////////////////
+            /// 
+            optionList.AddElement(new GUITextBlock(Vector2.Zero, new Vector2(200, 10), "Bloom",
+                defaultStyle.TextFontStyle, Color.DarkSlateGray, Color.White, GUIStyle.TextAlignment.Center,
+                Vector2.Zero));
+
+            GuiListToggle bloomList = new GuiListToggle(Vector2.Zero, defaultStyle) { ToggleBlockColor = Color.DarkSlateGray };
+            optionList.AddElement(bloomList);
+
+            bloomList.AddElement(new GUITextBlockToggle(defaultStyle, "Enable Bloom")
+            {
+                ToggleField = typeof(GameSettings).GetField("g_BloomEnable"),
+                Toggle = GameSettings.g_BloomEnable
+            });
+
+            bloomList.AddElement(new GuiSliderFloatText(defaultStyle, 0, 4, 1, "Threshold: ")
+            {
+                SliderField = typeof(GameSettings).GetField("g_BloomThreshold"),
+                SliderValue = GameSettings.g_BloomThreshold
+            });
+
+            bloomList.AddElement(new GuiSliderFloatText(defaultStyle, 0, 8, 1, "MIP0 Radius: ")
+            {
+                SliderField = typeof(GameSettings).GetField("g_BloomRadius1"),
+                SliderValue = GameSettings.g_BloomRadius1
+            });
+
+            bloomList.AddElement(new GuiSliderFloatText(defaultStyle, 0, 8, 1, "MIP0 Strength: ")
+            {
+                SliderField = typeof(GameSettings).GetField("g_BloomStrength1"),
+                SliderValue = GameSettings.g_BloomStrength1
+            });
+
+
+            bloomList.AddElement(new GuiSliderFloatText(defaultStyle, 0, 8, 1, "MIP1 Radius: ")
+            {
+                SliderField = typeof(GameSettings).GetField("g_BloomRadius2"),
+                SliderValue = GameSettings.g_BloomRadius2
+            });
+
+            bloomList.AddElement(new GuiSliderFloatText(defaultStyle, 0, 8, 1, "MIP1 Strength: ")
+            {
+                SliderField = typeof(GameSettings).GetField("g_BloomStrength2"),
+                SliderValue = GameSettings.g_BloomStrength2
+            });
+
+            bloomList.AddElement(new GuiSliderFloatText(defaultStyle, 0, 8, 1, "MIP2 Radius: ")
+            {
+                SliderField = typeof(GameSettings).GetField("g_BloomRadius3"),
+                SliderValue = GameSettings.g_BloomRadius3
+            });
+
+            bloomList.AddElement(new GuiSliderFloatText(defaultStyle, 0, 8, 1, "MIP2 Strength: ")
+            {
+                SliderField = typeof(GameSettings).GetField("g_BloomStrength3"),
+                SliderValue = GameSettings.g_BloomStrength3
+            });
+
+            bloomList.AddElement(new GuiSliderFloatText(defaultStyle, 0, 8, 1, "MIP3 Radius: ")
+            {
+                SliderField = typeof(GameSettings).GetField("g_BloomRadius4"),
+                SliderValue = GameSettings.g_BloomRadius4
+            });
+
+            bloomList.AddElement(new GuiSliderFloatText(defaultStyle, 0, 8, 1, "MIP3 Strength: ")
+            {
+                SliderField = typeof(GameSettings).GetField("g_BloomStrength4"),
+                SliderValue = GameSettings.g_BloomStrength4
+            });
+
+
+            bloomList.AddElement(new GuiSliderFloatText(defaultStyle, 0, 8, 1, "MIP4 Radius: ")
+            {
+                SliderField = typeof(GameSettings).GetField("g_BloomRadius5"),
+                SliderValue = GameSettings.g_BloomRadius5
+            });
+
+            bloomList.AddElement(new GuiSliderFloatText(defaultStyle, 0, 8, 1, "MIP4 Strength: ")
+            {
+                SliderField = typeof(GameSettings).GetField("g_BloomStrength5"),
+                SliderValue = GameSettings.g_BloomStrength5
+            });
+
         }
 
         private string CreateHelperText()

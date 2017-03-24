@@ -159,7 +159,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 
 	float3 finalValue = lerp(plasticFinal, metalFinal, metalness) + diffuseContrib;
 
-	return float4(finalValue * ssaoContribution + volumeLight,  1) * exposure;
+	return float4(finalValue * ssaoContribution + volumeLight,  1);
 }
 
 float4 PixelShaderSSRFunction(VertexShaderOutput input) : COLOR0

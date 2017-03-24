@@ -512,20 +512,20 @@ float4 PixelShaderFunctionTAA(VertexShaderOutput input) : COLOR0
 
 			//Fade out to the edges
 			[branch]
-			if (rayPosition.y > border2)
+			if (hitTexCoord.y > border2)
 			{
 				output.a = lerp(1, 0, (hitTexCoord.y - border2) * bordermulti);
 			}
-			else if (rayPosition.y < border)
+			else if (hitTexCoord.y < border)
 			{
 				output.a = lerp(0, 1, hitTexCoord.y * bordermulti);
 			}
 			[branch]
-			if (rayPosition.x > border2)
+			if (hitTexCoord.x > border2)
 			{
 				output.a *= lerp(1, 0, (hitTexCoord.x - border2) * bordermulti);
 			}
-			else if (rayPosition.x < border)
+			else if (hitTexCoord.x < border)
 			{
 				output.a *= lerp(0, 1, hitTexCoord.x * bordermulti);
 			}
@@ -541,7 +541,7 @@ float4 PixelShaderFunctionTAA(VertexShaderOutput input) : COLOR0
 		startingDepth = rayPosition.z;
 	}
 
-return saturate(output);
+return output;
 }
 
 

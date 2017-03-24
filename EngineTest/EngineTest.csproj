@@ -97,6 +97,7 @@
     <Compile Include="Renderer\RenderModules\LightAccumulationModule.cs" />
     <Compile Include="Renderer\RenderModules\IRenderModule.cs" />
     <Compile Include="Renderer\RenderModules\GBufferRenderModule.cs" />
+    <Compile Include="Renderer\RenderModules\TemporalAntialiasingRenderModule.cs" />
     <Compile Include="Renderer\RenderModules\RenderModuleTemplate.cs" />
     <Compile Include="Renderer\RenderModules\ShadowMapRenderModule.cs" />
     <Compile Include="Renderer\RenderModules\TexFilter.cs" />
@@ -146,7 +147,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="Graph1.dgml" />
+    <None Include="Graph1 - Copy.dgml">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Graph1.dgml">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\HelperSuite\HelperSuite.csproj">

@@ -10,7 +10,9 @@ float2 Resolution = { 1280, 800 };
 
 float3 FrustumCorners[4]; //In Viewspace!
 
-float Threshold = 0;
+bool UseTonemap = true;
+
+//float Threshold = 0;
 
 SamplerState texSampler
 {
@@ -91,6 +93,34 @@ float3 GetFrustumRay2(float2 texCoord)
 	return outV;
 }
 
+float GetLuma(float3 rgb)
+{
+	return (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b);
+}
+
+//http://www.cs.utah.edu/~reinhard/cdrom/tonemap.pdf
+
+float3 ReinhardTonemap(float3 hdr)
+{
+	float x = GetLuma(hdr);
+	return hdr * (1 / (x + 1));
+}
+
+float3 InverseReinhardTonemap(float3 ldr)
+{
+	float x = GetLuma(ldr);
+	return ldr * ((x + 1) / 1);
+}
+
+float4 InverseToneMapPixelShader(VertexShaderOutput input) : SV_Target
+{
+	int3 TexCoordInt = int3(input.TexCoord * Resolution, 0);
+
+	float4 updatedColorSample = AccumulationMap.Load(TexCoordInt);
+
+	return float4(InverseReinhardTonemap(updatedColorSample.rgb), updatedColorSample.a);
+}
+
 PixelShaderOutput PixelShaderFunction(VertexShaderOutput input) : SV_Target
 {
 	PixelShaderOutput output;
@@ -108,15 +138,19 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input) : SV_Target
     //Check how much they match
 	int3 TexCoordInt = int3(texCoord * Resolution, 0);
 
-    float4 updatedColorSample = UpdateMap.Load(TexCoordInt);
+	float4 updatedColorSample = UpdateMap.Load(TexCoordInt);
+
+	//HDR -> LDR!
+
+	[branch]
+	if (UseTonemap)
+		updatedColorSample.rgb = ReinhardTonemap(updatedColorSample.rgb);
 
     int3 sampleTexCoordInt = int3(sampleTexCoord * Resolution, 0);
 
     float4 accumulationColorSample = AccumulationMap.Load(sampleTexCoordInt);
 
     float alpha = accumulationColorSample.a;
-
-	
 
  //   float3 baseColorYUV = ToYUV(updatedColorSample.rgb);
  //////   //overlap
@@ -259,7 +293,7 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input) : SV_Target
 */
 	//output.Coherence = float4(sampleTexCoord, 0, 0);
 
-	output.Combine = float4(rgbout, alpha);
+	output.Combine = float4(rgbout, 1);
 
 	return output;
 
@@ -267,11 +301,20 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input) : SV_Target
 
 }
 
-technique TAA
+technique TemporalAntialiasing
 {
     pass Pass1
     {
         VertexShader = compile vs_4_0 VertexShaderFunction();
         PixelShader = compile ps_5_0 PixelShaderFunction();
     }
+}
+
+technique InverseTonemap
+{
+	pass Pass1
+	{
+		VertexShader = compile vs_4_0 VertexShaderFunction();
+		PixelShader = compile ps_5_0 InverseToneMapPixelShader();
+	}
 }

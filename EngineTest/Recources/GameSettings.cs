@@ -74,12 +74,13 @@ namespace DeferredEngine.Recources
 
         public static bool g_TemporalAntiAliasing = true;
         public static int g_TemporalAntiAliasingJitterMode = 2;
+        public static bool g_TemporalAntiAliasingUseTonemap = false;
         public static bool Editor_enable = true;
         public static bool h_DrawLines = true;
 
         // PostProcessing
 
-        private static float _chromaticAbberationStrength = 0.002f;
+        private static float _chromaticAbberationStrength = 0.035f;
         public static float ChromaticAbberationStrength
         {
             get { return _chromaticAbberationStrength; }
@@ -301,7 +302,7 @@ namespace DeferredEngine.Recources
             }
         }
 
-        private static float _g_TemporalAntiAliasingThreshold = 0.9f;
+        //private static float _g_TemporalAntiAliasingThreshold = 0.9f;
         public static int g_CubeMapResolution = 512;
         public static bool c_UseStringBuilder = true;
         public static int g_UseDepthStencilLightCulling = 1; //None, Depth, Depth+Stencil
@@ -313,13 +314,13 @@ namespace DeferredEngine.Recources
         public static float g_BloomRadius4 = 3.0f;
         public static float g_BloomRadius5 = 4.0f;
 
-        public static float g_BloomStrength1 = 1;
-        public static float g_BloomStrength2 = 7;
+        public static float g_BloomStrength1 = 0.5f;
+        public static float g_BloomStrength2 = 1;
         public static float g_BloomStrength3 = 1;
-        public static float g_BloomStrength4 = 0.5f;
-        public static float g_BloomStrength5 = 0.2f;
+        public static float g_BloomStrength4 = 1.0f;
+        public static float g_BloomStrength5 = 1.0f;
 
-        public static float g_BloomThreshold = 0.5f;
+        public static float g_BloomThreshold = 0.0f;
         public static bool ui_DrawUI = true;
 
 
@@ -329,22 +330,22 @@ namespace DeferredEngine.Recources
         public static float ShadowBias = 0.005f;
 
 
-        public static float g_TemporalAntiAliasingThreshold
-        {
-            get
-            {
-                return _g_TemporalAntiAliasingThreshold;
-            }
+        //public static float g_TemporalAntiAliasingThreshold
+        //{
+        //    get
+        //    {
+        //        return _g_TemporalAntiAliasingThreshold;
+        //    }
 
-            set
-            {
-                if (Math.Abs(_g_TemporalAntiAliasingThreshold - value) > 0.0001f)
-                {
-                    _g_TemporalAntiAliasingThreshold = value;
-                    Shaders.TemporalAntiAliasingEffect_Threshold.SetValue(_g_TemporalAntiAliasingThreshold);
-                }
-            }
-        }
+        //    set
+        //    {
+        //        if (Math.Abs(_g_TemporalAntiAliasingThreshold - value) > 0.0001f)
+        //        {
+        //            _g_TemporalAntiAliasingThreshold = value;
+        //            Shaders.TemporalAntiAliasingEffect_Threshold.SetValue(_g_TemporalAntiAliasingThreshold);
+        //        }
+        //    }
+        //}
 
         public static void ApplySettings()
         {

@@ -40,6 +40,7 @@ namespace DeferredEngine.Recources
         public MaterialEffect HologramMaterial;
         public MaterialEffect MetalRough03Material;
         public MaterialEffect MetalRough01Material;
+        public MaterialEffect MirrorMaterial;
 
         //Shader stuff
 
@@ -95,7 +96,8 @@ namespace DeferredEngine.Recources
             BaseMaterial = CreateMaterial(Color.Red, 0.3f, 0);
 
             MetalRough03Material = CreateMaterial(Color.Silver, 0.3f, 1);
-            MetalRough01Material = CreateMaterial(Color.Silver, 0.01f, 1);
+            MetalRough01Material = CreateMaterial(Color.Silver, 0.05f, 1);
+            MirrorMaterial = CreateMaterial(Color.White, 0.05f, 1);
 
             HologramMaterial = CreateMaterial(Color.White, 0.2f, 1, null, null, null, null, null, null, MaterialEffect.MaterialTypes.Hologram, 1);
 
