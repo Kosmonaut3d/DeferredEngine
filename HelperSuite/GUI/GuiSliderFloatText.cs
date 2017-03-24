@@ -105,6 +105,14 @@ namespace HelperSuite.GUI
             SliderValue = (float)SliderProperty.GetValue(obj);
         }
 
+        public void SetValues(string text, float minValue, float maxValue, uint decimals)
+        {
+            SetText(new StringBuilder(text));
+            MinValue = minValue;
+            MaxValue = maxValue;
+            roundDecimals = decimals;
+        }
+
         public override void Update(GameTime gameTime, Vector2 mousePosition, Vector2 parentPosition)
         {
             if (GUIControl.UIElementEngaged && !IsEngaged) return;

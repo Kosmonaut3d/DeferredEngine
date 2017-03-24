@@ -37,6 +37,7 @@ namespace DeferredEngine.Renderer
         private ShadowMapRenderModule _shadowMapRenderModule;
         private GBufferRenderModule _gBufferRenderModule;
         private TemporalAntialiasingRenderModule _temporalAntialiasingRenderModule;
+        private DeferredEnvironmentMapRenderModule _deferredEnvironmentMapRenderModule;
         
         //Assets
         private Assets _assets;
@@ -161,6 +162,7 @@ namespace DeferredEngine.Renderer
             _shadowMapRenderModule = new ShadowMapRenderModule(content, "Shaders/Shadow/ShadowMap");
             _gBufferRenderModule = new GBufferRenderModule(content, "Shaders/GbufferSetup/ClearGBuffer", "Shaders/GbufferSetup/Gbuffer");
             _temporalAntialiasingRenderModule = new TemporalAntialiasingRenderModule(content, "Shaders/TemporalAntiAliasing/TemporalAntiAliasing");
+            _deferredEnvironmentMapRenderModule = new DeferredEnvironmentMapRenderModule(content, "Shaders/Deferred/DeferredEnvironmentMap");
 
             _inverseResolution = new Vector3(1.0f / GameSettings.g_ScreenWidth, 1.0f / GameSettings.g_ScreenHeight, 0);
             
@@ -287,7 +289,7 @@ namespace DeferredEngine.Renderer
             _lightAccumulationModule.DrawLights(pointLights, directionalLights, camera.Position, gameTime, _renderTargetLightBinding, _renderTargetDiffuse);
 
             //Draw the environment cube map as a fullscreen effect on all meshes
-            DrawEnvironmentMap();
+            DrawEnvironmentMap(envSample);
 
             //Draw emissive materials on an offscreen render target
             DrawEmissiveEffect(camera, meshMaterialLibrary, gameTime);
@@ -377,7 +379,7 @@ namespace DeferredEngine.Renderer
                     DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
 
                 //Set this cubemap in the shader of the environment map
-                Shaders.deferredEnvironmentParameter_ReflectionCubeMap.SetValue(_renderTargetCubeMap);
+                _deferredEnvironmentMapRenderModule.Cubemap = _renderTargetCubeMap;
             }
 
             //Set up all the base rendertargets with the resolution of our cubemap
@@ -795,7 +797,7 @@ namespace DeferredEngine.Renderer
             _currentFrustumCorners[3] = _currentFrustumCorners[2];
             _currentFrustumCorners[2] = temp;
 
-            Shaders.deferredEnvironmentParameter_FrustumCorners.SetValue(_currentFrustumCorners);
+            _deferredEnvironmentMapRenderModule.FrustumCorners = _currentFrustumCorners;
             Shaders.ScreenSpaceReflectionParameter_FrustumCorners.SetValue(_currentFrustumCorners);
             Shaders.ScreenSpaceEffectParameter_FrustumCorners.SetValue(_currentFrustumCorners);
             _temporalAntialiasingRenderModule.FrustumCorners = _currentFrustumCorners;
@@ -1027,19 +1029,11 @@ namespace DeferredEngine.Renderer
         /// <summary>
         /// Apply our environment cubemap to the renderer
         /// </summary>
-        private void DrawEnvironmentMap()
+        private void DrawEnvironmentMap(EnvironmentSample envSample)
         {
             if (!GameSettings.g_EnvironmentMapping) return;
 
-            _graphicsDevice.DepthStencilState = DepthStencilState.None;
-            _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
-            Shaders.deferredEnvironmentParameterTransposeView.SetValue(Matrix.Transpose(_view));
-
-            //Shaders.deferredEnvironment.CurrentTechnique = GameSettings.g_SSReflection
-            //    ? Shaders.deferredEnvironment.Techniques["g_SSR"]
-            //    : Shaders.deferredEnvironment.Techniques["Classic"];
-            Shaders.deferredEnvironment.CurrentTechnique.Passes[0].Apply();
-            _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+            _deferredEnvironmentMapRenderModule.Draw(_graphicsDevice, _view, _quadRenderer, envSample, GameSettings.g_SSReflection_FireflyReduction, GameSettings.g_SSReflection_FireflyThreshold);
 
             //Performance Profiler
             if (GameSettings.d_profiler)
@@ -1360,7 +1354,7 @@ namespace DeferredEngine.Renderer
                     targetHeight, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
 
                 Shaders.ScreenSpaceReflectionParameter_Resolution.SetValue(new Vector2(targetWidth, targetHeight));
-                Shaders.deferredEnvironmentParameter_Resolution.SetValue(new Vector2(targetWidth, targetHeight));
+                _deferredEnvironmentMapRenderModule.Resolution = new Vector2(targetWidth, targetHeight);
                 _renderTargetScreenSpaceEffectReflection = new RenderTarget2D(_graphicsDevice, targetWidth,
                     targetHeight, false, SurfaceFormat.HalfVector4, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
 
@@ -1410,10 +1404,9 @@ namespace DeferredEngine.Renderer
 
             Shaders.deferredDirectionalLightParameter_SSShadowMap.SetValue(onlyEssentials ? _renderTargetScreenSpaceEffectUpsampleBlurVertical : _renderTargetScreenSpaceEffectBlurFinal);
 
-            Shaders.deferredEnvironmentParameter_AlbedoMap.SetValue(_renderTargetAlbedo);
-            //Shaders.deferredEnvironmentParameter_DepthMap.SetValue(_renderTargetDepth);
-            Shaders.deferredEnvironmentParameter_NormalMap.SetValue(_renderTargetNormal);
-            Shaders.deferredEnvironmentParameter_SSRMap.SetValue(_renderTargetScreenSpaceEffectReflection);
+            _deferredEnvironmentMapRenderModule.AlbedoMap = _renderTargetAlbedo;
+            _deferredEnvironmentMapRenderModule.NormalMap = _renderTargetNormal;
+            _deferredEnvironmentMapRenderModule.SSRMap = _renderTargetScreenSpaceEffectReflection;
 
             Shaders.DeferredComposeEffectParameter_ColorMap.SetValue(_renderTargetAlbedo);
             Shaders.DeferredComposeEffectParameter_diffuseLightMap.SetValue(_renderTargetDiffuse);

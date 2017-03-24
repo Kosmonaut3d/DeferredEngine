@@ -429,11 +429,43 @@ namespace DeferredEngine.Main
                     }
                 }
 
+                else if (selectedObject is DirectionalLightSource)
+                {
+                    _objectToggle2.IsHidden = false;
+                    _objectSlider1.IsHidden = false;
+                    _objectSlider2.IsHidden = false;
+                    _objectColorPicker1.IsHidden = false;
+
+                    if (activeObject != selectedObject)
+                    {
+                        _objectToggle2.SetField(selectedObject, "CastShadows");
+                        _objectToggle2.Text = new StringBuilder("Cast Shadows");
+
+                        _objectSlider1.MinValue = 1.1f;
+                        _objectSlider1.MaxValue = 200;
+
+                        _objectSlider1.SetProperty(selectedObject, "Radius");
+                        _objectSlider1.SetText(new StringBuilder("Radius: "));
+
+                        _objectSlider2.MinValue = 0.01f;
+                        _objectSlider2.MaxValue = 1000;
+
+                        _objectSlider2.SetField(selectedObject, "Intensity");
+                        _objectSlider2.SetText(new StringBuilder("Intensity: "));
+                        
+                        _objectColorPicker1.ReferenceObject = selectedObject;
+                        _objectColorPicker1.ReferenceProperty = selectedObject.GetType().GetProperty("Color");
+                    }
+                }
+
                 // Environment Sample!
-                if (selectedObject is EnvironmentSample)
+                else if(selectedObject is EnvironmentSample)
                 {
                     _objectButton1.IsHidden = false;
                     _objectToggle1.IsHidden = false;
+
+                    _objectSlider1.IsHidden = false;
+                    _objectSlider2.IsHidden = false;
 
                     if (activeObject != selectedObject)
                     {
@@ -448,6 +480,12 @@ namespace DeferredEngine.Main
                         _objectToggle1.Toggle = (selectedObject as EnvironmentSample).AutoUpdate;
 
                         _objectToggle1.Text = new StringBuilder("Update on move");
+
+                        _objectSlider1.SetField(selectedObject, "SpecularStrength");
+                        _objectSlider1.SetValues("Specular Strength: ", 0.01f, 1, 2);
+
+                        _objectSlider2.SetField(selectedObject, "DiffuseStrength");
+                        _objectSlider2.SetValues("Diffuse Strength: ", 0, 1, 2);
                     }
                 }
 

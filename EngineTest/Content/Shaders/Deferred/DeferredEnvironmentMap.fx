@@ -20,6 +20,10 @@ float2 Resolution = { 1280, 800 };
 bool FireflyReduction;
 float FireflyThreshold = 0.1f;
 
+float EnvironmentMapSpecularStrength = 1.0f;
+float EnvironmentMapSpecularStrengthRcp = 1.0f;
+float EnvironmentMapDiffuseStrength = 0.2f;
+
 sampler PointSampler
 {
     Texture = <AlbedoMap>;
@@ -270,10 +274,10 @@ PixelShaderOutput PixelShaderFunctionBasic(VertexShaderOutput input)
 	//Sample our screen space reflection map and use the environment map only as fallback
 	float4 ssreflectionMap = GetSSR(input.TexCoord);
 	
-	if (ssreflectionMap.a > 0) ReflectColor.rgb = ssreflectionMap.rgb ;
+	if (ssreflectionMap.a > 0) ReflectColor.rgb = ssreflectionMap.rgb * EnvironmentMapSpecularStrengthRcp;
 	
-    output.Diffuse = float4(DiffuseReflectColor.xyz, 0) * 0.2f;
-    output.Specular = float4(ReflectColor.xyz, 0) ;
+    output.Diffuse = float4(DiffuseReflectColor.xyz, 0) * EnvironmentMapDiffuseStrength;
+    output.Specular = float4(ReflectColor.xyz, 0) *EnvironmentMapSpecularStrength;
 
     return output;
 }

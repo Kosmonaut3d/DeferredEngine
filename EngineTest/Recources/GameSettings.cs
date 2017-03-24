@@ -152,7 +152,6 @@ namespace DeferredEngine.Recources
             set
             {
                 _g_SSReflection_FireflyReduction = value;
-                Shaders.deferredEnvironmentParameter_FireflyReduction.SetValue(value);
             }
         }
 
@@ -164,7 +163,6 @@ namespace DeferredEngine.Recources
             set
             {
                 _g_SSReflection_FireflyThreshold = value;
-                Shaders.deferredEnvironmentParameter_FireflyThreshold.SetValue(_g_SSReflection_FireflyThreshold);
             }
         }
 

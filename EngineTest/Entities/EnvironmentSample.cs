@@ -21,6 +21,9 @@ namespace DeferredEngine.Entities
             }
         }
 
+        public float SpecularStrength = 1;
+        public float DiffuseStrength = 0.2f;
+
         public bool AutoUpdate = true;
 
         public override int Id { get; set; }

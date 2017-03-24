@@ -213,18 +213,6 @@ namespace DeferredEngine.Recources
         public static EffectParameter deferredPointLightParameter_NormalMap;
         public static EffectParameter deferredPointLightParameter_DepthMap;
 
-        //DeferredEnvironment
-        
-        public static Effect deferredEnvironment;
-        public static EffectParameter deferredEnvironmentParameter_AlbedoMap;
-        public static EffectParameter deferredEnvironmentParameter_NormalMap;
-        public static EffectParameter deferredEnvironmentParameter_SSRMap;
-        public static EffectParameter deferredEnvironmentParameter_FrustumCorners;
-        public static EffectParameter deferredEnvironmentParameter_ReflectionCubeMap;
-        public static EffectParameter deferredEnvironmentParameter_Resolution;
-        public static EffectParameter deferredEnvironmentParameter_FireflyReduction;
-        public static EffectParameter deferredEnvironmentParameter_FireflyThreshold;
-        public static EffectParameter deferredEnvironmentParameterTransposeView;
         
         public static void Load(ContentManager content)
         {
@@ -438,17 +426,6 @@ namespace DeferredEngine.Recources
             deferredPointLightParameter_NormalMap = deferredPointLight.Parameters["NormalMap"];
             deferredPointLightParameter_DepthMap = deferredPointLight.Parameters["DepthMap"];
 
-            //Environment
-            deferredEnvironment = content.Load<Effect>("Shaders/Deferred/DeferredEnvironmentMap");
-            deferredEnvironmentParameter_AlbedoMap = deferredEnvironment.Parameters["AlbedoMap"];
-            deferredEnvironmentParameter_NormalMap = deferredEnvironment.Parameters["NormalMap"];
-            deferredEnvironmentParameter_FrustumCorners = deferredEnvironment.Parameters["FrustumCorners"];
-            deferredEnvironmentParameter_SSRMap = deferredEnvironment.Parameters["ReflectionMap"];
-            deferredEnvironmentParameter_ReflectionCubeMap = deferredEnvironment.Parameters["ReflectionCubeMap"];
-            deferredEnvironmentParameter_Resolution = deferredEnvironment.Parameters["Resolution"];
-            deferredEnvironmentParameter_FireflyReduction = deferredEnvironment.Parameters["FireflyReduction"];
-            deferredEnvironmentParameter_FireflyThreshold = deferredEnvironment.Parameters["FireflyThreshold"];
-            deferredEnvironmentParameterTransposeView = deferredEnvironment.Parameters["TransposeView"];
             
         }
     }
