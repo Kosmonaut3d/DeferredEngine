@@ -259,23 +259,21 @@ PixelShaderOutput PixelShaderFunctionBasic(VertexShaderOutput input)
     //roughness from 0.05 to 0.5, coarsest of approximations
     float mip = roughness / 0.04f;
 
-	float4 ReflectColor = pow(abs(ReflectionCubeMap.SampleLevel(ReflectionCubeMapSampler, reflectionVector, mip)), 0.45454545f);
+	float4 ReflectColor = ReflectionCubeMap.SampleLevel(ReflectionCubeMapSampler, reflectionVector, mip);
 
     ReflectColor *= (1 - roughness) * (1 + matMultiplier) * fresnel; //* NdotC * NdotC * NdotC;
 
-	float4 DiffuseReflectColor = pow(abs(ReflectionCubeMap.SampleLevel(ReflectionCubeMapSampler, reflectionVector, 9)), 0.45454545f);
+	float4 DiffuseReflectColor = ReflectionCubeMap.SampleLevel(ReflectionCubeMapSampler, reflectionVector, 9);
 
     DiffuseReflectColor *= fresnel; //* NdotC * NdotC * NdotC;
 
 	//Sample our screen space reflection map and use the environment map only as fallback
 	float4 ssreflectionMap = GetSSR(input.TexCoord);
 	
-	if (ssreflectionMap.a > 0) ReflectColor.rgb = ssreflectionMap.rgb * 10;
-	else ReflectColor.rgb = pow(abs(ReflectColor.rgb), 2.2f);
-	DiffuseReflectColor.rgb = pow(abs(DiffuseReflectColor.rgb), 2.2f);
-
-    output.Diffuse = float4(DiffuseReflectColor.xyz, 0) * 0.1;
-    output.Specular = float4(ReflectColor.xyz, 0) * 0.1;
+	if (ssreflectionMap.a > 0) ReflectColor.rgb = ssreflectionMap.rgb ;
+	
+    output.Diffuse = float4(DiffuseReflectColor.xyz, 0) * 0.2f;
+    output.Specular = float4(ReflectColor.xyz, 0) ;
 
     return output;
 }

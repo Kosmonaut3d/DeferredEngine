@@ -74,7 +74,7 @@ namespace DeferredEngine.Recources
 
         public static bool g_TemporalAntiAliasing = true;
         public static int g_TemporalAntiAliasingJitterMode = 2;
-        public static bool g_TemporalAntiAliasingUseTonemap = false;
+        public static bool g_TemporalAntiAliasingUseTonemap = true;
         public static bool Editor_enable = true;
         public static bool h_DrawLines = true;
 
