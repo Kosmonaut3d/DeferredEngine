@@ -2,7 +2,7 @@
 
 by https://twitter.com/kosmonautgames
 
-Feedback -> http://community.monogame.net/t/deferred-engine-playground-download/8180
+Feedback -> http://community.monogame.net/t/deferred-engine-playground-download/8180   
          -> https://kosmonautblog.wordpress.com/
          
 ![Alt text](http://i.imgur.com/ucSrI29.png "soft shadows")
