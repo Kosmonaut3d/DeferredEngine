@@ -499,7 +499,7 @@ PixelShaderOutput VolumetricPixelShaderFunction(VertexShaderOutput input)
 
 	output.Diffuse = 0;
 	output.Specular = 0;
-	output.Volume = float4((totalVolumePassed * 0.0002 *lightIntensity * lightVolumeDensity) * lightColor, 0);
+	output.Volume = float4((totalVolumePassed * 0.00004 *lightIntensity * lightVolumeDensity) * lightColor, 0);
 
 	[branch]
 	if (distanceLtoR < lightRadius)

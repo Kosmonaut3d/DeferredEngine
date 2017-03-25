@@ -55,7 +55,7 @@ float3 ColorSCurve(float3 color)
     //float brightness = (color.r+color.b+color.g) / 3;
     float brightness = max(color.r, max(color.g, color.b));
 
-    float brightnessCurve = brightness - sin(brightness * 2 * 3.1414f) * SCurveStrength + sin(brightness*3.141)*0.1;
+    float brightnessCurve = brightness - sin(brightness * 2 * 3.1414f) * SCurveStrength * 0.1f + sin(brightness*3.141)*0.1;
 
     brightness = brightnessCurve / brightness;
 
@@ -150,8 +150,8 @@ float4 VignetteChromaShiftPixelShaderFunction(float4 pos : SV_POSITION, float2 t
 
 	if (dist > 0.1)
 	{
-		float2 distcr = (texCoord - float2(0.5, 0.5)) * float2(1.6f, 1);
-		float2 chromaDist = distcr*distcr  * ChromaticAbberationStrength * 0.1f; //*(0.5f+chromaStrength);
+		float2 distcr = (texCoord - float2(0.5, 0.5)) ;
+		float2 chromaDist = distcr*dist * float2(1.6f, 1) * ChromaticAbberationStrength * 0.1f; //*(0.5f+chromaStrength);
 
 		float chromaR = tex2D(TextureSampler, texCoord.xy + chromaDist).r;
 

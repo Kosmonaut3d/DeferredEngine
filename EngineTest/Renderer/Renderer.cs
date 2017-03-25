@@ -83,12 +83,19 @@ namespace DeferredEngine.Renderer
         private bool _g_SSReflectionNoise;
 
         //Render modes
-        public enum RenderModes { Albedo, Normal, Depth, Deferred, Diffuse, Specular, Hologram,
-            SSAO,
-            Emissive,
-            DirectionalShadow,
-            SSR,
+        public enum RenderModes {
+            Deferred,
+            Albedo,
+            Normal,
+            Depth,
+            Diffuse,
+            Specular,
             Volumetric,
+            //Hologram,
+            SSAO,
+            SSBlur,
+            //Emissive,
+            SSR,
             HDR,
         }
 
@@ -121,7 +128,7 @@ namespace DeferredEngine.Renderer
         private RenderTarget2D _renderTargetScreenSpaceEffectUpsampleBlurHorizontal;
         private RenderTarget2D _renderTargetScreenSpaceEffectBlurFinal;
 
-        private RenderTarget2D _renderTargetEmissive;
+        //private RenderTarget2D _renderTargetEmissive;
 
         private RenderTarget2D _currentOutput;
 
@@ -1191,15 +1198,15 @@ namespace DeferredEngine.Renderer
                 case RenderModes.SSAO:
                     DrawMapToScreenToFullScreen(_renderTargetSSAOEffect);
                     break;
-                case RenderModes.Hologram:
-                    DrawMapToScreenToFullScreen(_renderTargetHologram);
-                    break;
-                case RenderModes.DirectionalShadow:
+                //case RenderModes.Hologram:
+                //    DrawMapToScreenToFullScreen(_renderTargetHologram);
+                //    break;
+                case RenderModes.SSBlur:
                     DrawMapToScreenToFullScreen(_renderTargetScreenSpaceEffectBlurFinal);
                     break;
-                case RenderModes.Emissive:
-                    DrawMapToScreenToFullScreen(_renderTargetEmissive);
-                    break;
+                //case RenderModes.Emissive:
+                //    DrawMapToScreenToFullScreen(_renderTargetEmissive);
+                //    break;
                 case RenderModes.SSR:
                     DrawMapToScreenToFullScreen(_renderTargetScreenSpaceEffectReflection);
                     break;
@@ -1291,8 +1298,6 @@ namespace DeferredEngine.Renderer
 
                     _renderTargetScreenSpaceEffectUpsampleBlurHorizontal.Dispose();
                     _renderTargetScreenSpaceEffectBlurFinal.Dispose();
-
-                    _renderTargetEmissive.Dispose();
                 }
             }
 
@@ -1350,10 +1355,7 @@ namespace DeferredEngine.Renderer
                 _temporalAntialiasingRenderModule.Resolution = new Vector2(targetWidth, targetHeight);
                 // Shaders.SSReflectionEffectParameter_Resolution.SetValue(new Vector2(target_width, target_height));
                 Shaders.EmissiveEffectParameter_Resolution.SetValue(new Vector2(targetWidth, targetHeight));
-
-                _renderTargetEmissive = new RenderTarget2D(_graphicsDevice, targetWidth,
-                    targetHeight, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
-
+                
                 Shaders.ScreenSpaceReflectionParameter_Resolution.SetValue(new Vector2(targetWidth, targetHeight));
                 _deferredEnvironmentMapRenderModule.Resolution = new Vector2(targetWidth, targetHeight);
                 _renderTargetScreenSpaceEffectReflection = new RenderTarget2D(_graphicsDevice, targetWidth,
@@ -1427,7 +1429,6 @@ namespace DeferredEngine.Renderer
             //Shaders.ScreenSpaceReflectionParameter_TargetMap.SetValue(_renderTargetFinal);
 
             Shaders.EmissiveEffectParameter_DepthMap.SetValue(_renderTargetDepth);
-            Shaders.EmissiveEffectParameter_EmissiveMap.SetValue(_renderTargetEmissive);
             Shaders.EmissiveEffectParameter_NormalMap.SetValue(_renderTargetNormal);
 
             _temporalAntialiasingRenderModule.DepthMap = _renderTargetDepth;  

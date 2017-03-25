@@ -330,48 +330,9 @@ namespace DeferredEngine.Main
             if (Input.WasKeyPressed(Keys.F1))
             {
                 _renderModeCycle++;
-                if (_renderModeCycle > 11) _renderModeCycle = 0;
+                if (_renderModeCycle > 10) _renderModeCycle = 0;
 
-                switch (_renderModeCycle)
-                {
-                    case 0:
-                        GameSettings.g_RenderMode = Renderer.Renderer.RenderModes.Deferred;
-                        break;
-                    case 1:
-                        GameSettings.g_RenderMode = Renderer.Renderer.RenderModes.Albedo;
-                        break;
-                    case 2:
-                        GameSettings.g_RenderMode = Renderer.Renderer.RenderModes.Normal;
-                        break;
-                    case 3:
-                        GameSettings.g_RenderMode = Renderer.Renderer.RenderModes.Depth;
-                        break;
-                    case 4:
-                        GameSettings.g_RenderMode = Renderer.Renderer.RenderModes.Diffuse;
-                        break;
-                    case 5:
-                        GameSettings.g_RenderMode = Renderer.Renderer.RenderModes.Specular;
-                        break;
-                    case 6:
-                        GameSettings.g_RenderMode = Renderer.Renderer.RenderModes.Volumetric;
-                        break;
-                    case 7:
-                        GameSettings.g_RenderMode = Renderer.Renderer.RenderModes.SSAO;
-                        break;
-                    case 8:
-                        GameSettings.g_RenderMode = Renderer.Renderer.RenderModes.Hologram;
-                        break;
-                    case 9:
-                        GameSettings.g_RenderMode = Renderer.Renderer.RenderModes.HDR;
-                        break;
-                    case 10:
-                        GameSettings.g_RenderMode = Renderer.Renderer.RenderModes.DirectionalShadow;
-                        break;
-                    case 11:
-                        GameSettings.g_RenderMode = Renderer.Renderer.RenderModes.SSR;
-                        break;
-
-                }
+                GameSettings.g_RenderMode = (Renderer.Renderer.RenderModes) _renderModeCycle;
             }
         }
         

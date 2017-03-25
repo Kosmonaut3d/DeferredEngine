@@ -63,19 +63,17 @@ namespace DeferredEngine.Main
         
         public StringBuilder[] RenderModesSB =
         {
-            new StringBuilder( "Albedo" ),
-            new StringBuilder( "Normal" ),
-            new StringBuilder( "Depth" ),
-            new StringBuilder( "Deferred" ),
-            new StringBuilder( "Diffuse" ),
-            new StringBuilder( "Specular" ),
-            new StringBuilder( "Hologram" ),
-            new StringBuilder( "SSAO" ),
-            new StringBuilder( "Emissive" ),
-            new StringBuilder( "DirectionalShadow" ),
-            new StringBuilder( "SSR" ),
-            new StringBuilder( "Volumetric" ),
-            new StringBuilder( "HDR" )
+            new StringBuilder( ((Renderer.Renderer.RenderModes)0).ToString() ),
+            new StringBuilder( ((Renderer.Renderer.RenderModes)1).ToString() ),
+            new StringBuilder( ((Renderer.Renderer.RenderModes)2).ToString() ),
+            new StringBuilder( ((Renderer.Renderer.RenderModes)3).ToString() ),
+            new StringBuilder( ((Renderer.Renderer.RenderModes)4).ToString() ),
+            new StringBuilder( ((Renderer.Renderer.RenderModes)5).ToString() ),
+            new StringBuilder( ((Renderer.Renderer.RenderModes)6).ToString() ),
+            new StringBuilder( ((Renderer.Renderer.RenderModes)7).ToString() ),
+            new StringBuilder( ((Renderer.Renderer.RenderModes)8).ToString() ),
+            new StringBuilder( ((Renderer.Renderer.RenderModes)9).ToString() ),
+            new StringBuilder( ((Renderer.Renderer.RenderModes)10).ToString() ),
         };
 
         // Console

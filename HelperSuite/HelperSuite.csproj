@@ -61,6 +61,7 @@
     <Compile Include="GUI\GUIStyle.cs" />
     <Compile Include="GUI\GUITextBlock.cs" />
     <Compile Include="GUI\GUITextBlockButton.cs" />
+    <Compile Include="GUI\GuiDropList.cs" />
     <Compile Include="GUI\GuiTextBlockLoadDialog.cs" />
     <Compile Include="GUI\GUITextBlockToggle.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

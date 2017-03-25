@@ -66,12 +66,16 @@ namespace DeferredEngine.Main
             GUITextBlock helperText = new GUITextBlock(new Vector2(0, 100), new Vector2(300, 200), CreateHelperText(), defaultStyle.TextFontStyle, new Color(Color.DimGray, 0.2f), Color.White, GUIStyle.TextAlignment.Left, new Vector2(10, 1)) {IsHidden = true};
             GuiCanvas.AddElement(helperText);
 
-            _objectDescriptionList = new GUIList(Vector2.Zero, defaultStyle);
-
             _rightSideList.AddElement(new GUITextBlockToggle(defaultStyle, "Enable Editor")
             {
                 ToggleField = typeof(GameStats).GetField("e_EnableSelection"),
                 Toggle = GameStats.e_EnableSelection
+            });
+
+            _rightSideList.AddElement(new GUITextBlockToggle(defaultStyle, "Highlight Meshes")
+            {
+                ToggleField = typeof(GameSettings).GetField("e_DrawOutlines"),
+                Toggle = GameSettings.e_DrawOutlines
             });
 
             _rightSideList.AddElement(new GUITextBlockToggle(defaultStyle, "Show Controls")
@@ -87,6 +91,14 @@ namespace DeferredEngine.Main
                 Toggle = GameSettings.d_defaultMaterial
             });
 
+            //_rightSideList.AddElement(new GuiDropList(defaultStyle, "Show: ")
+            //{
+            //});
+
+            _rightSideList.AddElement(new GUITextBlock(defaultStyle, "Selection") { BlockColor = Color.DimGray, Dimensions = new Vector2(200, 10), TextAlignment = GUIStyle.TextAlignment.Center });
+
+            GuiListToggle _selectionList = new GuiListToggle(Vector2.Zero, defaultStyle);
+            _objectDescriptionList = new GUIList(Vector2.Zero, defaultStyle);
 
             _objectDescriptionList.AddElement(_objectDescriptionName = new GUITextBlock(defaultStyle, "objDescName"));
             _objectDescriptionList.AddElement(_objectDescriptionPos = new GUITextBlock(defaultStyle, "objDescName"));
@@ -98,7 +110,8 @@ namespace DeferredEngine.Main
             _objectDescriptionList.AddElement(_objectSlider3 = new GuiSliderIntText(defaultStyle, 0, 10, 1, "objToggle3") { IsHidden = true });
             _objectDescriptionList.AddElement(_objectColorPicker1 = new GUIColorPicker(defaultStyle) { IsHidden = true });
 
-            _rightSideList.AddElement(_objectDescriptionList);
+            _selectionList.AddElement(_objectDescriptionList);
+            _rightSideList.AddElement(_selectionList);
 
             /////////////////////////////////////////////////////////////////
             //Options
@@ -115,7 +128,7 @@ namespace DeferredEngine.Main
 
             optionList.AddElement(new GUITextBlock(defaultStyle, "PostProcessing") { BlockColor = Color.DarkSlateGray, Dimensions = new Vector2(200, 10), TextAlignment = GUIStyle.TextAlignment.Center });
 
-            GuiListToggle postprocessingList = new GuiListToggle(Vector2.Zero, defaultStyle) {ToggleBlockColor = Color.DarkSlateGray};
+            GuiListToggle postprocessingList = new GuiListToggle(Vector2.Zero, defaultStyle) {ToggleBlockColor = Color.DarkSlateGray, IsToggled = false};
             optionList.AddElement(postprocessingList);
 
             postprocessingList.AddElement(new GUITextBlockToggle(defaultStyle, "Temporal AA")
@@ -162,7 +175,7 @@ namespace DeferredEngine.Main
                 defaultStyle.TextFontStyle, Color.DarkSlateGray, Color.White, GUIStyle.TextAlignment.Center,
                 Vector2.Zero));
 
-            GuiListToggle ssrList = new GuiListToggle(Vector2.Zero, defaultStyle) { ToggleBlockColor = Color.DarkSlateGray };
+            GuiListToggle ssrList = new GuiListToggle(Vector2.Zero, defaultStyle) { ToggleBlockColor = Color.DarkSlateGray, IsToggled = false };
             optionList.AddElement(ssrList);
 
             ssrList.AddElement(new GUITextBlockToggle(defaultStyle, "Enable SSR")
@@ -215,7 +228,7 @@ namespace DeferredEngine.Main
                 defaultStyle.TextFontStyle, Color.DarkSlateGray, Color.White, GUIStyle.TextAlignment.Center,
                 Vector2.Zero));
 
-            GuiListToggle ssaoList = new GuiListToggle(Vector2.Zero, defaultStyle) { ToggleBlockColor = Color.DarkSlateGray };
+            GuiListToggle ssaoList = new GuiListToggle(Vector2.Zero, defaultStyle) { ToggleBlockColor = Color.DarkSlateGray, IsToggled = false };
             optionList.AddElement(ssaoList);
 
             ssaoList.AddElement(new GUITextBlockToggle(defaultStyle, "Enable SSAO")
@@ -256,7 +269,7 @@ namespace DeferredEngine.Main
                 defaultStyle.TextFontStyle, Color.DarkSlateGray, Color.White, GUIStyle.TextAlignment.Center,
                 Vector2.Zero));
 
-            GuiListToggle bloomList = new GuiListToggle(Vector2.Zero, defaultStyle) { ToggleBlockColor = Color.DarkSlateGray };
+            GuiListToggle bloomList = new GuiListToggle(Vector2.Zero, defaultStyle) { ToggleBlockColor = Color.DarkSlateGray, IsToggled = false };
             optionList.AddElement(bloomList);
 
             bloomList.AddElement(new GUITextBlockToggle(defaultStyle, "Enable Bloom")
@@ -432,7 +445,6 @@ namespace DeferredEngine.Main
                 else if (selectedObject is DirectionalLightSource)
                 {
                     _objectToggle2.IsHidden = false;
-                    _objectSlider1.IsHidden = false;
                     _objectSlider2.IsHidden = false;
                     _objectColorPicker1.IsHidden = false;
 
@@ -440,13 +452,7 @@ namespace DeferredEngine.Main
                     {
                         _objectToggle2.SetField(selectedObject, "CastShadows");
                         _objectToggle2.Text = new StringBuilder("Cast Shadows");
-
-                        _objectSlider1.MinValue = 1.1f;
-                        _objectSlider1.MaxValue = 200;
-
-                        _objectSlider1.SetProperty(selectedObject, "Radius");
-                        _objectSlider1.SetText(new StringBuilder("Radius: "));
-
+                        
                         _objectSlider2.MinValue = 0.01f;
                         _objectSlider2.MaxValue = 1000;
 
