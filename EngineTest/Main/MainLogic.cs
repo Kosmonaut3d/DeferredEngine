@@ -114,7 +114,7 @@ namespace DeferredEngine.Main
                         scale: 2);
                 }
             }
-
+            
             AddEntity(model: _assets.StanfordDragon,
                 materialEffect: _assets.BaseMaterial,
                 position: new Vector3(40, -10, 0),
@@ -247,6 +247,7 @@ namespace DeferredEngine.Main
                 softShadowBlurAmount: 0,
                 staticShadow: false,
                 isVolumetric: false);
+
 
             //volumetric light!
             //AddPointLight(position: new Vector3(-4, 40, 66),

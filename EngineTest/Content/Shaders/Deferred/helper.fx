@@ -30,11 +30,93 @@ float2 GetSampleOffsetY(float2 coord, float yOffset)
 {
 	const float sixth = 1.0f / 6;
 
-	float2 output = coord + float2(0, yOffset * sixth);
+	float yOffsetNormalized = yOffset * sixth;
+
+	float2 output = coord + float2(0, yOffsetNormalized);
 
 	//If inside, we are done
+	
 	if (trunc(output.y * 6) == trunc(coord.y * 6) && output.y > 0) return output;
 
+	//PositiveX
+	if (coord.y < sixth)
+	{
+		//going down
+		if (yOffset > 0)
+		{
+			//straight up to slice 5
+			return coord + float2(0, (yOffset + 4) * sixth);
+		}
+		else //flip x, then go down in slice 4 (aka top view)
+		{
+			return float2(1-coord.x, -(coord.y + yOffsetNormalized)  + 4 * sixth);
+		}
+	}
+	else if (coord.y < 2 * sixth) //Negative X
+	{
+		//going down
+		if (yOffset > 0)
+		{
+			
+			return float2(1 - coord.x, 8 * sixth - output.y);
+		}
+		else 
+		{
+			return float2(coord.x, output.y + 4*sixth);
+		}
+	}
+	else if (coord.y < 3 * sixth) //Positive y
+	{
+		//going down
+		if (yOffset > 0)
+		{
+
+			return float2((output.y - 3*sixth)*6, (6-coord.x) * sixth);
+		}
+		else
+		{
+			return float2(1-(2 * sixth-output.y)*6, (5 - coord.x) * sixth);
+		}
+	}
+	else if (coord.y < 4 * sixth) //negative y
+	{
+		//going down
+		if (yOffset > 0)
+		{
+
+			return float2(1 - (output.y - 4 * sixth) * 6, (5 + coord.x) * sixth);
+		}
+		else
+		{
+			return float2(3*sixth - output.y, (coord.x+4)*sixth);
+		}
+	}
+	else if (coord.y < 5 * sixth) //Positive z
+	{
+		//going down
+		if (yOffset > 0)
+		{
+
+			return float2(coord.x, output.y-4*sixth);
+		}
+		else
+		{
+			return float2(1 - coord.x, -(output.y - 4 * sixth));
+		}
+	}
+	else
+	{
+		//going down
+		if (yOffset > 0)
+		{
+
+			return float2(1 - coord.x, 8 * sixth-(output.y));
+		}
+		else
+		{
+			return float2(coord.x, (output.y - 4 * sixth));
+		}
+	}
 
 	return coord;
 }
@@ -207,11 +289,15 @@ float2 GetSampleCoordinate(float3 vec3)
 		}
 	}
 
+
+	// a possible precision problem?
+	const float sixth = 1.0f / 6;
+
 	//now we are in [-1,1]x[-1,1] space, so transform to texCoords
 	coord = (coord + float2(1, 1)) * 0.5f;
 
 	//now transform to slice position
-	coord.y = coord.y * 1 / 6 + slice * 1 / 6;
+	coord.y = coord.y * sixth + slice * sixth;
 	return coord;
 }
 

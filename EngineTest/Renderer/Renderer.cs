@@ -309,6 +309,8 @@ namespace DeferredEngine.Renderer
 
             //Do Bloom
             _currentOutput = DrawBloom(_currentOutput); // -> output: _renderTargetBloom
+
+            
              
             //Draw the elements that we are hovering over with outlines
             if(GameSettings.Editor_enable && GameStats.e_EnableSelection)
@@ -323,21 +325,21 @@ namespace DeferredEngine.Renderer
                 if(GameSettings.e_DrawOutlines) DrawMapToScreenToFullScreen(_editorRender.GetOutlines(), BlendState.Additive);
                 _editorRender.DrawEditorElements(meshMaterialLibrary, pointLights, directionalLights, envSample, _staticViewProjection, _view, editorData);
 
-                if (editorData.SelectedObject != null)
-                {
-                    if (editorData.SelectedObject is PointLightSource)
-                    {
+                //if (editorData.SelectedObject != null)
+                //{
+                //    if (editorData.SelectedObject is PointLightSource)
+                //    {
                         int size = 128;
-                        PointLightSource light = (PointLightSource)editorData.SelectedObject;
+                PointLightSource light = pointLights[2];/*(PointLightSource)editorData.SelectedObject*/;
                         if (light.CastShadows)
                         {
                             _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.PointClamp);
                             _spriteBatch.Draw(light.ShadowMap, new Rectangle(0, GameSettings.g_ScreenHeight - size * 6, size, size * 6), Color.White);
                             _spriteBatch.End();
                         }
-                    }
+                //    }
 
-                }
+                //}
             }
 
             //Debug ray marching
