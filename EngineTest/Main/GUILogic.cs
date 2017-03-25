@@ -18,11 +18,12 @@ namespace DeferredEngine.Main
         private GUITextBlock _objectDescriptionName;
         private GUITextBlock _objectDescriptionPos;
         private GUITextBlockButton _objectButton1;
+        private GUITextBlockToggle _objectToggle0;
         private GUITextBlockToggle _objectToggle1;
         private GUITextBlockToggle _objectToggle2;
+        private GuiSliderFloatText _objectSlider0;
         private GuiSliderFloatText _objectSlider1;
-        private GuiSliderFloatText _objectSlider2;
-        private GuiSliderIntText _objectSlider3;
+        private GuiSliderIntText _objectSlider2;
         private GUIColorPicker _objectColorPicker1;
 
         private GUIStyle defaultStyle;
@@ -103,11 +104,12 @@ namespace DeferredEngine.Main
             _objectDescriptionList.AddElement(_objectDescriptionName = new GUITextBlock(defaultStyle, "objDescName"));
             _objectDescriptionList.AddElement(_objectDescriptionPos = new GUITextBlock(defaultStyle, "objDescName"));
             _objectDescriptionList.AddElement(_objectButton1 = new GUITextBlockButton(defaultStyle, "objButton1") {IsHidden = true});
+            _objectDescriptionList.AddElement(_objectToggle0 = new GUITextBlockToggle(defaultStyle, "objToggle0") { IsHidden = true });
             _objectDescriptionList.AddElement(_objectToggle1 = new GUITextBlockToggle(defaultStyle, "objToggle1") { IsHidden = true });
             _objectDescriptionList.AddElement(_objectToggle2 = new GUITextBlockToggle(defaultStyle, "objToggle2") { IsHidden = true });
-            _objectDescriptionList.AddElement(_objectSlider1 = new GuiSliderFloatText(defaultStyle, 0,1,2,"objToggle1") { IsHidden = true });
-            _objectDescriptionList.AddElement(_objectSlider2 = new GuiSliderFloatText(defaultStyle, 0, 1, 2, "objToggle2") { IsHidden = true });
-            _objectDescriptionList.AddElement(_objectSlider3 = new GuiSliderIntText(defaultStyle, 0, 10, 1, "objToggle3") { IsHidden = true });
+            _objectDescriptionList.AddElement(_objectSlider0 = new GuiSliderFloatText(defaultStyle, 0,1,2,"objToggle1") { IsHidden = true });
+            _objectDescriptionList.AddElement(_objectSlider1 = new GuiSliderFloatText(defaultStyle, 0, 1, 2, "objToggle2") { IsHidden = true });
+            _objectDescriptionList.AddElement(_objectSlider2 = new GuiSliderIntText(defaultStyle, 0, 10, 1, "objToggle3") { IsHidden = true });
             _objectDescriptionList.AddElement(_objectColorPicker1 = new GUIColorPicker(defaultStyle) { IsHidden = true });
 
             _selectionList.AddElement(_objectDescriptionList);
@@ -398,44 +400,49 @@ namespace DeferredEngine.Main
                 }
 
                 _objectButton1.IsHidden = true;
+                _objectToggle0.IsHidden = true;
                 _objectToggle1.IsHidden = true;
                 _objectToggle2.IsHidden = true;
+                _objectSlider0.IsHidden = true;
                 _objectSlider1.IsHidden = true;
                 _objectSlider2.IsHidden = true;
-                _objectSlider3.IsHidden = true;
                 _objectColorPicker1.IsHidden = true;
 
                 if (selectedObject is PointLightSource)
                 {
+                    _objectToggle0.IsHidden = false;
                     _objectToggle1.IsHidden = false;
                     _objectToggle2.IsHidden = false;
+                    _objectSlider0.IsHidden = false;
                     _objectSlider1.IsHidden = false;
                     _objectSlider2.IsHidden = false;
-                    _objectSlider3.IsHidden = false;
                     _objectColorPicker1.IsHidden = false;
 
                     if (activeObject != selectedObject)
                     {
+                        _objectToggle0.SetProperty(selectedObject, "IsEnabled");
+                        _objectToggle0.Text = new StringBuilder("IsEnabled");
+
                         _objectToggle1.SetField(selectedObject, "IsVolumetric");
                         _objectToggle1.Text = new StringBuilder("Volumetric");
 
                         _objectToggle2.SetField(selectedObject, "CastShadows");
                         _objectToggle2.Text = new StringBuilder("Cast Shadows");
 
-                        _objectSlider1.MinValue = 1.1f;
-                        _objectSlider1.MaxValue = 200;
+                        _objectSlider0.MinValue = 1.1f;
+                        _objectSlider0.MaxValue = 200;
 
-                        _objectSlider1.SetProperty(selectedObject, "Radius");
-                        _objectSlider1.SetText(new StringBuilder("Radius: "));
+                        _objectSlider0.SetProperty(selectedObject, "Radius");
+                        _objectSlider0.SetText(new StringBuilder("Radius: "));
 
-                        _objectSlider2.MinValue = 0.01f;
-                        _objectSlider2.MaxValue = 1000;
+                        _objectSlider1.MinValue = 0.01f;
+                        _objectSlider1.MaxValue = 1000;
 
-                        _objectSlider2.SetField(selectedObject, "Intensity");
-                        _objectSlider2.SetText(new StringBuilder("Intensity: "));
+                        _objectSlider1.SetField(selectedObject, "Intensity");
+                        _objectSlider1.SetText(new StringBuilder("Intensity: "));
 
-                        _objectSlider3.SetValues("Shadow Softness: ", 2, 20, 1);
-                        _objectSlider3.SetField(selectedObject, "ShadowMapRadius");
+                        _objectSlider2.SetValues("Shadow Softness: ", 2, 20, 1);
+                        _objectSlider2.SetField(selectedObject, "ShadowMapRadius");
 
                         _objectColorPicker1.ReferenceObject = selectedObject;
                         _objectColorPicker1.ReferenceProperty = selectedObject.GetType().GetProperty("Color");
@@ -444,20 +451,24 @@ namespace DeferredEngine.Main
 
                 else if (selectedObject is DirectionalLightSource)
                 {
+                    _objectToggle0.IsHidden = false;
                     _objectToggle2.IsHidden = false;
-                    _objectSlider2.IsHidden = false;
+                    _objectSlider1.IsHidden = false;
                     _objectColorPicker1.IsHidden = false;
 
                     if (activeObject != selectedObject)
                     {
+                        _objectToggle0.SetProperty(selectedObject, "IsEnabled");
+                        _objectToggle0.Text = new StringBuilder("IsEnabled");
+
                         _objectToggle2.SetField(selectedObject, "CastShadows");
                         _objectToggle2.Text = new StringBuilder("Cast Shadows");
                         
-                        _objectSlider2.MinValue = 0.01f;
-                        _objectSlider2.MaxValue = 1000;
+                        _objectSlider1.MinValue = 0.01f;
+                        _objectSlider1.MaxValue = 1000;
 
-                        _objectSlider2.SetField(selectedObject, "Intensity");
-                        _objectSlider2.SetText(new StringBuilder("Intensity: "));
+                        _objectSlider1.SetField(selectedObject, "Intensity");
+                        _objectSlider1.SetText(new StringBuilder("Intensity: "));
                         
                         _objectColorPicker1.ReferenceObject = selectedObject;
                         _objectColorPicker1.ReferenceProperty = selectedObject.GetType().GetProperty("Color");
@@ -470,8 +481,8 @@ namespace DeferredEngine.Main
                     _objectButton1.IsHidden = false;
                     _objectToggle1.IsHidden = false;
 
+                    _objectSlider0.IsHidden = false;
                     _objectSlider1.IsHidden = false;
-                    _objectSlider2.IsHidden = false;
 
                     if (activeObject != selectedObject)
                     {
@@ -487,11 +498,11 @@ namespace DeferredEngine.Main
 
                         _objectToggle1.Text = new StringBuilder("Update on move");
 
-                        _objectSlider1.SetField(selectedObject, "SpecularStrength");
-                        _objectSlider1.SetValues("Specular Strength: ", 0.01f, 1, 2);
+                        _objectSlider0.SetField(selectedObject, "SpecularStrength");
+                        _objectSlider0.SetValues("Specular Strength: ", 0.01f, 1, 2);
 
-                        _objectSlider2.SetField(selectedObject, "DiffuseStrength");
-                        _objectSlider2.SetValues("Diffuse Strength: ", 0, 1, 2);
+                        _objectSlider1.SetField(selectedObject, "DiffuseStrength");
+                        _objectSlider1.SetValues("Diffuse Strength: ", 0, 1, 2);
                     }
                 }
 

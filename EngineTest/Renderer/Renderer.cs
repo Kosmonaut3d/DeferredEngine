@@ -254,14 +254,6 @@ namespace DeferredEngine.Renderer
             //Reset the stat counter, so we can count stats/information for this frame only
             ResetStats();
             
-            //Render EnvironmentMaps
-            //We do this either when pressing C or at the start of the program (_renderTargetCube == null) or when the game settings want us to do it every frame
-            if (envSample.NeedsUpdate || GameSettings.g_EnvironmentMappingEveryFrame)
-            {
-                DrawCubeMap(envSample.Position, meshMaterialLibrary, entities, pointLights, directionalLights, envSample, 300, gameTime, camera);
-                envSample.NeedsUpdate = false;
-            }
-
             //Update the mesh data for changes in physics etc.
             meshMaterialLibrary.FlagMovedObjects(entities);
 
@@ -271,6 +263,14 @@ namespace DeferredEngine.Renderer
             //Render ShadowMaps
             DrawShadowMaps(meshMaterialLibrary, entities, pointLights, directionalLights, camera);
             
+            //Render EnvironmentMaps
+            //We do this either when pressing C or at the start of the program (_renderTargetCube == null) or when the game settings want us to do it every frame
+            if (envSample.NeedsUpdate || GameSettings.g_EnvironmentMappingEveryFrame)
+            {
+                DrawCubeMap(envSample.Position, meshMaterialLibrary, entities, pointLights, directionalLights, envSample, 300, gameTime, camera);
+                envSample.NeedsUpdate = false;
+            }
+
             //Update our view projection matrices if the camera moved
             UpdateViewProjection(camera, meshMaterialLibrary, entities);
             
