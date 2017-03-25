@@ -441,7 +441,7 @@ namespace DeferredEngine.Main
                         _objectSlider1.SetField(selectedObject, "Intensity");
                         _objectSlider1.SetText(new StringBuilder("Intensity: "));
 
-                        _objectSlider2.SetValues("Shadow Softness: ", 2, 20, 1);
+                        _objectSlider2.SetValues("Shadow Softness: ", 1, 20, 1);
                         _objectSlider2.SetField(selectedObject, "ShadowMapRadius");
 
                         _objectColorPicker1.ReferenceObject = selectedObject;

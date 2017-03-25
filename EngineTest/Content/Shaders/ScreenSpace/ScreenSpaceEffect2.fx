@@ -89,13 +89,29 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 		//  HELPER FUNCTIONS
 		////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+//http://martindevans.me/game-development/2015/02/22/Random-Gibberish/
+float Random_Final(float2 uv, float seed)
+{
+	float fixedSeed = abs(seed) + 1.0;
+	float x = dot(uv, float2(12.9898, 78.233) * fixedSeed);
+	return frac(sin(x) * 43758.5453);
+}
+
+//float3 randomNormal(float2 tex)
+//{
+//    tex = frac(tex * Time);
+//    float noiseX = (frac(sin(dot(tex, float2(15.8989f, 76.132f) * 1.0f)) * 46336.23745f));
+//    float noiseY = (frac(sin(dot(tex, float2(11.9899f, 62.223f) * 2.0f)) * 34748.34744f));
+//    float noiseZ = (frac(sin(dot(tex, float2(13.3238f, 63.122f) * 3.0f)) * 59998.47362f));
+//    return normalize(float3(noiseX, noiseY, noiseZ));
+//}
+
 float3 randomNormal(float2 tex)
 {
-    tex = frac(tex * Time);
-    float noiseX = (frac(sin(dot(tex, float2(15.8989f, 76.132f) * 1.0f)) * 46336.23745f));
-    float noiseY = (frac(sin(dot(tex, float2(11.9899f, 62.223f) * 2.0f)) * 34748.34744f));
-    float noiseZ = (frac(sin(dot(tex, float2(13.3238f, 63.122f) * 3.0f)) * 59998.47362f));
-    return normalize(float3(noiseX, noiseY, noiseZ));
+	float noiseX = Random_Final(tex, Time);
+	float noiseY = Random_Final(tex, Time*2);
+	float noiseZ = Random_Final(tex, Time*3);
+	return normalize(float3(noiseX, noiseY, noiseZ));
 }
 
 float3 GetFrustumRay2(float2 texCoord)
@@ -183,11 +199,11 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	[branch]
 	if (Time > 0)
 	{
-		temporalComponent = frac(Time * 10000 * rayStep.x / rayOrigin.y / rayStep.z) ; // frac(sin(Time * 3.2157) * 46336.23745f);
+		temporalComponent = Random_Final(texCoord, Time+1); // frac(sin(Time * 3.2157) * 46336.23745f);
 	}
 
 	//Add some noise
-	float noise = NoiseMap.Sample(texSampler, frac(((texCoord) * resolution) / 64) + temporalComponent).r; // + frac(input.TexCoord* Projection)).r;
+	float noise = NoiseMap.Sample(texSampler, frac(((texCoord + temporalComponent.xx)* resolution ) / 64)).r; // + frac(input.TexCoord* Projection)).r;
 	
 	//Raymarching the depth buffer
 	[loop]
@@ -366,12 +382,12 @@ float4 PixelShaderFunctionTAA(VertexShaderOutput input) : COLOR0
 	[branch]
 	if (Time > 0)
 	{
-		temporalComponent = Time * 10 * normal.x / positionVS.y / normal.z; // frac(sin(Time * 3.2157) * 46336.23745f);
+		temporalComponent = (Time+10) * 10 * normal.x / positionVS.y / normal.z; // frac(sin(Time * 3.2157) * 46336.23745f);
 	}
 	//Add some noise
-	float noise = NoiseMap.Sample(texSampler, frac(((texCoord)* resolution + temporalComponent) / 64)).r; // + frac(input.TexCoord* Projection)).r;
+	//float noise = NoiseMap.Sample(texSampler, frac(((texCoord)* resolution + temporalComponent) / 64)).r; // + frac(input.TexCoord* Projection)).r;
 
-	float3 randNor = randomNormal(frac(mul(input.TexCoord, noise).xy)) * -randomNormal(frac(mul(1 - input.TexCoord, noise).xy)); //
+	float3 randNor = randomNormal(input.TexCoord);// randomNormal(frac(mul(input.TexCoord, noise).xy)) * -randomNormal(frac(mul(1 - input.TexCoord, noise).xy)); //
 
 		//hemisphere
 	if (dot(randNor, normal) < 0)
@@ -403,7 +419,7 @@ float4 PixelShaderFunctionTAA(VertexShaderOutput input) : COLOR0
 	float3 hitPosition;
 	float2 hitTexCoord = 0;
 
-	float offsetTaa = -frac(Time * normal.x * Time) + 0.5f;
+	float offsetTaa = -frac(normal.x * (Time+10)) + 0.5f;
 
 	//Raymarching the depth buffer
 	[loop]

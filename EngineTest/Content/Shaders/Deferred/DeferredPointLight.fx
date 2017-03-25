@@ -199,6 +199,9 @@ float CalcShadowTermPCF(float linearDepthLV, float ndotl, float3 vec3)
 
 	float fRadius = iSqrtSamples - 1; //mad(iSqrtSamples, 0.5, -0.5);//(iSqrtSamples - 1.0f) / 2;
 
+	if(fRadius < 1) 
+		return testDepth < centerDepth;
+
 	float closestDepth;
 
 	//[unroll] is better
@@ -232,10 +235,11 @@ float CalcShadowTermPCF(float linearDepthLV, float ndotl, float3 vec3)
 				yWeight = 1 - frac(sampleCoord.y * Size * 6);
 			else if (y == fRadius)
 				yWeight = frac(sampleCoord.y * Size * 6);
-
+			
 			fShadowTerm += fSample * xWeight * yWeight;
 		}
 	}
+
 
 	fShadowTerm /= (fRadius * fRadius * 4);
 
