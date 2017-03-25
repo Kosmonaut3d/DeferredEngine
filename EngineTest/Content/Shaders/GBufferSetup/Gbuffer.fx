@@ -18,7 +18,7 @@ float Roughness = 0.3f;
 float Metallic = 0;
 int MaterialType = 0;
 
-const float CLIP_VALUE = 0.99;
+const float CLIP_VALUE = 0.49;
 
 float4 DiffuseColor = float4(0.8f, 0.8f, 0.8f, 1);
 

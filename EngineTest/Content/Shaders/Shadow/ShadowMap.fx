@@ -12,6 +12,18 @@ float3 LightPositionWS = float3(0,0,0);
 float FarClip = 200;
 float SizeBias = 0.005f; //0.005f * 2048 / ShadowMapSize
 
+Texture2D MaskTexture;
+
+SamplerState texSampler
+{
+	Texture = (MaskTexture);
+	AddressU = WRAP;
+	AddressV = WRAP;
+	MagFilter = POINT;
+	MinFilter = POINT;
+	Mipfilter = POINT;
+};
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  STRUCT DEFINITIONS
 
@@ -19,6 +31,13 @@ struct DrawBasic_VSIn
 {
 	float4 Position : POSITION0;
 	float3 Normal : NORMAL;
+};
+
+struct DrawBasic2_VSIn
+{
+	float4 Position : POSITION0;
+	float3 Normal : NORMAL;
+	float2 TexCoord : TEXCOORD;
 };
 
 struct DrawLinear_VSOut
@@ -33,6 +52,13 @@ struct DrawLinear2_VSOut
 	float4 Position : SV_POSITION;
 	float3 WorldPosition : TEXCOORD0;
 	float3 Normal : NORMAL;
+};
+
+struct DrawLinear3_VSOut
+{
+	float4 Position : SV_POSITION;
+	float3 WorldPosition : TEXCOORD0;
+	float2 TexCoord : TEXCOORD1;
 };
 
 
@@ -56,6 +82,16 @@ DrawLinear2_VSOut DrawDistance_VertexShader(DrawBasic_VSIn input)
 	Output.Position = position;
 	Output.WorldPosition = mul(input.Position, World).xyz;
 	Output.Normal = mul(float4(input.Normal, 0), World).xyz;
+	return Output;
+}
+
+DrawLinear3_VSOut DrawDistance_VertexShaderAlpha(DrawBasic2_VSIn input)
+{
+	DrawLinear3_VSOut Output;
+	float4 position = mul(input.Position, WorldViewProj);
+	Output.Position = position;
+	Output.WorldPosition = mul(input.Position, World).xyz;
+	Output.TexCoord = input.TexCoord;
 	return Output;
 }
 
@@ -97,6 +133,14 @@ float4 DrawDistance_PixelShader(DrawLinear2_VSOut input) : SV_TARGET
 	return 1-dist;
 }
 
+float4 DrawDistance_PixelShaderAlpha(DrawLinear3_VSOut input) : SV_TARGET
+{
+	if (MaskTexture.Sample(texSampler, input.TexCoord).r < 0.49f) discard;
+
+	float dist = length(input.WorldPosition - LightPositionWS) / FarClip;
+	return 1 - dist;
+}
+
 technique DrawLinearDepth
 {
     pass Pass1
@@ -112,6 +156,15 @@ technique DrawDistanceDepth
 	{
 		VertexShader = compile vs_5_0 DrawDistance_VertexShader();
 		PixelShader = compile ps_5_0 DrawDistance_PixelShader();
+	}
+}
+
+technique DrawDistanceDepthAlpha
+{
+	pass Pass1
+	{
+		VertexShader = compile vs_5_0 DrawDistance_VertexShaderAlpha();
+		PixelShader = compile ps_5_0 DrawDistance_PixelShaderAlpha();
 	}
 }
 

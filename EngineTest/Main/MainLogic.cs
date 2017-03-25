@@ -243,7 +243,7 @@ namespace DeferredEngine.Main
                 color: new Color(255, 248, 232),
                 intensity: 120,
                 castShadows: true,
-                shadowResolution: 512,
+                shadowResolution: 1024,
                 softShadowBlurAmount: 0,
                 staticShadow: false,
                 isVolumetric: false);

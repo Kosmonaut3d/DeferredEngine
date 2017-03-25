@@ -595,7 +595,10 @@ namespace DeferredEngine.Renderer.Helper
             {
                 graphicsDevice.RasterizerState = RasterizerState.CullClockwise;
             }
-
+            else if (renderType == RenderType.ShadowOmnidirectional)
+            {
+                ((ShadowMapRenderModule)renderModule).SetMaterialSettings(material, renderType);
+            }
             //if (renderType == RenderType.IdRender || renderType == RenderType.IdOutline)
             //{
             //    Shaders.IdRenderEffectParameterColorId.SetValue(Color.Transparent.ToVector4());

@@ -23,12 +23,14 @@ namespace DeferredEngine.Renderer.RenderModules
         private EffectParameter _FarClip;
         private EffectParameter _ArraySlice;
         private EffectParameter _SizeBias;
+        private EffectParameter _MaskTexture;
 
         //Linear = VS Depth -> used for directional lights
         private EffectPass _linearPass;
 
         //Distance = distance(pixel, light) -> used for omnidirectional lights
         private EffectPass _distancePass;
+        private EffectPass _distanceAlphaPass;
 
         private Passes _pass;
 
@@ -37,7 +39,8 @@ namespace DeferredEngine.Renderer.RenderModules
         private enum Passes
         {
             Directional,
-            Omnidirectional
+            Omnidirectional,
+            OmnidirectionalAlpha
         };
 
         public ShadowMapRenderModule(ContentManager content, string shaderPath)
@@ -54,9 +57,11 @@ namespace DeferredEngine.Renderer.RenderModules
             _LightPositionWS = _shader.Parameters["LightPositionWS"];
             _FarClip = _shader.Parameters["FarClip"];
             _SizeBias = _shader.Parameters["SizeBias"];
+            _MaskTexture = _shader.Parameters["MaskTexture"];
 
             _linearPass = _shader.Techniques["DrawLinearDepth"].Passes[0];
             _distancePass = _shader.Techniques["DrawDistanceDepth"].Passes[0];
+            _distanceAlphaPass = _shader.Techniques["DrawDistanceDepthAlpha"].Passes[0];
         }
 
         public void Load(ContentManager content, string shaderPath)
@@ -364,6 +369,8 @@ namespace DeferredEngine.Renderer.RenderModules
 
         }
 
+
+
         public void Apply(Matrix localWorldMatrix, Matrix? view, Matrix viewProjection)
         {
             _WorldViewProj.SetValue(localWorldMatrix * viewProjection);
@@ -378,6 +385,29 @@ namespace DeferredEngine.Renderer.RenderModules
                     _World.SetValue(localWorldMatrix);
                     _distancePass.Apply();
                     break;
+                case Passes.OmnidirectionalAlpha:
+                    _World.SetValue(localWorldMatrix);
+                    _distanceAlphaPass.Apply();
+                    break;
+            }
+        }
+
+        public void SetMaterialSettings(MaterialEffect material, MeshMaterialLibrary.RenderType renderType)
+        {
+            if (renderType == MeshMaterialLibrary.RenderType.ShadowOmnidirectional)
+            {
+                //Check if we have a mask texture
+                if (material.HasMask)
+                {
+                    _pass = Passes.OmnidirectionalAlpha;
+                    _MaskTexture.SetValue(material.Mask);
+
+                }
+                else
+                {
+                    _pass = Passes.Omnidirectional;
+                }
+
             }
         }
     }
