@@ -20,6 +20,7 @@ Features:
 - HDR Bloom
 - screen space ambient occlusion (HBAO)
 - screen sapce reflections
+- linear HDR pipeline.
 - EXPERIMENTAL: screen space emissive materials (not updated to work right now)
 
 
