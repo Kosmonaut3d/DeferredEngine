@@ -2,20 +2,27 @@
 
 by https://twitter.com/kosmonautgames
 
-Feedback -> http://community.monogame.net/t/deferred-engine-playground-download/8180
-
-![Alt text](http://i.imgur.com/vcGEtr0.png "emissive materials")
+Feedback -> http://community.monogame.net/t/deferred-engine-playground-download/8180   
+         -> https://kosmonautblog.wordpress.com/
+         
+![Alt text](http://i.imgur.com/ucSrI29.png "soft shadows")
 
 
 Features:
+- an easy to use viewer, with lots of GUI options
 - G-buffer creation with support for physically based materials ( albedo, normal, roughness, metallic, mask)
 - Cook-Torrance specular shading and Oren-Nayar diffuse shading for point lights
 - light and mesh frustum culling
-- deferred point lights and environment mapping
+- deferred point lights, directional lights and environment mapping
+- soft shadows
 - dynamically updating point light shadows depending on scene changes
-- screen space ambient occlusion
-- EXPERIMENTAL: screen space emissive materials
-- EXPERIMENTAL: screen space reflections
+- temporal anti-aliasing
+- HDR Bloom
+- screen space ambient occlusion (HBAO)
+- screen sapce reflections
+- linear HDR pipeline.
+- EXPERIMENTAL: screen space emissive materials (not updated to work right now)
+
 
 Controls:
 - " ^ " / the key above TAB : debug console with suggestions (tab to autocomplete)
@@ -25,8 +32,6 @@ Controls:
   - Insert : Copy object
 - WASD : move the camera
 - right mouse drag : rotate the camera
-- L : Spawn new point light
-- C : Update environment cubemap for current camera position
 - F1 : Cycle through render targets (albedo, normals, depth etc.)
 
 
