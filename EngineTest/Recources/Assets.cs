@@ -93,7 +93,7 @@ namespace DeferredEngine.Recources
             IconEnvmap = content.Load<Texture2D>("Art/Editor/icon_envmap");
             //Default Materials
 
-            BaseMaterial = CreateMaterial(Color.Red, 0.3f, 0);
+            BaseMaterial = CreateMaterial(Color.Red, 0.5f, 0);
 
             MetalRough03Material = CreateMaterial(Color.Silver, 0.3f, 1);
             MetalRough01Material = CreateMaterial(Color.Silver, 0.05f, 1);

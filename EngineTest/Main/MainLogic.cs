@@ -76,7 +76,7 @@ namespace DeferredEngine.Main
 
             Camera = new Camera(position: new Vector3(-88, -11f, 4), lookat: new Vector3(38, 8, 32));
 
-            EnvironmentSample = new EnvironmentSample(Camera.Position + Camera.Forward*10);
+            EnvironmentSample = new EnvironmentSample(new Vector3(-45,-5,5));
 
             ////////////////////////////////////////////////////////////////////////
             // GUI
@@ -101,13 +101,19 @@ namespace DeferredEngine.Main
             //    angleZ: 0,
             //    scale: 10.4f);
 
-            AddEntity(model: _assets.Plane,
-                materialEffect: _assets.MirrorMaterial,
-                position: new Vector3(30, 0, 0),
-                angleX: 0,
-                angleY: 0,
-                angleZ: 0,
-                scale: 30);
+            for (int x = -5; x <= 5; x++)
+            {
+                for (int y = -5; y <= 5; y++)
+                {
+                    AddEntity(model: _assets.Plane,
+                        materialEffect: ((x+5+y+5)%2==1) ? _assets.MirrorMaterial : _assets.MetalRough03Material,
+                        position: new Vector3(30 + x*4, y*4 + 4, 0),
+                        angleX: 0,
+                        angleY: 0,
+                        angleZ: 0,
+                        scale: 2);
+                }
+            }
 
             AddEntity(model: _assets.StanfordDragon,
                 materialEffect: _assets.BaseMaterial,
@@ -215,7 +221,7 @@ namespace DeferredEngine.Main
             //    isVolumetric: false);
 
             AddPointLight(position: new Vector3(-61, 0, 107),
-                        radius: 200,
+                        radius: 150,
                         color: new Color(104, 163, 223),
                         intensity: 40,
                         castShadows: false,
@@ -223,8 +229,8 @@ namespace DeferredEngine.Main
                         staticShadow: false,
                         isVolumetric: false);
 
-            AddPointLight(position: new Vector3(-4, 0, 107),
-                        radius: 200,
+            AddPointLight(position: new Vector3(15, 0, 107),
+                        radius: 150,
                         color: new Color(104, 163, 223),
                         intensity: 40,
                         castShadows: false,
@@ -234,7 +240,7 @@ namespace DeferredEngine.Main
 
             AddPointLight(position: new Vector3(66, 0, 40),
                 radius: 120,
-                color: new Color(255, 248, 212),
+                color: new Color(255, 248, 232),
                 intensity: 120,
                 castShadows: true,
                 shadowResolution: 1024,

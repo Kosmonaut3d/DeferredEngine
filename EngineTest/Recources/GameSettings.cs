@@ -20,7 +20,7 @@ namespace DeferredEngine.Recources
         public static bool g_EnvironmentMappingEveryFrame = false;
 
         public static int g_ScreenWidth = 1280;
-        public static int g_ScreenHeight = 800;
+        public static int g_ScreenHeight = 720;
 
         public static bool g_EmissiveDraw = true;
         public static bool g_EmissiveDrawDiffuse = true;
