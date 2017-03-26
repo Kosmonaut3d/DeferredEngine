@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using DeferredEngine.Entities;
 using DeferredEngine.Recources;
 using DeferredEngine.Renderer.Helper;
@@ -143,7 +140,7 @@ namespace DeferredEngine.Renderer.RenderModules
             //For VSM we need 2 channels, -> Vector2
             //todo: check if we need preserve contents
             if (light.ShadowMap == null)
-                light.ShadowMap = new RenderTarget2D(graphicsDevice, size, size * 6, false, SurfaceFormat.Single, DepthFormat.Depth24, 0, RenderTargetUsage.PreserveContents);
+                light.ShadowMap = new RenderTarget2D(graphicsDevice, size, size * 6, false, SurfaceFormat.HalfSingle, DepthFormat.Depth24, 0, RenderTargetUsage.PreserveContents);
 
             Matrix lightViewProjection = new Matrix();
             CubeMapFace cubeMapFace; // = CubeMapFace.NegativeX;
@@ -309,7 +306,7 @@ namespace DeferredEngine.Renderer.RenderModules
                 //if (lightSource.ShadowFiltering != DirectionalLightSource.ShadowFilteringTypes.VSM)
                 //{
                     lightSource.ShadowMap = new RenderTarget2D(graphicsDevice, shadowResolution, shadowResolution, false,
-                        SurfaceFormat.HalfSingle, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+                        SurfaceFormat.Single, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
                 //}
                 //else //For a VSM shadowMap we need 2 components
                 //{

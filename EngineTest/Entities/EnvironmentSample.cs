@@ -1,7 +1,5 @@
-﻿using DeferredEngine.Recources;
-using DeferredEngine.Recources.Helper;
+﻿using DeferredEngine.Recources.Helper;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 
 namespace DeferredEngine.Entities
 {

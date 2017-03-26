@@ -6,7 +6,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 #endregion
 
-namespace ShaderPlayground.Helpers
+namespace DeferredEngine.Renderer.Helper
 {
     public class FullScreenQuadRenderer
     {

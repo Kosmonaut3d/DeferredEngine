@@ -51,8 +51,6 @@ namespace DeferredEngine.Renderer
         private Vector3[] _haltonSequence;
         private int _haltonSequenceIndex = -1;
         private const int HaltonSequenceLength = 16;
-
-        private int frameCounter = 0;
         
         //Projection Matrices and derivates used in shaders
         private Matrix _view;
@@ -76,7 +74,7 @@ namespace DeferredEngine.Renderer
         //Checkvariables to see which console variables have changed from the frame before
         private float _g_FarClip;
         private float _supersampling = 1;
-        private bool _hologramDraw;
+        //private bool _hologramDraw;
         private int _forceShadowFiltering;
         private bool _forceShadowSS;
         private bool _ssr = true;
@@ -131,9 +129,7 @@ namespace DeferredEngine.Renderer
         //private RenderTarget2D _renderTargetEmissive;
 
         private RenderTarget2D _currentOutput;
-
-        private Viewport _viewport;
-
+        
         //Cubemap
         private RenderTargetCube _renderTargetCubeMap;
         
@@ -203,8 +199,6 @@ namespace DeferredEngine.Renderer
             _gBufferRenderModule.Initialize(_graphicsDevice);
             
             _assets = assets;
-
-            _viewport = new Viewport();
             //Apply some base settings to overwrite shader defaults with game settings defaults
             GameSettings.ApplySettings();
 
@@ -249,8 +243,6 @@ namespace DeferredEngine.Renderer
         /// <returns></returns>
         public EditorLogic.EditorReceivedData Draw(Camera camera, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities, List<PointLightSource> pointLights, List<DirectionalLightSource> directionalLights, EnvironmentSample envSample, EditorLogic.EditorSendData editorData, GameTime gameTime)
         {
-            frameCounter++;
-
             //Reset the stat counter, so we can count stats/information for this frame only
             ResetStats();
             

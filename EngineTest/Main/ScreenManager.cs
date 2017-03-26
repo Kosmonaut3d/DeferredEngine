@@ -1,6 +1,5 @@
 ﻿using BEPUphysics;
 using DeferredEngine.Recources;
-using DeferredEngine.Renderer.RenderModules;
 using HelperSuite.GUIRenderer;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;

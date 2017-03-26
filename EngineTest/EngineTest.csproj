@@ -57,7 +57,7 @@
   <ItemGroup>
     <Compile Include="Entities\BasicEntity.cs" />
     <Compile Include="Entities\DirectionalLightSource.cs" />
-    <Compile Include="Entities\Editor\BillboardBuffer.cs" />
+    <Compile Include="Renderer\Helper\Editor\BillboardBuffer.cs" />
     <Compile Include="Entities\EnvironmentSample.cs" />
     <Compile Include="Game1.cs" />
     <Compile Include="Main\EditorLogic.cs" />
@@ -78,7 +78,6 @@
     <Compile Include="Recources\Helper\ModelDataExtractor.cs" />
     <Compile Include="Recources\MaterialEffect.cs" />
     <Compile Include="Recources\Shaders.cs" />
-    <Compile Include="Entities\UNUSED_SpotLight.cs" />
     <Compile Include="Entities\PointLightSource.cs" />
     <Compile Include="Entities\Camera.cs" />
     <Compile Include="Main\DebugScreen.cs" />
@@ -92,7 +91,6 @@
     <Compile Include="Renderer\Helper\MeshMaterialLibrary.cs" />
     <Compile Include="Renderer\Helper\QuadRenderer.cs" />
     <Compile Include="Renderer\Renderer.cs" />
-    <Compile Include="Renderer\Renderer_old.cs" />
     <Compile Include="Renderer\RenderModules\IdAndOutlineRenderer.cs" />
     <Compile Include="Renderer\RenderModules\LightAccumulationModule.cs" />
     <Compile Include="Renderer\RenderModules\IRenderModule.cs" />

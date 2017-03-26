@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using DeferredEngine.Entities;
-using DeferredEngine.Entities.Editor;
 using DeferredEngine.Main;
 using DeferredEngine.Recources;
 using DeferredEngine.Recources.Helper;
 using DeferredEngine.Renderer.Helper;
+using DeferredEngine.Renderer.Helper.Editor;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
