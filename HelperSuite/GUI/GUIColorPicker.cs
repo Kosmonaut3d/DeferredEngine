@@ -52,6 +52,26 @@ namespace HelperSuite.GUI
             _mousePointerFull = position + Vector2.One * 20;
         }
 
+        public void SetField(Object obj, string field)
+        {
+            ReferenceObject = obj;
+            ReferenceField = obj.GetType().GetField(field);
+            ReferenceProperty = null;
+            CurrentFineColor = (Color)ReferenceField.GetValue(obj);
+            _colorString.Clear();
+            _colorString.AppendColor(CurrentFineColor);
+        }
+
+        public void SetProperty(Object obj, string property)
+        {
+            ReferenceObject = obj;
+            ReferenceProperty = obj.GetType().GetProperty(property);
+            ReferenceField = null;
+            CurrentFineColor = (Color)ReferenceProperty.GetValue(obj);
+            _colorString.Clear();
+            _colorString.AppendColor(CurrentFineColor);
+        }
+
 
         public override void Draw(GUIRenderer.GUIRenderer guiRenderer, Vector2 parentPosition, Vector2 mousePosition)
         {

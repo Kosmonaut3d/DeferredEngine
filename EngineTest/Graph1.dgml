@@ -1,59 +1,61 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <DirectedGraph DataVirtualized="True" Layout="Sugiyama" ZoomLevel="-1" xmlns="http://schemas.microsoft.com/vs/2009/dgml">
   <Nodes>
-    <Node Id="AlternateEndToCubemapPipeline" Category="Comment" Bounds="616.199023732311,758.203575561035,237.17,41.9200000000001" Label="Alternate end to Cubemap pipeline / SSR target" UseManualLocation="True" />
+    <Node Id="AlternateEndToCubemapPipeline" Category="Comment" Bounds="561.785361243319,706.742103912037,237.17,41.9200000000001" Label="Alternate end to Cubemap pipeline / SSR target" UseManualLocation="True" />
     <Node Id="Bloom" Bounds="796.147162951932,562.964407335794,111.196666666667,89.8000000000002" Label="HDR Bloom&#xD;&#xA;(+ other HDR PP)&#xD;&#xA;&#xD;&#xA;Gamma 1.0&#xD;&#xA;FP 16" UseManualLocation="True" />
-    <Node Id="DirectionalLights" Bounds="-379.428927307129,645.428413851274,145.76,25.96" Label="Input: Directional Lights" UseManualLocation="True" />
-    <Node Id="EnvironmentMap" Bounds="-45.4083045617306,920.031756805715,114.2,73.8400000000001" Label="Environment Map&#xD;&#xA;&#xD;&#xA;Gamma 1.0&#xD;&#xA;HDR FP16" UseManualLocation="True" />
-    <Node Id="EnvironmentSamples" Bounds="35.3212136490104,834.7356331798,134.41,25.9600000000002" Label="Environment Samples" UseManualLocation="True" />
-    <Node Id="FinalOutput" Bounds="1346.72619940864,572.7812109375,85.6700000000001,41.9200000000001" Label="Final Output&#xD;&#xA;R8G8B8A8" UseManualLocation="True" />
-    <Node Id="Gamma1.0" Bounds="-123.031575003719,499.875742797172,115.07,25.9600000000001" Label="Gamma 2.2 -&gt; 1.0" UseManualLocation="True" />
-    <Node Id="Gbuffer" Bounds="-109.659685828451,432.011334053061,60.04,25.96" UseManualLocation="True" />
-    <Node Id="ImageBasedLighting" Bounds="-380.398311091548,701.359865577259,134.22,25.96" Label="Image Based Lighting" UseManualLocation="True" />
+    <Node Id="Color:Gamma2.2-&gt;1.0" Bounds="-261.346108322144,591.130549732077,115.07,41.9200000000001" Label="Color:&#xD;&#xA;Gamma 2.2 -&gt; 1.0" UseManualLocation="True" />
+    <Node Id="DirectionalLights" Bounds="-437.106108322144,656.855296630859,145.76,25.96" Label="Input: Directional Lights" UseManualLocation="True" />
+    <Node Id="EnvironmentMap" Bounds="64.5780109794981,882.696952447683,114.2,73.84" Label="Environment Map&#xD;&#xA;&#xD;&#xA;Gamma 1.0&#xD;&#xA;HDR FP16" UseManualLocation="True" />
+    <Node Id="EnvironmentSamples" Bounds="54.4931402112429,818.590852916867,134.41,25.96" Label="Environment Samples" UseManualLocation="True" />
+    <Node Id="FinalOutput" Bounds="1342.00143355758,590.944093605607,85.6700000000001,41.9200000000001" Label="Final Output&#xD;&#xA;R8G8B8A8" UseManualLocation="True" />
+    <Node Id="Gamma1.0" Bounds="-104.167294010568,499.603936535644,115.07,41.92" Label="Color:&#xD;&#xA;Gamma 2.2 -&gt; 1.0" UseManualLocation="True" />
+    <Node Id="Gbuffer" Bounds="-76.4318639850735,436.011334053061,60.04,25.96" UseManualLocation="True" />
+    <Node Id="ImageBasedLighting" Bounds="-437.756320573215,715.913061419204,134.22,25.96" Label="Image Based Lighting" UseManualLocation="True" />
     <Node Id="InverseTonemappingLDR-&gt;HDRFP16" Bounds="613.042020642112,560.088907947833,133.363333333333,89.8" Label="Inverse Tonemapping&#xD;&#xA;1/x - 1&#xD;&#xA;&#xD;&#xA;LDR -&gt; HDR&#xD;&#xA;FP16" UseManualLocation="True" />
-    <Node Id="LastFrameAccumulation" Category="Comment" Bounds="364.482083026797,364.552587679288,165.126666666667,25.96" Label="Last Frame(s) Accumulation" UseManualLocation="True" />
-    <Node Id="Light" Bounds="-124.764021539151,569.252252564064,139.08,73.8399999999999" Label="Lighting Accumulation&#xD;&#xA;&#xD;&#xA;Gamma 1.0&#xD;&#xA;HDR FP16" UseManualLocation="True" />
+    <Node Id="LastFrameAccumulation" Category="Comment" Bounds="394.002981363932,420.770456896973,165.126666666667,25.96" Label="Last Frame(s) Accumulation" UseManualLocation="True" />
+    <Node Id="Light" Bounds="-116.276108322144,571.524030761719,139.08,73.8399999999999" Label="Lighting Accumulation&#xD;&#xA;&#xD;&#xA;Gamma 1.0&#xD;&#xA;HDR FP16" UseManualLocation="True" />
     <Node Id="LightingCalculations" Bounds="82.1518814101586,571.253515384381,82.5466666666667,73.8399999999999" Label="Compose&#xD;&#xA;&#xD;&#xA;Gamma 1.0,&#xD;&#xA;HDR FP16" UseManualLocation="True" />
-    <Node Id="PointLights" Bounds="-377.733814697266,589.468313851274,115.71,25.96" Label="Input: Point Lights" UseManualLocation="True" />
-    <Node Id="PostProcessingChromaShift,VignetteEtc." Bounds="1189.7528660753,554.152390136719,126.973333333333,121.72" Label="LDR Post Processing&#xD;&#xA;&#xD;&#xA;Chroma Shift,&#xD;&#xA;Vignette etc.&#xD;&#xA;&#xD;&#xA;Gamma 2.2&#xD;&#xA;R8G8B8A8" UseManualLocation="True" />
-    <Node Id="ScreenSpaceReflections" Bounds="246.951245617753,907.515467608877,150.833333333333,73.84" Label="Screen Space Reflections&#xD;&#xA;&#xD;&#xA;Gamma 1.0&#xD;&#xA;FP16?" UseManualLocation="True" />
-    <Node Id="TempTarget" Bounds="423.73021286885,470.12894442025,84.7,25.96" Label="Temp Target" UseManualLocation="True" />
+    <Node Id="PointLights" Bounds="-432.864002685547,599.021346126302,115.71,25.96" Label="Input: Point Lights" UseManualLocation="True" />
+    <Node Id="PostProcessingChromaShift,VignetteEtc." Bounds="1185.02810022425,552.134292603852,126.973333333333,121.72" Label="LDR Post Processing&#xD;&#xA;&#xD;&#xA;Chroma Shift,&#xD;&#xA;Vignette etc.&#xD;&#xA;&#xD;&#xA;Gamma 2.2&#xD;&#xA;R8G8B8A8" UseManualLocation="True" />
+    <Node Id="ScreenSpaceReflections" Bounds="248.96934315062,881.280199681611,150.833333333333,73.8400000000001" Label="Screen Space Reflections&#xD;&#xA;&#xD;&#xA;Gamma 1.0&#xD;&#xA;FP16?" UseManualLocation="True" />
+    <Node Id="TempTarget" Bounds="434.055685424805,476.730556896973,84.7000000000002,25.96" Label="Temp Target" UseManualLocation="True" />
     <Node Id="TemporalAnti-AliasingGamma1.0-&gt;FP16?" Bounds="407.431612564675,561.797630191656,140.106666666667,89.8" Label="Temporal Anti-Aliasing&#xD;&#xA;&#xD;&#xA;LDR&#xD;&#xA;Gamma 1.0&#xD;&#xA;FP16" UseManualLocation="True" />
-    <Node Id="TemporalTarget" Bounds="428.961773714165,691.727483088265,104.916666666667,41.92" Label="Temporal Target&#xD;&#xA;(Last Frame)" UseManualLocation="True" />
-    <Node Id="Textures" Bounds="-395.121203655,410.127474359367,97.0799999999999,25.96" Label="Input: Textures" UseManualLocation="True" />
-    <Node Id="Tonemapping" Bounds="947.376199408637,553.610803222656,212.376666666667,89.8000000000002" Label="Tonemapping &amp; Gamma Conversion&#xD;&#xA;(+ Optional LUT)&#xD;&#xA;&#xD;&#xA;Gamma 1.0 -&gt; 2.2&#xD;&#xA;FP16 HDR -&gt; R8G8B8A8 LDR" UseManualLocation="True" />
+    <Node Id="TemporalTarget" Bounds="272.484233312358,713.926555949797,104.916666666667,41.9200000000001" Label="Temporal Target&#xD;&#xA;(Last Frame)" UseManualLocation="True" />
+    <Node Id="Textures" Bounds="-419.538464100601,436.605675591048,175.293333333333,25.96" Label="Input: Textures &amp; Model Data" UseManualLocation="True" />
+    <Node Id="Tonemapping" Bounds="940.633336024713,563.701290886989,212.376666666667,89.8000000000002" Label="Tonemapping &amp; Gamma Conversion&#xD;&#xA;(+ Optional LUT)&#xD;&#xA;&#xD;&#xA;Gamma 1.0 -&gt; 2.2&#xD;&#xA;FP16 HDR -&gt; R8G8B8A8 LDR" UseManualLocation="True" />
     <Node Id="Tonemapping(Reinhard,1/x+1)HDR-&gt;LDR" Bounds="215.255187692496,572.047255841506,118.636666666667,73.8399999999999" Label="Tonemapping&#xD;&#xA;(Reinhard, 1/(x+1))&#xD;&#xA;&#xD;&#xA;HDR -&gt; LDR" UseManualLocation="True" />
-    <Node Id="UntonemappedComposedHdr" Category="Comment" Bounds="42.3358125813801,687.569410400391,228.106666666667,73.84" Label="Cubemap pipeline ends here (no tonemapping etc.)&#xD;&#xA;&#xD;&#xA;SSR uses this color info for reprojection" UseManualLocation="True" />
+    <Node Id="UntonemappedComposedHdr" Category="Comment" Bounds="7.01910575621491,692.614654232557,228.106666666667,73.8400000000001" Label="Cubemap pipeline ends here (no tonemapping etc.)&#xD;&#xA;&#xD;&#xA;SSR uses this color info for reprojection" UseManualLocation="True" />
   </Nodes>
   <Links>
-    <Link Source="AlternateEndToCubemapPipeline" Target="EnvironmentSamples" Bounds="178.678774399971,792.021061262398,437.52024933234,47.4377901914021" />
-    <Link Source="AlternateEndToCubemapPipeline" Target="InverseTonemappingLDR-&gt;HDRFP16" Bounds="696.630309451802,658.470333661835,31.5278101392701,99.7332418992004" />
-    <Link Source="AlternateEndToCubemapPipeline" Target="TemporalTarget" Bounds="542.583788476549,728.735239990092,112.314256760727,29.4683355709431" />
-    <Link Source="Bloom" Target="Tonemapping" Bounds="907.343829618599,603.848930987707,31.0420202334099,1.43868870465849" />
-    <Link Source="DirectionalLights" Target="Light" Bounds="-244.097989173834,622.45711400336,110.522282407045,22.9712998479141" />
-    <Link Source="EnvironmentMap" Target="ImageBasedLighting" Bounds="-288.689581455564,732.703900899093,250.926727158748,187.327855906622" />
-    <Link Source="EnvironmentSamples" Target="EnvironmentMap" Bounds="48.1466017758118,860.6956331798,43.5861856032123,52.4160424111939" />
-    <Link Source="Gamma1.0" Target="Light" Bounds="-64.0676987598134,525.835742797172,3.79461877815631,34.4705512115186" />
-    <Link Source="Gamma1.0" Target="LightingCalculations" Bounds="-39.769947488633,525.835742797172,113.886614855133,57.4598539957398" />
-    <Link Source="Gbuffer" Target="Gamma1.0" Bounds="-76.9346216880233,457.971334053061,6.89681040510031,33.0937066224421" />
-    <Link Source="ImageBasedLighting" Target="Light" Bounds="-282.329066857606,638.807531053824,149.265017783233,62.5809827974498" />
+    <Link Source="AlternateEndToCubemapPipeline" Target="EnvironmentSamples" Bounds="196.662763794965,748.662103912037,370.971381165554,68.9712712170948" />
+    <Link Source="AlternateEndToCubemapPipeline" Target="InverseTonemappingLDR-&gt;HDRFP16" Bounds="680.00772884144,658.888782981897,0.252177405075031,47.8533209301401" />
+    <Link Source="AlternateEndToCubemapPipeline" Target="TemporalTarget" Bounds="386.399061900845,730.099125917202,175.386299342474,3.54517703696376" />
+    <Link Source="Bloom" Target="Tonemapping" Bounds="907.343829618599,608.074425282434,24.2895706152959,0.0917517745507439" />
+    <Link Source="Color:Gamma2.2-&gt;1.0" Target="Light" Bounds="-146.276108322144,610.267292005131,21.0024242635398,0.487574333920065" />
+    <Link Source="DirectionalLights" Target="Color:Gamma2.2-&gt;1.0" Bounds="-328.167647391494,635.443501501829,59.4820013956236,21.4117951290295" />
+    <Link Source="EnvironmentMap" Target="ImageBasedLighting" Bounds="-328.748180397427,745.124183484572,393.326191376926,152.372525294918" />
+    <Link Source="EnvironmentSamples" Target="EnvironmentMap" Bounds="121.688509278933,844.550852916867,0.00666342518036345,29.1460997660208" />
+    <Link Source="Gamma1.0" Target="Light" Bounds="-46.6818622203661,541.523936535644,0.0248077906179276,21.0001005058703" />
+    <Link Source="Gamma1.0" Target="LightingCalculations" Bounds="-5.9471836570614,541.523936535644,80.0983744198662,41.2647750799501" />
+    <Link Source="Gbuffer" Target="Gamma1.0" Bounds="-46.5400230308065,461.971334053061,0.0881831103656125,28.6326451658159" />
+    <Link Source="ImageBasedLighting" Target="Light" Bounds="-335.740646927948,637.439999391305,211.028897772775,78.473062027899" />
     <Link Source="InverseTonemappingLDR-&gt;HDRFP16" Target="Bloom" Bounds="746.405353975445,606.103552031796,40.7430661089759,0.681057026182202" />
-    <Link Source="LastFrameAccumulation" Target="TempTarget" Bounds="449.385634059529,390.512587679288,12.7574608527293,70.7591613852878" />
-    <Link Source="Light" Target="LightingCalculations" Bounds="14.315978460849,606.951252908094,58.8364675970154,0.659097332464512" />
+    <Link Source="LastFrameAccumulation" Target="TempTarget" Bounds="476.468777260829,446.730456896973,0.0602793193760363,21.0001370768005" />
+    <Link Source="Light" Target="LightingCalculations" Bounds="22.803891677856,608.253437815725,50.3480011052727,0.0800411531354257" />
     <Link Source="LightingCalculations" Target="Tonemapping(Reinhard,1/x+1)HDR-&gt;LDR" Bounds="164.698548076825,608.390258232997,41.5567637105884,0.218231255351611" />
-    <Link Source="PointLights" Target="Light" Bounds="-262.023814697266,603.262387428622,128.260683985484,1.80474693362964" />
-    <Link Source="PostProcessingChromaShift,VignetteEtc." Target="FinalOutput" Bounds="1316.72619940863,601.81258189143,21.1076025473465,3.29356005709883" />
-    <Link Source="ScreenSpaceReflections" Target="EnvironmentMap" Bounds="77.7844005372455,947.473797416817,169.166845080507,6.81526631500367" />
-    <Link Source="TempTarget" Target="TemporalAnti-AliasingGamma1.0-&gt;FP16?" Bounds="470.366333007813,496.088958740234,5.3011474609375,56.7446594238281" />
+    <Link Source="PointLights" Target="Color:Gamma2.2-&gt;1.0" Bounds="-317.154002685547,612.031491792703,46.8078955851475,0.0243895118013597" />
+    <Link Source="PostProcessingChromaShift,VignetteEtc." Target="FinalOutput" Bounds="1312.00143355758,612.318628966779,21.0002877885167,0.167944636166112" />
+    <Link Source="ScreenSpaceReflections" Target="EnvironmentMap" Bounds="187.777791171764,918.727296647298,61.191551978856,0.427675775121543" />
+    <Link Source="TempTarget" Target="TemporalAnti-AliasingGamma1.0-&gt;FP16?" Bounds="479.605499267578,502.690551757813,0.54815673828125,50.1072387695313" />
     <Link Source="TemporalAnti-AliasingGamma1.0-&gt;FP16?" Target="InverseTonemappingLDR-&gt;HDRFP16" Bounds="547.538279231342,605.628342299055,56.5040626314528,0.47740481379185" />
-    <Link Source="TemporalAnti-AliasingGamma1.0-&gt;FP16?" Target="TempTarget" Bounds="465.214904785156,505.046081542969,5.23223876953125,56.7515258789063" />
-    <Link Source="TemporalTarget" Target="ScreenSpaceReflections" Bounds="352.799462712617,733.647483088265,114.235474991855,166.447505672915" />
-    <Link Source="Textures" Target="Gbuffer" Bounds="-298.041203655,427.086782479665,179.4116094586,14.7081597526653" />
-    <Link Source="Tonemapping" Target="PostProcessingChromaShift,VignetteEtc." Bounds="1159.7528660753,607.286443697225,21.0305772831757,1.73801376682729" />
+    <Link Source="TemporalAnti-AliasingGamma1.0-&gt;FP16?" Target="TempTarget" Bounds="473.742614746094,511.689514160156,0.46624755859375,50.1080932617188" />
+    <Link Source="TemporalTarget" Target="ScreenSpaceReflections" Bounds="324.525426971155,755.846555949797,0.353503215809837,116.433685211834" />
+    <Link Source="Textures" Target="Gbuffer" Bounds="-244.245130767268,449.072569868622,158.813286286572,0.330633861665888" />
+    <Link Source="Tonemapping" Target="PostProcessingChromaShift,VignetteEtc." Bounds="1153.01000269138,610.914139151755,23.0202315539311,0.501395030251501" />
     <Link Source="Tonemapping(Reinhard,1/x+1)HDR-&gt;LDR" Target="TemporalAnti-AliasingGamma1.0-&gt;FP16?" Bounds="333.891854359163,607.581859334862,64.5403211521445,0.721903009792186" />
-    <Link Source="UntonemappedComposedHdr" Target="EnvironmentSamples" Bounds="111.804493436533,761.409410400391,28.4466956829806,65.0796143491996" />
-    <Link Source="UntonemappedComposedHdr" Target="LightingCalculations" Bounds="136.34230277922,653.752504373047,9.58371306480171,33.8169060273442" />
-    <Link Source="UntonemappedComposedHdr" Target="TemporalTarget" Bounds="270.442479248047,714.918830001797,149.525221531805,5.42928522777549" />
+    <Link Source="UntonemappedComposedHdr" Target="EnvironmentSamples" Bounds="121.298838011802,766.454654232557,0.264518613249166,43.1363678941408" />
+    <Link Source="UntonemappedComposedHdr" Target="LightingCalculations" Bounds="121.788191083704,654.091824585838,0.746825355909039,38.5228296467192" />
+    <Link Source="UntonemappedComposedHdr" Target="TemporalTarget" Bounds="235.125772422882,732.528728145399,28.361560429053,0.744534208044115" />
   </Links>
   <Categories>
     <Category Id="Comment" Label="Comment" Description="Represents a user defined comment on the diagram" CanBeDataDriven="True" IsProviderRoot="False" NavigationActionLabel="Comments" />

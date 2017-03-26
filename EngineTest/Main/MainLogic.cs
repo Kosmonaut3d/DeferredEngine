@@ -210,16 +210,7 @@ namespace DeferredEngine.Main
 
             ////////////////////////////////////////////////////////////////////////
             // Dynamic lights
-
-            //AddPointLight(position: new Vector3(-20, 0, 40),
-            //    radius: 120,
-            //    color: Color.White,
-            //    intensity: 40,
-            //    castShadows: true,
-            //    shadowResolution: 1024,
-            //    staticShadow: false,
-            //    isVolumetric: false);
-
+            
             AddPointLight(position: new Vector3(-61, 0, 107),
                         radius: 150,
                         color: new Color(104, 163, 223),
@@ -241,13 +232,12 @@ namespace DeferredEngine.Main
             AddPointLight(position: new Vector3(66, 0, 40),
                 radius: 120,
                 color: new Color(255, 248, 232),
-                intensity: 120,
+                intensity: 420,
                 castShadows: true,
                 shadowResolution: 1024,
                 softShadowBlurAmount: 0,
                 staticShadow: false,
                 isVolumetric: false);
-
 
             //volumetric light!
             //AddPointLight(position: new Vector3(-4, 40, 66),
@@ -278,11 +268,11 @@ namespace DeferredEngine.Main
             //        }
 
 
-            //AddDirectionalLight(direction: new Vector3(0.2f, -0.2f, -1),
+            //AddDirectionalLight(direction: new Vector3(0.2f, 0.2f, -1),
             //    intensity: 100,
             //    color: Color.White,
             //    position: Vector3.UnitZ * 2,
-            //    drawShadows: false,
+            //    drawShadows: true,
             //    shadowWorldSize: 450,
             //    shadowDepth: 180,
             //    shadowResolution: 1024,

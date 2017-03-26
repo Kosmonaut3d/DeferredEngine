@@ -181,6 +181,7 @@ float4 VignetteChromaShiftPixelShaderFunction(float4 pos : SV_POSITION, float2 t
 
 	//Apply Tonemapping!
 
+	//base.rgb = base.rgb * PowExposure;
 	//base.rgb = //ReinhardTonemap(base.rgb * PowExposure, WhitePoint);
 	//		   //Uncharted2Tonemap(base.rgb * PowExposure) / Uncharted2Tonemap(WhitePoint.xxx);
 	base.rgb = ToneMapFilmic_Hejl2015(base.rgb * PowExposure, WhitePoint);
@@ -209,9 +210,11 @@ float4 BasePixelShaderFunction(float4 pos : SV_POSITION, float2 texCoord : TEXCO
 	//Load base color
 	float3 base = ScreenTexture.Load(texCoordInt).rgb;
 
-	base = pow(abs(base), 0.4545454545f);
 	base.rgb = //ReinhardTonemap(base.rgb * PowExposure, WhitePoint);
-		Uncharted2Tonemap(base.rgb * PowExposure) / Uncharted2Tonemap(WhitePoint.xxx);
+		//Uncharted2Tonemap(base.rgb * PowExposure) / Uncharted2Tonemap(WhitePoint.xxx);
+		ToneMapFilmic_Hejl2015(base.rgb * PowExposure, WhitePoint);
+
+	base = pow(abs(base), 0.4545454545f);
 
 	base = ColorSCurve(base);
 

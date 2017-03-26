@@ -184,6 +184,7 @@ namespace DeferredEngine.Main
 
         private void GizmoControl(int gizmoId, EditorReceivedData data)
         {
+            if (SelectedObject == null) return;
             //there must be a selected object for a gizmo
 
             float x = Input.mouseState.X;
