@@ -1,4 +1,7 @@
-﻿        
+﻿////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//  Billboard Shader
+//  Draws camera-oriented quads.
+
 // Camera parameters.
 float4x4 WorldViewProj;
 float4x4 WorldView;
@@ -7,9 +10,12 @@ float4x4 WorldView;
 float AspectRatio = 1.777;
 float FarClip;
 
+float2 ResolutionRcp = float2(1.0f / 1280, 1.0f / 800);
+
 // Particle texture and sampler.
 Texture2D Texture;
 
+// For mouse picking we draw the object's id as color to the screen
 float3 IdColor;
 
 SamplerState Sampler = sampler_state
@@ -31,6 +37,9 @@ SamplerState DepthSampler = sampler_state
     AddressV = Clamp;
 };
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//  STRUCTS
+
 struct VertexShaderInput
 {
     float4 Position : POSITION0;
@@ -46,6 +55,9 @@ struct VertexShaderOutput
     float4 Color : COLOR0;
 };
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//  FUNCTION DEFINITIONS
+
 VertexShaderOutput BillboardVertexShader(VertexShaderInput input)
 {
     VertexShaderOutput output;
@@ -55,26 +67,33 @@ VertexShaderOutput BillboardVertexShader(VertexShaderInput input)
 
 	float4 PositionVS = mul(input.Position, WorldView);
 
+	//Get the screen coordinates of the billboards position
     float2 texCoord = 0.5f * (float2(output.Position.x, -output.Position.y) + 1);
         
+	//Average the depth of this and the 2 neighbor pixels (x)
     float vDepthMap = DepthMap.SampleLevel(DepthSampler, texCoord, 0).r;
-    vDepthMap += DepthMap.SampleLevel(DepthSampler, texCoord + float2(0.01f, 0), 0).r;
-    vDepthMap += DepthMap.SampleLevel(DepthSampler, texCoord - float2(0.01f, 0), 0).r;
+    vDepthMap += DepthMap.SampleLevel(DepthSampler, texCoord + float2(ResolutionRcp.x, 0), 0).r;
+    vDepthMap += DepthMap.SampleLevel(DepthSampler, texCoord - float2(ResolutionRcp.x, 0), 0).r;
     vDepthMap /= 3;
+
+	//If we are behind that -> don't draw
     float vLocalDepth = PositionVS.z /- FarClip;
        
+	//If we are in front
     if (vLocalDepth < vDepthMap)
     {
+		//Expand each edge vertex depending on texture coordinate
         output.Position.xy += (input.TexCoord - float2(0.5f, 0.5f)) * float2(1, AspectRatio) * 0.075f;
     }
     
-
     output.TextureCoordinate = float2(input.TexCoord.x, 1-input.TexCoord.y);
 
     output.Color = input.Color;
 
     return output;
 }
+
+//------------------------ PIXEL SHADER ----------------------------------------
 
 float4 BillboardPixelShader(VertexShaderOutput input) : SV_TARGET
 {
@@ -95,6 +114,9 @@ float4 IdPixelShader(VertexShaderOutput input) : SV_TARGET
 
     return float4(IdColor, 1);
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//  TECHNIQUES
 
 technique Billboard
 {

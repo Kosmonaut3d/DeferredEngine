@@ -30,8 +30,8 @@ float4 BasePixelShaderFunction(VertexShaderOutput input) : SV_TARGET0
 }
 
 
-//-------------------------- TECHNIQUES ----------------------------------------
-// This technique is pretty simple - only one pass, and only a pixel shader
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//  TECHNIQUES
 
 technique Base
 {

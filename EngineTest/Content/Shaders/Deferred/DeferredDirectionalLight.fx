@@ -135,14 +135,17 @@ float CalcShadowTermSoftPCF(float fLightDepth, float ndotl, float2 vTexCoord, in
 {
 	float fShadowTerm = 0.0f;
 
-	float variableBias = GetVariableBias(ndotl);
+	//float variableBias = GetVariableBias(ndotl);
 /*
 	float variableBias = (-cos(ndotl) + 1)*0.02;*/
 	//variableBias = DepthBias;
 
 	float shadowMapSize = ShadowMapSize;
 
-	float fRadius = iSqrtSamples - 1; //mad(iSqrtSamples, 0.5, -0.5);//(iSqrtSamples - 1.0f) / 2;
+	float2 fractionals = frac(ShadowMapSize * vTexCoord);
+	float2 complFractionals = float2(1, 1) - fractionals;
+
+	float fRadius = iSqrtSamples - 1;
 
 	[unroll]
 	for (float y = -fRadius; y <= fRadius; y++)
@@ -152,10 +155,7 @@ float CalcShadowTermSoftPCF(float fLightDepth, float ndotl, float2 vTexCoord, in
 		{
 			float2 vOffset = 0;
 			vOffset = float2(x, y);
-			//vOffset /= shadowMapSize;
 
-			//vOffset *= 2;
-			//vOffset /= variableBias*200;
 			int3 vSamplePoint = int3(vTexCoord * ShadowMapSize + vOffset, 0);
 			float fDepth = ShadowMap.Load(vSamplePoint).x;
 			float fSample = (fLightDepth <= fDepth /*+ variableBias*(x+y)*/);
@@ -165,14 +165,14 @@ float CalcShadowTermSoftPCF(float fLightDepth, float ndotl, float2 vTexCoord, in
 			float yWeight = 1;
 
 			if (x == -fRadius)
-				xWeight = 1 - frac(vTexCoord.x * shadowMapSize);
+				xWeight = complFractionals.x;
 			else if (x == fRadius)
-				xWeight = frac(vTexCoord.x * shadowMapSize);
+				xWeight = fractionals.x;
 
 			if (y == -fRadius)
-				yWeight = 1 - frac(vTexCoord.y * shadowMapSize);
+				yWeight = complFractionals.y;
 			else if (y == fRadius)
-				yWeight = frac(vTexCoord.y * shadowMapSize);
+				yWeight = fractionals.y;
 
 			fShadowTerm += fSample * xWeight * yWeight;
 		}

@@ -832,18 +832,6 @@
 /processorParam:DebugMode=Auto
 /build:Shaders/Hologram/HologramEffect.fx
 
-#begin Shaders/ScreenSpace/ScreenSpaceEffect.fx
-/importer:EffectImporter
-/processor:EffectProcessor
-/processorParam:DebugMode=Auto
-/build:Shaders/ScreenSpace/ScreenSpaceEffect.fx
-
-#begin Shaders/ScreenSpace/ScreenSpaceEffect2.fx
-/importer:EffectImporter
-/processor:EffectProcessor
-/processorParam:DebugMode=Auto
-/build:Shaders/ScreenSpace/ScreenSpaceEffect2.fx
-
 #begin Shaders/TemporalAntiAliasing/TemporalAntiAliasing.fx
 /importer:EffectImporter
 /processor:EffectProcessor
@@ -874,12 +862,6 @@
 /processor:EffectProcessor
 /processorParam:DebugMode=Auto
 /build:Shaders/Deferred/DeferredDirectionalLight.fx
-
-#begin Shaders/ScreenSpace/GaussianBlur.fx
-/importer:EffectImporter
-/processor:EffectProcessor
-/processorParam:DebugMode=Auto
-/build:Shaders/ScreenSpace/GaussianBlur.fx
 
 #begin Shaders/Editor/IdRender.fx
 /importer:EffectImporter
@@ -1160,23 +1142,11 @@
 /processorParam:TextureFormat=Compressed
 /build:Fonts/monospace.spritefont
 
-#begin Shaders/ScreenSpace/ReconstructDepth.fx
-/importer:EffectImporter
-/processor:EffectProcessor
-/processorParam:DebugMode=Auto
-/build:Shaders/ScreenSpace/ReconstructDepth.fx
-
 #begin Shaders/BloomFilter/Bloom.fx
 /importer:EffectImporter
 /processor:EffectProcessor
 /processorParam:DebugMode=Auto
 /build:Shaders/BloomFilter/Bloom.fx
-
-#begin Shaders/Graphical User Interface/GUIEffect.fx
-/importer:EffectImporter
-/processor:EffectProcessor
-/processorParam:DebugMode=Auto
-/build:Shaders/Graphical User Interface/GUIEffect.fx
 
 #begin Shaders/Shadow/testShadow.fx
 /importer:EffectImporter
@@ -1249,4 +1219,28 @@
 /processor:EffectProcessor
 /processorParam:DebugMode=Auto
 /build:Shaders/Shadow/ShadowMap.fx
+
+#begin Shaders/ScreenSpace/GaussianBlur.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/ScreenSpace/GaussianBlur.fx
+
+#begin Shaders/ScreenSpace/ReconstructDepth.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/ScreenSpace/ReconstructDepth.fx
+
+#begin Shaders/ScreenSpace/ScreenSpaceAO.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/ScreenSpace/ScreenSpaceAO.fx
+
+#begin Shaders/ScreenSpace/ScreenSpaceReflections.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/ScreenSpace/ScreenSpaceReflections.fx
 

@@ -26,27 +26,6 @@ float EnvironmentMapSpecularStrength = 1.0f;
 float EnvironmentMapSpecularStrengthRcp = 1.0f;
 float EnvironmentMapDiffuseStrength = 0.2f;
 
-sampler PointSampler
-{
-    Texture = <AlbedoMap>;
-    AddressU = CLAMP;
-    AddressV = CLAMP;
-    MagFilter = POINT;
-    MinFilter = POINT;
-    Mipfilter = POINT;
-};
-
-//It won't compile without this? Need to investigate why I can't use PointSampler1
-sampler PointSampler2
-{
-    Texture = <NormalMap>;
-    AddressU = CLAMP;
-    AddressV = CLAMP;
-    MagFilter = POINT;
-    MinFilter = POINT;
-    Mipfilter = POINT;
-};
-
 TextureCube ReflectionCubeMap;
 SamplerState ReflectionCubeMapSampler
 {
@@ -206,10 +185,10 @@ float4 GetSSR(float2 TexCoord)
 PixelShaderOutput PixelShaderFunctionBasic(VertexShaderOutput input)
 {
     PixelShaderOutput output;
-    float2 texCoord = float2(input.TexCoord);
+	int3 texCoordInt = int3(input.Position.xy, 0);
     
     //get normal data from the NormalMap
-    float4 normalData = tex2D(PointSampler2, texCoord);
+    float4 normalData = NormalMap.Load(texCoordInt);
     //tranform normal back into [-1,1] range
     float3 normal = decode(normalData.xyz); //2.0f * normalData.xyz - 1.0f;    //could do mad
 
@@ -224,26 +203,13 @@ PixelShaderOutput PixelShaderFunctionBasic(VertexShaderOutput input)
     //get metalness
     float roughness = normalData.a;
     //get specular intensity from the AlbedoMap
-    float4 color = tex2D(PointSampler, texCoord);
+    float4 color = AlbedoMap.Load(texCoordInt);
 
     float metalness = decodeMetalness(color.a);
     
     float f0 = lerp(0.04f, color.g * 0.25 + 0.75, metalness);
 
-    float materialType = decodeMattype(color.a);
-
-    float matMultiplier = 1;
-
-    if (abs(materialType - 1) < 0.1f)
-    {
-        matMultiplier = 1;
-    }
-
-	//Probably obsolete now, only for testing purposes
-    if (abs(materialType - 3) < 0.1f)
-    {
-        matMultiplier = 2;
-    }
+    //float materialType = decodeMattype(color.a);
 
 	//The incoming vector from the camera
     float3 incident = normalize(input.ViewDir);
@@ -265,21 +231,21 @@ PixelShaderOutput PixelShaderFunctionBasic(VertexShaderOutput input)
     //roughness from 0.05 to 0.5, coarsest of approximations
     float mip = roughness / 0.04f;
 
-	float4 ReflectColor = ReflectionCubeMap.SampleLevel(ReflectionCubeMapSampler, reflectionVector, mip);
+	float4 specularReflection = ReflectionCubeMap.SampleLevel(ReflectionCubeMapSampler, reflectionVector, mip);
 
-    ReflectColor *= (1 - roughness) * (1 + matMultiplier) * fresnel; //* NdotC * NdotC * NdotC;
+	specularReflection *= (1 - roughness) * fresnel; //* NdotC * NdotC * NdotC;
 
-	float4 DiffuseReflectColor = ReflectionCubeMap.SampleLevel(ReflectionCubeMapSampler, reflectionVector, 9);
+	float4 diffuseReflection = ReflectionCubeMap.SampleLevel(ReflectionCubeMapSampler, reflectionVector, 9);
 
-    DiffuseReflectColor *= fresnel; //* NdotC * NdotC * NdotC;
+	diffuseReflection *= (roughness) * fresnel; //* NdotC * NdotC * NdotC;
 
 	//Sample our screen space reflection map and use the environment map only as fallback
 	float4 ssreflectionMap = GetSSR(input.TexCoord);
 	
-	if (ssreflectionMap.a > 0) ReflectColor.rgb = ssreflectionMap.rgb * EnvironmentMapSpecularStrengthRcp;
+	if (ssreflectionMap.a > 0) specularReflection.rgb = ssreflectionMap.rgb * EnvironmentMapSpecularStrengthRcp;
 	
-    output.Diffuse = float4(DiffuseReflectColor.xyz, 0) * EnvironmentMapDiffuseStrength;
-    output.Specular = float4(ReflectColor.xyz, 0) *EnvironmentMapSpecularStrength;
+    output.Diffuse = float4(diffuseReflection.xyz, 0) * EnvironmentMapDiffuseStrength;
+    output.Specular = float4(specularReflection.xyz, 0) *EnvironmentMapSpecularStrength;
 
     return output;
 }
@@ -287,10 +253,11 @@ PixelShaderOutput PixelShaderFunctionBasic(VertexShaderOutput input)
 PixelShaderOutput PixelShaderFunctionSky(VertexShaderOutput input)
 {
 	PixelShaderOutput output;
-	float2 texCoord = float2(input.TexCoord);
+	int3 texCoordInt = int3(input.Position.xy, 0);
 
 	//get normal data from the NormalMap
-	float4 normalData = tex2D(PointSampler2, texCoord);
+	float4 normalData = NormalMap.Load(texCoordInt);
+
 	//tranform normal back into [-1,1] range
 	float3 normal = decode(normalData.xyz); //2.0f * normalData.xyz - 1.0f;    //could do mad
 

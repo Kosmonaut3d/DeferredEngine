@@ -51,9 +51,8 @@ namespace DeferredEngine.Recources
         public static EffectParameter PostProcessingParameter_ChromaticAbberationStrength;
         public static EffectParameter PostProcessingParameter_SCurveStrength;
         public static EffectParameter PostProcessingParameter_WhitePoint;
-        public static EffectParameter PostProcessingParameter_Exposure;
-
-        public static EffectTechnique PostProcessingTechnique_Vignette;
+        public static EffectParameter PostProcessingParameter_PowExposure;
+        
         public static EffectTechnique PostProcessingTechnique_Base;
         public static EffectTechnique PostProcessingTechnique_VignetteChroma;
 
@@ -257,12 +256,11 @@ namespace DeferredEngine.Recources
                 PostProcessing.Parameters["ChromaticAbberationStrength"];
             PostProcessingParameter_SCurveStrength = PostProcessing.Parameters["SCurveStrength"];
             PostProcessingParameter_WhitePoint = PostProcessing.Parameters["WhitePoint"];
-            PostProcessingParameter_Exposure = PostProcessing.Parameters["Exposure"];
+            PostProcessingParameter_PowExposure = PostProcessing.Parameters["PowExposure"];
 
             PostProcessingParameter_ScreenTexture = PostProcessing.Parameters["ScreenTexture"];
-            PostProcessingTechnique_Vignette = PostProcessing.Techniques["Vignette"];
             PostProcessingTechnique_VignetteChroma = PostProcessing.Techniques["VignetteChroma"];
-            PostProcessingTechnique_Base = PostProcessing.Techniques["BaseChroma"];
+            PostProcessingTechnique_Base = PostProcessing.Techniques["Base"];
 
             //Hologram Effect
             HologramEffect = content.Load<Effect>("Shaders/Hologram/HologramEffect");
@@ -290,7 +288,7 @@ namespace DeferredEngine.Recources
             EmissiveEffectTechnique_DrawEmissiveSpecularEffect = EmissiveEffect.Techniques["DrawEmissiveSpecularEffect"];
             EmissiveEffectTechnique_DrawEmissiveDiffuseEffect = EmissiveEffect.Techniques["DrawEmissiveDiffuseEffect"];
             //Screen Space Effect 2
-            ScreenSpaceReflectionEffect = content.Load<Effect>("Shaders/ScreenSpace/ScreenSpaceEffect2");
+            ScreenSpaceReflectionEffect = content.Load<Effect>("Shaders/ScreenSpace/ScreenSpaceReflections");
 
             ScreenSpaceReflectionParameter_DepthMap = ScreenSpaceReflectionEffect.Parameters["DepthMap"];
             ScreenSpaceReflectionParameter_NormalMap = ScreenSpaceReflectionEffect.Parameters["NormalMap"];
@@ -306,7 +304,7 @@ namespace DeferredEngine.Recources
             ScreenSpaceReflectionTechnique_Taa = ScreenSpaceReflectionEffect.Techniques["TAA"];
 
             //Screen Space Effect
-            ScreenSpaceEffect = content.Load<Effect>("Shaders/ScreenSpace/ScreenSpaceEffect");
+            ScreenSpaceEffect = content.Load<Effect>("Shaders/ScreenSpace/ScreenSpaceAO");
 
             ScreenSpaceEffectParameter_SSAOMap = ScreenSpaceEffect.Parameters["SSAOMap"];
             ScreenSpaceEffectParameter_NormalMap = ScreenSpaceEffect.Parameters["NormalMap"];

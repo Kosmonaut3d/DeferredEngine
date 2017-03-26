@@ -12,7 +12,7 @@ float3 FrustumCorners[4]; //In Viewspace!
 
 bool UseTonemap = true;
 
-//float Threshold = 0;
+//float Threshold = 1;
 
 SamplerState texSampler
 {
@@ -57,6 +57,11 @@ struct PixelShaderOutput
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  FUNCTION DEFINITIONS
 
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//  VERTEX SHADER
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 float3 GetFrustumRay(float2 texCoord)
 {
 	float index = texCoord.x + (texCoord.y * 2);
@@ -72,6 +77,10 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
     return output;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//  PIXEL SHADER
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 float3 ToYUV(float3 rgb)
 {
 	return rgb;
@@ -82,7 +91,8 @@ float3 ToYUV(float3 rgb)
 
 float overlapFunction(float3 x, float3 y)
 {
-	return dot(x, y) / (length(x)*length(y));//1 - dot(abs(x-y), float3(1, 1, 1)) / 3;
+	//return dot(x, y) / (length(x)*length(y));
+	return 1 - dot(abs(x-y), float3(1, 1, 1)) / 3;
 }
 
 float3 GetFrustumRay2(float2 texCoord)
@@ -121,12 +131,14 @@ float4 InverseToneMapPixelShader(VertexShaderOutput input) : SV_Target
 	return float4(InverseReinhardTonemap(updatedColorSample.rgb), updatedColorSample.a);
 }
 
+
 PixelShaderOutput PixelShaderFunction(VertexShaderOutput input) : SV_Target
 {
 	PixelShaderOutput output;
     float2 texCoord = float2(input.TexCoord);
+	float3 texCoordInt = int3(input.Position.xy, 0);
     
-    float linearDepth = DepthMap.Sample(texSampler, texCoord).r;
+    float linearDepth = DepthMap.Load(texCoordInt).r;
 
 	float3 positionVS = input.ViewRay * linearDepth;
 
@@ -136,9 +148,7 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input) : SV_Target
     float2 sampleTexCoord = 0.5f * (float2(previousPositionVS.x, -previousPositionVS.y) + 1);
 
     //Check how much they match
-	int3 TexCoordInt = int3(texCoord * Resolution, 0);
-
-	float4 updatedColorSample = UpdateMap.Load(TexCoordInt);
+	float4 updatedColorSample = UpdateMap.Load(texCoordInt);
 
 	//HDR -> LDR!
 
@@ -153,48 +163,44 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input) : SV_Target
     float alpha = accumulationColorSample.a;
 
  //   float3 baseColorYUV = ToYUV(updatedColorSample.rgb);
- //////   //overlap
+
+	////overlap
  //   float overlap = overlapFunction(ToYUV(accumulationColorSample.rgb), baseColorYUV);
 
  //   float overlapThreshold = Threshold; //+ 0.0000000000005f;
 
  //   bool foundOverlap = overlap > overlapThreshold;
 
- //   ////if (dot(updatedColorSample.rgb, float3(1, 1, 1)) > 1.8f)
- //   ////   foundOverlap = true;
-
-
-	////////////////////////////////////////////////// NEIGHBORHOOD CLAMPING /////////////////
-	//float neighborOverlap = 0;
+	//////////////////////////////////////////////////// NEIGHBORHOOD CLAMPING /////////////////
+	////float neighborOverlap = 0;
 
  //   if(!foundOverlap)
  //   [branch]
- //   for (int x = -1; x <= 1; x++)
- //       {
- //           [branch]
- //           for (int y = -1; y <= 1; y++)
- //           {
- //           
- //               if (x == 0 && y == 0)
- //               {
- //                   continue;
- //               }
+	//for (int x = -1; x <= 1; x++)
+	//{
+	//	[branch]
+	//	for (int y = -1; y <= 1; y++)
+	//	{
 
- //               float4 accumulationColorSampleNeighbour = AccumulationMap.Load(sampleTexCoordInt + int3(x, y, 0));
+	//		if (x == 0 && y == 0)
+	//		{
+	//			continue;
+	//		}
 
- //               float neighborOverlapTest = overlapFunction(ToYUV(accumulationColorSampleNeighbour.rgb), baseColorYUV);
- //   
- //               if (neighborOverlapTest > overlapThreshold)
- //               {
-	//				neighborOverlap = neighborOverlapTest;
- //                   foundOverlap = true;
- //                   break;
- //               }
- //           }
+	//		float4 accumulationColorSampleNeighbour = AccumulationMap.Load(sampleTexCoordInt + int3(x, y, 0));
 
- //           if (foundOverlap)
- //               break;
- //       }
+	//		float neighborOverlapTest = overlapFunction(ToYUV(accumulationColorSampleNeighbour.rgb), baseColorYUV);
+
+	//		if (neighborOverlapTest > overlapThreshold)
+	//		{
+	//			foundOverlap = true;
+	//			break;
+	//		}
+	//	}
+
+	//	if (foundOverlap)
+	//		break;
+	//}
 
 	//float coherence = neighborOverlap;
 	//float3 coh = float3(coherence, coherence, coherence);
@@ -256,8 +262,8 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input) : SV_Target
 
 	/*float2 diff = texCoord - sampleTexCoord;
 	output.Coherence = float4(alpha, 0, 0, 0);*/
-
-	/*if (!foundOverlap)
+/*
+	if (!foundOverlap)
 		alpha = 0;*/
 
     /*if (abs(previousPositionVS.z - depthVal) > 0.00001 || depthVal >= 0.999999f)
@@ -300,6 +306,10 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input) : SV_Target
     //return float4(lerp(updatedColorSample.rgb, accumulationColorSample.rgb, alpha), alpha);
 
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//  TECHNIQUES
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 technique TemporalAntialiasing
 {

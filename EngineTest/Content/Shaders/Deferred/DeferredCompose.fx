@@ -1,24 +1,24 @@
-﻿
-Texture2D colorMap;
-// normals, and specularPower in the alpha channel
-Texture2D diffuseLightMap;
-Texture2D specularLightMap;
-Texture2D volumeLightMap;
-Texture2D SSRMap;
-Texture2D linearMap;
-
-static float2 Resolution = float2(1280, 800);
-
-float average_hologram_depth = 10;
-bool useGauss = true;
+﻿////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//  Deferred Compose
+//  Composes the light buffers and the GBuffer to our final HDR Output.
+//  Converts albedo from Gamma 2.2 to 1.0 and outputs an HDR file.
 
 #include "helper.fx"
 
-float exposure = 2;
+Texture2D colorMap;
+Texture2D diffuseLightMap;
+Texture2D specularLightMap;
+Texture2D volumeLightMap;
+
+static float2 Resolution = float2(1280, 800);
 
 Texture2D SSAOMap;
 
 bool useSSAO = true;
+
+//Texture2D HologramMap;
+//float average_hologram_depth = 10;
+//bool useGauss = true;
 
 sampler pointSampler = sampler_state
 {
@@ -28,16 +28,6 @@ sampler pointSampler = sampler_state
     MagFilter = POINT;
     MinFilter = POINT;
     Mipfilter = POINT;
-};
-
-Texture2D HologramMap;
-sampler linearSampler = sampler_state
-{
-    AddressU = CLAMP;
-    AddressV = CLAMP;
-    MagFilter = LINEAR;
-    MinFilter = LINEAR;
-    Mipfilter = LINEAR;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -51,17 +41,13 @@ struct VertexShaderInput
 
 struct VertexShaderOutput
 {
-    float4 Position : POSITION0;
+    float4 Position : SV_POSITION;
     float2 TexCoord : TEXCOORD0;
 };
-
-
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  FUNCTION DEFINITIONS
 
- //  DEFAULT LIGHT SHADER FOR MODELS
 VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 {
     VertexShaderOutput output;
@@ -70,117 +56,55 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
     return output;
 }
 
-float pixelsize_intended = 3;
- 
+// For smooth holograms
+//float4 GaussianSampler(float2 TexCoord, float offset)
+//{
+//    float4 finalColor = float4(0, 0, 0, 0);
+//    for (int i = 0; i < SAMPLE_COUNT; i++)
+//    {
+//        finalColor += HologramMap.SampleLevel(linearSampler, TexCoord.xy +
+//                    offset * SampleOffsets[i] * InverseResolution, 0) * SampleWeights[i];
+//    }
+//    return finalColor;
+//}
 
-float4 GaussianSampler(float2 TexCoord, float offset)
-{
-    float4 finalColor = float4(0, 0, 0, 0);
-    for (int i = 0; i < SAMPLE_COUNT; i++)
-    {
-        finalColor += HologramMap.SampleLevel(linearSampler, TexCoord.xy +
-                    offset * SampleOffsets[i] * InverseResolution, 0) * SampleWeights[i];
-    }
-    return finalColor;
-}
 
 
 float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 {
-	float4 diffuseColor = colorMap.Sample(pointSampler, input.TexCoord);
+	int3 texCoordInt = int3(input.Position.xy, 0);
 
-	float albedoColorProp = diffuseColor.a;
+	float4 diffuseColor = colorMap.Load(texCoordInt);
 
-	float materialType = decodeMattype(albedoColorProp);
-
-	float metalness = decodeMetalness(albedoColorProp);
-
-	float3 diffuseContrib = float3(0, 0, 0);
-
-	//
-	[branch]
-	if (useGauss)
-	{
-		[branch]
-		if (abs(materialType - 2) < 0.1f)
-		{
-			float4 hologramColor = GaussianSampler(input.TexCoord, 3);
-			//    float2 pixel = trunc(input.TexCoord * Resolution);
-
-			//    float pixelsize2 = 2 * pixelsize;
-			//    if (pixel.x % pixelsize2 <= pixelsize && pixel.y % pixelsize2 <= pixelsize)
-			diffuseContrib = float3(0, hologramColor.x * 0.49, hologramColor.x * 0.95f) * 0.06f;
-		}
-	}
-	else
-	{
-		float pixelsize = pixelsize_intended;
-
-		float2 hologramTexCoord = trunc(input.TexCoord * Resolution / pixelsize / 2) / Resolution * pixelsize * 2;
-
-		float hologramColor = HologramMap.Sample(linearSampler, hologramTexCoord).r;
-		if (abs(materialType - 2) < 0.1f)
-		{
-			float2 pixel = trunc(input.TexCoord * Resolution);
-
-			float pixelsize2 = 2 * pixelsize;
-			if (pixel.x % pixelsize2 <= pixelsize && pixel.y % pixelsize2 <= pixelsize)
-				diffuseContrib = float3(0, hologramColor * 0.49, hologramColor * 0.95f) * 0.06f;
-
-		}
-	}
-
-	if (abs(materialType - 3) < 0.1f)
-	{
-		return diffuseColor;
-		}
-
-	//SSAO
-	float ssaoContribution = 1;
-	if (useSSAO)
-	{
-		ssaoContribution = SSAOMap.Sample(linearSampler, input.TexCoord).r;
-	}
-
-	float f0 = lerp(0.04f, diffuseColor.g * 0.25 + 0.75, metalness);
-
-	float3 diffuseLight = diffuseLightMap.Sample(pointSampler, input.TexCoord).rgb;
-	float3 specularLight = specularLightMap.Sample(pointSampler, input.TexCoord).rgb;
-
-	float3 volumeLight = volumeLightMap.Sample(pointSampler, input.TexCoord).rgb;
-
-	//float4 ssreflectionMap = SSRMap.Sample(linearSampler, input.TexCoord);
-	//specularLight += ssreflectionMap.rgb / exposure / 2;
-	////lerp(specularLight, ssreflectionMap.rgb / exposure, ssreflectionMap.a);
-
-	float3 plasticFinal = diffuseColor.rgb * (diffuseLight)+specularLight;
-
-	float3 metalFinal = specularLight * diffuseColor.rgb;
-
-	float3 finalValue = lerp(plasticFinal, metalFinal, metalness) + diffuseContrib;
-
-	return float4(finalValue * ssaoContribution + volumeLight,  1);
-}
-
-float4 PixelShaderSSRFunction(VertexShaderOutput input) : COLOR0
-{
-	float4 diffuseColor = colorMap.Sample(pointSampler, input.TexCoord);
-
-	//linear?
+	//Convert gamma for linear pipeline
 	diffuseColor.rgb = pow(abs(diffuseColor.rgb), 2.2f);
 
-	float albedoColorProp = diffuseColor.a;
+	// materialType 3 = emissive
+	// materialType 2 = hologram
+	// materialType 1 = default
+	float materialType = decodeMattype(diffuseColor.a);
 
-	float materialType = decodeMattype(albedoColorProp);
+	float metalness = decodeMetalness(diffuseColor.a);
 
-	float metalness = decodeMetalness(albedoColorProp);
+	//Our "volumetric" light data. This is a seperate buffer that is renders on top of all other stuff.
+	float3 volumetrics = volumeLightMap.Load(texCoordInt).rgb;
+
+	//Emissive Material
+	//If the material is emissive (matType == 3) we store the factor inside metalness. We simply output the emissive material and do not compose with lighting
+	if (abs(materialType - 3) < 0.1f)
+	{
+		// Optional: 2 << metalness*8, pow(2, m*8) etc.
+		return float4(diffuseColor.rgb * metalness * 8 + volumetrics, 1);
+	}
 
 	float3 diffuseContrib = float3(0, 0, 0);
 
-	//
-	[branch]
+	// Hologram effect -> see https://kosmonautblog.wordpress.com/2016/07/25/deferred-engine-progress-part2/
+	/*[branch]
 	if (useGauss)
 	{
+		float pixelsize_intended = 3;
+ 
 		[branch]
 		if (abs(materialType - 2) < 0.1f)
 		{
@@ -208,34 +132,22 @@ float4 PixelShaderSSRFunction(VertexShaderOutput input) : COLOR0
 				diffuseContrib = float3(0, hologramColor * 0.49, hologramColor * 0.95f) * 0.06f;
 
 		}
-	}
-
-	if (abs(materialType - 3) < 0.1f)
-	{
-		return diffuseColor * metalness *8 ;
-	}
+	} */
 
 	//SSAO
 	float ssaoContribution = 1;
+
 	[branch]
 	if (useSSAO)
 	{
-		ssaoContribution = pow(abs(SSAOMap.SampleLevel(linearSampler, input.TexCoord, 0).r), 2.2f);
+		//Do we need to pow(x, 2.2f) this?
+		ssaoContribution = SSAOMap.SampleLevel(pointSampler, input.TexCoord, 0).r;
 	}
 
 	float f0 = lerp(0.04f, diffuseColor.g * 0.25 + 0.75, metalness);
 
-	float3 diffuseLight = diffuseLightMap.Sample(pointSampler, input.TexCoord).rgb;
-	float3 specularLight = specularLightMap.Sample(pointSampler, input.TexCoord).rgb;
-
-	float3 volumeLight = volumeLightMap.Sample(pointSampler, input.TexCoord).rgb;
-
-	/*diffuseLight = pow(abs(diffuseLight.rgb), 2.2f);
-	specularLight = pow(abs(specularLight.rgb), 2.2f);*/
-	//volumeLight = pow(abs(volumeLight.rgb), 2.2f);
-	//float4 ssreflectionMap = SSRMap.Sample(linearSampler, input.TexCoord);
-	//specularLight += ssreflectionMap.rgb / exposure / 2;
-	////lerp(specularLight, ssreflectionMap.rgb / exposure, ssreflectionMap.a);
+	float3 diffuseLight = diffuseLightMap.Load(texCoordInt).rgb;
+	float3 specularLight = specularLightMap.Load(texCoordInt).rgb;
 
 	float3 plasticFinal = diffuseColor.rgb * (diffuseLight)+specularLight;
 
@@ -243,34 +155,9 @@ float4 PixelShaderSSRFunction(VertexShaderOutput input) : COLOR0
 
 	float3 finalValue = lerp(plasticFinal, metalFinal, metalness) + diffuseContrib;
 
-	float3 output = (finalValue * ssaoContribution + volumeLight) ;
+	float3 output = (finalValue * ssaoContribution + volumetrics) ;
 
-	return float4(output, 1); //pow(abs(output), 1 / 2.2f) * exposure, 1);
-}
-
-float4 PixelShaderUnlinearize(VertexShaderOutput input) : COLOR0
-{
-	float3 output = linearMap.Sample(pointSampler, input.TexCoord).rgb;
-
-	return float4(pow(abs(output), 1 / 2.2f) * exposure, 1);
-}
-
-technique TechniqueUnlinearize
-{
-	pass Pass1
-	{
-		VertexShader = compile vs_4_0 VertexShaderFunction();
-		PixelShader = compile ps_4_0 PixelShaderUnlinearize();
-	}
-}
-
-technique TechniqueNonLinear                                      
-{
-    pass Pass1
-    {
-        VertexShader = compile vs_4_0 VertexShaderFunction();
-        PixelShader = compile ps_4_0 PixelShaderFunction();
-    }
+	return float4(output, 1);
 }
 
 technique TechniqueLinear
@@ -278,6 +165,6 @@ technique TechniqueLinear
     pass Pass1
     {
         VertexShader = compile vs_4_0 VertexShaderFunction();
-        PixelShader = compile ps_4_0 PixelShaderSSRFunction();
+        PixelShader = compile ps_4_0 PixelShaderFunction();
     }
 }

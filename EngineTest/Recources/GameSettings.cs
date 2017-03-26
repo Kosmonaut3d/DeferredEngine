@@ -70,7 +70,7 @@ namespace DeferredEngine.Recources
             }
         }
 
-        public static bool g_HologramDraw = true;
+        public static bool g_HologramDraw = false;
 
         public static bool g_TemporalAntiAliasing = true;
         public static int g_TemporalAntiAliasingJitterMode = 2;
@@ -90,7 +90,7 @@ namespace DeferredEngine.Recources
                 Shaders.PostProcessingParameter_ChromaticAbberationStrength.SetValue(_chromaticAbberationStrength);
 
                 if(_chromaticAbberationStrength<=0)
-                Shaders.PostProcessing.CurrentTechnique = Shaders.PostProcessingTechnique_Vignette;
+                Shaders.PostProcessing.CurrentTechnique = Shaders.PostProcessingTechnique_Base;
                 else
                 {
                     Shaders.PostProcessing.CurrentTechnique = Shaders.PostProcessingTechnique_VignetteChroma;
@@ -127,7 +127,7 @@ namespace DeferredEngine.Recources
             set
             {
                 _exposure = value;
-                Shaders.PostProcessingParameter_Exposure.SetValue((float) Math.Pow(2,_exposure));
+                Shaders.PostProcessingParameter_PowExposure.SetValue((float) Math.Pow(2,_exposure));
             }
         }
 

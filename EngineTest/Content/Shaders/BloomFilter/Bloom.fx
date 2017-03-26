@@ -1,4 +1,5 @@
-﻿
+﻿//Bloomfilter 2016, Thekosmonaut
+
 Texture2D ScreenTexture;
 SamplerState u_texture
 {

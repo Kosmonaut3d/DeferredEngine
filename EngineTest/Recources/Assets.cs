@@ -103,9 +103,9 @@ namespace DeferredEngine.Recources
 
             EmissiveMaterial = CreateMaterial(Color.White, 0.2f, 1, null, null, null, null, null, null, MaterialEffect.MaterialTypes.Emissive, 1.5f);
 
-            EmissiveMaterial2 = CreateMaterial(Color.MonoGameOrange, 0.2f, 1, null, null, null, null, null, null, MaterialEffect.MaterialTypes.Emissive, 4.8f);
-            EmissiveMaterial3 = CreateMaterial(Color.Violet, 0.2f, 1, null, null, null, null, null, null, MaterialEffect.MaterialTypes.Emissive, 3.8f);
-            EmissiveMaterial4 = CreateMaterial(Color.LimeGreen, 0.2f, 1, null, null, null, null, null, null, MaterialEffect.MaterialTypes.Emissive, 2.8f);
+            EmissiveMaterial2 = CreateMaterial(Color.MonoGameOrange, 0.2f, 1, null, null, null, null, null, null, MaterialEffect.MaterialTypes.Emissive, 1.8f);
+            EmissiveMaterial3 = CreateMaterial(Color.Violet, 0.2f, 1, null, null, null, null, null, null, MaterialEffect.MaterialTypes.Emissive, 1.8f);
+            EmissiveMaterial4 = CreateMaterial(Color.LimeGreen, 0.2f, 1, null, null, null, null, null, null, MaterialEffect.MaterialTypes.Emissive, 1.8f);
 
             GoldMaterial = CreateMaterial(Color.Gold, 0.2f, 1);
 

@@ -119,8 +119,7 @@ namespace DeferredEngine.Renderer.RenderModules
 
             _taaPass.Apply();
             quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
-
-
+            
             if (useTonemap)
             {
                 _graphicsDevice.SetRenderTarget(currentFrame);

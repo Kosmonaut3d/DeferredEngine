@@ -1,6 +1,6 @@
 ﻿////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  VARIABLES
-//      PROJECTION  
+//  EMISSIVE DRAW, not used right now. Not converted to View space pipeline yet.
 
 matrix World;
 matrix WorldViewProj;

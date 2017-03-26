@@ -119,7 +119,7 @@ namespace DeferredEngine.Renderer
         
         private RenderTarget2D _renderTargetScreenSpaceEffectReflection;
 
-        private RenderTarget2D _renderTargetHologram;
+        //private RenderTarget2D _renderTargetHologram;
 
         private RenderTarget2D _renderTargetSSAOEffect;
 
@@ -561,16 +561,16 @@ namespace DeferredEngine.Renderer
                 SetUpRenderTargets(GameSettings.g_ScreenWidth, GameSettings.g_ScreenHeight, false);
             }
 
-            if (_hologramDraw != GameSettings.g_HologramDraw)
-            {
-                _hologramDraw = GameSettings.g_HologramDraw;
+            //if (_hologramDraw != GameSettings.g_HologramDraw)
+            //{
+            //    _hologramDraw = GameSettings.g_HologramDraw;
 
-                if (!_hologramDraw)
-                {
-                    _graphicsDevice.SetRenderTarget(_renderTargetHologram);
-                    _graphicsDevice.Clear(Color.Black);
-                }
-            }
+            //    if (!_hologramDraw)
+            //    {
+            //        _graphicsDevice.SetRenderTarget(_renderTargetHologram);
+            //        _graphicsDevice.Clear(Color.Black);
+            //    }
+            //}
 
             if (_forceShadowFiltering != GameSettings.g_ShadowForceFiltering)
             {
@@ -838,7 +838,9 @@ namespace DeferredEngine.Renderer
         private void DrawHolograms(MeshMaterialLibrary meshMat)
         {
             if (!GameSettings.g_HologramDraw) return;
-            _graphicsDevice.SetRenderTarget(_renderTargetHologram);
+
+            throw new NotImplementedException("Holograms are no longer supported by default, but their functionality is merely commented out (in DeferredCompose.fx, too!)");
+            /*_graphicsDevice.SetRenderTarget(_renderTargetHologram);
             _graphicsDevice.Clear(Color.Black);
             meshMat.Draw(MeshMaterialLibrary.RenderType.Hologram, _viewProjection);
 
@@ -849,7 +851,7 @@ namespace DeferredEngine.Renderer
                 GameStats.d_profileDrawHolograms = performanceCurrentTime - _performancePreviousTime;
 
                 _performancePreviousTime = performanceCurrentTime;
-            }
+            }*/
         }
 
         /// <summary>
@@ -1292,7 +1294,7 @@ namespace DeferredEngine.Renderer
 
                 if (!onlyEssentials)
                 {
-                    _renderTargetHologram.Dispose();
+                    //_renderTargetHologram.Dispose();
                     _renderTargetTAA_1.Dispose();
                     _renderTargetTAA_2.Dispose();
                     _renderTargetSSAOEffect.Dispose();
@@ -1385,9 +1387,9 @@ namespace DeferredEngine.Renderer
                 Shaders.ScreenSpaceEffectParameter_InverseResolution.SetValue(new Vector2(1.0f / targetWidth,
                     1.0f / targetHeight));
 
-                _renderTargetHologram = new RenderTarget2D(_graphicsDevice, targetWidth,
-                    targetHeight, false, SurfaceFormat.Single, DepthFormat.Depth24, 0,
-                    RenderTargetUsage.PreserveContents);
+                //_renderTargetHologram = new RenderTarget2D(_graphicsDevice, targetWidth,
+                //    targetHeight, false, SurfaceFormat.Single, DepthFormat.Depth24, 0,
+                //    RenderTargetUsage.PreserveContents);
             }
 
             UpdateRenderMapBindings(onlyEssentials);
@@ -1418,7 +1420,7 @@ namespace DeferredEngine.Renderer
             Shaders.DeferredComposeEffectParameter_specularLightMap.SetValue(_renderTargetSpecular);
             Shaders.DeferredComposeEffectParameter_volumeLightMap.SetValue(_renderTargetVolume);
             Shaders.DeferredComposeEffectParameter_SSAOMap.SetValue(_renderTargetScreenSpaceEffectBlurFinal);
-            Shaders.DeferredComposeEffectParameter_HologramMap.SetValue(_renderTargetHologram);
+            //Shaders.DeferredComposeEffectParameter_HologramMap.SetValue(_renderTargetHologram);
             // Shaders.DeferredComposeEffectParameter_SSRMap.SetValue(_renderTargetScreenSpaceEffectReflection);
 
             Shaders.ScreenSpaceEffectParameter_NormalMap.SetValue(_renderTargetNormal);

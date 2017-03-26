@@ -41,6 +41,9 @@ float DepthBias = 0.02;
 //Needed for manual texture sampling
 float2 Resolution = float2(1280, 800);
 
+//Multiply output with this to get results that can be evaluated alone
+const float OUTPUTCONST = 0.1f;
+
 // diffuse color, and specularIntensity in the alpha channel
 Texture2D AlbedoMap;
 // normals, and specularPower in the alpha channel
@@ -59,18 +62,6 @@ SamplerState PointSampler
     MinFilter = POINT;
     Mipfilter = POINT;
 };
-
-//ShadowCube
-//TextureCube shadowCubeMap;
-//sampler shadowCubeMapSampler = sampler_state
-//{
-//    texture = <shadowCubeMap>;
-//    AddressU = CLAMP;
-//    AddressV = CLAMP;
-//    MagFilter = LINEAR;
-//    MinFilter = LINEAR;
-//    Mipfilter = LINEAR;
-//};
 
 Texture2D ShadowMap;
 
@@ -122,6 +113,7 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 	return output;
 }
 
+//For stencil mask only
 float4 VertexShaderBasic(VertexShaderInput input) : POSITION0
 {
 	return mul(input.Position, WorldViewProj);
@@ -135,12 +127,16 @@ float4 VertexShaderBasic(VertexShaderInput input) : POSITION0
 		//  HELPER FUNCTIONS
 		////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	//Check helper.fx
+	//Check helper.fx for more helper functions
+
+	//Loads a texel based off of input vector
 	float4 LoadShadowMap(float3 vec3)
 	{
 		return ShadowMap.Load(int3(GetSampleCoordinate(vec3) * float2(ShadowMapSize, 6 * ShadowMapSize), 0)).r;
 	}
 
+	//Loads a texel based on float2 texCoord. The texCoord can be obtained by calling GetSampleCoordinate(vec3).
+	//One can additionally add an offset, like this GetSampleOffset(sampleCoord, float2(x, y)*texelSize)
 	float4 LoadShadowMapUV(float2 coord)
 	{
 		return ShadowMap.Load(int3(coord * float2(ShadowMapSize, 6 * ShadowMapSize), 0)).r;
@@ -165,46 +161,48 @@ float4 VertexShaderBasic(VertexShaderInput input) : POSITION0
 //	return p_max;
 //}
 
-//float SampleShadowMap(float3 texCoord)
-//{
-//	//texCoord.z = -texCoord.z;
-//	return 1 - shadowCubeMap.SampleLevel(shadowCubeMapSampler, texCoord, 0).r;
-//}
-
 float GetVariableBias(float nDotL)
 {
-	//return /*(1 - abs(nDotL)) * DepthBias;*/clamp(0.001 * tan(acos(nDotL)), 0, DepthBias);
+	//return clamp(0.001 * tan(acos(nDotL)), 0, DepthBias);
+	//tan = sqrt(1-cos(x)^2)/cos(x)
 	return clamp(0.005 * sqrt(1 - nDotL * nDotL) / nDotL, 0, DepthBias);
 }
 
+//Shadow filtering with variable kernel, depending on ShadowMapRadius
 float CalcShadowTermPCF(float linearDepthLV, float ndotl, float3 vec3)
 {
-
-	//float2 fractionals = frac(ShadowMapSize * shadowTexCoord.xy);
-
-	float Size = ShadowMapSize;
-	float texelSize = 1.0f / Size;
-
-	float variableBias = GetVariableBias(ndotl);
-
-	float testDepth = linearDepthLV - variableBias;
-
 	float fShadowTerm = 0.0;
 
+	float Size = ShadowMapSize;
+
+	//Could be offloaded to a static function
+	float texelSize = 1.0f / Size;
+
+	//Variable bias, depending on tan
+	float variableBias = GetVariableBias(ndotl);
+	
+	//Apply bias
+	float testDepth = linearDepthLV - variableBias;
+
+	//Get float2 texture coordinate for our shadow map
 	float2 sampleCoord = GetSampleCoordinate(vec3);
 
+	//Calculate fractionals for edge tap smoothing
+	float2 fractionals = frac(float2(Size * sampleCoord.x, Size * sampleCoord.y * 6));
+	float2 complFractionals = float2(1, 1) - fractionals;
+
+	//get the depth of our center sample
 	float centerDepth = 1 - LoadShadowMapUV(sampleCoord).r;
 
-	float iSqrtSamples = ShadowMapRadius;
+	float fRadius = ShadowMapRadius - 1;
 
-	float fRadius = iSqrtSamples - 1; //mad(iSqrtSamples, 0.5, -0.5);//(iSqrtSamples - 1.0f) / 2;
-
+	//No PCF -> we are done
 	if(fRadius < 1) 
 		return testDepth < centerDepth;
 
 	float closestDepth;
 
-	//[unroll] is better
+	//[unroll] is better, but can't be used when dynamically changing size
 	[loop]
 	for (float y = -fRadius; y <= fRadius; y++)
 	{
@@ -226,21 +224,38 @@ float CalcShadowTermPCF(float linearDepthLV, float ndotl, float3 vec3)
 			float xWeight = 1;
 			float yWeight = 1;
 
+			//Our edge texels get smoothed, they are weighted by area covered
 			if (x == -fRadius)
-				xWeight = 1 - frac(sampleCoord.x * Size);
+				xWeight = complFractionals.x;
 			else if (x == fRadius)
-				xWeight = frac(sampleCoord.x * Size);
+				xWeight = fractionals.x;
 
 			if (y == -fRadius)
-				yWeight = 1 - frac(sampleCoord.y * Size * 6);
+				yWeight = complFractionals.y;
 			else if (y == fRadius)
-				yWeight = frac(sampleCoord.y * Size * 6);
+				yWeight = fractionals.y;
 			
 			fShadowTerm += fSample * xWeight * yWeight;
 		}
 	}
 
+	//Edge texels are worth half by default, because the one side is weighted as frac, while the other is 1-frac, so a+b = 1;
+	/*
+		Example: 
+		[ , ] [ / ] [ , ]
+		[ / ] [ X ] [ / ]
+		[ , ] [ / ] [ , ]
 
+		-> Radius = 1. Center sample is considered 100%, other 4 samples are 0.5. 4 edges are 0.25
+		-> 1 + 2 + 1 = 4
+		Radius * Radius * 4 = 4;
+
+		Example2:
+		-> Radius = 2 -> 9 full samples, 12 half samples, 4 edges are 0.25 
+		9 + 6 + 1 = 16
+		Radius * Radius * 4 = 16
+	*/
+	
 	fShadowTerm /= (fRadius * fRadius * 4);
 
 	return fShadowTerm;
@@ -358,8 +373,8 @@ PixelShaderOutput BasePixelShaderFunction(PixelShaderInput input)
         }
         float3 specular = SpecularCookTorrance(NdL, normal, lightVector, cameraDirection, lightIntensity, lightColor, f0, roughness);
     
-        output.Diffuse.rgb = (attenuation * diffuseLight * (1 - f0)) * 0.1f; //* (1 - f0)) * (f0 + 1) * (f0 + 1);
-        output.Specular.rgb = specular * attenuation * 0.1f;
+        output.Diffuse.rgb = (attenuation * diffuseLight * (1 - f0)) * OUTPUTCONST; //* (1 - f0)) * (f0 + 1) * (f0 + 1);
+        output.Specular.rgb = specular * attenuation * OUTPUTCONST;
         return output;
     }
 }
@@ -540,8 +555,8 @@ PixelShaderOutput VolumetricPixelShaderFunction(VertexShaderOutput input)
 		}
 		float3 specular = SpecularCookTorrance(NdL, normal, lightVector, -cameraDirection, lightIntensity, lightColor, f0, roughness);
 
-		output.Diffuse.rgb = (attenuation * diffuseLight * (1 - f0)) * 0.1f; //* (1 - f0)) * (f0 + 1) * (f0 + 1);
-		output.Specular.rgb = specular * attenuation * 0.1f;
+		output.Diffuse.rgb = (attenuation * diffuseLight * (1 - f0)) * OUTPUTCONST; //* (1 - f0)) * (f0 + 1) * (f0 + 1);
+		output.Specular.rgb = specular * attenuation * OUTPUTCONST;
 
 	}
 	return output;
@@ -597,13 +612,13 @@ PixelShaderOutput BasePixelShaderFunctionShadow(PixelShaderInput input)
 
 		float3 lightVectorWS = -mul(float4(lightVector, 0), InverseView).xyz;
 		
-		float shadowVSM = CalcShadowTermPCF(lengthLight / lightRadius, NdL, lightVectorWS);
+		float shadowFactor = CalcShadowTermPCF(lengthLight / lightRadius, NdL, lightVectorWS);
 
 		float3 diffuseLight = float3(0, 0, 0);
 		float3 specular = float3(0, 0, 0);
 
 		[branch]
-		if (shadowVSM > 0.01f && lengthLight < lightRadius)
+		if (shadowFactor > 0.01f && lengthLight < lightRadius)
 		{
 			[branch]
 			if (metalness < 0.99)
@@ -612,8 +627,8 @@ PixelShaderOutput BasePixelShaderFunctionShadow(PixelShaderInput input)
 			}
 			specular = SpecularCookTorrance(NdL, normal, lightVector, cameraDirection, lightIntensity, lightColor, f0, roughness);
 		}
-		output.Diffuse.rgb = (attenuation * diffuseLight * (1 - f0)) * 0.1f * shadowVSM;
-		output.Specular.rgb = specular * attenuation * 0.1f * max(shadowVSM - 0.1f, 0);
+		output.Diffuse.rgb = (attenuation * diffuseLight * (1 - f0)) * shadowFactor* OUTPUTCONST ;
+		output.Specular.rgb = specular * attenuation * shadowFactor * OUTPUTCONST ; /*max(shadowVSM - 0.1f, 0);*/
 
 		return output;
 	}
@@ -771,13 +786,13 @@ PixelShaderOutput VolumetricPixelShaderFunctionShadowed(VertexShaderOutput input
 	float NdL = saturate(dot(normal, lightVector));
 	float3 lightVectorWS = -mul(float4(lightVector, 0), InverseView).xyz;
 
-	float shadowVSM = CalcShadowTermPCF(distanceLtoR / lightRadius, NdL, lightVectorWS);
+	float shadowFactor = CalcShadowTermPCF(distanceLtoR / lightRadius, NdL, lightVectorWS);
 
 	float3 diffuseLight = float3(0, 0, 0);
 	float3 specular = float3(0, 0, 0);
 
 	[branch]
-	if (shadowVSM > 0.01f && distanceLtoR < lightRadius)
+	if (shadowFactor > 0.01f && distanceLtoR < lightRadius)
 	{
 		[branch]
 		if (metalness < 0.99)
@@ -786,8 +801,8 @@ PixelShaderOutput VolumetricPixelShaderFunctionShadowed(VertexShaderOutput input
 		}
 		specular = SpecularCookTorrance(NdL, normal, lightVector, -cameraDirection, lightIntensity, lightColor, f0, roughness);
 	}
-	output.Diffuse.rgb = (attenuation * diffuseLight * (1 - f0)) * 0.1f * shadowVSM;
-	output.Specular.rgb = specular * attenuation * 0.1f * max(shadowVSM - 0.1f, 0);
+	output.Diffuse.rgb = (attenuation * diffuseLight * (1 - f0)) *shadowFactor * OUTPUTCONST;
+	output.Specular.rgb = specular * attenuation * 0.1f * shadowFactor* OUTPUTCONST;
 
 	return output;
 

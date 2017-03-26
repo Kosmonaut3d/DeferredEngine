@@ -1,12 +1,21 @@
-﻿//------------------------------ TEXTURE PROPERTIES ----------------------------
-// This is the texture that SpriteBatch will try to set before drawing
+﻿// Basic Postprocessing shader
+// Combines chroma shift and vignette effect, plus Tonemapping from HDR to LDR and gamma conversion from 1.0 to 2.2
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//  VARIABLES
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Texture2D ScreenTexture;
 
 // Our sampler for the texture, which is just going to be pretty simple
-sampler TextureSampler = sampler_state
+SamplerState LinearSampler
 {
-    Texture = <ScreenTexture>; 
+    Texture = (ScreenTexture); 
+	AddressU = CLAMP;
+	AddressV = CLAMP;
+	MagFilter = LINEAR;
+	MinFilter = LINEAR;
+	Mipfilter = POINT;
 };
 
 float ChromaticAbberationStrength = 10;
@@ -15,10 +24,12 @@ float SCurveStrength; //= -0.05f;
 
 float WhitePoint = 1.1f;
 
-float Exposure = 2;
+//Note this should be computed as Pow(2, Exposure) as an input. I do not compute the power in this shader
+float PowExposure = 2;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//  STRUCT DEFINITIONS
+//  STRUCTS
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct VertexShaderInput
 {
@@ -31,6 +42,36 @@ struct VertexShaderOutput
 	float4 Position : POSITION0;
 	float2 TexCoord : TEXCOORD0;
 };
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//  FUNCTIONS
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//  VERTEX SHADER
+	////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
+{
+	VertexShaderOutput output;
+	output.Position = float4(input.Position, 1);
+	//align texture coordinates
+	output.TexCoord = input.TexCoord;
+	return output;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//  PIXEL SHADER
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		//  HELPER FUNCTIONS
+		////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/*
+	Almost everything below is taken from somewhere. I apologize for not providing sources for each helper function.
+*/
+
 
 float2 brownConradyDistortion(float2 uv)
 {
@@ -62,34 +103,6 @@ float3 ColorSCurve(float3 color)
     return color * float3(brightness, brightness, brightness);
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//  FUNCTION DEFINITIONS
-
-VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
-{
-	VertexShaderOutput output;
-	output.Position = float4(input.Position, 1);
-	//align texture coordinates
-	output.TexCoord = input.TexCoord;
-	return output;
-}
-
-//------------------------ PIXEL SHADER ----------------------------------------
-// This pixel shader will simply look up the color of the texture at the
-// requested point, and turns it into a shade of gray
-
-float radiusX = 0.6;
-float radiusY = 0.2;
-
-//float4 VignettePixelShaderFunction(float4 pos : SV_POSITION, float2 texCoord : TEXCOORD0) : SV_TARGET0
-//{
-//    float3 base = tex2D(TextureSampler, texCoord.xy).rgb;
-//
-//    base = ColorSCurve(base);
-//
-//    return float4(base,1);
-//}
-
 float3 ToneMapFilmic_Hejl2015(float3 hdr, float whitePt)
 {
 	float4 vh = float4(hdr, whitePt);
@@ -104,7 +117,6 @@ float GetLuma(float3 rgb)
 }
 
 //http://www.cs.utah.edu/~reinhard/cdrom/tonemap.pdf
-
 float3 ReinhardTonemap(float3 hdr)
 {
 	float x = GetLuma(hdr);
@@ -140,64 +152,76 @@ float3 Uncharted2Tonemap(float3 x)
 	return ((x*(A*x + C*B) + D*E) / (x*(A*x + B) + D*F)) - E / F;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//  Main Post Processing
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 float4 VignetteChromaShiftPixelShaderFunction(float4 pos : SV_POSITION, float2 texCoord : TEXCOORD0) : SV_TARGET0
 {
-    float3 base = tex2D(TextureSampler, texCoord).rgb ;
+	int3 texCoordInt = int3(pos.xy, 0);
 
+	//Load base color
+    float3 base = ScreenTexture.Load(texCoordInt).rgb;
 
-    //float chromaStrength = (base.r + base.g + base.b) / 3;
+	//Calculate distance to center
 	float dist = distance(texCoord, float2(0.5.xx));
 
+	//Chroma shift / fringe effect
 	if (dist > 0.1)
 	{
+		//Depending on distance to center, we substitute our red channel for another pixel from a slight offset
 		float2 distcr = (texCoord - float2(0.5, 0.5)) ;
 		float2 chromaDist = distcr*dist * float2(1.6f, 1) * ChromaticAbberationStrength * 0.1f; //*(0.5f+chromaStrength);
 
-		float chromaR = tex2D(TextureSampler, texCoord.xy + chromaDist).r;
+		float chromaR = ScreenTexture.Sample(LinearSampler, texCoord.xy + chromaDist).r;
 
 		base.r = chromaR;
 	}
 
-	base.rgb = ToneMapFilmic_Hejl2015(base.rgb * Exposure, WhitePoint);
+	//Apply Tonemapping!
+
+	//base.rgb = //ReinhardTonemap(base.rgb * PowExposure, WhitePoint);
+	//		   //Uncharted2Tonemap(base.rgb * PowExposure) / Uncharted2Tonemap(WhitePoint.xxx);
+	base.rgb = ToneMapFilmic_Hejl2015(base.rgb * PowExposure, WhitePoint);
+
+	//Convert back to 2.2 Gamma!
+
 	base = pow(abs(base), 0.4545454545f);
 
-	//base.rgb = //ReinhardTonemap(base.rgb * Exposure, WhitePoint);
-	//		   //Uncharted2Tonemap(base.rgb * Exposure) / Uncharted2Tonemap(WhitePoint.xxx);
-	//base = pow(abs(base), 0.4545454545f);
-
+	//Apply SCurve
     base = ColorSCurve(base);
 
+	//Apply "Vignette" Effect
+	const float radiusX = 0.6;
+	const float radiusY = 0.2;
     dist *= 0.60f;
     base.rgb *= smoothstep(radiusX, radiusY, dist);
-
 
     return float4(base,1);
 }
 
+//Only apply Tonemapping and SCurve
 float4 BasePixelShaderFunction(float4 pos : SV_POSITION, float2 texCoord : TEXCOORD0) : SV_TARGET0
 {
-	float3 base = tex2D(TextureSampler, texCoord).rgb;
+	int3 texCoordInt = int3(pos.xy, 0);
+
+	//Load base color
+	float3 base = ScreenTexture.Load(texCoordInt).rgb;
 
 	base = pow(abs(base), 0.4545454545f);
-	base.rgb = //ReinhardTonemap(base.rgb * Exposure, WhitePoint);
-			   		   Uncharted2Tonemap(base.rgb * Exposure) / Uncharted2Tonemap(WhitePoint.xxx);
+	base.rgb = //ReinhardTonemap(base.rgb * PowExposure, WhitePoint);
+		Uncharted2Tonemap(base.rgb * PowExposure) / Uncharted2Tonemap(WhitePoint.xxx);
 
 	base = ColorSCurve(base);
+
 	return float4(base,1);
 }
 
 
-//-------------------------- TECHNIQUES ----------------------------------------
-// This technique is pretty simple - only one pass, and only a pixel shader
-technique Vignette
-{
-    pass Pass1
-    {
-
-		VertexShader = compile vs_4_0 VertexShaderFunction();
-        PixelShader = compile ps_5_0 BasePixelShaderFunction();
-    }
-}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//  TECHNIQUES
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 technique Base
 {

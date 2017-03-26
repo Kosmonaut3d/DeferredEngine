@@ -1,24 +1,24 @@
-﻿struct VertexShaderInput
-{
-    float2 Position : POSITION0;
-};
-struct VertexShaderOutput
-{
-    float4 Position : POSITION0;
-};
-VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
-{
-    VertexShaderOutput output;
-    output.Position = float4(input.Position,1, 1);
-    return output;
-}
+﻿////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//  STRUCTS
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 struct PixelShaderOutput
 {
-    float4 Color : COLOR0;
-    float4 Normal : COLOR1;
-    float4 Depth : COLOR2;
+	float4 Color : COLOR0;
+	float4 Normal : COLOR1;
+	float4 Depth : COLOR2;
 };
-PixelShaderOutput PixelShaderFunction(VertexShaderOutput input)
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//  FUNCTIONS
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+float4 VertexShaderFunction(float2 Position : POSITION0) : SV_POSITION
+{
+    return float4(Position,1, 1);
+}
+
+PixelShaderOutput PixelShaderFunction() : COLOR
 {
     PixelShaderOutput output;
     //black color
@@ -29,6 +29,11 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input)
     output.Depth = 1.0f;
     return output;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//  TECHNIQUES
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 technique Clear
 {
     pass Pass1

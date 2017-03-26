@@ -1,4 +1,9 @@
-﻿matrix  WorldViewProj;
+﻿////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//  Draw meshes with color == id
+//  Or
+//  Draw selected meshes with a a color overlay and outlines
+
+matrix  WorldViewProj;
 matrix World;
 
 float4 ColorId = float4(0.8f, 0.8f, 0.8f, 1);
@@ -35,12 +40,7 @@ DrawBasic_VSIn DrawBasic_VertexShader(DrawBasic_VSIn input)
     return Output;
 }
 
-float4 Id_PixelShader(DrawBasic_VSIn input): SV_Target
-{
-    return float4(ColorId.xyz, 0);
-}
-
-//Outline
+//For outlines extrude the backfacing normals
 DrawNormal_VSOut DrawOutline_VertexShader(DrawNormal_VSIn input)
 {
 	DrawNormal_VSOut Output;
@@ -70,6 +70,14 @@ DrawNormal_VSOut DrawOutline_VertexShader(DrawNormal_VSIn input)
     return Output;
 }
 
+//------------------------ PIXEL SHADER ----------------------------------------
+
+float4 Id_PixelShader(DrawBasic_VSIn input) : SV_Target
+{
+	return float4(ColorId.xyz, 0);
+}
+
+
 float4 Outline_PixelShader(DrawNormal_VSOut input) : SV_Target
 {
 	if (input.Normal.z > 0.03) return float4(ColorId.rgb,0.4f);
@@ -77,6 +85,9 @@ float4 Outline_PixelShader(DrawNormal_VSOut input) : SV_Target
     if (input.Position.x % 8 + input.Position.y % 8 > 6) return float4(0, 0, 0, 0);
     return ColorId;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//  TECHNIQUES
 
 technique DrawId
 {
