@@ -146,7 +146,7 @@ namespace DeferredEngine.Renderer.RenderModules
 
             Vector3 position = editorData.SelectedObjectPosition;
 
-            Matrix rotation = GameStats.e_LocalTransformation ? editorData.SelectedObject.RotationMatrix : Matrix.Identity;
+            Matrix rotation = (GameStats.e_LocalTransformation || editorData.GizmoMode == EditorLogic.GizmoModes.Scale) ? editorData.SelectedObject.RotationMatrix : Matrix.Identity;
 
             //Z
             DrawArrow(position, rotation, 0, 0, 0, 0.5f, new Color(1,0,0), staticViewProjection, assets);

@@ -96,6 +96,9 @@ namespace DeferredEngine.Entities
                 HasChanged = true;
             }
         }
+
+        public override Vector3 Scale { get; set; }
+
         public float Radius
         {
             get { return _radius; }

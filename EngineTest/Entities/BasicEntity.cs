@@ -36,6 +36,20 @@ namespace DeferredEngine.Entities
             }
         }
 
+        private Vector3 _scale;
+        public override Vector3 Scale
+        {
+            get
+            {
+                return _scale;
+            }
+            set
+            {
+                WorldTransform.HasChanged = true;
+                _scale = value;
+            }
+        }
+
         public override int Id {
             get { return _id; }
             set { _id = value; } }
@@ -67,9 +81,8 @@ namespace DeferredEngine.Entities
         public readonly TransformMatrix WorldTransform;
         private Matrix _worldOldMatrix = Matrix.Identity;
         private Matrix _worldNewMatrix = Matrix.Identity;
-        public readonly float Scale = 1;
         
-        public BasicEntity(Model model, MaterialEffect material, Vector3 position, double angleZ, double angleX, double angleY, float scale, MeshMaterialLibrary library = null, Entity physicsObject = null)
+        public BasicEntity(Model model, MaterialEffect material, Vector3 position, double angleZ, double angleX, double angleY, Vector3 scale, MeshMaterialLibrary library = null, Entity physicsObject = null)
         {
             Id = IdGenerator.GetNewId();
             Name = GetType().Name + " " + Id;
@@ -90,7 +103,7 @@ namespace DeferredEngine.Entities
 
         }
 
-        public BasicEntity(Model model, MaterialEffect material, Vector3 position, Matrix rotationMatrix, float scale)
+        public BasicEntity(Model model, MaterialEffect material, Vector3 position, Matrix rotationMatrix, Vector3 scale)
         {
             Id = IdGenerator.GetNewId();
             Name = GetType().Name + " " + Id;
@@ -134,7 +147,7 @@ namespace DeferredEngine.Entities
                 if (StaticPhysicsObject != null && !GameSettings.Editor_enable)
                 {
                     AffineTransform change = new AffineTransform(
-                            new BEPUutilities.Vector3(Scale, Scale, Scale),
+                            new BEPUutilities.Vector3(Scale.X, Scale.Y, Scale.Z),
                             Quaternion.CreateFromRotationMatrix(MathConverter.Convert(RotationMatrix)),
                             MathConverter.Convert(Position));
 
@@ -202,7 +215,7 @@ namespace DeferredEngine.Entities
         public bool HasChanged = true;
         public readonly int Id;
 
-        public float Scale;
+        public Vector3 Scale;
 
         public TransformMatrix(Matrix world, int id)
         {

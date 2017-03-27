@@ -170,7 +170,7 @@ namespace DeferredEngine.Logic
             ////////////////////////////////////////////////////////////////////////
             // Decals
 
-            Decals.Add(new Decal(_assets.IconDecal, new Vector3(-6, 22, 15),0, -Math.PI / 2, 0,10 ));
+            Decals.Add(new Decal(_assets.IconDecal, new Vector3(-6, 22, 15),0, -Math.PI / 2, 0, Vector3.One * 10 ));
 
             ////////////////////////////////////////////////////////////////////////
             // Dynamic lights
@@ -383,7 +383,7 @@ namespace DeferredEngine.Logic
                 angleZ: angleZ, 
                 angleX: angleX, 
                 angleY: angleY, 
-                scale: scale,
+                scale: Vector3.One * scale,
                 library: MeshMaterialLibrary,
                 physicsObject: PhysicsEntity);
             BasicEntities.Add(entity);
@@ -414,7 +414,7 @@ namespace DeferredEngine.Logic
                 angleZ: angleZ,
                 angleX: angleX,
                 angleY: angleY,
-                scale: scale,
+                scale: Vector3.One * scale,
                 library: MeshMaterialLibrary,
                 physicsObject: PhysicsEntity);
             BasicEntities.Add(entity);
@@ -435,9 +435,7 @@ namespace DeferredEngine.Logic
             ModelDataExtractor.GetVerticesAndIndicesFromModel(entity.Model, out vertices, out indices);
             var mesh = new StaticMesh(vertices, indices, 
                 new AffineTransform(
-                    new BEPUutilities.Vector3(entity.Scale, 
-                        entity.Scale, 
-                        entity.Scale), 
+                    new BEPUutilities.Vector3(entity.Scale.X, entity.Scale.Y, entity.Scale.Z), 
                 Quaternion.CreateFromRotationMatrix(MathConverter.Convert(entity.RotationMatrix)), 
                 MathConverter.Convert(entity.Position)));
 

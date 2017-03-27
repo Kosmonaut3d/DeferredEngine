@@ -29,7 +29,8 @@ namespace DeferredEngine.Logic
         public enum GizmoModes
         {
             Translation,
-            Rotation
+            Rotation,
+            Scale
         }
 
         public struct EditorReceivedData
@@ -308,42 +309,61 @@ namespace DeferredEngine.Logic
                 float diffL = x - previousMouseX + y - previousMouseY;
                 diffL /= 50;
 
-                DebugScreen.AddString("test" + diffL);
-
-                if (!GameStats.e_LocalTransformation)
+                if (_gizmoMode == GizmoModes.Rotation)
                 {
-                    if (gizmoId == 1)
+
+                    if (!GameStats.e_LocalTransformation)
                     {
-                        SelectedObject.RotationMatrix = SelectedObject.RotationMatrix*
-                                                        Matrix.CreateRotationZ((float) diffL);
+                        if (gizmoId == 1)
+                        {
+                            SelectedObject.RotationMatrix = SelectedObject.RotationMatrix*
+                                                            Matrix.CreateRotationZ((float) diffL);
+                        }
+                        if (gizmoId == 2)
+                        {
+                            SelectedObject.RotationMatrix = SelectedObject.RotationMatrix*
+                                                            Matrix.CreateRotationY((float) diffL);
+                        }
+                        if (gizmoId == 3)
+                        {
+                            SelectedObject.RotationMatrix = SelectedObject.RotationMatrix*
+                                                            Matrix.CreateRotationX((float) diffL);
+                        }
                     }
-                    if (gizmoId == 2)
+                    else
                     {
-                        SelectedObject.RotationMatrix = SelectedObject.RotationMatrix*
-                                                        Matrix.CreateRotationY((float) diffL);
-                    }
-                    if (gizmoId == 3)
-                    {
-                        SelectedObject.RotationMatrix = SelectedObject.RotationMatrix*
-                                                        Matrix.CreateRotationX((float) diffL);
+                        if (gizmoId == 1)
+                        {
+                            SelectedObject.RotationMatrix = Matrix.CreateRotationZ((float) diffL)*
+                                                            SelectedObject.RotationMatrix;
+                        }
+                        if (gizmoId == 2)
+                        {
+                            SelectedObject.RotationMatrix = Matrix.CreateRotationY((float) diffL)*
+                                                            SelectedObject.RotationMatrix;
+                        }
+                        if (gizmoId == 3)
+                        {
+                            SelectedObject.RotationMatrix = Matrix.CreateRotationX((float) diffL)*
+                                                            SelectedObject.RotationMatrix;
+                        }
                     }
                 }
                 else
                 {
                     if (gizmoId == 1)
                     {
-                        SelectedObject.RotationMatrix = Matrix.CreateRotationZ((float)diffL) * SelectedObject.RotationMatrix;
+                        SelectedObject.Scale += (float) diffL * Vector3.UnitZ;
                     }
                     if (gizmoId == 2)
                     {
-                        SelectedObject.RotationMatrix = Matrix.CreateRotationY((float)diffL) * SelectedObject.RotationMatrix ;
+                        SelectedObject.Scale += (float)diffL * Vector3.UnitY;
                     }
                     if (gizmoId == 3)
                     {
-                        SelectedObject.RotationMatrix = Matrix.CreateRotationX((float)diffL) * SelectedObject.RotationMatrix ;
+                        SelectedObject.Scale += (float)diffL * Vector3.UnitX;
                     }
                 }
-
 
 
                 previousMouseX = x;

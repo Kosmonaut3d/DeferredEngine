@@ -676,7 +676,7 @@ namespace DeferredEngine.Renderer.Helper
                         BoundingSphere sphere = new BoundingSphere(Vector3.Zero, 0);
 
                         sphere.Center = meshLib.GetBoundingCenterWorld(index);
-                        sphere.Radius = meshLib.MeshBoundingSphere.Radius * meshLib.GetWorldMatrices()[index].Scale;
+                        sphere.Radius = meshLib.MeshBoundingSphere.Radius * meshLib.GetWorldMatrices()[index].Scale.X;
                         if (transformedViewFrustum.Contains(sphere) == ContainmentType.Disjoint)
                         {
                             continue;
@@ -694,7 +694,7 @@ namespace DeferredEngine.Renderer.Helper
                         Shaders.EmissiveEffectParameter_Origin.SetValue(origin);
                         //meshLib.GetBoundingCenterWorld(index));
 
-                        float size = meshLib.MeshBoundingSphere.Radius * meshLib.GetWorldMatrices()[index].Scale * 3 * (GameSettings.g_EmissiveMaterialeSizeStrengthScaling ? material.EmissiveStrength : 1);
+                        float size = meshLib.MeshBoundingSphere.Radius * meshLib.GetWorldMatrices()[index].Scale.X * 3 * (GameSettings.g_EmissiveMaterialeSizeStrengthScaling ? material.EmissiveStrength : 1);
 
                         Shaders.EmissiveEffectParameter_Size.SetValue(size);
 
@@ -950,7 +950,7 @@ namespace DeferredEngine.Renderer.Helper
                 if (trafoMatrix.HasChanged || cameraHasChanged)
                 {
                     sphere.Center = _worldBoundingCenters[i];
-                    sphere.Radius = MeshBoundingSphere.Radius * trafoMatrix.Scale;
+                    sphere.Radius = MeshBoundingSphere.Radius * trafoMatrix.Scale.X;
                     if (viewFrustum.Contains(sphere) == ContainmentType.Disjoint)
                     {
                         Rendered[i] = false;

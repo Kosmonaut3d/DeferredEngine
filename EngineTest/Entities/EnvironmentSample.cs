@@ -19,6 +19,8 @@ namespace DeferredEngine.Entities
             }
         }
 
+        public override Vector3 Scale { get; set; }
+
         public float SpecularStrength = 1;
         public float DiffuseStrength = 0.2f;
 

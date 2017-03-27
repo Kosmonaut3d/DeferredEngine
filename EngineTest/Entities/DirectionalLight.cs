@@ -116,6 +116,8 @@ namespace DeferredEngine.Entities
             }
         }
 
+        public override Vector3 Scale { get; set; }
+
         private int _id;
 
         public override int Id

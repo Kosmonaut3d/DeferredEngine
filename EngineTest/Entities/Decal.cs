@@ -12,7 +12,7 @@ namespace DeferredEngine.Entities
 {
     public class Decal : TransformableObject
     {
-        public float _scale;
+        public Vector3 _scale;
         private Vector3 _position;
         private Matrix _rotationMatrix;
 
@@ -43,7 +43,7 @@ namespace DeferredEngine.Entities
 
         public override string Name { get; set; }
 
-        public float Scale
+        public override Vector3 Scale
         {
             get { return _scale; }
             set
@@ -57,12 +57,12 @@ namespace DeferredEngine.Entities
         public Matrix InverseWorld;
         public Texture2D Texture;
 
-        public Decal(Texture2D texture, Vector3 position, double angleZ, double angleX, double angleY, float scale) : 
+        public Decal(Texture2D texture, Vector3 position, double angleZ, double angleX, double angleY, Vector3 scale) : 
             this(texture, position, Matrix.CreateRotationX((float)angleX) * Matrix.CreateRotationY((float)angleY) *
                                   Matrix.CreateRotationZ((float)angleZ), scale)
         { }
 
-        public Decal(Texture2D texture, Vector3 position, Matrix rotationMatrix, float scale)
+        public Decal(Texture2D texture, Vector3 position, Matrix rotationMatrix, Vector3 scale)
         {
             Texture = texture;
             Position = position;

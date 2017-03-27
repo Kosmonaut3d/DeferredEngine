@@ -79,6 +79,12 @@ namespace DeferredEngine.Logic
                 ButtonMethod = GetType().GetMethod("ChangeGizmoMode"),
                 ButtonMethodArgs = new object[] { EditorLogic.GizmoModes.Rotation },
             });
+            _leftSideList.AddElement(new GUITextBlockButton(defaultStyle, "Scale")
+            {
+                ButtonObject = this,
+                ButtonMethod = GetType().GetMethod("ChangeGizmoMode"),
+                ButtonMethodArgs = new object[] { EditorLogic.GizmoModes.Scale },
+            });
             _leftSideList.AddElement(new GUITextBlockToggle(defaultStyle, "Local: ")
             {
                ToggleField = typeof(GameStats).GetField("e_LocalTransformation"),
