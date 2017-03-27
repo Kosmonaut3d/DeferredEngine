@@ -23,6 +23,9 @@ namespace DeferredEngine.Logic
 
         private GraphicsDevice _graphicsDevice;
 
+        private float previousMouseX = 0;
+        private float previousMouseY = 0;
+
         public enum GizmoModes
         {
             Translation,
@@ -60,8 +63,10 @@ namespace DeferredEngine.Logic
         {
             if (!GameSettings.Editor_enable) return;
 
-            if(Input.WasKeyPressed(Keys.R)) _gizmoMode = GizmoModes.Rotation;
-            if (Input.WasKeyPressed(Keys.T)) _gizmoMode = GizmoModes.Translation;
+            if(Input.WasKeyPressed(Keys.R)) GameStats.e_gizmoMode = GizmoModes.Rotation;
+            if (Input.WasKeyPressed(Keys.T)) GameStats.e_gizmoMode = GizmoModes.Translation;
+
+            _gizmoMode = GameStats.e_gizmoMode;
 
             int hoveredId = data.HoveredId;
 
@@ -75,6 +80,9 @@ namespace DeferredEngine.Logic
             }
             else if (Input.WasLMBClicked() && !GUIControl.UIWasUsed)
             {
+                previousMouseX = Input.mouseState.X;
+                previousMouseY = Input.mouseState.Y;
+
                 //Gizmos
                 if (hoveredId >= 1 && hoveredId <= 3)
                 {
@@ -211,115 +219,136 @@ namespace DeferredEngine.Logic
             float x = Input.mouseState.X;
             float y = Input.mouseState.Y;
 
-            Vector3 pos1 =
-                _graphicsDevice.Viewport.Unproject(new Vector3(x, y, 0),
-                    data.ProjectionMatrix, data.ViewMatrix, Matrix.Identity);
-            Vector3 pos2 = _graphicsDevice.Viewport.Unproject(new Vector3(x, y, 1),
-                    data.ProjectionMatrix, data.ViewMatrix, Matrix.Identity);
 
-            Ray ray = new Ray(pos1, pos2-pos1);
-
-            Plane plane = new Plane();
 
             if (_gizmoMode == GizmoModes.Translation)
             {
+
+                Vector3 pos1 =
+                    _graphicsDevice.Viewport.Unproject(new Vector3(x, y, 0),
+                        data.ProjectionMatrix, data.ViewMatrix, Matrix.Identity);
+                Vector3 pos2 = _graphicsDevice.Viewport.Unproject(new Vector3(x, y, 1),
+                    data.ProjectionMatrix, data.ViewMatrix, Matrix.Identity);
+
+                Ray ray = new Ray(pos1, pos2 - pos1);
+
+                Plane plane = new Plane();
+
+                Vector3 normal;
+                Vector3 binormal;
+                Vector3 tangent;
+
                 if (gizmoId == 1)
                 {
-                    plane = new Plane(SelectedObject.Position, SelectedObject.Position + Vector3.UnitZ,
-                        SelectedObject.Position + Vector3.UnitY);
+                    tangent = Vector3.UnitZ;
+                    normal = Vector3.UnitZ;
+                    binormal = Vector3.UnitY;
                 }
                 else if (gizmoId == 2)
                 {
-                    plane = new Plane(SelectedObject.Position, SelectedObject.Position + Vector3.UnitY,
-                        SelectedObject.Position + Vector3.UnitZ);
+                    tangent = Vector3.UnitY;
+                    normal = Vector3.UnitY;
+                    binormal = Vector3.UnitZ;
                 }
-                else if (gizmoId == 3)
+                else
                 {
-                    plane = new Plane(SelectedObject.Position, SelectedObject.Position + Vector3.UnitZ,
-                        SelectedObject.Position + Vector3.UnitX);
+                    tangent = Vector3.UnitX;
+                    normal = Vector3.UnitZ;
+                    binormal = Vector3.UnitX;
                 }
-            }
-            else //rotation
-            {
-                //Z is up
-                Vector3 forwardVector3 = pos2 - pos1;
-                forwardVector3.Normalize();
 
-                //left
-                Vector3 leftVector3 = Vector3.Cross(Vector3.UnitZ, forwardVector3);
+                if (GameStats.e_LocalTransformation)
+                {
+                    tangent = Vector3.Transform(tangent, SelectedObject.RotationMatrix);
+                    normal = Vector3.Transform(normal, SelectedObject.RotationMatrix);
+                    binormal = Vector3.Transform(binormal, SelectedObject.RotationMatrix);
+                }
 
-                //UP
-                Vector3 upVector3 = Vector3.Cross(forwardVector3, leftVector3);
+                plane = new Plane(SelectedObject.Position, SelectedObject.Position + normal,
+                       SelectedObject.Position + binormal);
 
-                //alternative
-                plane = new Plane(SelectedObject.Position, SelectedObject.Position + upVector3,
-                        SelectedObject.Position + leftVector3);
-            }
 
-            float? d = ray.Intersects(plane);
+                float? d = ray.Intersects(plane);
 
-            if (d == null) return;
+                if (d == null) return;
 
-            float f = (float) d;
+                float f = (float) d;
 
-            Vector3 hitPoint = pos1 + (pos2 - pos1)*f;
+                Vector3 hitPoint = pos1 + (pos2 - pos1)*f;
 
-            if (_gizmoTransformationMode == false)
-            {
-                _gizmoTransformationMode = true;
-                _gizmoPosition = hitPoint;
-                return;
-            }
-            
-            //Get the difference
-            Vector3 diff = hitPoint - _gizmoPosition;
+                if (_gizmoTransformationMode == false)
+                {
+                    _gizmoTransformationMode = true;
+                    _gizmoPosition = hitPoint;
+                    return;
+                }
 
-            if (_gizmoMode == GizmoModes.Translation)
-            {
-                diff.Z *= gizmoId == 1 ? 1 : 0;
-                diff.Y *= gizmoId == 2 ? 1 : 0;
-                diff.X *= gizmoId == 3 ? 1 : 0;
+
+                //Get the difference
+                Vector3 diff = hitPoint - _gizmoPosition;
+
+                diff = Vector3.Dot(tangent, diff)*tangent;
+
+                //diff.Z *= gizmoId == 1 ? 1 : 0;
+                //diff.Y *= gizmoId == 2 ? 1 : 0;
+                //diff.X *= gizmoId == 3 ? 1 : 0;
 
                 SelectedObject.Position += diff;
+                
+                _gizmoPosition = hitPoint;
             }
             else
             {
-                diff.Z *= gizmoId == 1 ? 0 : 1;
-                diff.Y *= gizmoId == 2 ? 0 : 1;
-                diff.X *= gizmoId == 3 ? 0 : 1;
-
-                float diffL = diff.X + diff.Y + diff.Z;
-
-                diffL /= 10;
-
-                //if (gizmoId == 1) //Z
-                //{
-                //    SelectedObject.AngleZ += diffL;
-                //}
-                //if (gizmoId == 2) //Z
-                //{
-                //    SelectedObject.AngleY += diffL;
-                //}
-                //if (gizmoId == 3) //Z
-                //{
-                //    SelectedObject.AngleX += diffL;
-                //}
-                if (gizmoId == 1)
+                if (_gizmoTransformationMode == false)
                 {
-                    SelectedObject.RotationMatrix = SelectedObject.RotationMatrix * Matrix.CreateRotationZ((float)diffL);
+                    _gizmoTransformationMode = true;
+                    return;
                 }
-                if (gizmoId == 2)
+
+                float diffL = x - previousMouseX + y - previousMouseY;
+                diffL /= 50;
+
+                DebugScreen.AddString("test" + diffL);
+
+                if (!GameStats.e_LocalTransformation)
                 {
-                    SelectedObject.RotationMatrix = SelectedObject.RotationMatrix * Matrix.CreateRotationY((float)diffL);
+                    if (gizmoId == 1)
+                    {
+                        SelectedObject.RotationMatrix = SelectedObject.RotationMatrix*
+                                                        Matrix.CreateRotationZ((float) diffL);
+                    }
+                    if (gizmoId == 2)
+                    {
+                        SelectedObject.RotationMatrix = SelectedObject.RotationMatrix*
+                                                        Matrix.CreateRotationY((float) diffL);
+                    }
+                    if (gizmoId == 3)
+                    {
+                        SelectedObject.RotationMatrix = SelectedObject.RotationMatrix*
+                                                        Matrix.CreateRotationX((float) diffL);
+                    }
                 }
-                if (gizmoId == 3)
+                else
                 {
-                    SelectedObject.RotationMatrix = SelectedObject.RotationMatrix * Matrix.CreateRotationX((float)diffL);
+                    if (gizmoId == 1)
+                    {
+                        SelectedObject.RotationMatrix = Matrix.CreateRotationZ((float)diffL) * SelectedObject.RotationMatrix;
+                    }
+                    if (gizmoId == 2)
+                    {
+                        SelectedObject.RotationMatrix = Matrix.CreateRotationY((float)diffL) * SelectedObject.RotationMatrix ;
+                    }
+                    if (gizmoId == 3)
+                    {
+                        SelectedObject.RotationMatrix = Matrix.CreateRotationX((float)diffL) * SelectedObject.RotationMatrix ;
+                    }
                 }
+
+
+
+                previousMouseX = x;
+                previousMouseY = y;
             }
-
-
-            _gizmoPosition = hitPoint;
 
         }
 

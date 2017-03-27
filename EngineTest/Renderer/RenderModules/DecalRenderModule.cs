@@ -144,7 +144,7 @@ namespace DeferredEngine.Renderer.RenderModules
                 _paramWorldView.SetValue(localMatrix*view);
                 _paramWorldViewProj.SetValue( localMatrix*viewProjection);
                 _paramInverseWorldView.SetValue(inverseView * decal.InverseWorld);
-
+                
                 _decalPass.Apply();
 
                 graphics.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 12);

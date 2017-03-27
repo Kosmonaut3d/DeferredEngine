@@ -1,4 +1,6 @@
-﻿namespace DeferredEngine.Recources
+﻿using DeferredEngine.Logic;
+
+namespace DeferredEngine.Recources
 {
     public static class GameStats
     {
@@ -30,5 +32,7 @@
         public static long d_profileTotalRender;
         public static bool UIIsHovered;
         public static bool e_EnableSelection = false;
+        public static EditorLogic.GizmoModes e_gizmoMode = EditorLogic.GizmoModes.Translation;
+        public static bool e_LocalTransformation = false;
     }
 }

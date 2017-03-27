@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using BEPUphysics;
 using DeferredEngine.Logic;
 using DeferredEngine.Recources;
@@ -143,6 +144,8 @@ namespace DeferredEngine
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
+            if (!_isActive) return;
+
             //Exit the game when pressing escape
             if (Input.WasKeyPressed(Keys.Escape))
                 Exit();
@@ -163,7 +166,11 @@ namespace DeferredEngine
         protected override void Draw(GameTime gameTime)
         {
             //Don't draw when the game is not running
-            if (!_isActive) return;
+            if (!_isActive)
+            {
+                Thread.Sleep(20);
+                return;
+            }
 
             _screenManager.Draw(gameTime);
             //base.Draw(gameTime);

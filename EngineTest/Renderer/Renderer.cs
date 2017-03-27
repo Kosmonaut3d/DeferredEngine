@@ -133,6 +133,8 @@ namespace DeferredEngine.Renderer
 
         //private RenderTarget2D _renderTargetEmissive;
 
+        private RenderTarget2D _renderTargetOutput;
+
         private RenderTarget2D _currentOutput;
         
         //Cubemap
@@ -1272,7 +1274,7 @@ namespace DeferredEngine.Renderer
             
             RenderTarget2D destinationRenderTarget;
             
-            destinationRenderTarget = _renderTargetScreenSpaceEffectUpsampleBlurVertical;
+            destinationRenderTarget = _renderTargetOutput;
             
             Shaders.PostProcessingParameter_ScreenTexture.SetValue(currentInput);
             _graphicsDevice.SetRenderTarget(destinationRenderTarget);
@@ -1319,6 +1321,7 @@ namespace DeferredEngine.Renderer
                 _renderTargetDiffuse.Dispose();
                 _renderTargetSpecular.Dispose();
                 _renderTargetVolume.Dispose();
+                _renderTargetOutput.Dispose();
 
                 _renderTargetScreenSpaceEffectUpsampleBlurVertical.Dispose();
 
@@ -1380,6 +1383,9 @@ namespace DeferredEngine.Renderer
                targetHeight, false, SurfaceFormat.HalfVector4, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
             
             _renderTargetScreenSpaceEffectUpsampleBlurVertical = new RenderTarget2D(_graphicsDevice, targetWidth,
+                targetHeight, false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
+
+            _renderTargetOutput = new RenderTarget2D(_graphicsDevice, targetWidth,
                 targetHeight, false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
 
             if (!onlyEssentials)

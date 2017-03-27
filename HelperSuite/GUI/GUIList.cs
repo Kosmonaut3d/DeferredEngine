@@ -83,7 +83,7 @@ namespace HelperSuite.GUI
             //    child.ParentResized(ElementDimensions);
             //}
 
-            Position = GUICanvas.UpdateAlignment(Alignment, parentDimensions, DefaultDimensions, Position, OffsetPosition);
+            Position = GUICanvas.UpdateAlignment(Alignment, parentDimensions, Dimensions, Position, OffsetPosition);
         }
         
 

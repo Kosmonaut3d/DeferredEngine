@@ -126,7 +126,7 @@ float4 LinePixelShaderFunction(LineVertexShaderOutput input) : SV_TARGET0
 
 		return float4(0, 0, 0, 0);
 	}
-	
+
 	return input.Color; //+ AmbientColor * AmbientIntensity;
 }
 

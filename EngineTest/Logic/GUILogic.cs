@@ -1,4 +1,6 @@
-﻿using System.Text;
+﻿using System;
+using System.Reflection;
+using System.Text;
 using DeferredEngine.Entities;
 using DeferredEngine.Recources;
 using HelperSuite.GUI;
@@ -13,6 +15,7 @@ namespace DeferredEngine.Logic
         public GUICanvas GuiCanvas;
 
         private GuiListToggleScroll _rightSideList;
+        private GUIList _leftSideList;
 
         private GUIList _objectDescriptionList;
         private GUITextBlock _objectDescriptionName;
@@ -61,8 +64,30 @@ namespace DeferredEngine.Logic
                 textBorderStyle: new Vector2(10, 1),
                 parentDimensionsStyle: GuiCanvas.Dimensions);
 
+            //Editor gizmo control!
+            GuiCanvas.AddElement(_leftSideList = new GUIList(Vector2.Zero, defaultStyle));
+
+            _leftSideList.AddElement(new GUITextBlockButton(defaultStyle, "Translate")
+            {
+                ButtonObject = this,
+                ButtonMethod = GetType().GetMethod("ChangeGizmoMode"),
+                ButtonMethodArgs = new object[]{ EditorLogic.GizmoModes.Translation },
+            });
+            _leftSideList.AddElement(new GUITextBlockButton(defaultStyle, "Rotate")
+            {
+                ButtonObject = this,
+                ButtonMethod = GetType().GetMethod("ChangeGizmoMode"),
+                ButtonMethodArgs = new object[] { EditorLogic.GizmoModes.Rotation },
+            });
+            _leftSideList.AddElement(new GUITextBlockToggle(defaultStyle, "Local: ")
+            {
+               ToggleField = typeof(GameStats).GetField("e_LocalTransformation"),
+                Toggle = GameStats.e_LocalTransformation
+            });
+            _leftSideList.Alignment = GUIStyle.GUIAlignment.BottomLeft;
+
+            //Editor options
             GuiCanvas.AddElement(_rightSideList = new GuiListToggleScroll(new Vector2(-20,0), defaultStyle));
-            _rightSideList.Alignment = GUIStyle.GUIAlignment.TopRight;
 
             GUITextBlock helperText = new GUITextBlock(new Vector2(0, 100), new Vector2(300, 200), CreateHelperText(), defaultStyle.TextFontStyle, new Color(Color.DimGray, 0.2f), Color.White, GUIStyle.TextAlignment.Left, new Vector2(10, 1)) {IsHidden = true};
             GuiCanvas.AddElement(helperText);
@@ -348,6 +373,12 @@ namespace DeferredEngine.Logic
                 SliderValue = GameSettings.g_BloomStrength5
             });
 
+            _rightSideList.Alignment = GUIStyle.GUIAlignment.TopRight;
+        }
+
+        public void ChangeGizmoMode(EditorLogic.GizmoModes mode)
+        {
+            GameStats.e_gizmoMode = mode;
         }
 
         private string CreateHelperText()
@@ -379,6 +410,8 @@ namespace DeferredEngine.Logic
             {
                 GameStats.UIIsHovered = true;
             }
+
+             _leftSideList.IsHidden = !GameStats.e_EnableSelection;
 
             if (selectedObject != null)
             {

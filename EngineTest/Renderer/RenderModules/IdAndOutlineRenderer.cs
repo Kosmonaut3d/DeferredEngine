@@ -146,23 +146,25 @@ namespace DeferredEngine.Renderer.RenderModules
 
             Vector3 position = editorData.SelectedObjectPosition;
 
-            //Z
-            DrawArrow(position, 0, 0, 0, 0.5f, new Color(1,0,0), staticViewProjection, assets);
-            DrawArrow(position, -Math.PI / 2, 0, 0, 0.5f, new Color(2, 0, 0), staticViewProjection, assets);
-            DrawArrow(position, 0, Math.PI / 2, 0, 0.5f, new Color(3, 0, 0), staticViewProjection, assets);
+            Matrix rotation = GameStats.e_LocalTransformation ? editorData.SelectedObject.RotationMatrix : Matrix.Identity;
 
-            DrawArrow(position, Math.PI, 0, 0, 0.5f, new Color(1, 0, 0), staticViewProjection, assets);
-            DrawArrow(position, Math.PI / 2, 0, 0, 0.5f, new Color(2, 0, 0), staticViewProjection, assets);
-            DrawArrow(position, 0, -Math.PI / 2, 0, 0.5f, new Color(3, 0, 0), staticViewProjection, assets);
+            //Z
+            DrawArrow(position, rotation, 0, 0, 0, 0.5f, new Color(1,0,0), staticViewProjection, assets);
+            DrawArrow(position, rotation, -Math.PI / 2, 0, 0, 0.5f, new Color(2, 0, 0), staticViewProjection, assets);
+            DrawArrow(position, rotation, 0, Math.PI / 2, 0, 0.5f, new Color(3, 0, 0), staticViewProjection, assets);
+
+            DrawArrow(position, rotation, Math.PI, 0, 0, 0.5f, new Color(1, 0, 0), staticViewProjection, assets);
+            DrawArrow(position, rotation, Math.PI / 2, 0, 0, 0.5f, new Color(2, 0, 0), staticViewProjection, assets);
+            DrawArrow(position, rotation, 0, -Math.PI / 2, 0, 0.5f, new Color(3, 0, 0), staticViewProjection, assets);
 
         }
 
-        private void DrawArrow(Vector3 position, double angleX, double angleY, double angleZ, float scale, Color color, Matrix staticViewProjection, Assets assets)
+        private void DrawArrow(Vector3 position, Matrix rotationObject, double angleX, double angleY, double angleZ, float scale, Color color, Matrix staticViewProjection, Assets assets)
         {
             Matrix rotation = Matrix.CreateRotationX((float)angleX) * Matrix.CreateRotationY((float)angleY) *
                                Matrix.CreateRotationZ((float)angleZ);
             Matrix scaleMatrix = Matrix.CreateScale(0.75f, 0.75f, scale * 1.5f);
-            Matrix worldViewProj = scaleMatrix * rotation * Matrix.CreateTranslation(position) * staticViewProjection;
+            Matrix worldViewProj = scaleMatrix * rotation * rotationObject * Matrix.CreateTranslation(position) * staticViewProjection;
 
             Shaders.IdRenderEffectParameterWorldViewProj.SetValue(worldViewProj);
             Shaders.IdRenderEffectParameterColorId.SetValue(color.ToVector4());
