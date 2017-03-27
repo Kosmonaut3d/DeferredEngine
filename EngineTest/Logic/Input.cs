@@ -4,7 +4,7 @@ using DeferredEngine.Recources;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
-namespace DeferredEngine.Main
+namespace DeferredEngine.Logic
 {
     public static class Input
     {

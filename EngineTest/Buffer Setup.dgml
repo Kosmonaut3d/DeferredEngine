@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
+  <Nodes>
+    <Node Id="AlbedoGammaSpaceR8G8B8" Bounds="262.595833333333,-234.114950572205,95.76,73.84" Label="Albedo&#xD;&#xA;Gamma Space&#xD;&#xA;&#xD;&#xA;R8G8B8" UseManualLocation="True" />
+    <Node Id="FP16" Bounds="71.4546966552734,50.4225273132324,78.6666666666667,25.96" Label="FP16 RGBA" UseManualLocation="True" />
+    <Node Id="FP32R" Bounds="81.2606811523438,228.98942325592,55.9833333333333,25.96" Label="FP32 R" UseManualLocation="True" />
+    <Node Id="GBuffer" Bounds="-89,50,59.8666666666667,25.96" UseManualLocation="True" />
+    <Node Id="Metallic+Mattype" Bounds="260.482726847331,-114.757500117974,120.426666666667,41.92" Label="Metallic + Mattype&#xD;&#xA;A8" UseManualLocation="True" />
+    <Node Id="R8G8B8A8" Bounds="73.2816666666666,-132.52,75.9099999999999,25.96" Label="R8G8B8A8" UseManualLocation="True" />
+    <Node Id="Roughness" Bounds="264.610686645508,76.9626998820263,216.78,89.8" Label="Roughness&#xD;&#xA;&#xD;&#xA;A16&#xD;&#xA;&#xD;&#xA;Note: Could combine with other stuff" UseManualLocation="True" />
+    <Node Id="ViewSpaceDepthR32" Bounds="268.413676350911,212.843875427246,115.836666666667,57.88" Label="View Space Depth&#xD;&#xA;&#xD;&#xA;R32" UseManualLocation="True" />
+    <Node Id="ViewSpaceNormal" Bounds="262.454703776042,-42.8374001179738,190.066666666667,89.8" Label="View Space Normal&#xD;&#xA;&#xD;&#xA;R16G16B16 &#xD;&#xA;&#xD;&#xA;Note: Could only use 2 channels" UseManualLocation="True" />
+  </Nodes>
+  <Links>
+    <Link Source="FP16" Target="Roughness" Bounds="150.121365865072,72.1718708268083,105.704992184863,23.5668721416888" />
+    <Link Source="FP16" Target="ViewSpaceNormal" Bounds="150.121365865072,27.8635091633886,103.599271284179,25.7591061697061" />
+    <Link Source="FP32R" Target="ViewSpaceDepthR32" Bounds="137.244016520182,241.841072982118,122.169663118314,0.104422898853869" />
+    <Link Source="GBuffer" Target="FP16" Bounds="-29.1333342234294,63.0544607953517,91.5880612677187,0.227831686383063" />
+    <Link Source="GBuffer" Target="FP32R" Bounds="-46.8604666345446,75.9599995422363,137.741084546006,146.473033567127" />
+    <Link Source="GBuffer" Target="R8G8B8A8" Bounds="-46.9554617424969,-99.9796283908195,139.940997060419,149.979627933056" />
+    <Link Source="R8G8B8A8" Target="AlbedoGammaSpaceR8G8B8" Bounds="144.539430460451,-175.265021717988,109.670823562127,42.7450208024611" />
+    <Link Source="R8G8B8A8" Target="Metallic+Mattype" Bounds="149.191667633057,-114.87534202443,102.358268339089,12.5798025684444" />
+  </Links>
+  <Properties>
+    <Property Id="Bounds" DataType="System.Windows.Rect" />
+    <Property Id="Label" Label="Label" Description="Displayable label of an Annotatable object" DataType="System.String" />
+    <Property Id="UseManualLocation" DataType="System.Boolean" />
+  </Properties>
+</DirectedGraph>

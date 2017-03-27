@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using DeferredEngine.Entities;
-using DeferredEngine.Main;
+using DeferredEngine.Logic;
 using DeferredEngine.Recources;
 using DeferredEngine.Recources.Helper;
 using DeferredEngine.Renderer.Helper;
@@ -9,6 +9,7 @@ using DeferredEngine.Renderer.Helper.Editor;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using DirectionalLight = DeferredEngine.Entities.DirectionalLight;
 
 namespace DeferredEngine.Renderer.RenderModules
 {
@@ -35,7 +36,7 @@ namespace DeferredEngine.Renderer.RenderModules
             _assets = assets;
         }
 
-        public void Draw(MeshMaterialLibrary meshMat, List<PointLightSource> pointLights, List<DirectionalLightSource> dirLights, EnvironmentSample envSample, Matrix viewProjection, Matrix view, EditorLogic.EditorSendData editorData, bool mouseMoved)
+        public void Draw(MeshMaterialLibrary meshMat, List<Decal> decals, List<PointLight> pointLights, List<DirectionalLight> dirLights, EnvironmentSample envSample, Matrix viewProjection, Matrix view, EditorLogic.EditorSendData editorData, bool mouseMoved)
         {
             if (editorData.GizmoTransformationMode)
             {
@@ -46,14 +47,14 @@ namespace DeferredEngine.Renderer.RenderModules
 
             if (mouseMoved)
             {
-                DrawIds(meshMat, pointLights, dirLights, envSample, viewProjection, view, editorData);
+                DrawIds(meshMat, decals, pointLights, dirLights, envSample, viewProjection, view, editorData);
             }
 
             if(GameSettings.e_DrawOutlines)
                 DrawOutlines(meshMat, viewProjection, mouseMoved, HoveredId, editorData, mouseMoved);
         }
 
-        public void DrawIds(MeshMaterialLibrary meshMat, List<PointLightSource> pointLights, List<DirectionalLightSource> dirLights, EnvironmentSample envSample, Matrix viewProjection, Matrix view, EditorLogic.EditorSendData editorData)
+        public void DrawIds(MeshMaterialLibrary meshMat, List<Decal> decals, List<PointLight> pointLights, List<DirectionalLight> dirLights, EnvironmentSample envSample, Matrix viewProjection, Matrix view, EditorLogic.EditorSendData editorData)
         {
             
             _graphicsDevice.SetRenderTarget(_idRenderTarget2D);
@@ -65,7 +66,7 @@ namespace DeferredEngine.Renderer.RenderModules
             meshMat.Draw(MeshMaterialLibrary.RenderType.IdRender, viewProjection);
 
             //Now onto the billboards
-            DrawBillboards(pointLights, dirLights, envSample, viewProjection, view);
+            DrawBillboards(decals, pointLights, dirLights, envSample, viewProjection, view);
 
             //Now onto the gizmos
             DrawGizmos(viewProjection, editorData, _assets);
@@ -87,7 +88,16 @@ namespace DeferredEngine.Renderer.RenderModules
             HoveredId = IdGenerator.GetIdFromColor(retrievedColor[0]);
         }
 
-        public void DrawBillboards(List<PointLightSource> lights, List<DirectionalLightSource> dirLights, EnvironmentSample envSample, Matrix staticViewProjection, Matrix view)
+        private void DrawBillboard(Matrix world, Matrix view, Matrix staticViewProjection, int id)
+        {
+            Shaders.BillboardEffectParameter_WorldViewProj.SetValue(world * staticViewProjection);
+            Shaders.BillboardEffectParameter_WorldView.SetValue(world * view);
+            Shaders.BillboardEffectParameter_IdColor.SetValue(IdGenerator.GetColorFromId(id).ToVector3());
+            Shaders.BillboardEffect.CurrentTechnique.Passes[0].Apply();
+            _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2);
+        }
+
+        public void DrawBillboards(List<Decal> decals, List<PointLight> lights, List<DirectionalLight> dirLights, EnvironmentSample envSample, Matrix staticViewProjection, Matrix view)
         {
             _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
             _graphicsDevice.SetVertexBuffer(_billboardBuffer.VBuffer);
@@ -97,66 +107,35 @@ namespace DeferredEngine.Renderer.RenderModules
 
             Shaders.BillboardEffect.CurrentTechnique = Shaders.BillboardEffectTechnique_Id;
 
-            foreach (var light in lights)
+            for (int index = 0; index < decals.Count; index++)
             {
-                Matrix world = Matrix.CreateTranslation(light.Position);
-                Shaders.BillboardEffectParameter_WorldViewProj.SetValue(world * staticViewProjection);
-                Shaders.BillboardEffectParameter_WorldView.SetValue(world * view);
-                Shaders.BillboardEffectParameter_IdColor.SetValue(IdGenerator.GetColorFromId(light.Id).ToVector3());
-                Shaders.BillboardEffect.CurrentTechnique.Passes[0].Apply();
-
-                _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2);
+                var decal = decals[index];
+                Matrix world = Matrix.CreateTranslation(decal.Position);
+                DrawBillboard(world, view, staticViewProjection, decal.Id);
             }
 
-            foreach (var light in dirLights)
+            for (int index = 0; index < lights.Count; index++)
             {
+                var light = lights[index];
                 Matrix world = Matrix.CreateTranslation(light.Position);
-                Shaders.BillboardEffectParameter_WorldViewProj.SetValue(world * staticViewProjection);
-                Shaders.BillboardEffectParameter_WorldView.SetValue(world * view);
-                Shaders.BillboardEffectParameter_IdColor.SetValue(IdGenerator.GetColorFromId(light.Id).ToVector3());
-                Shaders.BillboardEffect.CurrentTechnique.Passes[0].Apply();
+                DrawBillboard(world, view, staticViewProjection, light.Id);
+            }
 
-                _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2);
+            for (int index = 0; index < dirLights.Count; index++)
+            {
+                var light = dirLights[index];
+                Matrix world = Matrix.CreateTranslation(light.Position);
+                DrawBillboard(world, view, staticViewProjection, light.Id);
             }
 
 
             Shaders.BillboardEffectParameter_Texture.SetValue(_assets.IconEnvmap);
             {
                 Matrix world = Matrix.CreateTranslation(envSample.Position);
-                Shaders.BillboardEffectParameter_WorldViewProj.SetValue(world * staticViewProjection);
-                Shaders.BillboardEffectParameter_WorldView.SetValue(world * view);
-                Shaders.BillboardEffectParameter_IdColor.SetValue(IdGenerator.GetColorFromId(envSample.Id).ToVector3());
-                Shaders.BillboardEffect.CurrentTechnique.Passes[0].Apply();
-
-                _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2);
+                DrawBillboard(world, view, staticViewProjection, envSample.Id);
             }
         }
-
-        public void DrawBillboardsSelection(List<PointLightSource> lights, Matrix staticViewProjection, Matrix view, int selectedId, int hoveredId)
-        {
-            _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
-            _graphicsDevice.SetVertexBuffer(_billboardBuffer.VBuffer);
-            _graphicsDevice.Indices = (_billboardBuffer.IBuffer);
-
-            Shaders.BillboardEffectParameter_Texture.SetValue(_assets.IconLight);
-
-            Shaders.BillboardEffect.CurrentTechnique = Shaders.BillboardEffectTechnique_Id;
-
-            foreach (var light in lights)
-            {
-                if (light.Id != selectedId && light.Id != hoveredId) continue;
-
-                Shaders.BillboardEffectParameter_IdColor.SetValue(
-                    light.Id == hoveredId ? Color.Gray.ToVector3() : Color.DarkOrange.ToVector3());
-                Matrix world = Matrix.CreateTranslation(light.Position);
-                Shaders.BillboardEffectParameter_WorldViewProj.SetValue(world * staticViewProjection);
-                Shaders.BillboardEffectParameter_WorldView.SetValue(world * view);
-                Shaders.BillboardEffect.CurrentTechnique.Passes[0].Apply();
-
-                _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2);
-            }
-        }
-
+        
         public void DrawGizmos(Matrix staticViewProjection, EditorLogic.EditorSendData editorData, Assets assets)
         {
             if (editorData.SelectedObjectId == 0) return;

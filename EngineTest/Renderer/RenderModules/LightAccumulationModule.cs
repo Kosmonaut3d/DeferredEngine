@@ -4,6 +4,7 @@ using DeferredEngine.Recources;
 using DeferredEngine.Renderer.Helper;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using DirectionalLight = DeferredEngine.Entities.DirectionalLight;
 
 namespace DeferredEngine.Renderer.RenderModules
 {
@@ -117,7 +118,7 @@ namespace DeferredEngine.Renderer.RenderModules
         /// <param name="gameTime"></param>
         /// <param name="renderTargetLightBinding"></param>
         /// <param name="renderTargetDiffuse"></param>
-        public void DrawLights(List<PointLightSource> pointLights, List<DirectionalLightSource> dirLights,
+        public void DrawLights(List<PointLight> pointLights, List<DirectionalLight> dirLights,
             Vector3 cameraOrigin, GameTime gameTime, RenderTargetBinding[] renderTargetLightBinding, RenderTarget2D  renderTargetDiffuse)
         {
             //Reconstruct Depth
@@ -173,7 +174,7 @@ namespace DeferredEngine.Renderer.RenderModules
         /// <param name="pointLights"></param>
         /// <param name="cameraOrigin"></param>
         /// <param name="gameTime"></param>
-        private void DrawPointLights(List<PointLightSource> pointLights, Vector3 cameraOrigin, GameTime gameTime)
+        private void DrawPointLights(List<PointLight> pointLights, Vector3 cameraOrigin, GameTime gameTime)
         {
             
             if (pointLights.Count < 1) return;
@@ -190,7 +191,7 @@ namespace DeferredEngine.Renderer.RenderModules
 
             for (int index = 0; index < pointLights.Count; index++)
             {
-                PointLightSource light = pointLights[index];
+                PointLight light = pointLights[index];
                 DrawPointLight(light, cameraOrigin, vertexOffset, startIndex, primitiveCount);
             }
         }
@@ -200,7 +201,7 @@ namespace DeferredEngine.Renderer.RenderModules
         /// </summary>
         /// <param name="light"></param>
         /// <param name="cameraOrigin"></param>
-        private void DrawPointLight(PointLightSource light, Vector3 cameraOrigin, int vertexOffset, int startIndex, int primitiveCount)
+        private void DrawPointLight(PointLight light, Vector3 cameraOrigin, int vertexOffset, int startIndex, int primitiveCount)
         {
             if (!light.IsEnabled) return;
 
@@ -271,7 +272,7 @@ namespace DeferredEngine.Renderer.RenderModules
         /// </summary>
         /// <param name="dirLights"></param>
         /// <param name="cameraOrigin"></param>
-        private void DrawDirectionalLights(List<DirectionalLightSource> dirLights, Vector3 cameraOrigin)
+        private void DrawDirectionalLights(List<DirectionalLight> dirLights, Vector3 cameraOrigin)
         {
             if (dirLights.Count < 1) return;
 
@@ -290,30 +291,30 @@ namespace DeferredEngine.Renderer.RenderModules
 
             for (int index = 0; index < dirLights.Count; index++)
             {
-                DirectionalLightSource lightSource = dirLights[index];
-                DrawDirectionalLight(lightSource);
+                DirectionalLight light = dirLights[index];
+                DrawDirectionalLight(light);
             }
         }
 
         /// <summary>
         /// Draw the individual light, full screen effect
         /// </summary>
-        /// <param name="lightSource"></param>
-        private void DrawDirectionalLight(DirectionalLightSource lightSource)
+        /// <param name="light"></param>
+        private void DrawDirectionalLight(DirectionalLight light)
         {
-            if (!lightSource.IsEnabled) return;
+            if (!light.IsEnabled) return;
 
             if (_viewProjectionHasChanged)
             {
-                lightSource.DirectionViewSpace = Vector3.Transform(lightSource.Direction, _viewIT);
-                lightSource.LightViewProjection_ViewSpace = _inverseView * lightSource.LightViewProjection;
-                lightSource.LightView_ViewSpace = _inverseView*lightSource.LightView;
+                light.DirectionViewSpace = Vector3.Transform(light.Direction, _viewIT);
+                light.LightViewProjection_ViewSpace = _inverseView * light.LightViewProjection;
+                light.LightView_ViewSpace = _inverseView*light.LightView;
             }
 
-            Shaders.deferredDirectionalLightParameter_LightColor.SetValue(lightSource.ColorV3);
-            Shaders.deferredDirectionalLightParameter_LightDirection.SetValue(lightSource.DirectionViewSpace);
-            Shaders.deferredDirectionalLightParameter_LightIntensity.SetValue(lightSource.Intensity);
-            lightSource.ApplyShader();
+            Shaders.deferredDirectionalLightParameter_LightColor.SetValue(light.ColorV3);
+            Shaders.deferredDirectionalLightParameter_LightDirection.SetValue(light.DirectionViewSpace);
+            Shaders.deferredDirectionalLightParameter_LightIntensity.SetValue(light.Intensity);
+            light.ApplyShader();
             _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
         }
 

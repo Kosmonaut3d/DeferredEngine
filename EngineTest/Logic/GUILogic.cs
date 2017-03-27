@@ -5,7 +5,7 @@ using HelperSuite.GUI;
 using HelperSuite.GUIHelper;
 using Microsoft.Xna.Framework;
 
-namespace DeferredEngine.Main
+namespace DeferredEngine.Logic
 {
     public class GUILogic
     {
@@ -408,7 +408,7 @@ namespace DeferredEngine.Main
                 _objectSlider2.IsHidden = true;
                 _objectColorPicker1.IsHidden = true;
 
-                if (selectedObject is PointLightSource)
+                if (selectedObject is PointLight)
                 {
                     _objectToggle0.IsHidden = false;
                     _objectToggle1.IsHidden = false;
@@ -448,7 +448,7 @@ namespace DeferredEngine.Main
                     }
                 }
 
-                else if (selectedObject is DirectionalLightSource)
+                else if (selectedObject is DirectionalLight)
                 {
                     _objectToggle0.IsHidden = false;
                     _objectToggle2.IsHidden = false;

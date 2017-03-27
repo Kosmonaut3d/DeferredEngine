@@ -56,15 +56,17 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Entities\BasicEntity.cs" />
-    <Compile Include="Entities\DirectionalLightSource.cs" />
+    <Compile Include="Entities\Decal.cs" />
+    <Compile Include="Entities\DirectionalLight.cs" />
+    <Compile Include="Entities\TransformableObject.cs" />
     <Compile Include="Renderer\Helper\Editor\BillboardBuffer.cs" />
     <Compile Include="Entities\EnvironmentSample.cs" />
     <Compile Include="Game1.cs" />
-    <Compile Include="Main\EditorLogic.cs" />
-    <Compile Include="Main\GUILogic.cs" />
-    <Compile Include="Main\Input.cs" />
-    <Compile Include="Main\MainLogic.cs" />
-    <Compile Include="Main\ScreenManager.cs" />
+    <Compile Include="Logic\EditorLogic.cs" />
+    <Compile Include="Logic\GUILogic.cs" />
+    <Compile Include="Logic\Input.cs" />
+    <Compile Include="Logic\MainSceneLogic.cs" />
+    <Compile Include="Logic\ScreenManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Recources\Assets.cs" />
@@ -78,14 +80,15 @@
     <Compile Include="Recources\Helper\ModelDataExtractor.cs" />
     <Compile Include="Recources\MaterialEffect.cs" />
     <Compile Include="Recources\Shaders.cs" />
-    <Compile Include="Entities\PointLightSource.cs" />
+    <Compile Include="Entities\PointLight.cs" />
     <Compile Include="Entities\Camera.cs" />
-    <Compile Include="Main\DebugScreen.cs" />
+    <Compile Include="Logic\DebugScreen.cs" />
     <Compile Include="Renderer\Helper\FullScreenQuadRenderer.cs" />
     <Compile Include="Renderer\RenderModules\BloomFilter.cs" />
     <Compile Include="Renderer\Helper\FastRand.cs" />
     <Compile Include="Renderer\Helper\LineHelper.cs" />
     <Compile Include="Renderer\Helper\LineHelperManager.cs" />
+    <Compile Include="Renderer\RenderModules\DecalRenderModule.cs" />
     <Compile Include="Renderer\RenderModules\EditorRender.cs" />
     <Compile Include="Renderer\RenderModules\GaussianBlur.cs" />
     <Compile Include="Renderer\Helper\MeshMaterialLibrary.cs" />
@@ -146,10 +149,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="Graph1 - Copy.dgml">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="Graph1.dgml">
+    <None Include="Buffer Setup.dgml" />
+    <None Include="Rendering Pipeline.dgml">
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>

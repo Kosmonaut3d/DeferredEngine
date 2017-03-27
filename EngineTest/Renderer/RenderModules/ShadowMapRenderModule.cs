@@ -6,6 +6,7 @@ using DeferredEngine.Renderer.Helper;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using DirectionalLight = DeferredEngine.Entities.DirectionalLight;
 
 namespace DeferredEngine.Renderer.RenderModules
 {
@@ -66,14 +67,14 @@ namespace DeferredEngine.Renderer.RenderModules
             _shader = content.Load<Effect>(shaderPath);
         }
 
-        public void Draw(GraphicsDevice graphicsDevice, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities, List<PointLightSource> pointLights, List<DirectionalLightSource> dirLights, Camera camera)
+        public void Draw(GraphicsDevice graphicsDevice, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities, List<PointLight> pointLights, List<DirectionalLight> dirLights, Camera camera)
         {
             _pass = Passes.Omnidirectional;
 
             //Go through all our point lights
             for (int index = 0; index < pointLights.Count; index++)
             {
-                PointLightSource light = pointLights[index];
+                PointLight light = pointLights[index];
 
                 if (!light.IsEnabled) continue;
 
@@ -105,7 +106,7 @@ namespace DeferredEngine.Renderer.RenderModules
             int dirLightShadowedWithSSBlur = 0;
             for (int index = 0; index < dirLights.Count; index++)
             {
-                DirectionalLightSource light = dirLights[index];
+                DirectionalLight light = dirLights[index];
                 if (!light.IsEnabled) continue;
 
                 if (light.CastShadows)
@@ -135,7 +136,7 @@ namespace DeferredEngine.Renderer.RenderModules
         /// <param name="size"></param>
         /// <param name="meshMaterialLibrary"></param>
         /// <param name="entities"></param>
-        private void CreateShadowCubeMap(GraphicsDevice graphicsDevice, PointLightSource light, int size, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities)
+        private void CreateShadowCubeMap(GraphicsDevice graphicsDevice, PointLight light, int size, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities)
         {
             //For VSM we need 2 channels, -> Vector2
             //todo: check if we need preserve contents
@@ -294,18 +295,18 @@ namespace DeferredEngine.Renderer.RenderModules
         /// <summary>
         /// Only one shadow map needed for a directional light
         /// </summary>
-        /// <param name="lightSource"></param>
+        /// <param name="light"></param>
         /// <param name="shadowResolution"></param>
         /// <param name="meshMaterialLibrary"></param>
         /// <param name="entities"></param>
-        private void CreateShadowMapDirectionalLight(GraphicsDevice graphicsDevice, DirectionalLightSource lightSource, int shadowResolution, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities)
+        private void CreateShadowMapDirectionalLight(GraphicsDevice graphicsDevice, DirectionalLight light, int shadowResolution, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities)
         {
             //Create a renderTarget if we don't have one yet
-            if (lightSource.ShadowMap == null)
+            if (light.ShadowMap == null)
             {
                 //if (lightSource.ShadowFiltering != DirectionalLightSource.ShadowFilteringTypes.VSM)
                 //{
-                    lightSource.ShadowMap = new RenderTarget2D(graphicsDevice, shadowResolution, shadowResolution, false,
+                    light.ShadowMap = new RenderTarget2D(graphicsDevice, shadowResolution, shadowResolution, false,
                         SurfaceFormat.Single, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
                 //}
                 //else //For a VSM shadowMap we need 2 components
@@ -315,47 +316,47 @@ namespace DeferredEngine.Renderer.RenderModules
                 //}
             }
             
-            if (lightSource.HasChanged)
+            if (light.HasChanged)
             {
-                Matrix lightProjection = Matrix.CreateOrthographic(lightSource.ShadowSize, lightSource.ShadowSize,
-                    -lightSource.ShadowDepth, lightSource.ShadowDepth);
-                Matrix lightView = Matrix.CreateLookAt(lightSource.Position, lightSource.Position + lightSource.Direction, Vector3.Down);
+                Matrix lightProjection = Matrix.CreateOrthographic(light.ShadowSize, light.ShadowSize,
+                    -light.ShadowDepth, light.ShadowDepth);
+                Matrix lightView = Matrix.CreateLookAt(light.Position, light.Position + light.Direction, Vector3.Down);
 
-                lightSource.LightView = lightView;
-                lightSource.LightViewProjection = lightView * lightProjection;
+                light.LightView = lightView;
+                light.LightViewProjection = lightView * lightProjection;
 
-                _boundingFrustumShadow = new BoundingFrustum(lightSource.LightViewProjection);
+                _boundingFrustumShadow = new BoundingFrustum(light.LightViewProjection);
 
-                graphicsDevice.SetRenderTarget(lightSource.ShadowMap);
+                graphicsDevice.SetRenderTarget(light.ShadowMap);
                 graphicsDevice.Clear(ClearOptions.DepthBuffer, Color.White, 1, 0);
 
-                meshMaterialLibrary.FrustumCulling(entities, _boundingFrustumShadow, true, lightSource.Position);
+                meshMaterialLibrary.FrustumCulling(entities, _boundingFrustumShadow, true, light.Position);
 
                 // Rendering!
-                _FarClip.SetValue(lightSource.ShadowDepth);
-                _SizeBias.SetValue(GameSettings.ShadowBias * 2048 / lightSource.ShadowResolution);
+                _FarClip.SetValue(light.ShadowDepth);
+                _SizeBias.SetValue(GameSettings.ShadowBias * 2048 / light.ShadowResolution);
 
                 meshMaterialLibrary.Draw(MeshMaterialLibrary.RenderType.ShadowLinear,
-                    lightSource.LightViewProjection, lightSource.HasChanged, false, false, 0, lightSource.LightView, renderModule: this);
+                    light.LightViewProjection, light.HasChanged, false, false, 0, light.LightView, renderModule: this);
             }
             else
             {
-                _boundingFrustumShadow = new BoundingFrustum(lightSource.LightViewProjection);
+                _boundingFrustumShadow = new BoundingFrustum(light.LightViewProjection);
 
-                bool hasAnyObjectMoved = meshMaterialLibrary.FrustumCulling(entities: entities, boundingFrustrum: _boundingFrustumShadow, hasCameraChanged: false, cameraPosition: lightSource.Position);
+                bool hasAnyObjectMoved = meshMaterialLibrary.FrustumCulling(entities: entities, boundingFrustrum: _boundingFrustumShadow, hasCameraChanged: false, cameraPosition: light.Position);
 
                 if (!hasAnyObjectMoved) return;
 
-                meshMaterialLibrary.FrustumCulling(entities: entities, boundingFrustrum: _boundingFrustumShadow, hasCameraChanged: true, cameraPosition: lightSource.Position);
+                meshMaterialLibrary.FrustumCulling(entities: entities, boundingFrustrum: _boundingFrustumShadow, hasCameraChanged: true, cameraPosition: light.Position);
 
-                graphicsDevice.SetRenderTarget(lightSource.ShadowMap);
+                graphicsDevice.SetRenderTarget(light.ShadowMap);
                 graphicsDevice.Clear(ClearOptions.DepthBuffer, Color.White, 1, 0);
 
-                _FarClip.SetValue(lightSource.ShadowDepth);
-                _SizeBias.SetValue(GameSettings.ShadowBias * 2048 / lightSource.ShadowResolution);
+                _FarClip.SetValue(light.ShadowDepth);
+                _SizeBias.SetValue(GameSettings.ShadowBias * 2048 / light.ShadowResolution);
 
                 meshMaterialLibrary.Draw(MeshMaterialLibrary.RenderType.ShadowLinear,
-                    lightSource.LightViewProjection, false, true, false, 0, lightSource.LightView, renderModule: this);
+                    light.LightViewProjection, false, true, false, 0, light.LightView, renderModule: this);
             }
 
             //Blur!

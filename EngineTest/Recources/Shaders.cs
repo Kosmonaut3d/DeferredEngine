@@ -5,6 +5,10 @@ namespace DeferredEngine.Recources
 {
     public static class Shaders
     {
+        //A static file which contains all shaders
+        //Born out of need for quick thoughtless shader building
+        //I am working on making seperate shading modules instead and will slowly shorten this one.
+
         //Depth Reconstruction
         public static Effect ReconstructDepth;
         public static EffectParameter ReconstructDepthParameter_DepthMap;

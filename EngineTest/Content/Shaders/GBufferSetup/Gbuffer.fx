@@ -144,12 +144,8 @@ float3 GetNormalMap(float2 TexCoord)
 }
 
 
-PixelShaderOutput Lighting(Render_IN input)
-{
-    //float4 gamma_color = pow(abs(input.Color), 2.2f);
-
-    //float4 finalValue = gamma_color*(float4(0.2,0.2,0.2,1));
-                 
+PixelShaderOutput WriteBuffers(Render_IN input)
+{       
     float4 finalValue = input.Color;
 
     //Deferred MRT
@@ -164,7 +160,7 @@ PixelShaderOutput Lighting(Render_IN input)
 
     Out.Normal.a = input.roughness;
 
-	Out.Depth = input.Depth.x;// (1 - input.Depth.x / input.Depth.y);
+	Out.Depth = input.Depth.x;
 
     return Out;
 }
@@ -184,7 +180,7 @@ PixelShaderOutput DrawTexture_PixelShader(DrawBasic_VSOut input)
     renderParams.Metallic = Metallic;
     renderParams.roughness = Roughness;
     
-    return Lighting(renderParams);
+    return WriteBuffers(renderParams);
 }
 
 [earlydepthstencil]      //experimental
@@ -204,7 +200,7 @@ PixelShaderOutput DrawTextureSpecular_PixelShader(DrawBasic_VSOut input)
     renderParams.Metallic = Metallic;
     renderParams.roughness = RoughnessTexture;
 
-    return Lighting(renderParams);
+    return WriteBuffers(renderParams);
 }
 
 [earlydepthstencil]      //experimental
@@ -225,7 +221,7 @@ PixelShaderOutput DrawTextureSpecularMetallic_PixelShader(DrawBasic_VSOut input)
     renderParams.Metallic = metallicTexture;
     renderParams.roughness = RoughnessTexture;
 
-    return Lighting(renderParams);
+    return WriteBuffers(renderParams);
 }
 
 [earlydepthstencil]      //experimental
@@ -251,7 +247,7 @@ PixelShaderOutput DrawTextureSpecularNormal_PixelShader(DrawNormals_VSOut input)
     renderParams.Metallic = Metallic;
     renderParams.roughness = RoughnessTexture;
 
-    return Lighting(renderParams);
+    return WriteBuffers(renderParams);
 }
 
 [earlydepthstencil]      //experimental
@@ -277,7 +273,7 @@ PixelShaderOutput DrawTextureSpecularNormalMetallic_PixelShader(DrawNormals_VSOu
     renderParams.Metallic = metallicTexture;
     renderParams.roughness = RoughnessTexture;
 
-    return Lighting(renderParams);
+    return WriteBuffers(renderParams);
 }
 
 
@@ -303,7 +299,7 @@ PixelShaderOutput DrawTextureNormal_PixelShader(DrawNormals_VSOut input)
     renderParams.Metallic = Metallic;
     renderParams.roughness = Roughness;
     
-    return Lighting(renderParams);
+    return WriteBuffers(renderParams);
 }
 
       //experimental
@@ -325,7 +321,7 @@ PixelShaderOutput DrawTextureMask_PixelShader(DrawBasic_VSOut input)
     renderParams.Metallic = Metallic;
     renderParams.roughness = Roughness;
     
-    return Lighting(renderParams);
+    return WriteBuffers(renderParams);
 }
 
 
@@ -349,7 +345,7 @@ PixelShaderOutput DrawTextureSpecularMask_PixelShader(DrawBasic_VSOut input)
     renderParams.Metallic = Metallic;
     renderParams.roughness = RoughnessTexture; // 1 - (RoughnessTexture.r+RoughnessTexture.b+RoughnessTexture.g) / 3;
     
-    return Lighting(renderParams);
+    return WriteBuffers(renderParams);
 }
 
       //experimental
@@ -380,7 +376,7 @@ PixelShaderOutput DrawTextureSpecularNormalMask_PixelShader(DrawNormals_VSOut in
     renderParams.Metallic = Metallic;
     renderParams.roughness = RoughnessTexture;
 
-    return Lighting(renderParams);
+    return WriteBuffers(renderParams);
 }
 
     //experimental
@@ -413,7 +409,7 @@ PixelShaderOutput DrawTextureNormalMask_PixelShader(DrawNormals_VSOut input)
 	renderParams.Metallic = Metallic;
 	renderParams.roughness = Roughness;
 
-	return Lighting(renderParams);
+	return WriteBuffers(renderParams);
 }
 
 PixelShaderOutput DrawBasic_PixelShader(DrawBasic_VSOut input)
@@ -430,7 +426,7 @@ PixelShaderOutput DrawBasic_PixelShader(DrawBasic_VSOut input)
     renderParams.Metallic = Metallic;
     renderParams.roughness = Roughness;
 
-    return Lighting(renderParams);
+    return WriteBuffers(renderParams);
 }
 
 
@@ -469,7 +465,7 @@ PixelShaderOutput DrawTextureDisplacement_PixelShader(DrawNormals_VSOut input)
     renderParams.Metallic = Metallic;
     renderParams.roughness = Roughness;
 
-    return Lighting(renderParams);
+    return WriteBuffers(renderParams);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////

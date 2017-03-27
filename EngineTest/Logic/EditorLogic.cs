@@ -6,8 +6,9 @@ using HelperSuite.GUIHelper;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using DirectionalLight = DeferredEngine.Entities.DirectionalLight;
 
-namespace DeferredEngine.Main
+namespace DeferredEngine.Logic
 {
     public class EditorLogic
     {
@@ -55,7 +56,7 @@ namespace DeferredEngine.Main
         /// <param name="gameTime"></param>
         /// <param name="entities"></param>
         /// <param name="data"></param>
-        public void Update(GameTime gameTime, List<BasicEntity> entities, List<PointLightSource> pointLights, List<DirectionalLightSource> dirLights, EnvironmentSample envSample, EditorReceivedData data, MeshMaterialLibrary meshMaterialLibrary)
+        public void Update(GameTime gameTime, List<BasicEntity> entities, List<Decal> decals, List<PointLight> pointLights, List<DirectionalLight> dirLights, EnvironmentSample envSample, EditorReceivedData data, MeshMaterialLibrary meshMaterialLibrary)
         {
             if (!GameSettings.Editor_enable) return;
 
@@ -102,22 +103,32 @@ namespace DeferredEngine.Main
                 }
                 if (foundnew == false)
                 {
+                    for (int index = 0; index < decals.Count; index++)
+                    {
+                        Decal decal = decals[index];
+                        if (decal.Id == hoveredId)
+                        {
+                            SelectedObject = decal;
+                            break;
+                        }
+                    }
+                    
                     for (int index = 0; index < pointLights.Count; index++)
                     {
-                        PointLightSource pointLightSource = pointLights[index];
-                        if (pointLightSource.Id == hoveredId)
+                        PointLight pointLight = pointLights[index];
+                        if (pointLight.Id == hoveredId)
                         {
-                            SelectedObject = pointLightSource;
+                            SelectedObject = pointLight;
                             break;
                         }
                     }
 
                     for (int index = 0; index < dirLights.Count; index++)
                     {
-                        DirectionalLightSource directionalLightSource = dirLights[index];
-                        if (directionalLightSource.Id == hoveredId)
+                        DirectionalLight directionalLight = dirLights[index];
+                        if (directionalLight.Id == hoveredId)
                         {
-                            SelectedObject = directionalLightSource;
+                            SelectedObject = directionalLight;
                             break;
                         }
                     }
@@ -136,27 +147,32 @@ namespace DeferredEngine.Main
 
             if (Input.WasKeyPressed(Keys.Delete))
             {
-                    //Find object
-                    if (SelectedObject is BasicEntity)
-                    {
-                        entities.Remove((BasicEntity) SelectedObject);
-                        meshMaterialLibrary.DeleteFromRegistry((BasicEntity) SelectedObject);
+                //Find object
+                if (SelectedObject is BasicEntity)
+                {
+                    entities.Remove((BasicEntity) SelectedObject);
+                    meshMaterialLibrary.DeleteFromRegistry((BasicEntity) SelectedObject);
 
-                        SelectedObject = null;
-                    }
+                    SelectedObject = null;
+                }
+                else if (SelectedObject is Decal)
+                {
+                    decals.Remove((Decal) SelectedObject);
 
-                    else if (SelectedObject is PointLightSource)
-                    {
-                        pointLights.Remove((PointLightSource)SelectedObject);
-                        
-                        SelectedObject = null;
-                    }
-                    else if (SelectedObject is DirectionalLightSource)
-                    {
-                        dirLights.Remove((DirectionalLightSource)SelectedObject);
+                    SelectedObject = null;
+                }
+                else if (SelectedObject is PointLight)
+                {
+                    pointLights.Remove((PointLight) SelectedObject);
 
-                        SelectedObject = null;
-                    }
+                    SelectedObject = null;
+                }
+                else if (SelectedObject is DirectionalLight)
+                {
+                    dirLights.Remove((DirectionalLight) SelectedObject);
+
+                    SelectedObject = null;
+                }
             }
 
             if (Input.WasKeyPressed(Keys.Insert) || (Input.keyboardState.IsKeyDown(Keys.LeftControl) && Input.WasKeyPressed(Keys.C)))
@@ -168,14 +184,19 @@ namespace DeferredEngine.Main
     
                     entities.Add(copy);
                 }
-                else if (SelectedObject is PointLightSource)
+                else if (SelectedObject is Decal)
                 {
-                    PointLightSource copy = (PointLightSource)SelectedObject.Clone;
+                    Decal copy = (Decal)SelectedObject.Clone;
+                    decals.Add(copy);
+                }
+                else if (SelectedObject is PointLight)
+                {
+                    PointLight copy = (PointLight)SelectedObject.Clone;
                     pointLights.Add(copy);
                 }
-                else if (SelectedObject is DirectionalLightSource)
+                else if (SelectedObject is DirectionalLight)
                 {
-                    DirectionalLightSource copy = (DirectionalLightSource)SelectedObject.Clone;
+                    DirectionalLight copy = (DirectionalLight)SelectedObject.Clone;
                     dirLights.Add(copy);
                 }
             }

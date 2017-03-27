@@ -13,12 +13,13 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using DirectionalLight = DeferredEngine.Entities.DirectionalLight;
 using Quaternion = BEPUutilities.Quaternion;
 using Vector3 = Microsoft.Xna.Framework.Vector3;
 
-namespace DeferredEngine.Main
+namespace DeferredEngine.Logic
 {
-    public class MainLogic
+    public class MainSceneLogic
     {
         #region FIELDS
 
@@ -34,8 +35,9 @@ namespace DeferredEngine.Main
         public MeshMaterialLibrary MeshMaterialLibrary;
 
         public readonly List<BasicEntity> BasicEntities = new List<BasicEntity>();
-        public readonly List<PointLightSource> PointLights = new List<PointLightSource>();
-        public readonly List<DirectionalLightSource> DirectionalLights = new List<DirectionalLightSource>();
+        public readonly List<Decal> Decals = new List<Decal>();
+        public readonly List<PointLight> PointLights = new List<PointLight>();
+        public readonly List<DirectionalLight> DirectionalLights = new List<DirectionalLight>();
         public EnvironmentSample EnvironmentSample;
 
         //Which render target are we currently displaying?
@@ -122,50 +124,7 @@ namespace DeferredEngine.Main
                 angleY: 0,
                 angleZ: 0,
                 scale: 10);
-
-            /*AddEntity(model: _assets.Trabant, 
-                position: new Vector3(0, 0, 40), 
-                angleX: 0, 
-                angleY: 0, 
-                angleZ: 0, 
-                scale: 5);*/
-
-            /*AddEntity(model: _assets.TestTubes, 
-                materialEffect: 
-                _assets.emissiveMaterial2, 
-                position: new Vector3(0, 0, 40), 
-                angleX: 0, 
-                angleY: 0, 
-                angleZ: 0, 
-                scale: 1.8f);*/
-
-            /*
-            //Helmet with holo-skulls inside
-            AddEntity(model: _assets.HelmetModel, 
-                position: new Vector3(70, 0, -10), 
-                angleX: -Math.PI / 2, 
-                angleY: 0, 
-                angleZ: -Math.PI / 2, 
-                scale: 1);
-
-            //Hologram skulls
-            AddEntity(model: _assets.SkullModel, 
-                materialEffect: _assets.hologramMaterial, 
-                position: new Vector3(69, 0, -6.5f), 
-                angleX: -Math.PI / 2, 
-                angleY: 0, 
-                angleZ: Math.PI / 2 + 0.3f, 
-                scale: 0.9f);
-            AddEntity(model: _assets.SkullModel, 
-                materialEffect: _assets.hologramMaterial, 
-                position: new Vector3(69, 8.5f, -6.5f), 
-                angleX: -Math.PI / 2, 
-                angleY: 0, 
-                angleZ: Math.PI / 2 + 0.3f, 
-                scale: 0.8f);
-            */
-
-
+            
             ////////////////////////////////////////////////////////////////////////
             // Dynamic geometry
 
@@ -209,8 +168,13 @@ namespace DeferredEngine.Main
             }
 
             ////////////////////////////////////////////////////////////////////////
+            // Decals
+
+            Decals.Add(new Decal(_assets.IconDecal, new Vector3(-6, 22, 15),0, -Math.PI / 2, 0,10 ));
+
+            ////////////////////////////////////////////////////////////////////////
             // Dynamic lights
-            
+
             AddPointLight(position: new Vector3(-61, 0, 107),
                         radius: 150,
                         color: new Color(104, 163, 223),
@@ -359,9 +323,9 @@ namespace DeferredEngine.Main
         /// <param name="screenspaceShadowBlur"></param>
         /// <param name="staticshadows">These shadows will not be updated once they are created, moving objects will be shadowed incorrectly</param>
         /// <returns></returns>
-        private DirectionalLightSource AddDirectionalLight(Vector3 direction, int intensity, Color color, Vector3 position = default(Vector3), bool drawShadows = false, float shadowWorldSize = 100, float shadowDepth = 100, int shadowResolution = 512, DirectionalLightSource.ShadowFilteringTypes shadowFilteringFiltering = DirectionalLightSource.ShadowFilteringTypes.Poisson, bool screenspaceShadowBlur = false, bool staticshadows = false )
+        private DirectionalLight AddDirectionalLight(Vector3 direction, int intensity, Color color, Vector3 position = default(Vector3), bool drawShadows = false, float shadowWorldSize = 100, float shadowDepth = 100, int shadowResolution = 512, DirectionalLight.ShadowFilteringTypes shadowFilteringFiltering = DirectionalLight.ShadowFilteringTypes.Poisson, bool screenspaceShadowBlur = false, bool staticshadows = false )
         {
-            DirectionalLightSource lightSource = new DirectionalLightSource(color: color, 
+            DirectionalLight light = new DirectionalLight(color: color, 
                 intensity: intensity, 
                 direction: direction, 
                 position: position, 
@@ -372,8 +336,8 @@ namespace DeferredEngine.Main
                 shadowFiltering: shadowFilteringFiltering, 
                 screenspaceshadowblur: screenspaceShadowBlur, 
                 staticshadows: staticshadows);
-            DirectionalLights.Add(lightSource);
-            return lightSource;
+            DirectionalLights.Add(light);
+            return light;
         }
 
         //The function to use for new pointlights
@@ -390,9 +354,9 @@ namespace DeferredEngine.Main
         /// <param name="shadowResolution">shadow map resolution per face. Optional</param>
         /// <param name="staticShadow">if set to true the shadows will not update at all. Dynamic shadows in contrast update only when needed.</param>
         /// <returns></returns>
-        private PointLightSource AddPointLight(Vector3 position, float radius, Color color, float intensity, bool castShadows, bool isVolumetric = false, float volumetricDensity = 1, int shadowResolution = 256, int softShadowBlurAmount = 0, bool staticShadow = false)
+        private PointLight AddPointLight(Vector3 position, float radius, Color color, float intensity, bool castShadows, bool isVolumetric = false, float volumetricDensity = 1, int shadowResolution = 256, int softShadowBlurAmount = 0, bool staticShadow = false)
         {
-            PointLightSource light = new PointLightSource(position, radius, color, intensity, castShadows, isVolumetric, shadowResolution, softShadowBlurAmount, staticShadow, volumetricDensity);
+            PointLight light = new PointLight(position, radius, color, intensity, castShadows, isVolumetric, shadowResolution, softShadowBlurAmount, staticShadow, volumetricDensity);
             PointLights.Add(light);
             return light;
         }

@@ -1,6 +1,6 @@
 ﻿using System;
 using BEPUphysics;
-using DeferredEngine.Main;
+using DeferredEngine.Logic;
 using DeferredEngine.Recources;
 using HelperSuite.GUIHelper;
 using Microsoft.Xna.Framework;

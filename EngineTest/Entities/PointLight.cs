@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace DeferredEngine.Entities
 {
-    public class PointLightSource : TransformableObject
+    public class PointLight : TransformableObject
     {
         private Vector3 _position = Vector3.Zero;
         public Matrix WorldMatrix;
@@ -56,7 +56,7 @@ namespace DeferredEngine.Entities
         /// <param name="castShadows"></param>
         /// <param name="volumeDensity"></param>
         /// <returns></returns>
-        public PointLightSource(Vector3 position, float radius, Color color, float intensity, bool castShadows, bool isVolumetric, int shadowResolution, int softShadowBlurAmount, bool staticShadow, float volumeDensity = 1, bool isEnabled = true)
+        public PointLight(Vector3 position, float radius, Color color, float intensity, bool castShadows, bool isVolumetric, int shadowResolution, int softShadowBlurAmount, bool staticShadow, float volumeDensity = 1, bool isEnabled = true)
         {
             BoundingSphere = new BoundingSphere(position, radius);
             Position = position;
@@ -119,12 +119,12 @@ namespace DeferredEngine.Entities
 
         public override TransformableObject Clone
         {
-            get { return new PointLightSource(Position, Radius, Color, Intensity, CastShadows, IsVolumetric, ShadowResolution, SoftShadowBlurAmount, StaticShadows);}
+            get { return new PointLight(Position, Radius, Color, Intensity, CastShadows, IsVolumetric, ShadowResolution, SoftShadowBlurAmount, StaticShadows);}
         }
 
         public override string Name { get; set; }
 
-        protected PointLightSource()
+        protected PointLight()
         {
 
         }

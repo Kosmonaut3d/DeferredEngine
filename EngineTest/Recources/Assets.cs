@@ -27,6 +27,7 @@ namespace DeferredEngine.Recources
 
         public Texture2D IconLight;
         public Texture2D IconEnvmap;
+        public Texture2D IconDecal;
 
         //Default Materials
 
@@ -89,6 +90,7 @@ namespace DeferredEngine.Recources
 
             Cube = content.Load<Model>("Art/test/cube");
 
+            IconDecal = content.Load<Texture2D>("Art/Editor/icon_decal");
             IconLight = content.Load<Texture2D>("Art/Editor/icon_light");
             IconEnvmap = content.Load<Texture2D>("Art/Editor/icon_envmap");
             //Default Materials

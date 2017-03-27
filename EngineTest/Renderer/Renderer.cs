@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using DeferredEngine.Entities;
-using DeferredEngine.Main;
+using DeferredEngine.Logic;
 using DeferredEngine.Recources;
 using DeferredEngine.Recources.Helper;
 using DeferredEngine.Renderer.Helper;
@@ -11,6 +11,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using DirectionalLight = DeferredEngine.Entities.DirectionalLight;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //    MAIN RENDER FUNCTIONS, TheKosmonaut 2016
@@ -38,6 +39,7 @@ namespace DeferredEngine.Renderer
         private GBufferRenderModule _gBufferRenderModule;
         private TemporalAntialiasingRenderModule _temporalAntialiasingRenderModule;
         private DeferredEnvironmentMapRenderModule _deferredEnvironmentMapRenderModule;
+        private DecalRenderModule _decalRenderModule;
         
         //Assets
         private Assets _assets;
@@ -103,6 +105,9 @@ namespace DeferredEngine.Renderer
 
         private RenderTarget2D _renderTargetDepth;
         private RenderTarget2D _renderTargetNormal;
+
+        private RenderTarget2D _renderTargetDecalOffTarget;
+
         private RenderTarget2D _renderTargetDiffuse;
         private RenderTarget2D _renderTargetSpecular;
         private RenderTarget2D _renderTargetVolume;
@@ -166,6 +171,7 @@ namespace DeferredEngine.Renderer
             _gBufferRenderModule = new GBufferRenderModule(content, "Shaders/GbufferSetup/ClearGBuffer", "Shaders/GbufferSetup/Gbuffer");
             _temporalAntialiasingRenderModule = new TemporalAntialiasingRenderModule(content, "Shaders/TemporalAntiAliasing/TemporalAntiAliasing");
             _deferredEnvironmentMapRenderModule = new DeferredEnvironmentMapRenderModule(content, "Shaders/Deferred/DeferredEnvironmentMap");
+            _decalRenderModule = new DecalRenderModule(content, "Shaders/Deferred/DeferredDecal");
 
             _inverseResolution = new Vector3(1.0f / GameSettings.g_ScreenWidth, 1.0f / GameSettings.g_ScreenHeight, 0);
             
@@ -197,6 +203,8 @@ namespace DeferredEngine.Renderer
             _lightAccumulationModule.Initialize(graphicsDevice, _quadRenderer, assets);
 
             _gBufferRenderModule.Initialize(_graphicsDevice);
+
+            _decalRenderModule.Initialize(graphicsDevice);
             
             _assets = assets;
             //Apply some base settings to overwrite shader defaults with game settings defaults
@@ -241,7 +249,7 @@ namespace DeferredEngine.Renderer
         /// <param name="editorData">The data passed from our editor logic</param>
         /// <param name="gameTime"></param>
         /// <returns></returns>
-        public EditorLogic.EditorReceivedData Draw(Camera camera, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities, List<PointLightSource> pointLights, List<DirectionalLightSource> directionalLights, EnvironmentSample envSample, EditorLogic.EditorSendData editorData, GameTime gameTime)
+        public EditorLogic.EditorReceivedData Draw(Camera camera, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities, List<Decal> decals, List<PointLight> pointLights, List<DirectionalLight> directionalLights, EnvironmentSample envSample, EditorLogic.EditorSendData editorData, GameTime gameTime)
         {
             //Reset the stat counter, so we can count stats/information for this frame only
             ResetStats();
@@ -268,6 +276,9 @@ namespace DeferredEngine.Renderer
             
             //Draw our meshes to the G Buffer
             DrawGBuffer(meshMaterialLibrary);
+
+            //Deferred Decals
+            DrawDecals(decals);
 
             //Draw Hologram projections to a different render target
             DrawHolograms(meshMaterialLibrary);
@@ -306,7 +317,7 @@ namespace DeferredEngine.Renderer
              
             //Draw the elements that we are hovering over with outlines
             if(GameSettings.Editor_enable && GameStats.e_EnableSelection)
-                _editorRender.DrawIds(meshMaterialLibrary, pointLights, directionalLights, envSample, _staticViewProjection, _view, editorData);
+                _editorRender.DrawIds(meshMaterialLibrary, decals, pointLights, directionalLights, envSample, _staticViewProjection, _view, editorData);
 
             //Draw the final rendered image, change the output based on user input to show individual buffers/rendertargets
             RenderMode(_currentOutput);
@@ -315,8 +326,15 @@ namespace DeferredEngine.Renderer
             if (GameSettings.Editor_enable && GameStats.e_EnableSelection)
             {
                 if(GameSettings.e_DrawOutlines) DrawMapToScreenToFullScreen(_editorRender.GetOutlines(), BlendState.Additive);
-                _editorRender.DrawEditorElements(meshMaterialLibrary, pointLights, directionalLights, envSample, _staticViewProjection, _view, editorData);
+                _editorRender.DrawEditorElements(meshMaterialLibrary, decals, pointLights, directionalLights, envSample, _staticViewProjection, _view, editorData);
 
+                if (editorData.SelectedObject != null)
+                {
+                    if (editorData.SelectedObject is Decal)
+                    {
+                        _decalRenderModule.DrawOutlines(_graphicsDevice, editorData.SelectedObject as Decal, _staticViewProjection, _view);
+                    }
+                }
                 ////if (editorData.SelectedObject != null)
                 ////{
                 ////    if (editorData.SelectedObject is PointLightSource)
@@ -340,6 +358,7 @@ namespace DeferredEngine.Renderer
             //Draw (debug) lines
             LineHelperManager.Draw(_graphicsDevice, _staticViewProjection);
 
+
             //Set up the frustum culling for the next frame
             meshMaterialLibrary.FrustumCullingFinalizeFrame(entities);
 
@@ -359,6 +378,7 @@ namespace DeferredEngine.Renderer
             };
         }
 
+
         /// <summary>
         /// Another draw function, but this time for cubemaps. Doesn't need all the stuff we have in the main draw function
         /// </summary>
@@ -370,7 +390,7 @@ namespace DeferredEngine.Renderer
         /// <param name="farPlane"></param>
         /// <param name="gameTime"></param>
         /// <param name="camera"></param>
-        private void DrawCubeMap(Vector3 origin, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities, List<PointLightSource> pointLights, List<DirectionalLightSource> dirLights, EnvironmentSample envSample, float farPlane, GameTime gameTime, Camera camera)
+        private void DrawCubeMap(Vector3 origin, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities, List<PointLight> pointLights, List<DirectionalLight> dirLights, EnvironmentSample envSample, float farPlane, GameTime gameTime, Camera camera)
         {
             //If our cubemap is not yet initialized, create a new one
             if (_renderTargetCubeMap == null)
@@ -528,12 +548,13 @@ namespace DeferredEngine.Renderer
         /// Check whether any GameSettings have changed that need setup
         /// </summary>
         /// <param name="dirLights"></param>
-        private void CheckRenderChanges(List<DirectionalLightSource> dirLights)
+        private void CheckRenderChanges(List<DirectionalLight> dirLights)
         {
             if (Math.Abs(_g_FarClip - GameSettings.g_FarPlane) > 0.0001f)
             {
                 _g_FarClip = GameSettings.g_FarPlane;
                 _gBufferRenderModule.FarClip = _g_FarClip;
+                _decalRenderModule.FarClip = _g_FarClip;
                 Shaders.deferredPointLightParameter_FarClip.SetValue(_g_FarClip);
                 Shaders.BillboardEffectParameter_FarClip.SetValue(_g_FarClip);
                 Shaders.ScreenSpaceReflectionParameter_FarClip.SetValue(_g_FarClip);
@@ -568,12 +589,12 @@ namespace DeferredEngine.Renderer
             {
                 _forceShadowFiltering = GameSettings.g_ShadowForceFiltering;
 
-                foreach (DirectionalLightSource light in dirLights)
+                foreach (DirectionalLight light in dirLights)
                 {
                     if (light.ShadowMap != null) light.ShadowMap.Dispose();
                     light.ShadowMap = null;
 
-                    light.ShadowFiltering = (DirectionalLightSource.ShadowFilteringTypes)(_forceShadowFiltering - 1);
+                    light.ShadowFiltering = (DirectionalLight.ShadowFilteringTypes)(_forceShadowFiltering - 1);
 
                     light.HasChanged = true;
                 }
@@ -583,7 +604,7 @@ namespace DeferredEngine.Renderer
             {
                 _forceShadowSS = GameSettings.g_ShadowForceScreenSpace;
 
-                foreach (DirectionalLightSource light in dirLights)
+                foreach (DirectionalLight light in dirLights)
                 {
 
                     light.ScreenSpaceShadowBlur = _forceShadowSS;
@@ -618,7 +639,7 @@ namespace DeferredEngine.Renderer
         /// <param name="pointLights"></param>
         /// <param name="dirLights"></param>
         /// <param name="camera"></param>
-        private void DrawShadowMaps(MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities, List<PointLightSource> pointLights, List<DirectionalLightSource> dirLights, Camera camera)
+        private void DrawShadowMaps(MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities, List<PointLight> pointLights, List<DirectionalLight> dirLights, Camera camera)
         {
             //Don't render for the first frame, we need a guideline first
             if (_boundingFrustum == null) UpdateViewProjection(camera, meshMaterialLibrary, entities);
@@ -824,6 +845,22 @@ namespace DeferredEngine.Renderer
         }
 
         /// <summary>
+        /// Draw deferred Decals
+        /// </summary>
+        /// <param name="decals"></param>
+        private void DrawDecals(List<Decal> decals)
+        {
+            if (!GameSettings.g_DrawDecals) return;
+            
+            //First copy albedo to decal offtarget
+            DrawMapToScreenToFullScreen(_renderTargetAlbedo, BlendState.Opaque, _renderTargetDecalOffTarget);
+
+            DrawMapToScreenToFullScreen(_renderTargetDecalOffTarget, BlendState.Opaque, _renderTargetAlbedo);
+            
+            _decalRenderModule.Draw(_graphicsDevice, decals, _view, _viewProjection, _inverseView);
+        }
+
+        /// <summary>
         /// "Hologram" projection effect
         /// </summary>
         /// <param name="meshMat"></param>
@@ -924,7 +961,7 @@ namespace DeferredEngine.Renderer
         /// Screen space blur for directional lights
         /// </summary>
         /// <param name="dirLights"></param>
-        private void DrawScreenSpaceDirectionalShadow(List<DirectionalLightSource> dirLights)
+        private void DrawScreenSpaceDirectionalShadow(List<DirectionalLight> dirLights)
         {
             if (_viewProjectionHasChanged)
             {
@@ -932,7 +969,7 @@ namespace DeferredEngine.Renderer
                 Shaders.deferredDirectionalLightParameterInverseViewProjection.SetValue(_inverseViewProjection);
 
             }
-            foreach (DirectionalLightSource light in dirLights)
+            foreach (DirectionalLight light in dirLights)
             {
                 if (light.CastShadows && light.ScreenSpaceShadowBlur)
                 {
@@ -1274,6 +1311,7 @@ namespace DeferredEngine.Renderer
             if (_renderTargetAlbedo != null)
             {
                 _renderTargetAlbedo.Dispose();
+                _renderTargetDecalOffTarget.Dispose();
                 _renderTargetDepth.Dispose();
                 _renderTargetNormal.Dispose();
                 _renderTargetComposed.Dispose();
@@ -1305,6 +1343,9 @@ namespace DeferredEngine.Renderer
             Shaders.BillboardEffectParameter_AspectRatio.SetValue((float)targetWidth / targetHeight);
 
             _renderTargetAlbedo = new RenderTarget2D(_graphicsDevice, targetWidth,
+                targetHeight, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+
+            _renderTargetDecalOffTarget = new RenderTarget2D(_graphicsDevice, targetWidth,
                 targetHeight, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
 
             _renderTargetNormal = new RenderTarget2D(_graphicsDevice, targetWidth,
@@ -1407,6 +1448,8 @@ namespace DeferredEngine.Renderer
             _deferredEnvironmentMapRenderModule.NormalMap = _renderTargetNormal;
             _deferredEnvironmentMapRenderModule.SSRMap = _renderTargetScreenSpaceEffectReflection;
 
+            _decalRenderModule.DepthMap = _renderTargetDepth;
+
             Shaders.DeferredComposeEffectParameter_ColorMap.SetValue(_renderTargetAlbedo);
             Shaders.DeferredComposeEffectParameter_diffuseLightMap.SetValue(_renderTargetDiffuse);
             Shaders.DeferredComposeEffectParameter_specularLightMap.SetValue(_renderTargetSpecular);
@@ -1447,7 +1490,7 @@ namespace DeferredEngine.Renderer
             _spriteBatch.End();
         }
 
-        private void DrawMapToScreenToFullScreen(Texture2D map, BlendState blendState = null)
+        private void DrawMapToScreenToFullScreen(Texture2D map, BlendState blendState = null, RenderTarget2D output = null)
         {
             if(blendState == null) blendState = BlendState.Opaque;
 
@@ -1472,7 +1515,7 @@ namespace DeferredEngine.Renderer
                     width = GameSettings.g_ScreenWidth;
                 }
             }
-            _graphicsDevice.SetRenderTarget(null);
+            _graphicsDevice.SetRenderTarget(output);
             _spriteBatch.Begin(0, blendState, _supersampling>1 ? SamplerState.LinearWrap : SamplerState.PointClamp);
             _spriteBatch.Draw(map, new Rectangle(0, 0, width, height), Color.White);
             _spriteBatch.End();

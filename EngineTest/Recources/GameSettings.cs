@@ -327,6 +327,7 @@ namespace DeferredEngine.Recources
         public static float tr = -1;
         public static float ShadowBias = 0.005f;
         public static bool e_DrawOutlines = true;
+        public static bool g_DrawDecals = true;
 
 
         //public static float g_TemporalAntiAliasingThreshold

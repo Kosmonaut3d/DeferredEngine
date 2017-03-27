@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using DeferredEngine.Entities;
-using DeferredEngine.Main;
+using DeferredEngine.Logic;
 using DeferredEngine.Renderer.Helper;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
