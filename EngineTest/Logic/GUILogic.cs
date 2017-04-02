@@ -34,6 +34,7 @@ namespace DeferredEngine.Logic
         private GUITextBlockButton _gizmoTranslation;
         private GUITextBlockButton _gizmoRotation;
         private GUITextBlockButton _gizmoScale;
+        private EditorLogic.GizmoModes _gizmoModePrevious;
 
         //Selected object
         private TransformableObject activeObject;
@@ -71,19 +72,19 @@ namespace DeferredEngine.Logic
             //Editor gizmo control!
             GuiCanvas.AddElement(_leftSideList = new GUIList(Vector2.Zero, defaultStyle));
 
-            _leftSideList.AddElement(_gizmoTranslation = new GUITextBlockButton(defaultStyle, "Translate")
+            _leftSideList.AddElement(_gizmoTranslation = new GUITextBlockButton(defaultStyle, "Translate (T)")
             {
                 ButtonObject = this,
                 ButtonMethod = GetType().GetMethod("ChangeGizmoMode"),
                 ButtonMethodArgs = new object[]{ EditorLogic.GizmoModes.Translation },
             });
-            _leftSideList.AddElement(_gizmoRotation = new GUITextBlockButton(defaultStyle, "Rotate")
+            _leftSideList.AddElement(_gizmoRotation = new GUITextBlockButton(defaultStyle, "Rotate (R)")
             {
                 ButtonObject = this,
                 ButtonMethod = GetType().GetMethod("ChangeGizmoMode"),
                 ButtonMethodArgs = new object[] { EditorLogic.GizmoModes.Rotation },
             });
-            _leftSideList.AddElement(_gizmoScale = new GUITextBlockButton(defaultStyle, "Scale")
+            _leftSideList.AddElement(_gizmoScale = new GUITextBlockButton(defaultStyle, "Scale (Z)")
             {
                 ButtonObject = this,
                 ButtonMethod = GetType().GetMethod("ChangeGizmoMode"),
@@ -392,6 +393,11 @@ namespace DeferredEngine.Logic
         {
             GameStats.e_gizmoMode = mode;
 
+            UpdateGizmoSelection(mode);
+        }
+
+        private void UpdateGizmoSelection(EditorLogic.GizmoModes mode)
+        {
             switch (mode)
             {
                 case EditorLogic.GizmoModes.Translation:
@@ -425,6 +431,7 @@ namespace DeferredEngine.Logic
                     "Del - delete object\n" +
                     "T - select translation gizmo\n" +
                     "R - select rotation gizmo\n" +
+                    "Z - select scale gizmo\n" +
                    "\n" +
                    "F1 - Cycle through render targets\n";
         }
@@ -433,6 +440,12 @@ namespace DeferredEngine.Logic
         {
             GameStats.UIIsHovered = false;
             if (!isActive || !GameSettings.Editor_enable || !GameSettings.ui_DrawUI) return;
+
+            if (GameStats.e_gizmoMode != _gizmoModePrevious)
+            {
+                _gizmoModePrevious = GameStats.e_gizmoMode;
+                UpdateGizmoSelection(_gizmoModePrevious);
+            }
             
             GUIControl.Update(Input.mouseLastState, Input.mouseState);
 

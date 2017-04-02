@@ -66,6 +66,7 @@ namespace DeferredEngine.Logic
 
             if(Input.WasKeyPressed(Keys.R)) GameStats.e_gizmoMode = GizmoModes.Rotation;
             if (Input.WasKeyPressed(Keys.T)) GameStats.e_gizmoMode = GizmoModes.Translation;
+            if (Input.WasKeyPressed(Keys.Z)) GameStats.e_gizmoMode = GizmoModes.Scale;
 
             _gizmoMode = GameStats.e_gizmoMode;
 

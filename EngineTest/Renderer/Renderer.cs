@@ -327,35 +327,41 @@ namespace DeferredEngine.Renderer
             //Additional editor elements that overlay our screen
             if (GameSettings.Editor_enable && GameStats.e_EnableSelection)
             {
-                if(GameSettings.e_DrawOutlines) DrawMapToScreenToFullScreen(_editorRender.GetOutlines(), BlendState.Additive);
-                _editorRender.DrawEditorElements(meshMaterialLibrary, decals, pointLights, directionalLights, envSample, _staticViewProjection, _view, editorData);
+                if (GameSettings.e_DrawOutlines)
+                    DrawMapToScreenToFullScreen(_editorRender.GetOutlines(), BlendState.Additive);
+                _editorRender.DrawEditorElements(meshMaterialLibrary, decals, pointLights, directionalLights, envSample,
+                    _staticViewProjection, _view, editorData);
 
                 if (editorData.SelectedObject != null)
                 {
                     if (editorData.SelectedObject is Decal)
                     {
-                        _decalRenderModule.DrawOutlines(_graphicsDevice, editorData.SelectedObject as Decal, _staticViewProjection, _view);
+                        _decalRenderModule.DrawOutlines(_graphicsDevice, editorData.SelectedObject as Decal,
+                            _staticViewProjection, _view);
                     }
                 }
-                ////if (editorData.SelectedObject != null)
-                ////{
-                ////    if (editorData.SelectedObject is PointLightSource)
-                ////    {
+                // //Show shadow maps
+                //if (editorData.SelectedObject != null)
+                //{
+                //    if (editorData.SelectedObject is PointLight)
+                //    {
                 //        int size = 128;
-                //PointLightSource light = pointLights[2];/*(PointLightSource)editorData.SelectedObject*/;
+                //        PointLight light = pointLights[2]; /*(PointLightSource)editorData.SelectedObject*/
+                //        ;
                 //        if (light.CastShadows)
                 //        {
                 //            _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.PointClamp);
-                //            _spriteBatch.Draw(light.ShadowMap, new Rectangle(0, GameSettings.g_ScreenHeight - size * 6, size, size * 6), Color.White);
+                //            _spriteBatch.Draw(light.ShadowMap,
+                //                new Rectangle(0, GameSettings.g_ScreenHeight - size*6, size, size*6), Color.White);
                 //            _spriteBatch.End();
                 //        }
-                ////    }
+                //    }
 
-                ////}
+                //}
             }
 
             //Debug ray marching
-            CpuRayMarch(camera);
+                CpuRayMarch(camera);
 
             //Draw (debug) lines
             LineHelperManager.Draw(_graphicsDevice, _staticViewProjection);
@@ -900,14 +906,14 @@ namespace DeferredEngine.Renderer
             _graphicsDevice.DepthStencilState = DepthStencilState.Default;
             _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
 
-            //if (GameSettings.g_TemporalAntiAliasing)
-            //{
-            //    Shaders.ScreenSpaceReflectionParameter_TargetMap.SetValue(_temporalAAOffFrame ? _renderTargetTAA_1 : _renderTargetTAA_2);
-            //}
-            //else
-            //{
-                Shaders.ScreenSpaceReflectionParameter_TargetMap.SetValue(_renderTargetComposed);
-            //}
+            if (GameSettings.g_TemporalAntiAliasing)
+            {
+                    Shaders.ScreenSpaceReflectionParameter_TargetMap.SetValue(_temporalAAOffFrame ? _renderTargetTAA_1 : _renderTargetTAA_2);
+            }
+            else
+            {
+            Shaders.ScreenSpaceReflectionParameter_TargetMap.SetValue(_renderTargetComposed);
+            }
 
             if (GameSettings.g_SSReflectionNoise)
                 Shaders.ScreenSpaceReflectionParameter_Time.SetValue((float)gameTime.TotalGameTime.TotalSeconds % 1000);
@@ -1199,7 +1205,7 @@ namespace DeferredEngine.Renderer
 
                 _performancePreviousTime = performanceCurrentTime;
             }
-
+            
             return GameSettings.g_TemporalAntiAliasingUseTonemap ? input : output;
         }
 
