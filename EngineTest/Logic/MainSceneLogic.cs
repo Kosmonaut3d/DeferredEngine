@@ -273,7 +273,7 @@ namespace DeferredEngine.Logic
             //Starts the "editor mode" where we can manipulate objects
             if (Input.WasKeyPressed(Keys.Space))
             {
-                GameSettings.Editor_enable = !GameSettings.Editor_enable;
+                GameSettings.e_enableeditor = !GameSettings.e_enableeditor;
             }
 
             //Spawns a new light on the ground
@@ -293,7 +293,7 @@ namespace DeferredEngine.Logic
                 _renderModeCycle++;
                 if (_renderModeCycle > 10) _renderModeCycle = 0;
 
-                GameSettings.g_RenderMode = (Renderer.Renderer.RenderModes) _renderModeCycle;
+                GameSettings.g_rendermode = (Renderer.Renderer.RenderModes) _renderModeCycle;
             }
         }
         

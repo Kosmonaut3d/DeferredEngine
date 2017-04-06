@@ -156,11 +156,11 @@ namespace DeferredEngine.Renderer.RenderModules
 
         public void SetMaterialSettings(MaterialEffect material)
         {
-            if (GameSettings.d_defaultMaterial)
+            if (GameSettings.d_defaultmaterial)
             {
                 _Material_DiffuseColor.SetValue(Color.Gray.ToVector3());
-                _Material_Roughness.SetValue(GameSettings.m_defaultRoughness > 0
-                        ? GameSettings.m_defaultRoughness
+                _Material_Roughness.SetValue(GameSettings.m_defaultroughness > 0
+                        ? GameSettings.m_defaultroughness
                         : 0.3f);
                 _Material_Metallic.SetValue(0.0f);
                 _Material_MaterialType.SetValue(0);
@@ -288,9 +288,9 @@ namespace DeferredEngine.Renderer.RenderModules
                 }
 
                 if (!material.HasRoughnessMap)
-                    _Material_Roughness.SetValue(GameSettings.m_defaultRoughness >
+                    _Material_Roughness.SetValue(GameSettings.m_defaultroughness >
                                                                                0
-                        ? GameSettings.m_defaultRoughness
+                        ? GameSettings.m_defaultroughness
                         : material.Roughness);
                 _Material_Metallic.SetValue(material.Metallic);
                 _Material_MaterialType.SetValue(material.MaterialTypeNumber);

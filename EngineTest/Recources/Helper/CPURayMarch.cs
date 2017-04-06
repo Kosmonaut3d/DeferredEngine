@@ -142,13 +142,13 @@ namespace DeferredEngine.Recources.Helper
 
                 Vector3 rayHit = GetFrustumRay(new Vector2(rayPositionUV.X, rayPositionUV.Y), currentCorners) * sampleDepth;
                 //Vector3 rayHit2 = GetFrustumRay(new Vector2(rayPositionUV.X, rayPositionUV.Y), currentCorners) * 
-                //                  GetLinDepth(rayPositionUV.Z, Projection) / -GameSettings.g_FarPlane;
+                //                  GetLinDepth(rayPositionUV.Z, Projection) / -GameSettings.g_farplane;
 
                 
                 //Vector4 test3 = Vector4.Transform(new Vector4(rayHit, 1), Projection);
                 //test3 /= test3.W;
 
-                //float test4 = GetZWDepth(sampleDepth *-GameSettings.g_FarPlane, Projection);
+                //float test4 = GetZWDepth(sampleDepth *-GameSettings.g_farplane, Projection);
 
                 //samplePositions.Add(Vector3.Transform(rayHit2, inverseViewMatrix));
                 //sampleTests.Add(Vector3.Transform(rayHit, inverseViewMatrix));

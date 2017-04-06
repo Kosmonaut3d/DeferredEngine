@@ -1,74 +1,159 @@
 ﻿using System;
+// ReSharper disable InconsistentNaming
 
 namespace DeferredEngine.Recources
 {
     public static class GameSettings
     {
         //Default & Display settings
-        public static int g_ScreenWidth = 1280;
+        public static int g_screenwidth = 1280;
         public static int g_ScreenHeight = 720;
+        public static bool g_vsync = false;
+        public static int g_fixedfps = 0;
+        public static int u_showdisplayinfo = 3;
+        public static bool p_physics = false;
+        public static Renderer.Renderer.RenderModes g_rendermode = Renderer.Renderer.RenderModes.Deferred;
 
-        public static bool g_Vsync = false;
-        public static int g_FixedFPS = 0;
+        //Editor
+        public static bool e_enableeditor = true;
+        public static bool e_drawoutlines = true;
 
-        public static int ShowDisplayInfo = 3;
-        public static bool p_Physics = false;
+        //UI
+        public static bool ui_enabled = true;
 
-        public static Renderer.Renderer.RenderModes g_RenderMode = Renderer.Renderer.RenderModes.Deferred;
+        //Renderer
 
-        public static float g_FarPlane = 500;
-        public static float g_supersampling = 1;
+        //debug
+        public static bool d_drawlines = true;
 
-        public static bool g_CPU_Culling = true;
+        //Default Material
+        public static bool d_defaultmaterial = false;
+        public static float m_defaultroughness = 0;
+        
+        //Settings
+        public static float g_farplane = 500;
+        public static bool g_cpusort = true;
+        public static bool g_cpuculling = true;
+        public static bool g_batchbymaterial = false; //Note this must be activated before the application is started.
 
-        public static bool g_BatchByMaterial = false; //Note this must be activated before the application is started.
-
+        //Profiler
         public static bool d_profiler = false;
 
-        public static bool g_CPU_Sort = true;
-        public static bool g_EnvironmentMapping = true;
-        public static bool g_EnvironmentMappingEveryFrame = false;
-        
-        public static bool g_EmissiveDraw = true;
-        public static bool g_EmissiveDrawDiffuse = true;
-        public static bool g_EmissiveDrawSpecular = true;
-        public static bool g_EmissiveNoise = false;
-        public static float g_EmissiveDrawFOVFactor = 2;
+        //Environment mapping
+        public static bool g_environmentmapping = true;
+        public static bool g_envmapupdateeveryframe = false;
+        public static int g_envmapresolution = 1024;
 
+        //Shadow Settings
+        public static int g_shadowforcefiltering = 0; //1 = PCF, 2 3 better PCF  4 = Poisson, 5 = VSM;
+        public static bool g_shadowforcescreenspace = false;
 
-        public static float m_defaultRoughness = 0;
+        //Deferred Decals
+        public static bool g_drawdecals = true;
 
-        //Whether or not materials' lighting scales with strength
-        public static bool g_EmissiveMaterialeSizeStrengthScaling = true;
+        //Temporal AntiAliasing
+        public static bool g_taa = true;
+        public static int g_taa_jittermode = 2;
+        public static bool g_taa_tonemapped = true;
 
-        private static int _g_EmissiveMaterialSamples = 8;
-        public static int g_EmissiveMaterialSamples
+        //Screen Space Ambient Occlusion
+
+        public static bool g_ssao_blur = true;
+
+        private static bool _g_ssao_draw = true;
+        public static bool g_ssao_draw
         {
-            get { return _g_EmissiveMaterialSamples; }
+            get { return _g_ssao_draw; }
             set
             {
-                _g_EmissiveMaterialSamples = value;
-                Shaders.EmissiveEffect.Parameters["Samples"].SetValue(_g_EmissiveMaterialSamples);
+                _g_ssao_draw = value;
+                Shaders.DeferredCompose.Parameters["useSSAO"].SetValue(_g_ssao_draw);
+            }
+        }
+        
+        private static float _g_ssao_falloffmin = 0.001f;
+        public static float g_ssao_falloffmin
+        {
+            get { return _g_ssao_falloffmin; }
+            set
+            {
+                _g_ssao_falloffmin = value;
+                Shaders.ScreenSpaceEffect_FalloffMin.SetValue(value);
+            }
+        }
+        
+        private static float _g_ssao_falloffmax = 0.03f;
+        public static float g_ssao_falloffmax
+        {
+            get { return _g_ssao_falloffmax; }
+            set
+            {
+                _g_ssao_falloffmax = value;
+                Shaders.ScreenSpaceEffect_FalloffMax.SetValue(value);
+            }
+        }
+        
+        private static int _g_ssao_samples = 8;
+        public static int g_ssao_samples
+        {
+            get { return _g_ssao_samples; }
+            set
+            {
+                _g_ssao_samples = value;
+                Shaders.ScreenSpaceEffect_Samples.SetValue(value);
             }
         }
 
-        public static int g_ShadowForceFiltering = 0; //1 = PCF, 2 3 better PCF  4 = Poisson, 5 = VSM;
-        public static bool g_ShadowForceScreenSpace = false;
-        public static int g_ShadowBlurBudget = 1;
+        private static float _g_ssao_radius = 30;
+        public static float g_ssao_radius
+        {
+            get { return _g_ssao_radius; }
+            set
+            {
+                _g_ssao_radius = value;
+                Shaders.ScreenSpaceEffect_SampleRadius.SetValue(value);
+            }
+        }
 
-        private static float _ssao_falloffmin = 0.001f;
-        private static float _ssao_falloffmax = 0.03f;
-        private static int _ssao_samples = 8;
-        private static float _ssao_sampleradius = 30;
-        private static float _ssao_strength = 0.5f;
-        public static bool ssao_Blur = true;
-        private static bool _ssao_active = true;
-        
-        public static bool g_TemporalAntiAliasing = true;
-        public static int g_TemporalAntiAliasingJitterMode = 2;
-        public static bool g_TemporalAntiAliasingUseTonemap = true;
-        public static bool Editor_enable = true;
-        public static bool h_DrawLines = true;
+        private static float _g_ssao_strength = 0.5f;
+        public static float g_ssao_strength
+        {
+            get { return _g_ssao_strength; }
+            set
+            {
+                _g_ssao_strength = value;
+                Shaders.ScreenSpaceEffect_Strength.SetValue(value);
+            }
+        }
+
+
+
+        public static float g_BloomThreshold = 0.0f;
+
+        // Emissive 
+
+        //public static bool g_EmissiveDraw = true;
+        //public static bool g_EmissiveDrawDiffuse = true;
+        //public static bool g_EmissiveDrawSpecular = true;
+        //public static bool g_EmissiveNoise = false;
+        //public static float g_EmissiveDrawFOVFactor = 2;
+
+        ////Whether or not materials' lighting scales with strength
+        //public static bool g_EmissiveMaterialeSizeStrengthScaling = true;
+
+        //private static int _g_EmissiveMaterialSamples = 8;
+        //public static int g_EmissiveMaterialSamples
+        //{
+        //    get { return _g_EmissiveMaterialSamples; }
+        //    set
+        //    {
+        //        _g_EmissiveMaterialSamples = value;
+        //        Shaders.EmissiveEffect.Parameters["Samples"].SetValue(_g_EmissiveMaterialSamples);
+        //    }
+        //}
+
+
+
 
         // PostProcessing
 
@@ -177,7 +262,6 @@ namespace DeferredEngine.Recources
         public static bool g_VolumetricLights = true;
         public static bool e_CPURayMarch = true;
         public static bool g_ClearGBuffer = true;
-        public static bool d_defaultMaterial;
         public static bool g_PostProcessing = true;
 
         public static bool g_SSReflectionTaa
@@ -195,68 +279,7 @@ namespace DeferredEngine.Recources
         }
 
         // Screen Space Ambient Occlusion
-
-        public static bool ssao_Active
-        {
-            get { return _ssao_active; }
-            set
-            {
-                _ssao_active = value;
-                Shaders.DeferredCompose.Parameters["useSSAO"].SetValue(_ssao_active);
-            }
-        }
-
-        public static float ssao_FalloffMin
-        {
-            get { return _ssao_falloffmin; }
-            set
-            {
-                _ssao_falloffmin = value;
-                Shaders.ScreenSpaceEffect_FalloffMin.SetValue(value);
-            }
-        }
-
-
-        public static float ssao_FalloffMax
-        {
-            get { return _ssao_falloffmax; }
-            set
-            {
-                _ssao_falloffmax = value;
-                Shaders.ScreenSpaceEffect_FalloffMax.SetValue(value);
-            }
-        }
-
-
-        public static int ssao_Samples
-        {
-            get { return _ssao_samples; }
-            set
-            {
-                _ssao_samples = value;
-                Shaders.ScreenSpaceEffect_Samples.SetValue(value);
-            }
-        }
-
-        public static float ssao_SampleRadius
-        {
-            get { return _ssao_sampleradius; }
-            set
-            {
-                _ssao_sampleradius = value;
-                Shaders.ScreenSpaceEffect_SampleRadius.SetValue(value);
-            }
-        }
-
-        public static float ssao_Strength
-        {
-            get { return _ssao_strength; }
-            set
-            {
-                _ssao_strength = value;
-                Shaders.ScreenSpaceEffect_Strength.SetValue(value);
-            }
-        }
+        
 
         //5 and 5 are good, 3 and 3 are cheap
         private static int msamples = 3;
@@ -293,8 +316,6 @@ namespace DeferredEngine.Recources
         }
 
         //private static float _g_TemporalAntiAliasingThreshold = 0.9f;
-        public static int g_CubeMapResolution = 1024;
-        public static bool c_UseStringBuilder = true;
         public static int g_UseDepthStencilLightCulling = 1; //None, Depth, Depth+Stencil
         public static bool g_BloomEnable = true;
 
@@ -310,43 +331,17 @@ namespace DeferredEngine.Recources
         public static float g_BloomStrength4 = 1.0f;
         public static float g_BloomStrength5 = 1.0f;
 
-        public static float g_BloomThreshold = 0.0f;
-        public static bool ui_DrawUI = true;
-
-
-
-
-        public static float tr = -1;
+        
         public static float ShadowBias = 0.005f;
-        public static bool e_DrawOutlines = true;
-        public static bool g_DrawDecals = true;
-
-        //public static float g_TemporalAntiAliasingThreshold
-        //{
-        //    get
-        //    {
-        //        return _g_TemporalAntiAliasingThreshold;
-        //    }
-
-        //    set
-        //    {
-        //        if (Math.Abs(_g_TemporalAntiAliasingThreshold - value) > 0.0001f)
-        //        {
-        //            _g_TemporalAntiAliasingThreshold = value;
-        //            Shaders.TemporalAntiAliasingEffect_Threshold.SetValue(_g_TemporalAntiAliasingThreshold);
-        //        }
-        //    }
-        //}
-
+        
         public static void ApplySettings()
         {
             ApplySSAO();
             
-            g_EmissiveDraw = false;
-            ssao_Active = true;
+            g_ssao_draw = true;
             g_PostProcessing = true;
-            g_TemporalAntiAliasing = true;
-            g_EnvironmentMapping = true;
+            g_taa = true;
+            g_environmentmapping = true;
 
             g_SSReflection = true;
             g_SSReflections_Samples = msamples;
@@ -356,7 +351,7 @@ namespace DeferredEngine.Recources
 
             g_Linear = _g_Linear;
 
-            d_defaultMaterial = false;
+            d_defaultmaterial = false;
             SCurveStrength = _sCurveStrength;
             Exposure = _exposure;
             ChromaticAbberationStrength = _chromaticAbberationStrength;
@@ -365,12 +360,12 @@ namespace DeferredEngine.Recources
 
         public static void ApplySSAO()
         {
-            ssao_FalloffMax = _ssao_falloffmax;
-            ssao_FalloffMin = _ssao_falloffmin;
-            ssao_SampleRadius = _ssao_sampleradius;
-            ssao_Samples = ssao_Samples;
-            ssao_Strength = ssao_Strength;
-            ssao_Active = _ssao_active;
+            g_ssao_falloffmax = _g_ssao_falloffmax;
+            g_ssao_falloffmin = _g_ssao_falloffmin;
+            g_ssao_radius = _g_ssao_radius;
+            g_ssao_samples = g_ssao_samples;
+            g_ssao_strength = g_ssao_strength;
+            g_ssao_draw = _g_ssao_draw;
         }
     }
 }

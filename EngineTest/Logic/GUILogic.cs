@@ -55,7 +55,7 @@ namespace DeferredEngine.Logic
         /// </summary>
         private void CreateGUI()
         {
-            GuiCanvas = new GUICanvas(Vector2.Zero, new Vector2(GameSettings.g_ScreenWidth, GameSettings.g_ScreenHeight));
+            GuiCanvas = new GUICanvas(Vector2.Zero, new Vector2(GameSettings.g_screenwidth, GameSettings.g_ScreenHeight));
 
             defaultStyle = new GUIStyle(
                 dimensionsStyle: new Vector2(200,35),
@@ -113,8 +113,8 @@ namespace DeferredEngine.Logic
 
             _rightSideList.AddElement(new GUITextBlockToggle(defaultStyle, "Highlight Meshes")
             {
-                ToggleField = typeof(GameSettings).GetField("e_DrawOutlines"),
-                Toggle = GameSettings.e_DrawOutlines
+                ToggleField = typeof(GameSettings).GetField("e_drawoutlines"),
+                Toggle = GameSettings.e_drawoutlines
             });
 
             _rightSideList.AddElement(new GUITextBlockToggle(defaultStyle, "Show Controls")
@@ -126,8 +126,8 @@ namespace DeferredEngine.Logic
 
             _rightSideList.AddElement(new GUITextBlockToggle(defaultStyle, "Default Material")
             {
-                ToggleField = typeof(GameSettings).GetField("d_defaultMaterial"),
-                Toggle = GameSettings.d_defaultMaterial
+                ToggleField = typeof(GameSettings).GetField("d_defaultmaterial"),
+                Toggle = GameSettings.d_defaultmaterial
             });
 
             //_rightSideList.AddElement(new GuiDropList(defaultStyle, "Show: ")
@@ -173,14 +173,14 @@ namespace DeferredEngine.Logic
 
             postprocessingList.AddElement(new GUITextBlockToggle(defaultStyle, "Temporal AA")
             {
-                ToggleField = typeof(GameSettings).GetField("g_TemporalAntiAliasing"),
-                Toggle = GameSettings.g_TemporalAntiAliasing
+                ToggleField = typeof(GameSettings).GetField("g_taa"),
+                Toggle = GameSettings.g_taa
             });
 
             postprocessingList.AddElement(new GUITextBlockToggle(defaultStyle, "Tonemap TAA")
             {
-                ToggleField = typeof(GameSettings).GetField("g_TemporalAntiAliasingUseTonemap"),
-                Toggle = GameSettings.g_TemporalAntiAliasingUseTonemap
+                ToggleField = typeof(GameSettings).GetField("g_taa_tonemapped"),
+                Toggle = GameSettings.g_taa_tonemapped
             });
 
             postprocessingList.AddElement(new GuiSliderFloatText(defaultStyle, 0, 4, 2, "WhitePoint: ")
@@ -273,32 +273,32 @@ namespace DeferredEngine.Logic
 
             ssaoList.AddElement(new GUITextBlockToggle(defaultStyle, "Enable SSAO")
             {
-                ToggleProperty = typeof(GameSettings).GetProperty("ssao_Active"),
-                Toggle = GameSettings.ssao_Active
+                ToggleProperty = typeof(GameSettings).GetProperty("g_ssao_draw"),
+                Toggle = GameSettings.g_ssao_draw
             });
 
             ssaoList.AddElement(new GUITextBlockToggle(defaultStyle, "SSAO Blur: ")
             {
-                ToggleField = typeof(GameSettings).GetField("ssao_Blur"),
-                Toggle = GameSettings.ssao_Blur
+                ToggleField = typeof(GameSettings).GetField("g_ssao_blur"),
+                Toggle = GameSettings.g_ssao_blur
             });
 
             ssaoList.AddElement(new GuiSliderIntText(defaultStyle, 1, 32, 1, "SSAO Samples: ")
             {
-                SliderProperty = typeof(GameSettings).GetProperty("ssao_Samples"),
-                SliderValue = GameSettings.ssao_Samples
+                SliderProperty = typeof(GameSettings).GetProperty("g_ssao_samples"),
+                SliderValue = GameSettings.g_ssao_samples
             });
 
             ssaoList.AddElement(new GuiSliderFloatText(defaultStyle, 1, 100, 2, "Sample Radius: ")
             {
-                SliderProperty = typeof(GameSettings).GetProperty("ssao_SampleRadius"),
-                SliderValue = GameSettings.ssao_SampleRadius
+                SliderProperty = typeof(GameSettings).GetProperty("g_ssao_radius"),
+                SliderValue = GameSettings.g_ssao_radius
             });
 
             ssaoList.AddElement(new GuiSliderFloatText(defaultStyle, 0, 4, 1, "SSAO Strength: ")
             {
-                SliderProperty = typeof(GameSettings).GetProperty("ssao_Strength"),
-                SliderValue = GameSettings.ssao_Strength
+                SliderProperty = typeof(GameSettings).GetProperty("g_ssao_strength"),
+                SliderValue = GameSettings.g_ssao_strength
             });
 
             /////////////////////////////////////////////////////////////////
@@ -439,7 +439,7 @@ namespace DeferredEngine.Logic
         public void Update(GameTime gameTime, bool isActive, TransformableObject selectedObject)
         {
             GameStats.UIIsHovered = false;
-            if (!isActive || !GameSettings.Editor_enable || !GameSettings.ui_DrawUI) return;
+            if (!isActive || !GameSettings.e_enableeditor || !GameSettings.ui_enabled) return;
 
             if (GameStats.e_gizmoMode != _gizmoModePrevious)
             {
@@ -593,8 +593,8 @@ namespace DeferredEngine.Logic
 
         public void UpdateResolution()
         {
-            GUIControl.UpdateResolution(GameSettings.g_ScreenWidth, GameSettings.g_ScreenHeight);
-            GuiCanvas.Resize(GameSettings.g_ScreenWidth, GameSettings.g_ScreenHeight);
+            GUIControl.UpdateResolution(GameSettings.g_screenwidth, GameSettings.g_ScreenHeight);
+            GuiCanvas.Resize(GameSettings.g_screenwidth, GameSettings.g_ScreenHeight);
         }
     }
 }

@@ -67,7 +67,7 @@ namespace DeferredEngine.Renderer.Helper
 
         public static void Draw(GraphicsDevice graphicsDevice, Matrix viewProjection)
         {
-            if (!GameSettings.h_DrawLines) return;
+            if (!GameSettings.d_drawlines) return;
 
             Shaders.LineEffectParameter_WorldViewProj.SetValue(viewProjection);
 

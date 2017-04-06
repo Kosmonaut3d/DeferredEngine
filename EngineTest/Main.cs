@@ -48,7 +48,7 @@ namespace DeferredEngine
             };
             
             //Size of our application / starting back buffer
-            _graphics.PreferredBackBufferWidth = GameSettings.g_ScreenWidth;
+            _graphics.PreferredBackBufferWidth = GameSettings.g_screenwidth;
             _graphics.PreferredBackBufferHeight = GameSettings.g_ScreenHeight;
 
             //HiDef enables usable shaders
@@ -74,17 +74,17 @@ namespace DeferredEngine
 
         private void CheckFPSLimitChange()
         {
-            if(_vsync != GameSettings.g_Vsync || _fixFPS != GameSettings.g_FixedFPS)
+            if(_vsync != GameSettings.g_vsync || _fixFPS != GameSettings.g_fixedfps)
             {
                 SetFPSLimit();
-                _vsync = GameSettings.g_Vsync;
-                _fixFPS = GameSettings.g_FixedFPS;
+                _vsync = GameSettings.g_vsync;
+                _fixFPS = GameSettings.g_fixedfps;
             }
         }
 
         private void SetFPSLimit()
         {
-            if (!GameSettings.g_Vsync && GameSettings.g_FixedFPS <= 0)
+            if (!GameSettings.g_vsync && GameSettings.g_fixedfps <= 0)
             {
                 _graphics.SynchronizeWithVerticalRetrace = false;
                 IsFixedTimeStep = false;
@@ -92,11 +92,11 @@ namespace DeferredEngine
             }
             else
             {
-                if(GameSettings.g_FixedFPS > 0)
+                if(GameSettings.g_fixedfps > 0)
                 {
                     _graphics.SynchronizeWithVerticalRetrace = false;
                     IsFixedTimeStep = true;
-                    TargetElapsedTime = TimeSpan.FromMilliseconds(1000.0f/GameSettings.g_FixedFPS);
+                    TargetElapsedTime = TimeSpan.FromMilliseconds(1000.0f/GameSettings.g_fixedfps);
                 }
                 else //Vsync
                 {
@@ -130,7 +130,7 @@ namespace DeferredEngine
                 _graphics.PreferredBackBufferHeight = Window.ClientBounds.Height;
                 _graphics.ApplyChanges();
 
-                GameSettings.g_ScreenWidth = Window.ClientBounds.Width;
+                GameSettings.g_screenwidth = Window.ClientBounds.Width;
                 GameSettings.g_ScreenHeight = Window.ClientBounds.Height;
 
                 _screenManager.UpdateResolution();
@@ -145,7 +145,7 @@ namespace DeferredEngine
         /// </summary>
         protected override void Initialize()
         {
-            GUIControl.Initialize(GameSettings.g_ScreenWidth, GameSettings.g_ScreenHeight);
+            GUIControl.Initialize(GameSettings.g_screenwidth, GameSettings.g_ScreenHeight);
 
             _screenManager.Load(Content, GraphicsDevice);
             // TODO: Add your initialization logic here
@@ -187,7 +187,7 @@ namespace DeferredEngine
             _screenManager.Update(gameTime, _isActive);
 
             //BEPU Physics
-            if(!GameSettings.Editor_enable && GameSettings.p_Physics)
+            if(!GameSettings.e_enableeditor && GameSettings.p_physics)
                 _physicsSpace.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
 
             //base.Update(gameTime);

@@ -62,7 +62,7 @@ namespace DeferredEngine.Logic
         /// <param name="data"></param>
         public void Update(GameTime gameTime, List<BasicEntity> entities, List<Decal> decals, List<PointLight> pointLights, List<DirectionalLight> dirLights, EnvironmentSample envSample, EditorReceivedData data, MeshMaterialLibrary meshMaterialLibrary)
         {
-            if (!GameSettings.Editor_enable) return;
+            if (!GameSettings.e_enableeditor) return;
 
             if(Input.WasKeyPressed(Keys.R)) GameStats.e_gizmoMode = GizmoModes.Rotation;
             if (Input.WasKeyPressed(Keys.T)) GameStats.e_gizmoMode = GizmoModes.Translation;

@@ -37,7 +37,7 @@ namespace DeferredEngine.Logic
             _guiLogic.Initialize(_assets);
             _editorLogic.Initialize(graphicsDevice);
             _debug.Initialize(graphicsDevice);
-            _guiRenderer.Initialize(graphicsDevice, GameSettings.g_ScreenWidth, GameSettings.g_ScreenHeight);
+            _guiRenderer.Initialize(graphicsDevice, GameSettings.g_screenwidth, GameSettings.g_ScreenHeight);
         }
 
         //Update per frame
@@ -80,7 +80,7 @@ namespace DeferredEngine.Logic
             //Our renderer gives us information on what id is currently hovered over so we can update / manipulate objects in the logic functions
             _editorReceivedDataBuffer = _renderer.Draw(_sceneLogic.Camera, _sceneLogic.MeshMaterialLibrary, _sceneLogic.BasicEntities, _sceneLogic.Decals, pointLights: _sceneLogic.PointLights, directionalLights: _sceneLogic.DirectionalLights, envSample: _sceneLogic.EnvironmentSample, editorData: _editorLogic.GetEditorData(), gameTime: gameTime);
             
-            if (GameSettings.Editor_enable)
+            if (GameSettings.e_enableeditor)
                 _guiRenderer.Draw(_guiLogic.GuiCanvas);
 
             _debug.Draw(gameTime);

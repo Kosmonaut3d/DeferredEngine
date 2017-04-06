@@ -20,8 +20,8 @@ namespace DeferredEngine.Renderer.Helper
 
         public int Index;
 
-        private bool _previousMode = GameSettings.g_CPU_Culling;
-        private bool _previousEditorMode = GameSettings.Editor_enable;
+        private bool _previousMode = GameSettings.g_cpuculling;
+        private bool _previousEditorMode = GameSettings.e_enableeditor;
         private readonly BoundingSphere _defaultBoundingSphere;
         private RasterizerState _shadowGenerationRasterizerState;
         private QuadRenderer _quadRenderer;
@@ -135,7 +135,7 @@ namespace DeferredEngine.Renderer.Helper
         //Not a real sort, but it does it's job over time
         private void SortByDistance()
         {
-            if (!GameSettings.g_CPU_Sort) return;
+            if (!GameSettings.g_cpusort) return;
 
             for (int i = 1; i < Index; i++)
             {
@@ -200,7 +200,7 @@ namespace DeferredEngine.Renderer.Helper
         public bool FrustumCulling(List<BasicEntity> entities, BoundingFrustum boundingFrustrum, bool hasCameraChanged, Vector3 cameraPosition)
         {
             //Check if the culling mode has changed
-            if (_previousMode != GameSettings.g_CPU_Culling)
+            if (_previousMode != GameSettings.g_cpuculling)
             {
                 if (_previousMode)
                 {
@@ -219,11 +219,11 @@ namespace DeferredEngine.Renderer.Helper
                     }
 
                 }
-                _previousMode = GameSettings.g_CPU_Culling;
+                _previousMode = GameSettings.g_cpuculling;
 
             }
 
-            if (!GameSettings.g_CPU_Culling) return false;
+            if (!GameSettings.g_cpuculling) return false;
             
             for (int index1 = 0; index1 < entities.Count; index1++)
             {
@@ -247,7 +247,7 @@ namespace DeferredEngine.Renderer.Helper
                     int counter = 0;
 
 
-                    MaterialLibrary matLib = GameSettings.g_CPU_Sort
+                    MaterialLibrary matLib = GameSettings.g_cpusort
                         ? MaterialLib[MaterialLibPointer[index1]]
                         : MaterialLib[index1];
                     for (int i = 0; i < matLib.Index; i++)
@@ -283,9 +283,9 @@ namespace DeferredEngine.Renderer.Helper
 
         public void FlagMovedObjects(List<BasicEntity> entities)
         {
-            //if (_previousEditorMode != GameSettings.Editor_enable)
+            //if (_previousEditorMode != GameSettings.e_enableeditor)
             //{
-            //    _previousEditorMode = GameSettings.Editor_enable;
+            //    _previousEditorMode = GameSettings.e_enableeditor;
             //    //Set Changed to true
             //    for (int index1 = 0; index1 < entities.Count; index1++)
             //    {
@@ -295,7 +295,7 @@ namespace DeferredEngine.Renderer.Helper
 
             //    for (int index1 = 0; index1 < Index; index1++)
             //    {
-            //        MaterialLibrary matLib = GameSettings.g_CPU_Sort ? MaterialLib[MaterialLibPointer[index1]] : MaterialLib[index1];
+            //        MaterialLibrary matLib = GameSettings.g_cpusort ? MaterialLib[MaterialLibPointer[index1]] : MaterialLib[index1];
 
             //        matLib.HasChangedThisFrame = true;
             //    }
@@ -325,7 +325,7 @@ namespace DeferredEngine.Renderer.Helper
 
             for (int index1 = 0; index1 < Index; index1++)
             {
-                MaterialLibrary matLib = GameSettings.g_CPU_Sort ? MaterialLib[MaterialLibPointer[index1]] : MaterialLib[index1];
+                MaterialLibrary matLib = GameSettings.g_cpusort ? MaterialLib[MaterialLibPointer[index1]] : MaterialLib[index1];
 
                 matLib.HasChangedThisFrame = false;
             }
@@ -619,170 +619,171 @@ namespace DeferredEngine.Renderer.Helper
         //I don't want to fill up the main Draw as much! Not used right  now
         public void DrawEmissive(GraphicsDevice graphicsDevice, Camera camera, Matrix viewProjection, Matrix transformedViewProjection, Matrix inverseViewProjection, RenderTarget2D renderTargetEmissive, RenderTarget2D renderTargetDiffuse, RenderTarget2D renderTargetSpecular, BlendState lightBlendState, IEnumerable<ModelMesh> sphereModel, GameTime gameTime)
         {
-            bool setupRender = false;
+            throw new NotImplementedException();
+        //    bool setupRender = false;
 
-            //for culling
-            BoundingFrustum transformedViewFrustum = new BoundingFrustum(transformedViewProjection);
+        //    //for culling
+        //    BoundingFrustum transformedViewFrustum = new BoundingFrustum(transformedViewProjection);
 
-            for (int index1 = 0; index1 < Index; index1++)
-            {
-                MaterialLibrary matLib = MaterialLib[index1];
+        //    for (int index1 = 0; index1 < Index; index1++)
+        //    {
+        //        MaterialLibrary matLib = MaterialLib[index1];
 
-                if (matLib.Index < 1) continue;
+        //        if (matLib.Index < 1) continue;
 
-                MaterialEffect material = /*GameSettings.DebugDrawUntextured==2 ? Art.DefaultMaterial :*/ matLib.GetMaterial();
+        //        MaterialEffect material = /*GameSettings.DebugDrawUntextured==2 ? Art.DefaultMaterial :*/ matLib.GetMaterial();
 
-                //If the material is not emissive then skip
-                if (material.EmissiveStrength <= 0 || material.Type != MaterialEffect.MaterialTypes.Emissive) continue;
+        //        //If the material is not emissive then skip
+        //        if (material.EmissiveStrength <= 0 || material.Type != MaterialEffect.MaterialTypes.Emissive) continue;
 
-                //Set up our graphics device
-                if (!setupRender)
-                {
-                    graphicsDevice.DepthStencilState = DepthStencilState.Default;
+        //        //Set up our graphics device
+        //        if (!setupRender)
+        //        {
+        //            graphicsDevice.DepthStencilState = DepthStencilState.Default;
 
-                    Shaders.EmissiveEffectParameter_InvertViewProj.SetValue(inverseViewProjection);
-                    Shaders.EmissiveEffectParameter_ViewProj.SetValue(transformedViewProjection);
-                    Shaders.EmissiveEffectParameter_CameraPosition.SetValue(camera.Position);
+        //            Shaders.EmissiveEffectParameter_InvertViewProj.SetValue(inverseViewProjection);
+        //            Shaders.EmissiveEffectParameter_ViewProj.SetValue(transformedViewProjection);
+        //            Shaders.EmissiveEffectParameter_CameraPosition.SetValue(camera.Position);
 
-                    if (GameSettings.g_EmissiveNoise)
-                        Shaders.EmissiveEffectParameter_Time.SetValue((float)gameTime.TotalGameTime.TotalSeconds % 1000);
-                    setupRender = true;
-                }
+        //            if (GameSettings.g_EmissiveNoise)
+        //                Shaders.EmissiveEffectParameter_Time.SetValue((float)gameTime.TotalGameTime.TotalSeconds % 1000);
+        //            setupRender = true;
+        //        }
 
-                GameStats.MaterialDraws++;
+        //        GameStats.MaterialDraws++;
 
-                graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
-                graphicsDevice.BlendState = BlendState.Opaque;
+        //        graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+        //        graphicsDevice.BlendState = BlendState.Opaque;
 
-                Shaders.EmissiveEffectParameter_EmissiveColor.SetValue(material.DiffuseColor);
-                Shaders.EmissiveEffectParameter_EmissiveStrength.SetValue(material.EmissiveStrength);
+        //        Shaders.EmissiveEffectParameter_EmissiveColor.SetValue(material.DiffuseColor);
+        //        Shaders.EmissiveEffectParameter_EmissiveStrength.SetValue(material.EmissiveStrength);
 
-                for (int i = 0; i < matLib.Index; i++)
-                {
-                    MeshLibrary meshLib = matLib.GetMeshLibrary()[i];
+        //        for (int i = 0; i < matLib.Index; i++)
+        //        {
+        //            MeshLibrary meshLib = matLib.GetMeshLibrary()[i];
 
-                    //Initialize the mesh VB and IB
-                    graphicsDevice.SetVertexBuffer(meshLib.GetMesh().VertexBuffer);
-                    graphicsDevice.Indices = (meshLib.GetMesh().IndexBuffer);
-                    int primitiveCount = meshLib.GetMesh().PrimitiveCount;
-                    int vertexOffset = meshLib.GetMesh().VertexOffset;
-                    //int vCount = meshLib.GetMesh().NumVertices;
-                    int startIndex = meshLib.GetMesh().StartIndex;
+        //            //Initialize the mesh VB and IB
+        //            graphicsDevice.SetVertexBuffer(meshLib.GetMesh().VertexBuffer);
+        //            graphicsDevice.Indices = (meshLib.GetMesh().IndexBuffer);
+        //            int primitiveCount = meshLib.GetMesh().PrimitiveCount;
+        //            int vertexOffset = meshLib.GetMesh().VertexOffset;
+        //            //int vCount = meshLib.GetMesh().NumVertices;
+        //            int startIndex = meshLib.GetMesh().StartIndex;
 
-                    //Now draw the local meshes!
-                    for (int index = 0; index < meshLib.Index; index++)
-                    {
-                        //culling
-                        BoundingSphere sphere = new BoundingSphere(Vector3.Zero, 0);
+        //            //Now draw the local meshes!
+        //            for (int index = 0; index < meshLib.Index; index++)
+        //            {
+        //                //culling
+        //                BoundingSphere sphere = new BoundingSphere(Vector3.Zero, 0);
 
-                        sphere.Center = meshLib.GetBoundingCenterWorld(index);
-                        sphere.Radius = meshLib.MeshBoundingSphere.Radius * meshLib.GetWorldMatrices()[index].Scale.X;
-                        if (transformedViewFrustum.Contains(sphere) == ContainmentType.Disjoint)
-                        {
-                            continue;
-                        }
+        //                sphere.Center = meshLib.GetBoundingCenterWorld(index);
+        //                sphere.Radius = meshLib.MeshBoundingSphere.Radius * meshLib.GetWorldMatrices()[index].Scale.X;
+        //                if (transformedViewFrustum.Contains(sphere) == ContainmentType.Disjoint)
+        //                {
+        //                    continue;
+        //                }
 
-                        GameStats.EmissiveMeshDraws++;
+        //                GameStats.EmissiveMeshDraws++;
 
-                        graphicsDevice.SetRenderTarget(renderTargetEmissive);
+        //                graphicsDevice.SetRenderTarget(renderTargetEmissive);
 
-                        graphicsDevice.Clear(Color.TransparentBlack);
+        //                graphicsDevice.Clear(Color.TransparentBlack);
 
-                        Vector3 origin = meshLib.GetBoundingCenterWorld(index);
-                        //meshLib.GetWorldMatrices()[index].World.Translation;
+        //                Vector3 origin = meshLib.GetBoundingCenterWorld(index);
+        //                //meshLib.GetWorldMatrices()[index].World.Translation;
 
-                        Shaders.EmissiveEffectParameter_Origin.SetValue(origin);
-                        //meshLib.GetBoundingCenterWorld(index));
+        //                Shaders.EmissiveEffectParameter_Origin.SetValue(origin);
+        //                //meshLib.GetBoundingCenterWorld(index));
 
-                        float size = meshLib.MeshBoundingSphere.Radius * meshLib.GetWorldMatrices()[index].Scale.X * 3 * (GameSettings.g_EmissiveMaterialeSizeStrengthScaling ? material.EmissiveStrength : 1);
+        //                float size = meshLib.MeshBoundingSphere.Radius * meshLib.GetWorldMatrices()[index].Scale.X * 3 * (GameSettings.g_EmissiveMaterialeSizeStrengthScaling ? material.EmissiveStrength : 1);
 
-                        Shaders.EmissiveEffectParameter_Size.SetValue(size);
+        //                Shaders.EmissiveEffectParameter_Size.SetValue(size);
 
-                        Shaders.EmissiveEffect.CurrentTechnique = Shaders.EmissiveEffectTechnique_DrawEmissiveBuffer;
+        //                Shaders.EmissiveEffect.CurrentTechnique = Shaders.EmissiveEffectTechnique_DrawEmissiveBuffer;
 
 
-                        Matrix localWorldMatrix = meshLib.GetWorldMatrices()[index].World;
+        //                Matrix localWorldMatrix = meshLib.GetWorldMatrices()[index].World;
 
-                        Shaders.EmissiveEffectParameter_WorldViewProj.SetValue(localWorldMatrix * transformedViewProjection);
+        //                Shaders.EmissiveEffectParameter_WorldViewProj.SetValue(localWorldMatrix * transformedViewProjection);
 
-                        Shaders.EmissiveEffectParameter_World.SetValue(localWorldMatrix);
+        //                Shaders.EmissiveEffectParameter_World.SetValue(localWorldMatrix);
 
-                        Shaders.EmissiveEffect.CurrentTechnique.Passes[0].Apply();
+        //                Shaders.EmissiveEffect.CurrentTechnique.Passes[0].Apply();
 
-                        try
-                        {
-                            graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset, startIndex,
-                                primitiveCount);
-                        }
-                        catch (Exception)
-                        {
-                            // do nothing
-                        }
+        //                try
+        //                {
+        //                    graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset, startIndex,
+        //                        primitiveCount);
+        //                }
+        //                catch (Exception)
+        //                {
+        //                    // do nothing
+        //                }
 
-                        graphicsDevice.BlendState = lightBlendState;
+        //                graphicsDevice.BlendState = lightBlendState;
 
-                        graphicsDevice.RasterizerState = RasterizerState.CullClockwise;
+        //                graphicsDevice.RasterizerState = RasterizerState.CullClockwise;
 
-                        Matrix sphereWorldMatrix = Matrix.CreateScale(size * 1.2f) *
-                                                   Matrix.CreateTranslation(meshLib.GetBoundingCenterWorld(index));
+        //                Matrix sphereWorldMatrix = Matrix.CreateScale(size * 1.2f) *
+        //                                           Matrix.CreateTranslation(meshLib.GetBoundingCenterWorld(index));
 
-                        Shaders.EmissiveEffectParameter_WorldViewProj.SetValue(sphereWorldMatrix * viewProjection);
+        //                Shaders.EmissiveEffectParameter_WorldViewProj.SetValue(sphereWorldMatrix * viewProjection);
 
-                        if (GameSettings.g_EmissiveDrawDiffuse)
-                        {
-                            graphicsDevice.SetRenderTarget(renderTargetDiffuse);
+        //                if (GameSettings.g_EmissiveDrawDiffuse)
+        //                {
+        //                    graphicsDevice.SetRenderTarget(renderTargetDiffuse);
 
-                            Shaders.EmissiveEffect.CurrentTechnique =
-                                Shaders.EmissiveEffectTechnique_DrawEmissiveDiffuseEffect;
+        //                    Shaders.EmissiveEffect.CurrentTechnique =
+        //                        Shaders.EmissiveEffectTechnique_DrawEmissiveDiffuseEffect;
 
-                            foreach (ModelMesh mesh in sphereModel)
-                            {
-                                foreach(ModelMeshPart meshpart in mesh.MeshParts)
-                                {
-                                    graphicsDevice.SetVertexBuffer(meshpart.VertexBuffer);
-                                    graphicsDevice.Indices = (meshpart.IndexBuffer);
-                                    primitiveCount = meshpart.PrimitiveCount;
-                                    vertexOffset = meshpart.VertexOffset;
-                                    startIndex = meshpart.StartIndex;
+        //                    foreach (ModelMesh mesh in sphereModel)
+        //                    {
+        //                        foreach(ModelMeshPart meshpart in mesh.MeshParts)
+        //                        {
+        //                            graphicsDevice.SetVertexBuffer(meshpart.VertexBuffer);
+        //                            graphicsDevice.Indices = (meshpart.IndexBuffer);
+        //                            primitiveCount = meshpart.PrimitiveCount;
+        //                            vertexOffset = meshpart.VertexOffset;
+        //                            startIndex = meshpart.StartIndex;
 
-                                    Shaders.EmissiveEffect.CurrentTechnique.Passes[0].Apply();
+        //                            Shaders.EmissiveEffect.CurrentTechnique.Passes[0].Apply();
 
-                                    graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset,
-                                        startIndex, primitiveCount);
-                                }
-                            }
+        //                            graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset,
+        //                                startIndex, primitiveCount);
+        //                        }
+        //                    }
 
-                        }
+        //                }
 
-                        if (GameSettings.g_EmissiveDrawSpecular)
-                        {
-                            graphicsDevice.SetRenderTarget(renderTargetSpecular);
+        //                if (GameSettings.g_EmissiveDrawSpecular)
+        //                {
+        //                    graphicsDevice.SetRenderTarget(renderTargetSpecular);
 
-                            Shaders.EmissiveEffect.CurrentTechnique =
-                                Shaders.EmissiveEffectTechnique_DrawEmissiveSpecularEffect;
+        //                    Shaders.EmissiveEffect.CurrentTechnique =
+        //                        Shaders.EmissiveEffectTechnique_DrawEmissiveSpecularEffect;
 
-                            foreach (ModelMesh mesh in sphereModel)
-                            {
-                                foreach (ModelMeshPart meshpart in mesh.MeshParts)
-                                {
-                                    graphicsDevice.SetVertexBuffer(meshpart.VertexBuffer);
-                                    graphicsDevice.Indices = (meshpart.IndexBuffer);
-                                    primitiveCount = meshpart.PrimitiveCount;
-                                    vertexOffset = meshpart.VertexOffset;
-                                    startIndex = meshpart.StartIndex;
+        //                    foreach (ModelMesh mesh in sphereModel)
+        //                    {
+        //                        foreach (ModelMeshPart meshpart in mesh.MeshParts)
+        //                        {
+        //                            graphicsDevice.SetVertexBuffer(meshpart.VertexBuffer);
+        //                            graphicsDevice.Indices = (meshpart.IndexBuffer);
+        //                            primitiveCount = meshpart.PrimitiveCount;
+        //                            vertexOffset = meshpart.VertexOffset;
+        //                            startIndex = meshpart.StartIndex;
 
-                                    Shaders.EmissiveEffect.CurrentTechnique.Passes[0].Apply();
+        //                            Shaders.EmissiveEffect.CurrentTechnique.Passes[0].Apply();
 
-                                    graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset,
-                                        startIndex, primitiveCount);
-                                }
-                            }
-                        }
-                    }
+        //                            graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset,
+        //                                startIndex, primitiveCount);
+        //                        }
+        //                    }
+        //                }
+        //            }
 
-                }
+        //        }
 
-            }
+        //    }
         }
 
 
@@ -814,7 +815,7 @@ namespace DeferredEngine.Renderer.Helper
 
         public bool HasMaterial(MaterialEffect mat)
         {
-            if (!GameSettings.g_BatchByMaterial) return false;
+            if (!GameSettings.g_batchbymaterial) return false;
             return mat.Equals(_material);
         }
 
@@ -967,7 +968,7 @@ namespace DeferredEngine.Renderer.Helper
             }
 
             //We need to calcualte a new average distance
-            if (hasAnythingChanged && GameSettings.g_CPU_Sort)
+            if (hasAnythingChanged && GameSettings.g_cpusort)
             {
                 distance = 0;
 

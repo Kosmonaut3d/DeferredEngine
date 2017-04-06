@@ -215,7 +215,7 @@ namespace DeferredEngine.Logic
 
         public void Draw(GameTime gameTime)
         {
-            if (GameSettings.ShowDisplayInfo > 0 || ConsoleOpen)
+            if (GameSettings.u_showdisplayinfo > 0 || ConsoleOpen)
             {
                 _fps = 0.9 * _fps + 0.1 * (1000 / gameTime.ElapsedGameTime.TotalMilliseconds);
 
@@ -285,14 +285,14 @@ namespace DeferredEngine.Logic
 
                 StringList.Clear();
 
-                if (GameSettings.ShowDisplayInfo == 1) //most basic, only show fps
+                if (GameSettings.u_showdisplayinfo == 1) //most basic, only show fps
                 {
                     _spriteBatch.DrawString(_sprFont,
                     string.Format(Math.Round(_smoothfps).ToString()),
                     new Vector2(10.0f, 10.0f), Color.White);
                 }
 
-                if (GameSettings.ShowDisplayInfo <= 1)
+                if (GameSettings.u_showdisplayinfo <= 1)
                 {
                     _spriteBatch.End();
                     StringList.Clear();
@@ -301,82 +301,47 @@ namespace DeferredEngine.Logic
 
                 long totalmemory = GC.GetTotalMemory(false);
                 if (_maxGcMemory < totalmemory) _maxGcMemory = totalmemory;
+                
+                //clear
+                _mngStringBuilder.Length = 0;
 
-                if (GameSettings.c_UseStringBuilder)
-                {
-                    //clear
-                    _mngStringBuilder.Length = 0;
+                _mngStringBuilder.Append(sb_frameTime);
+                _mngStringBuilder.AppendTrim(gameTime.ElapsedGameTime.TotalMilliseconds);
+                _mngStringBuilder.Append(sb_ms);
 
-                    _mngStringBuilder.Append(sb_frameTime);
-                    _mngStringBuilder.AppendTrim(gameTime.ElapsedGameTime.TotalMilliseconds);
-                    _mngStringBuilder.Append(sb_ms);
-
-                    _mngStringBuilder.AppendAt(30, sb_fps);
-                    _mngStringBuilder.Append((int) Math.Round(_fps));
-                    _mngStringBuilder.Append(sb_dotdotdot);
-                    _mngStringBuilder.Append((int) Math.Round(_smoothfpsShow));
-                    _mngStringBuilder.Append(sb_greaterthan);
-                    _mngStringBuilder.Append((int) Math.Round(_minfps));
-                    _mngStringBuilder.AppendLine(sb_closeBracket);
+                _mngStringBuilder.AppendAt(30, sb_fps);
+                _mngStringBuilder.Append((int) Math.Round(_fps));
+                _mngStringBuilder.Append(sb_dotdotdot);
+                _mngStringBuilder.Append((int) Math.Round(_smoothfpsShow));
+                _mngStringBuilder.Append(sb_greaterthan);
+                _mngStringBuilder.Append((int) Math.Round(_minfps));
+                _mngStringBuilder.AppendLine(sb_closeBracket);
                     
-                    _mngStringBuilder.Append(GameSettings.g_ScreenWidth);
-                    _mngStringBuilder.Append(sb_multipliedBy);
-                    _mngStringBuilder.Append(GameSettings.g_ScreenHeight);
-                    _mngStringBuilder.Append(sb_emptySpace);
-                    _mngStringBuilder.Append(RenderModesToString( GameSettings.g_RenderMode));
-                    _mngStringBuilder.Append(sb_memoryGc);
-                    _mngStringBuilder.Append(totalmemory/1024);
-                    _mngStringBuilder.Append(sb_dotdotdot);
-                    _mngStringBuilder.Append(_maxGcMemory/1024);
+                _mngStringBuilder.Append(GameSettings.g_screenwidth);
+                _mngStringBuilder.Append(sb_multipliedBy);
+                _mngStringBuilder.Append(GameSettings.g_ScreenHeight);
+                _mngStringBuilder.Append(sb_emptySpace);
+                _mngStringBuilder.Append(RenderModesToString( GameSettings.g_rendermode));
+                _mngStringBuilder.Append(sb_memoryGc);
+                _mngStringBuilder.Append(totalmemory/1024);
+                _mngStringBuilder.Append(sb_dotdotdot);
+                _mngStringBuilder.Append(_maxGcMemory/1024);
 
-                    _mngStringBuilder.Append(sb_meshes);
-                    _mngStringBuilder.Append(GameStats.MeshDraws);
-                    _mngStringBuilder.Append(sb_materials);
-                    _mngStringBuilder.Append(GameStats.MaterialDraws);
-                    _mngStringBuilder.Append(sb_lights);
-                    _mngStringBuilder.Append(GameStats.LightsDrawn);
-                    _mngStringBuilder.Append(sb_emissive);
-                    _mngStringBuilder.Append(GameStats.EmissiveMeshDraws);
-                    _mngStringBuilder.Append(sb_shadowmaps);
-                    _mngStringBuilder.Append(GameStats.activeShadowMaps);
-                    _mngStringBuilder.Append(sb_slash);
-                    _mngStringBuilder.Append(GameStats.shadowMaps);
+                _mngStringBuilder.Append(sb_meshes);
+                _mngStringBuilder.Append(GameStats.MeshDraws);
+                _mngStringBuilder.Append(sb_materials);
+                _mngStringBuilder.Append(GameStats.MaterialDraws);
+                _mngStringBuilder.Append(sb_lights);
+                _mngStringBuilder.Append(GameStats.LightsDrawn);
+                _mngStringBuilder.Append(sb_emissive);
+                _mngStringBuilder.Append(GameStats.EmissiveMeshDraws);
+                _mngStringBuilder.Append(sb_shadowmaps);
+                _mngStringBuilder.Append(GameStats.activeShadowMaps);
+                _mngStringBuilder.Append(sb_slash);
+                _mngStringBuilder.Append(GameStats.shadowMaps);
 
-                    _spriteBatch.DrawString(_monospaceFont, _mngStringBuilder.StringBuilder,
-                        new Vector2(10.0f, 10.0f), Color.White);
-                }
-                else
-                {
-                    _spriteBatch.DrawString(_sprFont,
-                        string.Format("Threads - Main: " + Math.Round(gameTime.ElapsedGameTime.TotalMilliseconds, 2) +
-                                      " ms "),
-                        new Vector2(10.0f, 10.0f), Color.White);
-
-                    _spriteBatch.DrawString(_sprFont,
-                        " (FPS: " + Math.Round(_fps) + " ... " + Math.Round(_smoothfpsShow) + " > " +
-                        Math.Round(_minfps) + ")",
-                        new Vector2(200.0f, 10.0f), Color.White);
-
-                    if (_maxGcMemory < totalmemory) _maxGcMemory = totalmemory;
-                    _spriteBatch.DrawString(_sprFont,
-                        GameSettings.g_ScreenWidth + " x " + GameSettings.g_ScreenHeight + " " +
-                        GameSettings.g_RenderMode + " | Memory (GC): " + totalmemory/1024 + " ... " + _maxGcMemory/1024,
-                        new Vector2(10, 25),
-                        Color.White);
-                    
-                    if (GameSettings.ShowDisplayInfo <= 2)
-                    {
-                        _spriteBatch.End();
-                        StringList.Clear();
-                        return;
-                    }
-
-                    _spriteBatch.DrawString(_sprFont,
-                        string.Format("meshes: " + GameStats.MeshDraws + " materials: " + GameStats.MaterialDraws +
-                                      " lights: " + GameStats.LightsDrawn + " emissive: " + GameStats.EmissiveMeshDraws
-                                      + " shadowMaps: " + GameStats.activeShadowMaps + "/" + GameStats.shadowMaps),
-                        new Vector2(10.0f, 40.0f), Color.White);
-                }
+                _spriteBatch.DrawString(_monospaceFont, _mngStringBuilder.StringBuilder,
+                    new Vector2(10.0f, 10.0f), Color.White);
 
                 _spriteBatch.End();
             }
