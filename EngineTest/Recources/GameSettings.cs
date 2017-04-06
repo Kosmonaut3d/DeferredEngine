@@ -4,11 +4,21 @@ namespace DeferredEngine.Recources
 {
     public static class GameSettings
     {
-        public static float g_FarPlane = 500;
-        public static float g_supersampling = 1;
+        //Default & Display settings
+        public static int g_ScreenWidth = 1280;
+        public static int g_ScreenHeight = 720;
+
+        public static bool g_vsync = false;
+        public static int g_fixFPS = 0;
+
         public static int ShowDisplayInfo = 3;
+        public static bool p_Physics = false;
 
         public static Renderer.Renderer.RenderModes g_RenderMode = Renderer.Renderer.RenderModes.Deferred;
+
+        public static float g_FarPlane = 500;
+        public static float g_supersampling = 1;
+
         public static bool g_CPU_Culling = true;
 
         public static bool g_BatchByMaterial = false; //Note this must be activated before the application is started.
@@ -18,17 +28,13 @@ namespace DeferredEngine.Recources
         public static bool g_CPU_Sort = true;
         public static bool g_EnvironmentMapping = true;
         public static bool g_EnvironmentMappingEveryFrame = false;
-
-        public static int g_ScreenWidth = 1280;
-        public static int g_ScreenHeight = 720;
-
+        
         public static bool g_EmissiveDraw = true;
         public static bool g_EmissiveDrawDiffuse = true;
         public static bool g_EmissiveDrawSpecular = true;
         public static bool g_EmissiveNoise = false;
         public static float g_EmissiveDrawFOVFactor = 2;
 
-        public static bool p_Physics = false;
 
         public static float m_defaultRoughness = 0;
 
@@ -328,9 +334,6 @@ namespace DeferredEngine.Recources
         public static float ShadowBias = 0.005f;
         public static bool e_DrawOutlines = true;
         public static bool g_DrawDecals = true;
-        public static bool g_vsync = false;
-        public static int g_fixFPS = 0;
-
 
         //public static float g_TemporalAntiAliasingThreshold
         //{
