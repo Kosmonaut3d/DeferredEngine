@@ -328,6 +328,8 @@ namespace DeferredEngine.Recources
         public static float ShadowBias = 0.005f;
         public static bool e_DrawOutlines = true;
         public static bool g_DrawDecals = true;
+        public static bool g_vsync = false;
+        public static int g_fixFPS = 0;
 
 
         //public static float g_TemporalAntiAliasingThreshold

@@ -21,14 +21,17 @@ namespace DeferredEngine
 
         private readonly ScreenManager _screenManager;
 
-        private bool _isActive = true;
-
         private readonly Space _physicsSpace;
 
+        //Do not change, these are overwritten
+        private bool _vsync = true;
+        private int _fixFPS = 0;
+        private bool _isActive = true;
+        
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////
         //  FUNCTIONS
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        
+
         public Game1()
         {
             //Initialize graphics and content
@@ -43,12 +46,7 @@ namespace DeferredEngine
             {
                 ForceUpdater = { Gravity = new Vector3(0, 0, -9.81f) }
             };
-
-            //Set up graphics properties, no vsync, no framelock
-            _graphics.SynchronizeWithVerticalRetrace = false;
-            IsFixedTimeStep = false;
-            //TargetElapsedTime = TimeSpan.FromMilliseconds(100);
-
+            
             //Size of our application / starting back buffer
             _graphics.PreferredBackBufferWidth = GameSettings.g_ScreenWidth;
             _graphics.PreferredBackBufferHeight = GameSettings.g_ScreenHeight;
@@ -71,6 +69,42 @@ namespace DeferredEngine
             //Update framerate etc. when not the active window
             Activated += IsActivated;
             Deactivated += IsDeactivated;
+        }
+
+
+        private void CheckFPSLimitChange()
+        {
+            if(_vsync != GameSettings.g_vsync || _fixFPS != GameSettings.g_fixFPS)
+            {
+                SetFPSLimit();
+                _vsync = GameSettings.g_vsync;
+                _fixFPS = GameSettings.g_fixFPS;
+            }
+        }
+
+        private void SetFPSLimit()
+        {
+            if (!GameSettings.g_vsync && GameSettings.g_fixFPS <= 0)
+            {
+                _graphics.SynchronizeWithVerticalRetrace = false;
+                IsFixedTimeStep = false;
+                _graphics.ApplyChanges();
+            }
+            else
+            {
+                if(GameSettings.g_fixFPS > 0)
+                {
+                    _graphics.SynchronizeWithVerticalRetrace = false;
+                    IsFixedTimeStep = true;
+                    TargetElapsedTime = TimeSpan.FromMilliseconds(1000.0f/GameSettings.g_fixFPS);
+                }
+                else //Vsync
+                {
+                    _graphics.SynchronizeWithVerticalRetrace = true;
+                    IsFixedTimeStep = false;
+                    _graphics.ApplyChanges();
+                }
+            }
         }
 
         private void IsActivated(object sender, EventArgs e)
@@ -172,8 +206,11 @@ namespace DeferredEngine
                 return;
             }
 
+            CheckFPSLimitChange();
+
             _screenManager.Draw(gameTime);
             //base.Draw(gameTime);
         }
+
     }
 }
