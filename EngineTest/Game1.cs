@@ -21,12 +21,13 @@ namespace DeferredEngine
 
         private readonly ScreenManager _screenManager;
 
-        private bool _isActive = true;
-
         private readonly Space _physicsSpace;
-        private bool _vsync;
-        private int _fixFPS;
 
+        //Do not change, these are overwritten
+        private bool _vsync = true;
+        private int _fixFPS = 0;
+        private bool _isActive = true;
+        
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////
         //  FUNCTIONS
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -45,10 +46,7 @@ namespace DeferredEngine
             {
                 ForceUpdater = { Gravity = new Vector3(0, 0, -9.81f) }
             };
-
-            //Set up graphics properties, no vsync, no framelock
-            SetFPSLimit();
-
+            
             //Size of our application / starting back buffer
             _graphics.PreferredBackBufferWidth = GameSettings.g_ScreenWidth;
             _graphics.PreferredBackBufferHeight = GameSettings.g_ScreenHeight;
@@ -90,6 +88,7 @@ namespace DeferredEngine
             {
                 _graphics.SynchronizeWithVerticalRetrace = false;
                 IsFixedTimeStep = false;
+                _graphics.ApplyChanges();
             }
             else
             {
@@ -103,6 +102,7 @@ namespace DeferredEngine
                 {
                     _graphics.SynchronizeWithVerticalRetrace = true;
                     IsFixedTimeStep = false;
+                    _graphics.ApplyChanges();
                 }
             }
         }
