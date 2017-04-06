@@ -61,7 +61,7 @@
     <Compile Include="Entities\TransformableObject.cs" />
     <Compile Include="Renderer\Helper\Editor\BillboardBuffer.cs" />
     <Compile Include="Entities\EnvironmentSample.cs" />
-    <Compile Include="Game1.cs" />
+    <Compile Include="Main.cs" />
     <Compile Include="Logic\EditorLogic.cs" />
     <Compile Include="Logic\GUILogic.cs" />
     <Compile Include="Logic\Input.cs" />

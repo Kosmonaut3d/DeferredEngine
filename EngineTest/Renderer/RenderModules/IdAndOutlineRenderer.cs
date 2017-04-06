@@ -26,9 +26,7 @@ namespace DeferredEngine.Renderer.RenderModules
 
         private BillboardBuffer _billboardBuffer;
         private Assets _assets;
-
-        private float OutlineSize = 1;
-
+        
         public void Initialize(GraphicsDevice graphicsDevice, BillboardBuffer billboardBuffer, Assets assets)
         {
             _graphicsDevice = graphicsDevice;

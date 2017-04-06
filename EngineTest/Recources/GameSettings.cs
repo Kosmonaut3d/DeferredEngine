@@ -8,8 +8,8 @@ namespace DeferredEngine.Recources
         public static int g_ScreenWidth = 1280;
         public static int g_ScreenHeight = 720;
 
-        public static bool g_vsync = false;
-        public static int g_fixFPS = 0;
+        public static bool g_Vsync = false;
+        public static int g_FixedFPS = 0;
 
         public static int ShowDisplayInfo = 3;
         public static bool p_Physics = false;
@@ -63,21 +63,7 @@ namespace DeferredEngine.Recources
         private static float _ssao_strength = 0.5f;
         public static bool ssao_Blur = true;
         private static bool _ssao_active = true;
-
-        // Hologram
-        private static bool _g_hologramUseGauss = true;
-        public static bool g_HologramUseGauss
-        {
-            get { return _g_hologramUseGauss;}
-            set
-            {
-                _g_hologramUseGauss = value;
-                Shaders.DeferredCompose.Parameters["useGauss"].SetValue(value);
-            }
-        }
-
-        public static bool g_HologramDraw = false;
-
+        
         public static bool g_TemporalAntiAliasing = true;
         public static int g_TemporalAntiAliasingJitterMode = 2;
         public static bool g_TemporalAntiAliasingUseTonemap = true;

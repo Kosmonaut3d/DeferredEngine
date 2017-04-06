@@ -7,11 +7,11 @@ using HelperSuite.GUIHelper;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using Vector3 = BEPUutilities.Vector3;
+using BEPUutilities;
 
 namespace DeferredEngine
 {
-    public class Game1 : Game
+    public class Main : Game
     {
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////
         //  VARIABLES
@@ -23,7 +23,7 @@ namespace DeferredEngine
 
         private readonly Space _physicsSpace;
 
-        //Do not change, these are overwritten
+        //Do not change, these are overwritten (Check GameSettings.cs in Resources
         private bool _vsync = true;
         private int _fixFPS = 0;
         private bool _isActive = true;
@@ -32,7 +32,7 @@ namespace DeferredEngine
         //  FUNCTIONS
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        public Game1()
+        public Main()
         {
             //Initialize graphics and content
             _graphics = new GraphicsDeviceManager(this);
@@ -44,7 +44,7 @@ namespace DeferredEngine
             //Initialize our physics and give it gravity
             _physicsSpace = new Space
             {
-                ForceUpdater = { Gravity = new Vector3(0, 0, -9.81f) }
+                ForceUpdater = { Gravity = new BEPUutilities.Vector3(0, 0, -9.81f) }
             };
             
             //Size of our application / starting back buffer
@@ -74,17 +74,17 @@ namespace DeferredEngine
 
         private void CheckFPSLimitChange()
         {
-            if(_vsync != GameSettings.g_vsync || _fixFPS != GameSettings.g_fixFPS)
+            if(_vsync != GameSettings.g_Vsync || _fixFPS != GameSettings.g_FixedFPS)
             {
                 SetFPSLimit();
-                _vsync = GameSettings.g_vsync;
-                _fixFPS = GameSettings.g_fixFPS;
+                _vsync = GameSettings.g_Vsync;
+                _fixFPS = GameSettings.g_FixedFPS;
             }
         }
 
         private void SetFPSLimit()
         {
-            if (!GameSettings.g_vsync && GameSettings.g_fixFPS <= 0)
+            if (!GameSettings.g_Vsync && GameSettings.g_FixedFPS <= 0)
             {
                 _graphics.SynchronizeWithVerticalRetrace = false;
                 IsFixedTimeStep = false;
@@ -92,11 +92,11 @@ namespace DeferredEngine
             }
             else
             {
-                if(GameSettings.g_fixFPS > 0)
+                if(GameSettings.g_FixedFPS > 0)
                 {
                     _graphics.SynchronizeWithVerticalRetrace = false;
                     IsFixedTimeStep = true;
-                    TargetElapsedTime = TimeSpan.FromMilliseconds(1000.0f/GameSettings.g_fixFPS);
+                    TargetElapsedTime = TimeSpan.FromMilliseconds(1000.0f/GameSettings.g_FixedFPS);
                 }
                 else //Vsync
                 {

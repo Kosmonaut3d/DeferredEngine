@@ -19,7 +19,6 @@ namespace DeferredEngine.Renderer.RenderModules
         private EffectParameter _World;
         private EffectParameter _LightPositionWS;
         private EffectParameter _FarClip;
-        private EffectParameter _ArraySlice;
         private EffectParameter _SizeBias;
         private EffectParameter _MaskTexture;
 

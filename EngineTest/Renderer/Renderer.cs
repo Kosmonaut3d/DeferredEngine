@@ -281,9 +281,6 @@ namespace DeferredEngine.Renderer
 
             //Deferred Decals
             DrawDecals(decals);
-
-            //Draw Hologram projections to a different render target
-            DrawHolograms(meshMaterialLibrary);
             
             //Draw Screen Space reflections to a different render target
             DrawScreenSpaceReflections(gameTime);
@@ -867,30 +864,7 @@ namespace DeferredEngine.Renderer
             
             _decalRenderModule.Draw(_graphicsDevice, decals, _view, _viewProjection, _inverseView);
         }
-
-        /// <summary>
-        /// "Hologram" projection effect
-        /// </summary>
-        /// <param name="meshMat"></param>
-        private void DrawHolograms(MeshMaterialLibrary meshMat)
-        {
-            if (!GameSettings.g_HologramDraw) return;
-
-            throw new NotImplementedException("Holograms are no longer supported by default, but their functionality is merely commented out (in DeferredCompose.fx, too!)");
-            /*_graphicsDevice.SetRenderTarget(_renderTargetHologram);
-            _graphicsDevice.Clear(Color.Black);
-            meshMat.Draw(MeshMaterialLibrary.RenderType.Hologram, _viewProjection);
-
-            //Performance Profiler
-            if (GameSettings.d_profiler)
-            {
-                long performanceCurrentTime = _performanceTimer.ElapsedTicks;
-                GameStats.d_profileDrawHolograms = performanceCurrentTime - _performancePreviousTime;
-
-                _performancePreviousTime = performanceCurrentTime;
-            }*/
-        }
-
+        
         /// <summary>
         /// Draw Screen Space Reflections
         /// </summary>
