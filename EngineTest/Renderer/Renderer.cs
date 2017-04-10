@@ -301,7 +301,7 @@ namespace DeferredEngine.Renderer
             DrawEnvironmentMap(envSample);
 
             //Draw emissive materials on an offscreen render target
-            DrawEmissiveEffect(camera, meshMaterialLibrary, gameTime);
+            //DrawEmissiveEffect(camera, meshMaterialLibrary, gameTime);
 
             //Compose the scene by combining our lighting data with the gbuffer data
             Compose(); //-> output _renderTargetComposed
