@@ -1,4 +1,5 @@
-﻿using BEPUphysics;
+﻿using System;
+using BEPUphysics;
 using DeferredEngine.Recources;
 using HelperSuite.GUIRenderer;
 using Microsoft.Xna.Framework;
@@ -10,7 +11,7 @@ namespace DeferredEngine.Logic
     /// <summary>
     /// Manages our different screens and passes information accordingly
     /// </summary>
-    public class ScreenManager
+    public class ScreenManager : IDisposable
     {
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////
         //  VARIABLES
@@ -91,6 +92,11 @@ namespace DeferredEngine.Logic
         {
             _renderer.UpdateResolution();
             _guiLogic.UpdateResolution();
+        }
+
+        public void Dispose()
+        {
+            _guiRenderer?.Dispose();
         }
     }
 }

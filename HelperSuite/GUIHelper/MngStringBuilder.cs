@@ -396,7 +396,7 @@ namespace HelperSuite.GUIHelper //StringBuilderII
             {
                 sb.Append(decimalseperator);
             }
-            addzeros = true;
+            //addzeros = true;
             //nd = value;
             float placed = .1f;
             while (placed > 0.00000001)
@@ -410,10 +410,7 @@ namespace HelperSuite.GUIHelper //StringBuilderII
                 }
                 else
                 {
-                    if (addzeros)
-                    {
-                        sb.Append('0');
-                    }
+                   sb.Append('0');
                 }
                 placed = placed*.1f;
             }

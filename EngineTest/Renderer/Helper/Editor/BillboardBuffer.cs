@@ -1,9 +1,10 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace DeferredEngine.Renderer.Helper.Editor
 {
-    public class BillboardBuffer
+    public class BillboardBuffer : IDisposable
     {
         public readonly VertexBuffer VBuffer;
         public readonly IndexBuffer IBuffer;
@@ -41,6 +42,12 @@ namespace DeferredEngine.Renderer.Helper.Editor
 
             VBuffer.SetData(vBufferArray);
             IBuffer.SetData(iBufferArray);
+        }
+
+        public void Dispose()
+        {
+            VBuffer?.Dispose();
+            IBuffer?.Dispose();
         }
     }
 }

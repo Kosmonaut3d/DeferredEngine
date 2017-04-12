@@ -19,8 +19,7 @@ namespace HelperSuite.GUIHelper
 
         public static void Initialize(int width, int height)
         {
-            ScreenWidth = width;
-            ScreenHeight = height;
+            UpdateResolution(width, height);
         }
 
         public static void Update(MouseState lastMouseState, MouseState currentMouseState)

@@ -60,9 +60,7 @@ namespace DeferredEngine.Entities
             normalizedDirection.Normalize();
             Direction = normalizedDirection;
             _initialDirection = normalizedDirection;
-
-            CastShadows = castShadows;
-
+            
             CastShadows = castShadows;
             ShadowSize = shadowSize;
             ShadowDepth = shadowDepth;

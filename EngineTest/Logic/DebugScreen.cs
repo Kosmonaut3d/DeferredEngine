@@ -12,7 +12,7 @@ using Microsoft.Xna.Framework.Input;
 
 namespace DeferredEngine.Logic
 {
-    public class DebugScreen
+    public class DebugScreen : IDisposable
     {
         private SpriteBatch _spriteBatch;
         private SpriteFont _sprFont;
@@ -519,6 +519,12 @@ namespace DeferredEngine.Logic
         private StringBuilder RenderModesToString(Renderer.Renderer.RenderModes render)
         {
             return RenderModesSB[(int)render];
+        }
+
+        public void Dispose()
+        {
+            _spriteBatch?.Dispose();
+            _graphicsDevice?.Dispose();
         }
     }
 

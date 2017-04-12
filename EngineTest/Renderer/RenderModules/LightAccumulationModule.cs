@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using DeferredEngine.Entities;
 using DeferredEngine.Recources;
 using DeferredEngine.Renderer.Helper;
@@ -8,7 +9,7 @@ using DirectionalLight = DeferredEngine.Entities.DirectionalLight;
 
 namespace DeferredEngine.Renderer.RenderModules
 {
-    public class LightAccumulationModule
+    public class LightAccumulationModule : IDisposable
     {
         private GraphicsDevice _graphicsDevice;
         private QuadRenderer _quadRenderer;
@@ -318,5 +319,13 @@ namespace DeferredEngine.Renderer.RenderModules
             _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
         }
 
+        public void Dispose()
+        {
+            _graphicsDevice?.Dispose();
+            _assets?.Dispose();
+            _lightBlendState?.Dispose();
+            _stencilCullPass1?.Dispose();
+            _stencilCullPass2?.Dispose();
+        }
     }
 }

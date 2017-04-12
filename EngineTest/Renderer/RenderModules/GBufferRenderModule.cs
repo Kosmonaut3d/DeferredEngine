@@ -1,4 +1,5 @@
-﻿using DeferredEngine.Recources;
+﻿using System;
+using DeferredEngine.Recources;
 using DeferredEngine.Renderer.Helper;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
@@ -7,7 +8,7 @@ using Microsoft.Xna.Framework.Graphics;
 namespace DeferredEngine.Renderer.RenderModules
 {
     //Just a template
-    public class GBufferRenderModule : IRenderModule
+    public class GBufferRenderModule : IRenderModule, IDisposable
     {
         private Effect _clearShader;
         private Effect _gbufferShader;
@@ -295,6 +296,13 @@ namespace DeferredEngine.Renderer.RenderModules
                 _Material_Metallic.SetValue(material.Metallic);
                 _Material_MaterialType.SetValue(material.MaterialTypeNumber);
             }
+        }
+
+        public void Dispose()
+        {
+            _clearShader?.Dispose();
+            _gbufferShader?.Dispose();
+            _fsqRenderer?.Dispose();
         }
     }
 }

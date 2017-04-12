@@ -12,7 +12,7 @@ using Microsoft.Xna.Framework.Input;
 
 namespace HelperSuite.GUIHelper
 {
-    public class GUIContentLoader
+    public class GUIContentLoader : IDisposable
     {
 
         private ContentManager _contentManager;
@@ -60,7 +60,7 @@ namespace HelperSuite.GUIHelper
 
             string fileName = null;
             string copiedFilePath = null;
-            string shortFileName;
+            string shortFileName = null;
             
             string fileEnding = null;
             OpenFileDialog openFileDialog1 = new OpenFileDialog
@@ -81,13 +81,15 @@ namespace HelperSuite.GUIHelper
                     fileName = openFileDialog1.SafeFileName;
 
                 //Make it test instead of test.jpg;
-                string[] split = fileName.Split(new[] { '.' });
-
-                shortFileName = split[0];
-                fileEnding = split[1];
-
                 if (fileName != null)
-                    copiedFilePath = Application.StartupPath + "/" + fileName;
+                {
+                    string[] split = fileName.Split('.');
+
+                    shortFileName = split[0];
+                    fileEnding = split[1];
+                }
+
+                copiedFilePath = Application.StartupPath + "/" + fileName;
 
                 filenameOut = fileName;
             }
@@ -258,6 +260,11 @@ namespace HelperSuite.GUIHelper
 
             });
 
+        }
+
+        public void Dispose()
+        {
+            _contentManager?.Dispose();
         }
     }
 }

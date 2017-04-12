@@ -38,7 +38,12 @@ namespace HelperSuite.GUI
         {
 
         }
-        
+        public void SetButtonMethod(Object obj, string method, object[] args = null)
+        {
+            ButtonObject = obj;
+            ButtonObject.GetType().GetMethod(method);
+            ButtonMethodArgs = args;
+        }
 
         public override void Draw(GUIRenderer.GUIRenderer guiRenderer, Vector2 parentPosition, Vector2 mousePosition)
         {

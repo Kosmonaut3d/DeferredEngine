@@ -6,7 +6,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace DeferredEngine.Recources
 {
-    public class Assets
+    public class Assets : IDisposable
     {
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////
         //  VARIABLES
@@ -444,6 +444,29 @@ namespace DeferredEngine.Recources
 
 
             }
+        }
+
+        public void Dispose()
+        {
+            IconLight?.Dispose();
+            IconEnvmap?.Dispose();
+            IconDecal?.Dispose();
+            BaseMaterial?.Dispose();
+            GoldMaterial?.Dispose();
+            EmissiveMaterial?.Dispose();
+            EmissiveMaterial2?.Dispose();
+            EmissiveMaterial3?.Dispose();
+            EmissiveMaterial4?.Dispose();
+            SilverMaterial?.Dispose();
+            HologramMaterial?.Dispose();
+            MetalRough03Material?.Dispose();
+            MetalRough01Material?.Dispose();
+            MirrorMaterial?.Dispose();
+            NoiseMap?.Dispose();
+            sponza_fabric_metallic?.Dispose();
+            sponza_fabric_spec?.Dispose();
+            sponza_curtain_metallic?.Dispose();
+            RockMaterial?.Dispose();
         }
     }
 

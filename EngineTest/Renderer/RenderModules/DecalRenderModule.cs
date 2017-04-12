@@ -11,7 +11,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace DeferredEngine.Renderer.RenderModules
 {
-    public class DecalRenderModule
+    public class DecalRenderModule : IDisposable
     {
         private VertexBuffer _vertexBuffer;
         private IndexBuffer _indexBufferCage;
@@ -104,8 +104,8 @@ namespace DeferredEngine.Renderer.RenderModules
             Indices[22] = 3;
             Indices[23] = 7;
 
-            short[] Indices2 = new short[36];
-            Indices2 = new short[] {0,4,1,
+            //short[] Indices2 = new short[36];
+            short[] Indices2 = new short[] {0,4,1,
                 1,4,5,
                 1,5,3,
                 3,5,7,
@@ -165,6 +165,15 @@ namespace DeferredEngine.Renderer.RenderModules
 
             graphics.DrawIndexedPrimitives(PrimitiveType.LineList, 0, 0, 12);
             
+        }
+
+        public void Dispose()
+        {
+            _vertexBuffer?.Dispose();
+            _indexBufferCage?.Dispose();
+            _indexBufferCube?.Dispose();
+            _decalShader?.Dispose();
+            _decalBlend?.Dispose();
         }
     }
 }

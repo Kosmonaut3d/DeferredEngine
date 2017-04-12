@@ -319,7 +319,7 @@ namespace DeferredEngine.Recources.Helper //StringBuilderII
                 sb.Append(minus);
                 value = -value;
             }
-            if (value == 0)
+            if (Math.Abs(value) < 0.0001f)
             {
                 sb.Append('0');
                 return;
@@ -387,7 +387,7 @@ namespace DeferredEngine.Recources.Helper //StringBuilderII
                 sb.Append(minus);
                 number = -number;
             }
-            if (number == 0)
+            if (Math.Abs(number) < 0.0001f)
             {
                 sb.Append('0');
                 return;

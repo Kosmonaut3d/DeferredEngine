@@ -233,9 +233,7 @@ namespace DeferredEngine.Logic
                     data.ProjectionMatrix, data.ViewMatrix, Matrix.Identity);
 
                 Ray ray = new Ray(pos1, pos2 - pos1);
-
-                Plane plane = new Plane();
-
+                
                 Vector3 normal;
                 Vector3 binormal;
                 Vector3 tangent;
@@ -266,7 +264,7 @@ namespace DeferredEngine.Logic
                     binormal = Vector3.Transform(binormal, SelectedObject.RotationMatrix);
                 }
 
-                plane = new Plane(SelectedObject.Position, SelectedObject.Position + normal,
+                Plane plane = new Plane(SelectedObject.Position, SelectedObject.Position + normal,
                        SelectedObject.Position + binormal);
 
 

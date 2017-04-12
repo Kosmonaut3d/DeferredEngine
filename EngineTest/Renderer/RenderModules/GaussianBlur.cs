@@ -6,7 +6,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace DeferredEngine.Renderer.RenderModules
 {
-    public class GaussianBlur
+    public class GaussianBlur : IDisposable
     {
         private GraphicsDevice _graphicsDevice;
 

@@ -6,7 +6,7 @@ using Microsoft.Xna.Framework.Graphics;
 namespace DeferredEngine.Renderer.RenderModules
 {
     //Just a template
-    public class RenderModuleTemplate : IRenderModule
+    public class RenderModuleTemplate : IRenderModule, IDisposable
     {
         private Effect _shader;
         private EffectParameter _parameter1;
@@ -39,6 +39,11 @@ namespace DeferredEngine.Renderer.RenderModules
         public void SetMaterialSettings()
         {
             throw new NotImplementedException();
+        }
+
+        public void Dispose()
+        {
+            _shader?.Dispose();
         }
     }
 }

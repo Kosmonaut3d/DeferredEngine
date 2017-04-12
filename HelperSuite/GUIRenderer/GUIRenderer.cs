@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 using HelperSuite.GUI;
 using HelperSuite.GUIHelper;
 using Microsoft.Xna.Framework;
@@ -7,7 +8,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace HelperSuite.GUIRenderer
 {
-    public class GUIRenderer
+    public class GUIRenderer : IDisposable
     {
         private GraphicsDevice _graphicsDevice;
         private SpriteBatch _spriteBatch;
@@ -134,5 +135,13 @@ namespace HelperSuite.GUIRenderer
             v2.Y = -v2.Y;
         }
 
+        public void Dispose()
+        {
+            _graphicsDevice?.Dispose();
+            _spriteBatch?.Dispose();
+            _plainWhite?.Dispose();
+            _colorPickerBig?.Dispose();
+            _colorPickerSmall?.Dispose();
+        }
     }
 }

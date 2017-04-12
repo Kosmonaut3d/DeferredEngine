@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework.Graphics;
 namespace DeferredEngine.Renderer.RenderModules
 {
     //Just a template
-    public class DeferredEnvironmentMapRenderModule
+    public class DeferredEnvironmentMapRenderModule : IDisposable
     {
         private Effect _deferredEnvironmentShader;
         private EffectParameter _paramAlbedoMap;
@@ -168,5 +168,9 @@ namespace DeferredEngine.Renderer.RenderModules
 
         }
 
+        public void Dispose()
+        {
+            _deferredEnvironmentShader?.Dispose();
+        }
     }
 }

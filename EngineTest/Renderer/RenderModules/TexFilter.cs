@@ -1,4 +1,5 @@
-﻿using DeferredEngine.Recources;
+﻿using System;
+using DeferredEngine.Recources;
 using DeferredEngine.Renderer.Helper;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
@@ -6,7 +7,7 @@ using Matrix = Microsoft.Xna.Framework.Matrix;
 
 namespace DeferredEngine.Renderer.RenderModules
 {
-    public class TexFilter
+    public class TexFilter : IDisposable
     {
         public Effect texFilterEffect;
         public EffectParameter Texture;
@@ -64,5 +65,12 @@ namespace DeferredEngine.Renderer.RenderModules
 
         }
 
+        public void Dispose()
+        {
+            texFilterEffect?.Dispose();
+            tex?.Dispose();
+            _graphics?.Dispose();
+            _spriteBatch?.Dispose();
+        }
     }
 }

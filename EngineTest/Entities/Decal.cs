@@ -68,9 +68,9 @@ namespace DeferredEngine.Entities
             Position = position;
             RotationMatrix = rotationMatrix;
 
-            Name = GetType().Name + " " + Id;
             _scale = scale;
             Id = IdGenerator.GetNewId();
+            Name = GetType().Name + " " + Id;
 
             UpdateWorldMatrix();
         }

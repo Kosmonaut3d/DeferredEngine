@@ -66,8 +66,6 @@ namespace DeferredEngine.Renderer.RenderModules
 
         public void DrawBillboards(List<Decal> decals, List<PointLight> lights, List<DirectionalLight> dirLights, EnvironmentSample envSample, Matrix staticViewProjection, Matrix view, EditorLogic.EditorSendData sendData)
         {
-            GetHoveredId();
-
             _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
             _graphicsDevice.SetVertexBuffer(_billboardBuffer.VBuffer);
             _graphicsDevice.Indices = (_billboardBuffer.IBuffer);

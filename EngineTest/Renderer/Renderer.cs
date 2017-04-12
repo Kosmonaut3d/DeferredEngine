@@ -18,7 +18,7 @@ using DirectionalLight = DeferredEngine.Entities.DirectionalLight;
 
 namespace DeferredEngine.Renderer
 {
-    public class Renderer
+    public class Renderer : IDisposable
     {
         #region VARIABLES
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1486,6 +1486,7 @@ namespace DeferredEngine.Renderer
             {
                 if (GameSettings.g_ScreenHeight < GameSettings.g_screenwidth)
                 {
+                    //Should be squared!
                     height = GameSettings.g_ScreenHeight;
                     width = GameSettings.g_ScreenHeight;
                 }
@@ -1515,6 +1516,39 @@ namespace DeferredEngine.Renderer
         #endregion
 
         #endregion
+
+        public void Dispose()
+        {
+            _graphicsDevice?.Dispose();
+            _spriteBatch?.Dispose();
+            _gaussianBlur?.Dispose();
+            _bloomFilter?.Dispose();
+            _lightAccumulationModule?.Dispose();
+            _gBufferRenderModule?.Dispose();
+            _temporalAntialiasingRenderModule?.Dispose();
+            _deferredEnvironmentMapRenderModule?.Dispose();
+            _decalRenderModule?.Dispose();
+            _assets?.Dispose();
+            _renderTargetAlbedo?.Dispose();
+            _renderTargetDepth?.Dispose();
+            _renderTargetNormal?.Dispose();
+            _renderTargetDecalOffTarget?.Dispose();
+            _renderTargetDiffuse?.Dispose();
+            _renderTargetSpecular?.Dispose();
+            _renderTargetVolume?.Dispose();
+            _renderTargetComposed?.Dispose();
+            _renderTargetBloom?.Dispose();
+            _renderTargetTAA_1?.Dispose();
+            _renderTargetTAA_2?.Dispose();
+            _renderTargetScreenSpaceEffectReflection?.Dispose();
+            _renderTargetSSAOEffect?.Dispose();
+            _renderTargetScreenSpaceEffectUpsampleBlurVertical?.Dispose();
+            _renderTargetScreenSpaceEffectUpsampleBlurHorizontal?.Dispose();
+            _renderTargetScreenSpaceEffectBlurFinal?.Dispose();
+            _renderTargetOutput?.Dispose();
+            _currentOutput?.Dispose();
+            _renderTargetCubeMap?.Dispose();
+        }
     }
 
 }

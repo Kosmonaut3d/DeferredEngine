@@ -1,4 +1,5 @@
-﻿using DeferredEngine.Renderer.Helper;
+﻿using System;
+using DeferredEngine.Renderer.Helper;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
@@ -6,7 +7,7 @@ using Microsoft.Xna.Framework.Graphics;
 namespace DeferredEngine.Renderer.RenderModules
 {
     //Just a template
-    public class TemporalAntialiasingRenderModule
+    public class TemporalAntialiasingRenderModule : IDisposable
     {
         private Effect _taaShader;
 
@@ -121,6 +122,12 @@ namespace DeferredEngine.Renderer.RenderModules
                 _invTonemapPass.Apply();
                 quadRenderer.RenderQuad(_graphicsDevice, Vector2.One*-1, Vector2.One);
             }
+        }
+
+        public void Dispose()
+        {
+            _taaShader?.Dispose();
+            _depthMap?.Dispose();
         }
     }
 }

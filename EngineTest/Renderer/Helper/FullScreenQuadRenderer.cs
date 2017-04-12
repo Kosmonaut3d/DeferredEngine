@@ -1,6 +1,7 @@
 
 #region Using Statements
 
+using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -8,7 +9,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace DeferredEngine.Renderer.Helper
 {
-    public class FullScreenQuadRenderer
+    public class FullScreenQuadRenderer : IDisposable
     {
         //buffers for rendering the quad
         private readonly IndexBuffer _indexBuffer;
@@ -72,6 +73,12 @@ namespace DeferredEngine.Renderer.Helper
             }
 
             public const int SizeInBytes = 8;
+        }
+
+        public void Dispose()
+        {
+            _indexBuffer?.Dispose();
+            _vertexBuffer?.Dispose();
         }
     }
 }

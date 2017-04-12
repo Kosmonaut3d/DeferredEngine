@@ -586,15 +586,18 @@ namespace DeferredEngine.Renderer.RenderModules
         }
 
         /// <summary>
-        ///Dispose our RenderTargets. This is not covered by the Garbage Collector so we have to do it manually
+        //Dispose our RenderTargets. This is not covered by the Garbage Collector so we have to do it manually
         /// </summary>
         public void Dispose()
         {
-            _bloomRenderTarget2DMip1.Dispose();
-            _bloomRenderTarget2DMip2.Dispose();
-            _bloomRenderTarget2DMip3.Dispose();
-            _bloomRenderTarget2DMip4.Dispose();
-            _bloomRenderTarget2DMip5.Dispose();
+            _bloomRenderTarget2DMip0?.Dispose();
+            _bloomRenderTarget2DMip1?.Dispose();
+            _bloomRenderTarget2DMip2?.Dispose();
+            _bloomRenderTarget2DMip3?.Dispose();
+            _bloomRenderTarget2DMip4?.Dispose();
+            _bloomRenderTarget2DMip5?.Dispose();
+            _graphicsDevice?.Dispose();
+            _bloomEffect?.Dispose();
         }
     }
 }
