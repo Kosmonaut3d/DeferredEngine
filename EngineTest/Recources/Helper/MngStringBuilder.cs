@@ -42,9 +42,9 @@ namespace DeferredEngine.Recources.Helper //StringBuilderII
     public sealed class MngStringBuilder
     {
         private static char decimalseperator = '.';
-        private static char minus = '-';
+        private static readonly char minus = '-';
         private static char plus = '+';
-        private static char space = ' ';
+        private static readonly char space = ' ';
 
         private static StringBuilder last;
         private StringBuilder sb;

@@ -62,6 +62,7 @@ namespace DeferredEngine.Logic
             _debug = new DebugScreen();
             _guiRenderer = new GUIRenderer();
 
+            Globals.content = content;
             Shaders.Load(content);
             _assets.Load(content, graphicsDevice);
             _renderer.Load(content);

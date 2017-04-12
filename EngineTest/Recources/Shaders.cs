@@ -3,432 +3,230 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace DeferredEngine.Recources
 {
+    //As suggested here http://community.monogame.net/t/deferred-engine-playground-download/8180/283?u=kosmonautgames
+    // by bettina4you
+
+    public static class Globals
+    {
+        public static ContentManager content;
+    }
+
     public static class Shaders
     {
         //A static file which contains all shaders
         //Born out of need for quick thoughtless shader building
         //I am working on making seperate shading modules instead and will slowly shorten this one.
-
         //Depth Reconstruction
-        public static Effect ReconstructDepth;
-        public static EffectParameter ReconstructDepthParameter_DepthMap;
-        public static EffectParameter ReconstructDepthParameter_FrustumCorners;
-        public static EffectParameter ReconstructDepthParameter_FarClip;
-        public static EffectParameter ReconstructDepthParameter_Projection;
+        public static Effect ReconstructDepth = Globals.content.Load<Effect>("Shaders/ScreenSpace/ReconstructDepth");
+        public static EffectParameter ReconstructDepthParameter_DepthMap = ReconstructDepth.Parameters["DepthMap"];
+        public static EffectParameter ReconstructDepthParameter_Projection = ReconstructDepth.Parameters["Projection"];
+        public static EffectParameter ReconstructDepthParameter_FarClip = ReconstructDepth.Parameters["FarClip"];
+        public static EffectParameter ReconstructDepthParameter_FrustumCorners = ReconstructDepth.Parameters["FrustumCorners"];
 
         //Id Generator
-        public static Effect IdRenderEffect;
-        public static EffectParameter IdRenderEffectParameterWorld;
-        public static EffectParameter IdRenderEffectParameterWorldViewProj;
-        public static EffectParameter IdRenderEffectParameterColorId;
-        public static EffectParameter IdRenderEffectParameterOutlineSize;
+        public static Effect IdRenderEffect = Globals.content.Load<Effect>("Shaders/Editor/IdRender");
+        public static EffectParameter IdRenderEffectParameterWorldViewProj = IdRenderEffect.Parameters["WorldViewProj"];
+        public static EffectParameter IdRenderEffectParameterColorId = IdRenderEffect.Parameters["ColorId"];
+        public static EffectParameter IdRenderEffectParameterOutlineSize = IdRenderEffect.Parameters["OutlineSize"];
+        public static EffectParameter IdRenderEffectParameterWorld = IdRenderEffect.Parameters["World"];
 
-        public static EffectPass IdRenderEffectDrawId;
-        public static EffectPass IdRenderEffectDrawOutline;
+        public static EffectPass IdRenderEffectDrawId = IdRenderEffect.Techniques["DrawId"].Passes[0];
+        public static EffectPass IdRenderEffectDrawOutline = IdRenderEffect.Techniques["DrawOutline"].Passes[0];
 
         //Billboard Renderer
+        public static Effect BillboardEffect = Globals.content.Load<Effect>("Shaders/Editor/BillboardEffect");
 
-        public static Effect BillboardEffect;
-        public static EffectParameter BillboardEffectParameter_WorldViewProj;
-        public static EffectParameter BillboardEffectParameter_WorldView;
-        public static EffectParameter BillboardEffectParameter_AspectRatio;
-        public static EffectParameter BillboardEffectParameter_FarClip;
-        public static EffectParameter BillboardEffectParameter_Texture;
-        public static EffectParameter BillboardEffectParameter_DepthMap;
-        public static EffectParameter BillboardEffectParameter_IdColor;
+        public static EffectParameter BillboardEffectParameter_WorldViewProj = BillboardEffect.Parameters["WorldViewProj"];
+        public static EffectParameter BillboardEffectParameter_WorldView = BillboardEffect.Parameters["WorldView"];
+        public static EffectParameter BillboardEffectParameter_AspectRatio = BillboardEffect.Parameters["AspectRatio"];
+        public static EffectParameter BillboardEffectParameter_FarClip = BillboardEffect.Parameters["FarClip"];
+        public static EffectParameter BillboardEffectParameter_Texture = BillboardEffect.Parameters["Texture"];
+        public static EffectParameter BillboardEffectParameter_DepthMap = BillboardEffect.Parameters["DepthMap"];
+        public static EffectParameter BillboardEffectParameter_IdColor = BillboardEffect.Parameters["IdColor"];
 
-        public static EffectTechnique BillboardEffectTechnique_Billboard;
-        public static EffectTechnique BillboardEffectTechnique_Id;
+        public static EffectTechnique BillboardEffectTechnique_Billboard = BillboardEffect.Techniques["Billboard"];
+        public static EffectTechnique BillboardEffectTechnique_Id = BillboardEffect.Techniques["Id"];
 
         //Lines
-        public static Effect LineEffect;
-        public static EffectParameter LineEffectParameter_WorldViewProj;
+        public static Effect LineEffect = Globals.content.Load<Effect>("Shaders/Editor/LineEffect");
+        public static EffectParameter LineEffectParameter_WorldViewProj = LineEffect.Parameters["WorldViewProj"];
 
         //Temporal AntiAliasing
 
-        
+
         //Vignette and CA
+        public static Effect PostProcessing = Globals.content.Load<Effect>("shaders/postprocessing/postprocessing");
+        public static EffectParameter PostProcessingParameter_ScreenTexture = PostProcessing.Parameters["ScreenTexture"];
+        public static EffectParameter PostProcessingParameter_ChromaticAbberationStrength = PostProcessing.Parameters["ChromaticAbberationStrength"];
+        public static EffectParameter PostProcessingParameter_SCurveStrength = PostProcessing.Parameters["SCurveStrength"];
+        public static EffectParameter PostProcessingParameter_WhitePoint = PostProcessing.Parameters["WhitePoint"];
+        public static EffectParameter PostProcessingParameter_PowExposure = PostProcessing.Parameters["PowExposure"];
+        public static EffectTechnique PostProcessingTechnique_VignetteChroma = PostProcessing.Techniques["VignetteChroma"];
+        public static EffectTechnique PostProcessingTechnique_Base = PostProcessing.Techniques["Base"];
 
-        public static Effect PostProcessing;
 
-        public static EffectParameter PostProcessingParameter_ScreenTexture;
-        public static EffectParameter PostProcessingParameter_ChromaticAbberationStrength;
-        public static EffectParameter PostProcessingParameter_SCurveStrength;
-        public static EffectParameter PostProcessingParameter_WhitePoint;
-        public static EffectParameter PostProcessingParameter_PowExposure;
-        
-        public static EffectTechnique PostProcessingTechnique_Base;
-        public static EffectTechnique PostProcessingTechnique_VignetteChroma;
+        //Hologram Effect
+        public static Effect HologramEffect = Globals.content.Load<Effect>("Shaders/Hologram/HologramEffect");
+        public static EffectParameter HologramEffectParameter_World = HologramEffect.Parameters["World"];
+        public static EffectParameter HologramEffectParameter_WorldViewProj = HologramEffect.Parameters["WorldViewProj"];
 
-        //Hologram
+        //Emissive Effect
+        public static Effect EmissiveEffect = Globals.content.Load<Effect>("Shaders/Emissive/EmissiveDraw");
+        public static EffectParameter EmissiveEffectParameter_World = EmissiveEffect.Parameters["World"];
+        public static EffectParameter EmissiveEffectParameter_ViewProj = EmissiveEffect.Parameters["ViewProjection"];
+        public static EffectParameter EmissiveEffectParameter_WorldViewProj = EmissiveEffect.Parameters["WorldViewProj"];
+        public static EffectParameter EmissiveEffectParameter_InvertViewProj = EmissiveEffect.Parameters["InvertViewProjection"];
+        public static EffectParameter EmissiveEffectParameter_Origin = EmissiveEffect.Parameters["Origin"];
+        public static EffectParameter EmissiveEffectParameter_CameraPosition = EmissiveEffect.Parameters["CameraPosition"];
+        public static EffectParameter EmissiveEffectParameter_Size = EmissiveEffect.Parameters["Size"];
+        public static EffectParameter EmissiveEffectParameter_NormalMap = EmissiveEffect.Parameters["NormalMap"];
+        public static EffectParameter EmissiveEffectParameter_DepthMap = EmissiveEffect.Parameters["DepthMap"];
+        public static EffectParameter EmissiveEffectParameter_EmissiveMap = EmissiveEffect.Parameters["EmissiveMap"];
+        public static EffectParameter EmissiveEffectParameter_Resolution = EmissiveEffect.Parameters["Resolution"];
+        public static EffectParameter EmissiveEffectParameter_EmissiveColor = EmissiveEffect.Parameters["EmissiveColor"];
+        public static EffectParameter EmissiveEffectParameter_EmissiveStrength = EmissiveEffect.Parameters["EmissiveStrength"];
+        public static EffectParameter EmissiveEffectParameter_Time = EmissiveEffect.Parameters["Time"];
 
-        public static Effect HologramEffect;
-        public static EffectParameter HologramEffectParameter_WorldViewProj;
-        public static EffectParameter HologramEffectParameter_World;
+        public static EffectTechnique EmissiveEffectTechnique_DrawEmissiveBuffer = EmissiveEffect.Techniques["DrawEmissiveBuffer"];
+        public static EffectTechnique EmissiveEffectTechnique_DrawEmissiveSpecularEffect = EmissiveEffect.Techniques["DrawEmissiveSpecularEffect"];
+        public static EffectTechnique EmissiveEffectTechnique_DrawEmissiveDiffuseEffect = EmissiveEffect.Techniques["DrawEmissiveDiffuseEffect"];
 
-        //Emissive
 
-        public static Effect EmissiveEffect;
-        public static EffectParameter EmissiveEffectParameter_ViewProj;
-        public static EffectParameter EmissiveEffectParameter_WorldViewProj;
-        public static EffectParameter EmissiveEffectParameter_InvertViewProj;
-        public static EffectParameter EmissiveEffectParameter_World;
-        public static EffectParameter EmissiveEffectParameter_Origin;
-        public static EffectParameter EmissiveEffectParameter_Size;
-        public static EffectParameter EmissiveEffectParameter_EmissiveColor;
-        public static EffectParameter EmissiveEffectParameter_EmissiveStrength;
-        public static EffectParameter EmissiveEffectParameter_CameraPosition;
-        public static EffectParameter EmissiveEffectParameter_Time;
+        //ScreenSpaceReflection Effect
 
-        public static EffectParameter EmissiveEffectParameter_Resolution;
+        public static Effect ScreenSpaceReflectionEffect = Globals.content.Load<Effect>("Shaders/ScreenSpace/ScreenSpaceReflections");
 
-        public static EffectParameter EmissiveEffectParameter_DepthMap;
-        public static EffectParameter EmissiveEffectParameter_EmissiveMap;
-        public static EffectParameter EmissiveEffectParameter_NormalMap;
+        public static EffectParameter ScreenSpaceReflectionParameter_DepthMap = ScreenSpaceReflectionEffect.Parameters["DepthMap"];
+        public static EffectParameter ScreenSpaceReflectionParameter_NormalMap = ScreenSpaceReflectionEffect.Parameters["NormalMap"];
+        public static EffectParameter ScreenSpaceReflectionParameter_TargetMap = ScreenSpaceReflectionEffect.Parameters["TargetMap"];
+        public static EffectParameter ScreenSpaceReflectionParameter_Resolution = ScreenSpaceReflectionEffect.Parameters["resolution"];
+        public static EffectParameter ScreenSpaceReflectionParameter_Projection = ScreenSpaceReflectionEffect.Parameters["Projection"];
+        public static EffectParameter ScreenSpaceReflectionParameter_Time = ScreenSpaceReflectionEffect.Parameters["Time"];
+        public static EffectParameter ScreenSpaceReflectionParameter_FrustumCorners = ScreenSpaceReflectionEffect.Parameters["FrustumCorners"];
+        public static EffectParameter ScreenSpaceReflectionParameter_FarClip = ScreenSpaceReflectionEffect.Parameters["FarClip"];
+        public static EffectParameter ScreenSpaceReflectionParameter_NoiseMap = ScreenSpaceReflectionEffect.Parameters["NoiseMap"];
 
-        public static EffectTechnique EmissiveEffectTechnique_DrawEmissiveBuffer;
-        public static EffectTechnique EmissiveEffectTechnique_DrawEmissiveDiffuseEffect;
-        public static EffectTechnique EmissiveEffectTechnique_DrawEmissiveSpecularEffect;
-        //Second Screen Space Effect
+        public static EffectTechnique ScreenSpaceReflectionTechnique_Default = ScreenSpaceReflectionEffect.Techniques["Default"];
+        public static EffectTechnique ScreenSpaceReflectionTechnique_Taa = ScreenSpaceReflectionEffect.Techniques["TAA"];
 
-        public static Effect ScreenSpaceReflectionEffect;
-        public static EffectParameter ScreenSpaceReflectionParameter_DepthMap;
-        public static EffectParameter ScreenSpaceReflectionParameter_TargetMap;
-        public static EffectParameter ScreenSpaceReflectionParameter_NormalMap;
-        public static EffectParameter ScreenSpaceReflectionParameter_Projection;
-        public static EffectParameter ScreenSpaceReflectionParameter_Resolution;
-        public static EffectParameter ScreenSpaceReflectionParameter_Time;
-        public static EffectParameter ScreenSpaceReflectionParameter_FrustumCorners;
-        public static EffectParameter ScreenSpaceReflectionParameter_FarClip;
-        public static EffectTechnique ScreenSpaceReflectionTechnique_Default;
-        public static EffectTechnique ScreenSpaceReflectionTechnique_Taa;
-        public static EffectParameter ScreenSpaceReflectionParameter_NoiseMap;
 
-        //Screen Space Effect
+        //Screen Space Ambient Occlusion Effect
 
-        public static Effect ScreenSpaceEffect;
-        public static EffectParameter ScreenSpaceEffectParameter_SSAOMap;
-        public static EffectParameter ScreenSpaceEffectParameter_NormalMap;
-        public static EffectParameter ScreenSpaceEffectParameter_DepthMap;
-        public static EffectParameter ScreenSpaceEffectParameter_CameraPosition;
-        public static EffectParameter ScreenSpaceEffectParameter_InverseViewProjection;
-        public static EffectParameter ScreenSpaceEffectParameter_Projection;
-        public static EffectParameter ScreenSpaceEffectParameter_ViewProjection;
+        public static Effect ScreenSpaceEffect = Globals.content.Load<Effect>("Shaders/ScreenSpace/ScreenSpaceAO");
 
-        public static EffectParameter ScreenSpaceEffect_FalloffMin;
-        public static EffectParameter ScreenSpaceEffect_FalloffMax;
-        public static EffectParameter ScreenSpaceEffect_Samples;
-        public static EffectParameter ScreenSpaceEffect_Strength;
-        public static EffectParameter ScreenSpaceEffect_SampleRadius;
-        public static EffectParameter ScreenSpaceEffectParameter_InverseResolution;
-        public static EffectParameter ScreenSpaceEffectParameter_FrustumCorners;
+        public static EffectParameter ScreenSpaceEffectParameter_SSAOMap = ScreenSpaceEffect.Parameters["SSAOMap"];
+        public static EffectParameter ScreenSpaceEffectParameter_NormalMap = ScreenSpaceEffect.Parameters["NormalMap"];
+        public static EffectParameter ScreenSpaceEffectParameter_DepthMap = ScreenSpaceEffect.Parameters["DepthMap"];
+        public static EffectParameter ScreenSpaceEffectParameter_CameraPosition = ScreenSpaceEffect.Parameters["CameraPosition"];
+        public static EffectParameter ScreenSpaceEffectParameter_InverseViewProjection = ScreenSpaceEffect.Parameters["InverseViewProjection"];
+        public static EffectParameter ScreenSpaceEffectParameter_Projection = ScreenSpaceEffect.Parameters["Projection"];
+        public static EffectParameter ScreenSpaceEffectParameter_ViewProjection = ScreenSpaceEffect.Parameters["ViewProjection"];
 
-        public static EffectTechnique ScreenSpaceEffectTechnique_SSAO;
-        public static EffectTechnique ScreenSpaceEffectTechnique_BlurHorizontal;
-        public static EffectTechnique ScreenSpaceEffectTechnique_BlurVertical;
+        public static EffectParameter ScreenSpaceEffect_FalloffMin = ScreenSpaceEffect.Parameters["FalloffMin"];
+        public static EffectParameter ScreenSpaceEffect_FalloffMax = ScreenSpaceEffect.Parameters["FalloffMax"];
+        public static EffectParameter ScreenSpaceEffect_Samples = ScreenSpaceEffect.Parameters["Samples"];
+        public static EffectParameter ScreenSpaceEffect_Strength = ScreenSpaceEffect.Parameters["Strength"];
+        public static EffectParameter ScreenSpaceEffect_SampleRadius = ScreenSpaceEffect.Parameters["SampleRadius"];
+        public static EffectParameter ScreenSpaceEffectParameter_InverseResolution = ScreenSpaceEffect.Parameters["InverseResolution"];
+        public static EffectParameter ScreenSpaceEffectParameter_FrustumCorners = ScreenSpaceEffect.Parameters["FrustumCorners"];
+
+        public static EffectTechnique ScreenSpaceEffectTechnique_SSAO = ScreenSpaceEffect.Techniques["SSAO"];
+        public static EffectTechnique ScreenSpaceEffectTechnique_BlurHorizontal = ScreenSpaceEffect.Techniques["BilateralHorizontal"];
+        public static EffectTechnique ScreenSpaceEffectTechnique_BlurVertical = ScreenSpaceEffect.Techniques["BilateralVertical"];
+
 
         //Gaussian Blur
-        public static Effect GaussianBlurEffect;
-        public static EffectParameter GaussianBlurEffectParameter_InverseResolution;
-        public static EffectParameter GaussianBlurEffectParameter_TargetMap;
-        
-        //COMPOSE
-        public static Effect DeferredCompose;
-        public static EffectParameter DeferredComposeEffectParameter_ColorMap;
-        public static EffectParameter DeferredComposeEffectParameter_diffuseLightMap;
-        public static EffectParameter DeferredComposeEffectParameter_specularLightMap;
-        public static EffectParameter DeferredComposeEffectParameter_volumeLightMap;
-        public static EffectParameter DeferredComposeEffectParameter_HologramMap;
-        public static EffectParameter DeferredComposeEffectParameter_SSAOMap;
-        public static EffectParameter DeferredComposeEffectParameter_SSRMap;
-        public static EffectParameter DeferredComposeEffectParameter_LinearMap;
-        public static EffectParameter DeferredComposeEffectParameter_UseSSAO;
-
-        public static EffectTechnique DeferredComposeTechnique_NonLinear;
-        public static EffectTechnique DeferredComposeTechnique_Linear;
-        //public static EffectTechnique DeferredComposeTechnique_Unlinearize;
+        public static Effect GaussianBlurEffect = Globals.content.Load<Effect>("Shaders/ScreenSpace/GaussianBlur");
+        public static EffectParameter GaussianBlurEffectParameter_InverseResolution = GaussianBlurEffect.Parameters["InverseResolution"];
+        public static EffectParameter GaussianBlurEffectParameter_TargetMap = GaussianBlurEffect.Parameters["TargetMap"];
 
 
-        public static Effect DeferredClear;
+        //DeferredCompose
 
-        //Deferred Light
-        //public static Effect deferredSpotLight;
-        //public static EffectTechnique deferredSpotLightUnshadowed;
-        //public static EffectTechnique deferredSpotLightShadowed;
-        //public static EffectParameter deferredSpotLightParameterShadowMap;
+        public static Effect DeferredCompose = Globals.content.Load<Effect>("Shaders/Deferred/DeferredCompose");
+
+        public static EffectParameter DeferredComposeEffectParameter_ColorMap = DeferredCompose.Parameters["colorMap"];
+        public static EffectParameter DeferredComposeEffectParameter_diffuseLightMap = DeferredCompose.Parameters["diffuseLightMap"];
+        public static EffectParameter DeferredComposeEffectParameter_specularLightMap = DeferredCompose.Parameters["specularLightMap"];
+        public static EffectParameter DeferredComposeEffectParameter_volumeLightMap = DeferredCompose.Parameters["volumeLightMap"];
+        public static EffectParameter DeferredComposeEffectParameter_HologramMap = DeferredCompose.Parameters["HologramMap"];
+        public static EffectParameter DeferredComposeEffectParameter_SSAOMap = DeferredCompose.Parameters["SSAOMap"];
+        public static EffectParameter DeferredComposeEffectParameter_LinearMap = DeferredCompose.Parameters["LinearMap"];
+        public static EffectParameter DeferredComposeEffectParameter_SSRMap = DeferredCompose.Parameters["SSRMap"];
+        public static EffectParameter DeferredComposeEffectParameter_UseSSAO = DeferredCompose.Parameters["useSSAO"];
+
+        public static EffectTechnique DeferredComposeTechnique_NonLinear = DeferredCompose.Techniques["TechniqueNonLinear"];
+        public static EffectTechnique DeferredComposeTechnique_Linear = DeferredCompose.Techniques["TechniqueLinear"];
+
+        //DeferredClear
+        public static Effect DeferredClear = Globals.content.Load<Effect>("Shaders/Deferred/DeferredClear");
 
         //Directional light
 
-        public static Effect deferredDirectionalLight;
-        public static EffectTechnique deferredDirectionalLightUnshadowed;
-        public static EffectTechnique deferredDirectionalLightSSShadowed;
-        public static EffectTechnique deferredDirectionalLightShadowed;
-        public static EffectTechnique deferredDirectionalLightShadowOnly;
+        public static Effect deferredDirectionalLight = Globals.content.Load<Effect>("Shaders/Deferred/DeferredDirectionalLight");
 
-        public static EffectParameter deferredDirectionalLightParameterViewProjection;
-        public static EffectParameter deferredDirectionalLightParameterFrustumCorners;
-        public static EffectParameter deferredDirectionalLightParameterCameraPosition;
-        public static EffectParameter deferredDirectionalLightParameterInverseViewProjection;
-        public static EffectParameter deferredDirectionalLightParameterLightViewProjection;
-        public static EffectParameter deferredDirectionalLightParameterLightView;
-        public static EffectParameter deferredDirectionalLightParameterLightFarClip;
+        public static EffectTechnique deferredDirectionalLightUnshadowed = deferredDirectionalLight.Techniques["Unshadowed"];
+        public static EffectTechnique deferredDirectionalLightSSShadowed = deferredDirectionalLight.Techniques["SSShadowed"];
+        public static EffectTechnique deferredDirectionalLightShadowed = deferredDirectionalLight.Techniques["Shadowed"];
+        public static EffectTechnique deferredDirectionalLightShadowOnly = deferredDirectionalLight.Techniques["ShadowOnly"];
 
-        public static EffectParameter deferredDirectionalLightParameter_LightColor;
-        public static EffectParameter deferredDirectionalLightParameter_LightDirection;
-        public static EffectParameter deferredDirectionalLightParameter_LightIntensity;
+        public static EffectParameter deferredDirectionalLightParameterViewProjection = deferredDirectionalLight.Parameters["ViewProjection"];
+        public static EffectParameter deferredDirectionalLightParameterFrustumCorners = deferredDirectionalLight.Parameters["FrustumCorners"];
+        public static EffectParameter deferredDirectionalLightParameterCameraPosition = deferredDirectionalLight.Parameters["cameraPosition"];
+        public static EffectParameter deferredDirectionalLightParameterInverseViewProjection = deferredDirectionalLight.Parameters["InvertViewProjection"];
+        public static EffectParameter deferredDirectionalLightParameterLightViewProjection = deferredDirectionalLight.Parameters["LightViewProjection"];
+        public static EffectParameter deferredDirectionalLightParameterLightView = deferredDirectionalLight.Parameters["LightView"];
+        public static EffectParameter deferredDirectionalLightParameterLightFarClip = deferredDirectionalLight.Parameters["LightFarClip"];
 
-        public static EffectParameter deferredDirectionalLightParameter_ShadowFiltering;
-        public static EffectParameter deferredDirectionalLightParameter_ShadowMapSize;
-        
-        public static EffectParameter deferredDirectionalLightParameter_AlbedoMap;
-        public static EffectParameter deferredDirectionalLightParameter_NormalMap;
-        public static EffectParameter deferredDirectionalLightParameter_DepthMap;
-        public static EffectParameter deferredDirectionalLightParameter_ShadowMap;
-        public static EffectParameter deferredDirectionalLightParameter_SSShadowMap;
+        public static EffectParameter deferredDirectionalLightParameter_LightColor = deferredDirectionalLight.Parameters["lightColor"];
+        public static EffectParameter deferredDirectionalLightParameter_LightIntensity = deferredDirectionalLight.Parameters["lightIntensity"];
+        public static EffectParameter deferredDirectionalLightParameter_LightDirection = deferredDirectionalLight.Parameters["LightVector"];
+        public static EffectParameter deferredDirectionalLightParameter_ShadowFiltering = deferredDirectionalLight.Parameters["ShadowFiltering"];
+        public static EffectParameter deferredDirectionalLightParameter_ShadowMapSize = deferredDirectionalLight.Parameters["ShadowMapSize"];
+
+        public static EffectParameter deferredDirectionalLightParameter_AlbedoMap = deferredDirectionalLight.Parameters["AlbedoMap"];
+        public static EffectParameter deferredDirectionalLightParameter_NormalMap = deferredDirectionalLight.Parameters["NormalMap"];
+        public static EffectParameter deferredDirectionalLightParameter_DepthMap = deferredDirectionalLight.Parameters["DepthMap"];
+        public static EffectParameter deferredDirectionalLightParameter_ShadowMap = deferredDirectionalLight.Parameters["ShadowMap"];
+        public static EffectParameter deferredDirectionalLightParameter_SSShadowMap = deferredDirectionalLight.Parameters["SSShadowMap"];
+
 
         //Point Light
-        public static Effect deferredPointLight;
-        public static EffectTechnique deferredPointLightUnshadowed;
-        public static EffectTechnique deferredPointLightUnshadowedVolumetric;
-        public static EffectTechnique deferredPointLightShadowed;
-        public static EffectTechnique deferredPointLightShadowedVolumetric;
-        public static EffectTechnique deferredPointLightWriteStencil;
-        public static EffectParameter deferredPointLightParameterResolution;
-        public static EffectParameter deferredPointLightParameterShadowMap;
+        public static Effect deferredPointLight = Globals.content.Load<Effect>("Shaders/Deferred/DeferredPointLight");
 
-        public static EffectParameter deferredPointLightParameter_WorldView;
-        public static EffectParameter deferredPointLightParameter_WorldViewProjection;
-        public static EffectParameter deferredPointLightParameter_InverseView;
+        public static EffectTechnique deferredPointLightUnshadowed = deferredPointLight.Techniques["Unshadowed"];
+        public static EffectTechnique deferredPointLightUnshadowedVolumetric = deferredPointLight.Techniques["UnshadowedVolume"];
+        public static EffectTechnique deferredPointLightShadowed = deferredPointLight.Techniques["Shadowed"];
+        public static EffectTechnique deferredPointLightShadowedVolumetric = deferredPointLight.Techniques["ShadowedVolume"];
+        public static EffectTechnique deferredPointLightWriteStencil = deferredPointLight.Techniques["WriteStencilMask"];
 
-        public static EffectParameter deferredPointLightParameter_LightPosition;
-        public static EffectParameter deferredPointLightParameter_LightColor;
-        public static EffectParameter deferredPointLightParameter_LightRadius;
-        public static EffectParameter deferredPointLightParameter_LightIntensity;
-        public static EffectParameter deferredPointLightParameter_ShadowMapSize;
-        public static EffectParameter deferredPointLightParameter_ShadowMapRadius;
-        public static EffectParameter deferredPointLightParameter_Inside;
-        public static EffectParameter deferredPointLightParameter_Time;
-        public static EffectParameter deferredPointLightParameter_FarClip;
-        public static EffectParameter deferredPointLightParameter_LightVolumeDensity;
+        public static EffectParameter deferredPointLightParameterShadowMap = deferredPointLight.Parameters["ShadowMap"];
 
-        public static EffectParameter deferredPointLightParameter_NoiseMap;
-        public static EffectParameter deferredPointLightParameter_AlbedoMap;
-        public static EffectParameter deferredPointLightParameter_NormalMap;
-        public static EffectParameter deferredPointLightParameter_DepthMap;
+        public static EffectParameter deferredPointLightParameterResolution = deferredPointLight.Parameters["Resolution"];
+        public static EffectParameter deferredPointLightParameter_WorldView = deferredPointLight.Parameters["WorldView"];
+        public static EffectParameter deferredPointLightParameter_WorldViewProjection = deferredPointLight.Parameters["WorldViewProj"];
+        public static EffectParameter deferredPointLightParameter_InverseView = deferredPointLight.Parameters["InverseView"];
 
-        
+        public static EffectParameter deferredPointLightParameter_LightPosition = deferredPointLight.Parameters["lightPosition"];
+        public static EffectParameter deferredPointLightParameter_LightColor = deferredPointLight.Parameters["lightColor"];
+        public static EffectParameter deferredPointLightParameter_LightRadius = deferredPointLight.Parameters["lightRadius"];
+        public static EffectParameter deferredPointLightParameter_LightIntensity = deferredPointLight.Parameters["lightIntensity"];
+        public static EffectParameter deferredPointLightParameter_ShadowMapSize = deferredPointLight.Parameters["ShadowMapSize"];
+        public static EffectParameter deferredPointLightParameter_ShadowMapRadius = deferredPointLight.Parameters["ShadowMapRadius"];
+        public static EffectParameter deferredPointLightParameter_Inside = deferredPointLight.Parameters["inside"];
+        public static EffectParameter deferredPointLightParameter_Time = deferredPointLight.Parameters["Time"];
+        public static EffectParameter deferredPointLightParameter_FarClip = deferredPointLight.Parameters["FarClip"];
+        public static EffectParameter deferredPointLightParameter_LightVolumeDensity = deferredPointLight.Parameters["lightVolumeDensity"];
+
+        public static EffectParameter deferredPointLightParameter_NoiseMap = deferredPointLight.Parameters["NoiseMap"];
+        public static EffectParameter deferredPointLightParameter_AlbedoMap = deferredPointLight.Parameters["AlbedoMap"];
+        public static EffectParameter deferredPointLightParameter_NormalMap = deferredPointLight.Parameters["NormalMap"];
+        public static EffectParameter deferredPointLightParameter_DepthMap = deferredPointLight.Parameters["DepthMap"];
+
+
         public static void Load(ContentManager content)
         {
-            //Depth reconstr
-            ReconstructDepth = content.Load<Effect>("Shaders/ScreenSpace/ReconstructDepth");
-            ReconstructDepthParameter_DepthMap = ReconstructDepth.Parameters["DepthMap"];
-            ReconstructDepthParameter_Projection = ReconstructDepth.Parameters["Projection"];
-            ReconstructDepthParameter_FarClip = ReconstructDepth.Parameters["FarClip"];
-            ReconstructDepthParameter_FrustumCorners = ReconstructDepth.Parameters["FrustumCorners"];
-
-            //Editor
-
-            IdRenderEffect = content.Load<Effect>("Shaders/Editor/IdRender");
-            IdRenderEffectParameterWorldViewProj = IdRenderEffect.Parameters["WorldViewProj"];
-            IdRenderEffectParameterColorId = IdRenderEffect.Parameters["ColorId"];
-            IdRenderEffectParameterOutlineSize = IdRenderEffect.Parameters["OutlineSize"];
-            IdRenderEffectParameterWorld = IdRenderEffect.Parameters["World"];
-
-            IdRenderEffectDrawId = IdRenderEffect.Techniques["DrawId"].Passes[0];
-            IdRenderEffectDrawOutline = IdRenderEffect.Techniques["DrawOutline"].Passes[0];
-
-            BillboardEffect = content.Load<Effect>("Shaders/Editor/BillboardEffect");
-            BillboardEffectParameter_WorldViewProj = BillboardEffect.Parameters["WorldViewProj"];
-            BillboardEffectParameter_WorldView = BillboardEffect.Parameters["WorldView"];
-            BillboardEffectParameter_AspectRatio = BillboardEffect.Parameters["AspectRatio"];
-            BillboardEffectParameter_FarClip = BillboardEffect.Parameters["FarClip"];
-            BillboardEffectParameter_Texture = BillboardEffect.Parameters["Texture"];
-            BillboardEffectParameter_DepthMap = BillboardEffect.Parameters["DepthMap"];
-            BillboardEffectParameter_IdColor = BillboardEffect.Parameters["IdColor"];
-
-            BillboardEffectTechnique_Billboard = BillboardEffect.Techniques["Billboard"];
-            BillboardEffectTechnique_Id = BillboardEffect.Techniques["Id"];
-
-            LineEffect = content.Load<Effect>("Shaders/Editor/LineEffect");
-            LineEffectParameter_WorldViewProj = LineEffect.Parameters["WorldViewProj"];
-            
-            //Post
-
-            PostProcessing = content.Load<Effect>("Shaders/PostProcessing/PostProcessing");
-
-            PostProcessingParameter_ChromaticAbberationStrength =
-                PostProcessing.Parameters["ChromaticAbberationStrength"];
-            PostProcessingParameter_SCurveStrength = PostProcessing.Parameters["SCurveStrength"];
-            PostProcessingParameter_WhitePoint = PostProcessing.Parameters["WhitePoint"];
-            PostProcessingParameter_PowExposure = PostProcessing.Parameters["PowExposure"];
-
-            PostProcessingParameter_ScreenTexture = PostProcessing.Parameters["ScreenTexture"];
-            PostProcessingTechnique_VignetteChroma = PostProcessing.Techniques["VignetteChroma"];
-            PostProcessingTechnique_Base = PostProcessing.Techniques["Base"];
-
-            //Hologram Effect
-            HologramEffect = content.Load<Effect>("Shaders/Hologram/HologramEffect");
-            HologramEffectParameter_World = HologramEffect.Parameters["World"];
-            HologramEffectParameter_WorldViewProj = HologramEffect.Parameters["WorldViewProj"];
-
-            //Emissive Effect
-            EmissiveEffect = content.Load<Effect>("Shaders/Emissive/EmissiveDraw");
-            EmissiveEffectParameter_World = EmissiveEffect.Parameters["World"];
-            EmissiveEffectParameter_ViewProj = EmissiveEffect.Parameters["ViewProjection"];
-            EmissiveEffectParameter_WorldViewProj = EmissiveEffect.Parameters["WorldViewProj"];
-            EmissiveEffectParameter_InvertViewProj = EmissiveEffect.Parameters["InvertViewProjection"];
-            EmissiveEffectParameter_Origin = EmissiveEffect.Parameters["Origin"];
-            EmissiveEffectParameter_CameraPosition = EmissiveEffect.Parameters["CameraPosition"];
-            EmissiveEffectParameter_Size = EmissiveEffect.Parameters["Size"];
-            EmissiveEffectParameter_NormalMap = EmissiveEffect.Parameters["NormalMap"];
-            EmissiveEffectParameter_DepthMap = EmissiveEffect.Parameters["DepthMap"];
-            EmissiveEffectParameter_EmissiveMap = EmissiveEffect.Parameters["EmissiveMap"];
-            EmissiveEffectParameter_Resolution = EmissiveEffect.Parameters["Resolution"];
-            EmissiveEffectParameter_EmissiveColor = EmissiveEffect.Parameters["EmissiveColor"];
-            EmissiveEffectParameter_EmissiveStrength = EmissiveEffect.Parameters["EmissiveStrength"];
-            EmissiveEffectParameter_Time = EmissiveEffect.Parameters["Time"];
-
-            EmissiveEffectTechnique_DrawEmissiveBuffer = EmissiveEffect.Techniques["DrawEmissiveBuffer"];
-            EmissiveEffectTechnique_DrawEmissiveSpecularEffect = EmissiveEffect.Techniques["DrawEmissiveSpecularEffect"];
-            EmissiveEffectTechnique_DrawEmissiveDiffuseEffect = EmissiveEffect.Techniques["DrawEmissiveDiffuseEffect"];
-            //Screen Space Effect 2
-            ScreenSpaceReflectionEffect = content.Load<Effect>("Shaders/ScreenSpace/ScreenSpaceReflections");
-
-            ScreenSpaceReflectionParameter_DepthMap = ScreenSpaceReflectionEffect.Parameters["DepthMap"];
-            ScreenSpaceReflectionParameter_NormalMap = ScreenSpaceReflectionEffect.Parameters["NormalMap"];
-            ScreenSpaceReflectionParameter_TargetMap = ScreenSpaceReflectionEffect.Parameters["TargetMap"];
-            ScreenSpaceReflectionParameter_Resolution = ScreenSpaceReflectionEffect.Parameters["resolution"];
-            ScreenSpaceReflectionParameter_Projection = ScreenSpaceReflectionEffect.Parameters["Projection"];
-            ScreenSpaceReflectionParameter_Time = ScreenSpaceReflectionEffect.Parameters["Time"];
-            ScreenSpaceReflectionParameter_FrustumCorners = ScreenSpaceReflectionEffect.Parameters["FrustumCorners"];
-            ScreenSpaceReflectionParameter_FarClip = ScreenSpaceReflectionEffect.Parameters["FarClip"];
-            ScreenSpaceReflectionParameter_NoiseMap = ScreenSpaceReflectionEffect.Parameters["NoiseMap"];
-
-            ScreenSpaceReflectionTechnique_Default = ScreenSpaceReflectionEffect.Techniques["Default"];
-            ScreenSpaceReflectionTechnique_Taa = ScreenSpaceReflectionEffect.Techniques["TAA"];
-
-            //Screen Space Effect
-            ScreenSpaceEffect = content.Load<Effect>("Shaders/ScreenSpace/ScreenSpaceAO");
-
-            ScreenSpaceEffectParameter_SSAOMap = ScreenSpaceEffect.Parameters["SSAOMap"];
-            ScreenSpaceEffectParameter_NormalMap = ScreenSpaceEffect.Parameters["NormalMap"];
-            ScreenSpaceEffectParameter_DepthMap = ScreenSpaceEffect.Parameters["DepthMap"];
-            ScreenSpaceEffectParameter_CameraPosition = ScreenSpaceEffect.Parameters["CameraPosition"];
-            ScreenSpaceEffectParameter_InverseViewProjection = ScreenSpaceEffect.Parameters["InverseViewProjection"];
-            ScreenSpaceEffectParameter_Projection = ScreenSpaceEffect.Parameters["Projection"];
-            ScreenSpaceEffectParameter_ViewProjection = ScreenSpaceEffect.Parameters["ViewProjection"];
-
-            ScreenSpaceEffect_FalloffMin = ScreenSpaceEffect.Parameters["FalloffMin"];
-            ScreenSpaceEffect_FalloffMax = ScreenSpaceEffect.Parameters["FalloffMax"];
-            ScreenSpaceEffect_Samples = ScreenSpaceEffect.Parameters["Samples"];
-            ScreenSpaceEffect_Strength = ScreenSpaceEffect.Parameters["Strength"];
-            ScreenSpaceEffect_SampleRadius = ScreenSpaceEffect.Parameters["SampleRadius"];
-            ScreenSpaceEffectParameter_InverseResolution = ScreenSpaceEffect.Parameters["InverseResolution"];
-            ScreenSpaceEffectParameter_FrustumCorners = ScreenSpaceEffect.Parameters["FrustumCorners"];
-
-            ScreenSpaceEffectTechnique_SSAO = ScreenSpaceEffect.Techniques["SSAO"];
-            ScreenSpaceEffectTechnique_BlurHorizontal = ScreenSpaceEffect.Techniques["BilateralHorizontal"];
-            ScreenSpaceEffectTechnique_BlurVertical = ScreenSpaceEffect.Techniques["BilateralVertical"];
-
-            //Blur
-            GaussianBlurEffect = content.Load<Effect>("Shaders/ScreenSpace/GaussianBlur");
-            GaussianBlurEffectParameter_InverseResolution = GaussianBlurEffect.Parameters["InverseResolution"];
-            GaussianBlurEffectParameter_TargetMap = GaussianBlurEffect.Parameters["TargetMap"];
-
-
-
-            //DeferredCompose
-
-            DeferredCompose = content.Load<Effect>("Shaders/Deferred/DeferredCompose");
-
-            DeferredComposeEffectParameter_ColorMap = DeferredCompose.Parameters["colorMap"];
-            DeferredComposeEffectParameter_diffuseLightMap = DeferredCompose.Parameters["diffuseLightMap"];
-            DeferredComposeEffectParameter_specularLightMap = DeferredCompose.Parameters["specularLightMap"];
-            DeferredComposeEffectParameter_volumeLightMap = DeferredCompose.Parameters["volumeLightMap"];
-            DeferredComposeEffectParameter_HologramMap = DeferredCompose.Parameters["HologramMap"];
-            DeferredComposeEffectParameter_SSAOMap = DeferredCompose.Parameters["SSAOMap"];
-            DeferredComposeEffectParameter_LinearMap = DeferredCompose.Parameters["LinearMap"];
-            DeferredComposeEffectParameter_SSRMap = DeferredCompose.Parameters["SSRMap"];
-            DeferredComposeEffectParameter_UseSSAO = DeferredCompose.Parameters["useSSAO"];
-
-            DeferredComposeTechnique_NonLinear = DeferredCompose.Techniques["TechniqueNonLinear"];
-            DeferredComposeTechnique_Linear = DeferredCompose.Techniques["TechniqueLinear"];
-
-
-            DeferredClear = content.Load<Effect>("Shaders/Deferred/DeferredClear");
-
-            //DeferredComposeTechnique_Unlinearize = DeferredCompose.Techniques["Unlinearize"];
-
-            ////DeferredLights
-
-            //deferredSpotLight = content.Load<Effect>("Shaders/Deferred/DeferredSpotLight");
-
-            //deferredSpotLightUnshadowed = deferredSpotLight.Techniques["Unshadowed"];
-            //deferredSpotLightShadowed = deferredSpotLight.Techniques["Shadowed"];
-
-            //deferredSpotLightParameterShadowMap = deferredSpotLight.Parameters["shadowMap"];
-
-            //Directional Light
-            deferredDirectionalLight = content.Load<Effect>("Shaders/Deferred/DeferredDirectionalLight");
-
-            deferredDirectionalLightUnshadowed = deferredDirectionalLight.Techniques["Unshadowed"];
-            deferredDirectionalLightSSShadowed = deferredDirectionalLight.Techniques["SSShadowed"];
-            deferredDirectionalLightShadowed = deferredDirectionalLight.Techniques["Shadowed"];
-            deferredDirectionalLightShadowOnly = deferredDirectionalLight.Techniques["ShadowOnly"];
-
-            deferredDirectionalLightParameterViewProjection = deferredDirectionalLight.Parameters["ViewProjection"];
-            deferredDirectionalLightParameterFrustumCorners = deferredDirectionalLight.Parameters["FrustumCorners"];
-            deferredDirectionalLightParameterCameraPosition = deferredDirectionalLight.Parameters["cameraPosition"];
-            deferredDirectionalLightParameterInverseViewProjection = deferredDirectionalLight.Parameters["InvertViewProjection"];
-            deferredDirectionalLightParameterLightViewProjection = deferredDirectionalLight.Parameters["LightViewProjection"];
-            deferredDirectionalLightParameterLightView = deferredDirectionalLight.Parameters["LightView"];
-            deferredDirectionalLightParameterLightFarClip = deferredDirectionalLight.Parameters["LightFarClip"];
-
-            deferredDirectionalLightParameter_LightColor = deferredDirectionalLight.Parameters["lightColor"];
-            deferredDirectionalLightParameter_LightIntensity = deferredDirectionalLight.Parameters["lightIntensity"];
-            deferredDirectionalLightParameter_LightDirection = deferredDirectionalLight.Parameters["LightVector"];
-            deferredDirectionalLightParameter_ShadowFiltering = deferredDirectionalLight.Parameters["ShadowFiltering"];
-            deferredDirectionalLightParameter_ShadowMapSize = deferredDirectionalLight.Parameters["ShadowMapSize"];
-
-            deferredDirectionalLightParameter_AlbedoMap = deferredDirectionalLight.Parameters["AlbedoMap"];
-            deferredDirectionalLightParameter_NormalMap = deferredDirectionalLight.Parameters["NormalMap"];
-            deferredDirectionalLightParameter_DepthMap = deferredDirectionalLight.Parameters["DepthMap"];
-            deferredDirectionalLightParameter_ShadowMap = deferredDirectionalLight.Parameters["ShadowMap"];
-            deferredDirectionalLightParameter_SSShadowMap = deferredDirectionalLight.Parameters["SSShadowMap"];
-
-            //PL
-            deferredPointLight = content.Load<Effect>("Shaders/Deferred/DeferredPointLight");
-
-            deferredPointLightUnshadowed = deferredPointLight.Techniques["Unshadowed"];
-            deferredPointLightUnshadowedVolumetric = deferredPointLight.Techniques["UnshadowedVolume"];
-            deferredPointLightShadowed = deferredPointLight.Techniques["Shadowed"];
-            deferredPointLightShadowedVolumetric = deferredPointLight.Techniques["ShadowedVolume"];
-            deferredPointLightWriteStencil = deferredPointLight.Techniques["WriteStencilMask"];
-            
-            deferredPointLightParameterShadowMap = deferredPointLight.Parameters["ShadowMap"];
-
-            deferredPointLightParameterResolution = deferredPointLight.Parameters["Resolution"];
-            deferredPointLightParameter_WorldView = deferredPointLight.Parameters["WorldView"];
-            deferredPointLightParameter_WorldViewProjection = deferredPointLight.Parameters["WorldViewProj"];
-            deferredPointLightParameter_InverseView = deferredPointLight.Parameters["InverseView"];
-            
-            deferredPointLightParameter_LightPosition = deferredPointLight.Parameters["lightPosition"];
-            deferredPointLightParameter_LightColor = deferredPointLight.Parameters["lightColor"];
-            deferredPointLightParameter_LightRadius = deferredPointLight.Parameters["lightRadius"];
-            deferredPointLightParameter_LightIntensity = deferredPointLight.Parameters["lightIntensity"];
-            deferredPointLightParameter_ShadowMapSize = deferredPointLight.Parameters["ShadowMapSize"];
-            deferredPointLightParameter_ShadowMapRadius = deferredPointLight.Parameters["ShadowMapRadius"];
-            deferredPointLightParameter_Inside = deferredPointLight.Parameters["inside"];
-            deferredPointLightParameter_Time = deferredPointLight.Parameters["Time"];
-            deferredPointLightParameter_FarClip = deferredPointLight.Parameters["FarClip"];
-            deferredPointLightParameter_LightVolumeDensity =
-                deferredPointLight.Parameters["lightVolumeDensity"];
-            deferredPointLightParameter_NoiseMap = deferredPointLight.Parameters["NoiseMap"];
-            deferredPointLightParameter_AlbedoMap = deferredPointLight.Parameters["AlbedoMap"];
-            deferredPointLightParameter_NormalMap = deferredPointLight.Parameters["NormalMap"];
-            deferredPointLightParameter_DepthMap = deferredPointLight.Parameters["DepthMap"];
-
-            
         }
     }
+
 }
