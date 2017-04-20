@@ -110,7 +110,6 @@ struct PixelShaderOutput
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  FUNCTION DEFINITIONS
 
- //  DEFAULT LIGHT SHADER FOR MODELS
 DrawBasic_VSOut DrawBasic_VertexShader(DrawBasic_VSIn input)
 {
     DrawBasic_VSOut Output;

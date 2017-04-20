@@ -74,6 +74,7 @@ namespace DeferredEngine.Logic
             new StringBuilder( ((Renderer.Renderer.RenderModes)8).ToString() ),
             new StringBuilder( ((Renderer.Renderer.RenderModes)9).ToString() ),
             new StringBuilder( ((Renderer.Renderer.RenderModes)10).ToString() ),
+            new StringBuilder( ((Renderer.Renderer.RenderModes)11).ToString() ),
         };
 
         // Console

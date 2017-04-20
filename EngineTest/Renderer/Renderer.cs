@@ -40,6 +40,7 @@ namespace DeferredEngine.Renderer
         private TemporalAntialiasingRenderModule _temporalAntialiasingRenderModule;
         private DeferredEnvironmentMapRenderModule _deferredEnvironmentMapRenderModule;
         private DecalRenderModule _decalRenderModule;
+        private SubsurfaceScatterRenderModule _subsurfaceScatterRenderModule;
         
         //Assets
         private Assets _assets;
@@ -97,6 +98,7 @@ namespace DeferredEngine.Renderer
             //Emissive,
             SSR,
             HDR,
+            SubsurfaceScattering
         }
 
         //Render targets
@@ -107,6 +109,9 @@ namespace DeferredEngine.Renderer
         private RenderTarget2D _renderTargetNormal;
 
         private RenderTarget2D _renderTargetDecalOffTarget;
+
+        //Subsurface Scattering
+        private RenderTarget2D _renderTargetSSS;
 
         private RenderTarget2D _renderTargetDiffuse;
         private RenderTarget2D _renderTargetSpecular;
@@ -174,6 +179,7 @@ namespace DeferredEngine.Renderer
             _temporalAntialiasingRenderModule = new TemporalAntialiasingRenderModule(content, "Shaders/TemporalAntiAliasing/TemporalAntiAliasing");
             _deferredEnvironmentMapRenderModule = new DeferredEnvironmentMapRenderModule(content, "Shaders/Deferred/DeferredEnvironmentMap");
             _decalRenderModule = new DecalRenderModule(content, "Shaders/Deferred/DeferredDecal");
+            _subsurfaceScatterRenderModule = new SubsurfaceScatterRenderModule(content, "Shaders/SubsurfaceScattering/SubsurfaceScattering");
 
             _inverseResolution = new Vector3(1.0f / GameSettings.g_screenwidth, 1.0f / GameSettings.g_ScreenHeight, 0);
             
@@ -207,6 +213,8 @@ namespace DeferredEngine.Renderer
             _gBufferRenderModule.Initialize(_graphicsDevice);
 
             _decalRenderModule.Initialize(graphicsDevice);
+
+            _subsurfaceScatterRenderModule.Initialize();
             
             _assets = assets;
             //Apply some base settings to overwrite shader defaults with game settings defaults
@@ -304,16 +312,16 @@ namespace DeferredEngine.Renderer
             //DrawEmissiveEffect(camera, meshMaterialLibrary, gameTime);
 
             //Compose the scene by combining our lighting data with the gbuffer data
-            Compose(); //-> output _renderTargetComposed
+            _currentOutput = Compose(); //-> output _renderTargetComposed
 
+            /*_currentOutput =*/ DrawSubsurfaceScattering(_renderTargetSSS, meshMaterialLibrary);
+            
             //Compose the image and add information from previous frames to apply temporal super sampling
-            _currentOutput = TonemapAndCombineTemporalAntialiasing(_renderTargetComposed); // -> output: _temporalAAOffFrame ? _renderTargetTAA_2 : _renderTargetTAA_1
+            _currentOutput = TonemapAndCombineTemporalAntialiasing(_currentOutput); // -> output: _temporalAAOffFrame ? _renderTargetTAA_2 : _renderTargetTAA_1
 
             //Do Bloom
             _currentOutput = DrawBloom(_currentOutput); // -> output: _renderTargetBloom
-
             
-             
             //Draw the elements that we are hovering over with outlines
             if(GameSettings.e_enableeditor && GameStats.e_EnableSelection)
                 _editorRender.DrawIds(meshMaterialLibrary, decals, pointLights, directionalLights, envSample, _staticViewProjection, _view, editorData);
@@ -822,6 +830,7 @@ namespace DeferredEngine.Renderer
             _temporalAntialiasingRenderModule.FrustumCorners = _currentFrustumCorners;
             Shaders.ReconstructDepthParameter_FrustumCorners.SetValue(_currentFrustumCorners);
             Shaders.deferredDirectionalLightParameterFrustumCorners.SetValue(_currentFrustumCorners);
+            _subsurfaceScatterRenderModule.FrustumCorners = _currentFrustumCorners;
         }
         
         /// <summary>
@@ -1096,7 +1105,7 @@ namespace DeferredEngine.Renderer
         /// <summary>
         /// Compose the render by combining the albedo channel with the light channels
         /// </summary>
-        private void Compose()
+        private RenderTarget2D Compose()
         {
             _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
 
@@ -1115,6 +1124,19 @@ namespace DeferredEngine.Renderer
 
                 _performancePreviousTime = performanceCurrentTime;
             }
+
+            return _renderTargetComposed;
+        }
+
+        /// <summary>
+        /// Not working right now
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="meshMaterialLibrary"></param>
+        /// <returns></returns>
+        private RenderTarget2D DrawSubsurfaceScattering(RenderTarget2D input, MeshMaterialLibrary meshMaterialLibrary)
+        {
+            return _subsurfaceScatterRenderModule.Draw(_graphicsDevice, input, input, meshMaterialLibrary, _viewProjection );
         }
 
         private RenderTarget2D DrawBloom(RenderTarget2D input)
@@ -1219,6 +1241,9 @@ namespace DeferredEngine.Renderer
                 case RenderModes.SSR:
                     DrawMapToScreenToFullScreen(_renderTargetScreenSpaceEffectReflection);
                     break;
+                case RenderModes.SubsurfaceScattering:
+                    DrawMapToScreenToFullScreen(_renderTargetSSS);
+                    break;
                 case RenderModes.HDR:
                         DrawMapToScreenToFullScreen(currentInput);
                     break;
@@ -1296,6 +1321,7 @@ namespace DeferredEngine.Renderer
                 _renderTargetSpecular.Dispose();
                 _renderTargetVolume.Dispose();
                 _renderTargetOutput.Dispose();
+                _renderTargetSSS.Dispose();
 
                 _renderTargetScreenSpaceEffectUpsampleBlurVertical.Dispose();
 
@@ -1330,7 +1356,10 @@ namespace DeferredEngine.Renderer
 
             _renderTargetDepth = new RenderTarget2D(_graphicsDevice, targetWidth,
                 targetHeight, false, SurfaceFormat.Single, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
-            
+
+            _renderTargetSSS = new RenderTarget2D(_graphicsDevice, targetWidth,
+                targetHeight, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+
             _renderTargetBinding[0] = new RenderTargetBinding(_renderTargetAlbedo);
             _renderTargetBinding[1] = new RenderTargetBinding(_renderTargetNormal);
             _renderTargetBinding[2] = new RenderTargetBinding(_renderTargetDepth);
@@ -1429,6 +1458,9 @@ namespace DeferredEngine.Renderer
             _deferredEnvironmentMapRenderModule.SSRMap = _renderTargetScreenSpaceEffectReflection;
 
             _decalRenderModule.DepthMap = _renderTargetDepth;
+            
+            //_subsurfaceScatterRenderModule.NormalMap = _renderTargetNormal;
+            //_subsurfaceScatterRenderModule.AlbedoMap = _renderTargetAlbedo;
 
             Shaders.DeferredComposeEffectParameter_ColorMap.SetValue(_renderTargetAlbedo);
             Shaders.DeferredComposeEffectParameter_diffuseLightMap.SetValue(_renderTargetDiffuse);

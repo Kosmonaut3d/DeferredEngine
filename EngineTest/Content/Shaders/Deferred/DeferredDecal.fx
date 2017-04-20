@@ -96,7 +96,7 @@ float4 DecalPixelShader(VertexShaderOutput input) : SV_TARGET
     //read depth, use point sample or load
     float depth = DepthMap.Load(int3(input.Position.xy, 0)).r;
 
-	//Basically extend the depth of this ray to the end of the far plane, this gives us the position of the sphere only
+	//Basically extend the depth of this ray to the end of the far plane, this gives us the position
 	float3 cameraDirVS = input.PositionVS.xyz * (FarClip / -input.PositionVS.z);
 
     //compute ViewSpace position

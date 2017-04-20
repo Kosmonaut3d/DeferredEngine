@@ -140,7 +140,6 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	[branch]
 	if (useSSAO)
 	{
-		//Do we need to pow(x, 2.2f) this?
 		ssaoContribution = SSAOMap.SampleLevel(pointSampler, input.TexCoord, 0).r;
 	}
 

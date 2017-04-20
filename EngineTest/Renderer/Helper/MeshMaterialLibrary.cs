@@ -340,7 +340,8 @@ namespace DeferredEngine.Renderer.Helper
             ShadowLinear,
             Hologram,
             IdRender,
-            IdOutline
+            IdOutline,
+            SubsurfaceScattering
         }
 
         public void Draw(RenderType renderType, Matrix viewProjection, bool lightViewPointChanged = false, bool hasAnyObjectMoved = false, bool outlined = false, int outlineId = 0, Matrix? view = null, IRenderModule renderModule = null)
@@ -401,6 +402,10 @@ namespace DeferredEngine.Renderer.Helper
                     continue;
                 if (renderType != RenderType.Hologram && material.Type == MaterialEffect.MaterialTypes.Hologram)
                     continue;
+
+                if (renderType == RenderType.SubsurfaceScattering &&
+                    material.Type != MaterialEffect.MaterialTypes.SubsurfaceScattering) continue;
+
                 //Set the appropriate Shader for the material
                 if (renderType == RenderType.ShadowOmnidirectional || renderType == RenderType.ShadowLinear)
                 {
@@ -548,6 +553,10 @@ namespace DeferredEngine.Renderer.Helper
                 Shaders.HologramEffectParameter_WorldViewProj.SetValue(localWorldMatrix * viewProjection);
 
                 Shaders.HologramEffect.CurrentTechnique.Passes[0].Apply();
+            }
+            else if (renderType == RenderType.SubsurfaceScattering)
+            {
+                renderModule.Apply(localWorldMatrix, view, viewProjection);
             }
             else if (renderType == RenderType.IdRender || renderType == RenderType.IdOutline)
             {

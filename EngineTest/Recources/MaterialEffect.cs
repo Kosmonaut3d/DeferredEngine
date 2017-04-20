@@ -109,7 +109,8 @@ namespace DeferredEngine.Recources
             Basic,
             Emissive,
             Hologram,
-            ProjectHologram
+            ProjectHologram,
+            SubsurfaceScattering
         }
 
         public MaterialTypes Type
@@ -123,6 +124,8 @@ namespace DeferredEngine.Recources
                     MaterialTypeNumber = 2;
                 else if (value == MaterialTypes.Emissive)
                     MaterialTypeNumber = 3;
+                else if (value == MaterialTypes.SubsurfaceScattering)
+                    MaterialTypeNumber = 4;
             }
         }
 
