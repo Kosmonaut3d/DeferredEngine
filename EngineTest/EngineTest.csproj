@@ -90,18 +90,19 @@
     <Compile Include="Renderer\Helper\LineHelperManager.cs" />
     <Compile Include="Renderer\RenderModules\DecalRenderModule.cs" />
     <Compile Include="Renderer\RenderModules\EditorRender.cs" />
+    <Compile Include="Renderer\RenderModules\ForwardRenderModule.cs" />
     <Compile Include="Renderer\RenderModules\GaussianBlur.cs" />
     <Compile Include="Renderer\Helper\MeshMaterialLibrary.cs" />
     <Compile Include="Renderer\Helper\QuadRenderer.cs" />
     <Compile Include="Renderer\Renderer.cs" />
     <Compile Include="Renderer\RenderModules\IdAndOutlineRenderer.cs" />
     <Compile Include="Renderer\RenderModules\LightAccumulationModule.cs" />
-    <Compile Include="Renderer\RenderModules\IRenderModule.cs" />
+    <Compile Include="Renderer\RenderModules\Default\IRenderModule.cs" />
     <Compile Include="Renderer\RenderModules\GBufferRenderModule.cs" />
     <Compile Include="Renderer\RenderModules\DeferredEnvironmentMapRenderModule.cs" />
     <Compile Include="Renderer\RenderModules\SubsurfaceScatterRenderModule.cs" />
     <Compile Include="Renderer\RenderModules\TemporalAntialiasingRenderModule.cs" />
-    <Compile Include="Renderer\RenderModules\RenderModuleTemplate.cs" />
+    <Compile Include="Renderer\RenderModules\Default\RenderModuleTemplate.cs" />
     <Compile Include="Renderer\RenderModules\ShadowMapRenderModule.cs" />
     <Compile Include="Renderer\RenderModules\TexFilter.cs" />
   </ItemGroup>

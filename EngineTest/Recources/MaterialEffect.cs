@@ -110,7 +110,8 @@ namespace DeferredEngine.Recources
             Emissive,
             Hologram,
             ProjectHologram,
-            SubsurfaceScattering
+            SubsurfaceScattering,
+            ForwardShaded,
         }
 
         public MaterialTypes Type
@@ -126,6 +127,8 @@ namespace DeferredEngine.Recources
                     MaterialTypeNumber = 3;
                 else if (value == MaterialTypes.SubsurfaceScattering)
                     MaterialTypeNumber = 4;
+                else if (value == MaterialTypes.ForwardShaded)
+                    MaterialTypeNumber = 5;
             }
         }
 
@@ -141,6 +144,7 @@ namespace DeferredEngine.Recources
             MetallicMap = metallicMap;
             DisplacementMap = displacementMap;
             Mask = mask;
+
             Type = type;
 
             if (emissiveStrength > 0)

@@ -4,6 +4,7 @@ using DeferredEngine.Entities;
 using DeferredEngine.Recources;
 using DeferredEngine.Recources.Helper;
 using DeferredEngine.Renderer.RenderModules;
+using DeferredEngine.Renderer.RenderModules.Default;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -335,13 +336,13 @@ namespace DeferredEngine.Renderer.Helper
         public enum RenderType
         {
             Opaque,
-            Alpha,
             ShadowOmnidirectional,
             ShadowLinear,
             Hologram,
             IdRender,
             IdOutline,
-            SubsurfaceScattering
+            SubsurfaceScattering,
+            Forward,
         }
 
         public void Draw(RenderType renderType, Matrix viewProjection, bool lightViewPointChanged = false, bool hasAnyObjectMoved = false, bool outlined = false, int outlineId = 0, Matrix? view = null, IRenderModule renderModule = null)
@@ -396,15 +397,17 @@ namespace DeferredEngine.Renderer.Helper
                 MaterialEffect material = matLib.GetMaterial();
 
                 //Check if alpha or opaque!
-                if (renderType == RenderType.Opaque && material.IsTransparent) continue;
-                if (renderType == RenderType.Alpha && !material.IsTransparent) continue;
-                if (renderType == RenderType.Hologram && material.Type != MaterialEffect.MaterialTypes.Hologram)
+                if (renderType == RenderType.Opaque && material.IsTransparent || renderType == RenderType.Opaque && material.Type == MaterialEffect.MaterialTypes.ForwardShaded) continue;
+                if(renderType == RenderType.Hologram && material.Type != MaterialEffect.MaterialTypes.Hologram)
                     continue;
                 if (renderType != RenderType.Hologram && material.Type == MaterialEffect.MaterialTypes.Hologram)
                     continue;
 
                 if (renderType == RenderType.SubsurfaceScattering &&
                     material.Type != MaterialEffect.MaterialTypes.SubsurfaceScattering) continue;
+
+                if (renderType == RenderType.Forward &&
+                    material.Type != MaterialEffect.MaterialTypes.ForwardShaded) continue;
 
                 //Set the appropriate Shader for the material
                 if (renderType == RenderType.ShadowOmnidirectional || renderType == RenderType.ShadowLinear)
@@ -514,7 +517,7 @@ namespace DeferredEngine.Renderer.Helper
         private void SetBlendAndRasterizerState(RenderType renderType)
         {
             //Default, Opaque!
-            if (renderType != RenderType.Alpha)
+            if (renderType != RenderType.Forward)
             {
                 if (renderType != RenderType.ShadowOmnidirectional)
                 {
@@ -538,12 +541,11 @@ namespace DeferredEngine.Renderer.Helper
 
         private bool ApplyShaders(RenderType renderType, IRenderModule renderModule, Matrix localWorldMatrix, Matrix? view, Matrix viewProjection, MeshLibrary meshLib, int index, int outlineId, bool outlined)
         {
-            
-            if (renderType == RenderType.Opaque || renderType == RenderType.Alpha)
-            {
-                renderModule.Apply(localWorldMatrix, view, viewProjection);
-            }
-            else if (renderType == RenderType.ShadowLinear || renderType == RenderType.ShadowOmnidirectional)
+            if (renderType == RenderType.Opaque
+                || renderType == RenderType.ShadowLinear 
+                || renderType == RenderType.ShadowOmnidirectional 
+                || renderType == RenderType.SubsurfaceScattering 
+                || renderType == RenderType.Forward)
             {
                 renderModule.Apply(localWorldMatrix, view, viewProjection);
             }
@@ -553,10 +555,6 @@ namespace DeferredEngine.Renderer.Helper
                 Shaders.HologramEffectParameter_WorldViewProj.SetValue(localWorldMatrix * viewProjection);
 
                 Shaders.HologramEffect.CurrentTechnique.Passes[0].Apply();
-            }
-            else if (renderType == RenderType.SubsurfaceScattering)
-            {
-                renderModule.Apply(localWorldMatrix, view, viewProjection);
             }
             else if (renderType == RenderType.IdRender || renderType == RenderType.IdOutline)
             {
@@ -613,7 +611,7 @@ namespace DeferredEngine.Renderer.Helper
             //    Shaders.IdRenderEffectParameterColorId.SetValue(Color.Transparent.ToVector4());
             //}
             //todo: We only need textures for non shadow mapping, right? Not quite actually, for alpha textures we need materials
-            else if (renderType == RenderType.Opaque || renderType == RenderType.Alpha)
+            else if (renderType == RenderType.Opaque)
             {
                 ((GBufferRenderModule) renderModule).SetMaterialSettings(material);
             }

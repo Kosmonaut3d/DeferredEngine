@@ -1268,3 +1268,9 @@
 /processorParam:DebugMode=Auto
 /build:Shaders/SubsurfaceScattering/SubsurfaceScattering.fx
 
+#begin Shaders/Forward/Forward.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/Forward/Forward.fx
+

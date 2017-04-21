@@ -51,6 +51,9 @@ namespace DeferredEngine.Recources
         //Deferred Decals
         public static bool g_drawdecals = true;
 
+        //Forward pass
+        public static bool g_ForwardEnable = true;
+
         //Temporal AntiAliasing
         public static bool g_taa = true;
         public static int g_taa_jittermode = 2;
@@ -333,7 +336,7 @@ namespace DeferredEngine.Recources
 
         
         public static float ShadowBias = 0.005f;
-        
+
         public static void ApplySettings()
         {
             ApplySSAO();

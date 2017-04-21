@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 
-namespace DeferredEngine.Renderer.RenderModules
+namespace DeferredEngine.Renderer.RenderModules.Default
 {
     public interface IRenderModule
     {

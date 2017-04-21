@@ -95,10 +95,10 @@ namespace DeferredEngine.Recources
             IconEnvmap = content.Load<Texture2D>("Art/Editor/icon_envmap");
             //Default Materials
 
-            BaseMaterial = CreateMaterial(Color.Red, 0.5f, 0, type: MaterialEffect.MaterialTypes.SubsurfaceScattering);
+            BaseMaterial = CreateMaterial(Color.Red, 0.5f, 0, type: MaterialEffect.MaterialTypes.ForwardShaded);
 
             MetalRough03Material = CreateMaterial(Color.Silver, 0.2f, 1);
-            MetalRough01Material = CreateMaterial(Color.Silver, 0.05f, 1, type: MaterialEffect.MaterialTypes.SubsurfaceScattering);
+            MetalRough01Material = CreateMaterial(Color.Silver, 0.05f, 1, type: MaterialEffect.MaterialTypes.ForwardShaded);
             MirrorMaterial = CreateMaterial(Color.White, 0.05f, 1);
 
             HologramMaterial = CreateMaterial(Color.White, 0.2f, 1, null, null, null, null, null, null, MaterialEffect.MaterialTypes.Hologram, 1);
@@ -111,7 +111,7 @@ namespace DeferredEngine.Recources
 
             GoldMaterial = CreateMaterial(Color.Gold, 0.2f, 1);
 
-            SilverMaterial = CreateMaterial(Color.Silver, 0.05f, 1, type: MaterialEffect.MaterialTypes.SubsurfaceScattering);
+            SilverMaterial = CreateMaterial(Color.Silver, 0.05f, 1);
 
             //Shader stuff
 

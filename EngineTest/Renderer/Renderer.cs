@@ -41,7 +41,8 @@ namespace DeferredEngine.Renderer
         private DeferredEnvironmentMapRenderModule _deferredEnvironmentMapRenderModule;
         private DecalRenderModule _decalRenderModule;
         private SubsurfaceScatterRenderModule _subsurfaceScatterRenderModule;
-        
+        private ForwardRenderModule _forwardRenderModule;
+
         //Assets
         private Assets _assets;
 
@@ -97,8 +98,7 @@ namespace DeferredEngine.Renderer
             SSBlur,
             //Emissive,
             SSR,
-            HDR,
-            SubsurfaceScattering
+            HDR
         }
 
         //Render targets
@@ -180,6 +180,7 @@ namespace DeferredEngine.Renderer
             _deferredEnvironmentMapRenderModule = new DeferredEnvironmentMapRenderModule(content, "Shaders/Deferred/DeferredEnvironmentMap");
             _decalRenderModule = new DecalRenderModule(content, "Shaders/Deferred/DeferredDecal");
             _subsurfaceScatterRenderModule = new SubsurfaceScatterRenderModule(content, "Shaders/SubsurfaceScattering/SubsurfaceScattering");
+            _forwardRenderModule = new ForwardRenderModule(content, "Shaders/forward/forward");
 
             _inverseResolution = new Vector3(1.0f / GameSettings.g_screenwidth, 1.0f / GameSettings.g_ScreenHeight, 0);
             
@@ -215,6 +216,8 @@ namespace DeferredEngine.Renderer
             _decalRenderModule.Initialize(graphicsDevice);
 
             _subsurfaceScatterRenderModule.Initialize();
+
+            _forwardRenderModule.Initialize();
             
             _assets = assets;
             //Apply some base settings to overwrite shader defaults with game settings defaults
@@ -314,7 +317,10 @@ namespace DeferredEngine.Renderer
             //Compose the scene by combining our lighting data with the gbuffer data
             _currentOutput = Compose(); //-> output _renderTargetComposed
 
-            /*_currentOutput =*/ DrawSubsurfaceScattering(_renderTargetSSS, meshMaterialLibrary);
+            ///*_currentOutput =*/ DrawSubsurfaceScattering(_renderTargetSSS, meshMaterialLibrary);
+
+            //Forward
+            _currentOutput = DrawForward(_currentOutput, meshMaterialLibrary, camera, pointLights);
             
             //Compose the image and add information from previous frames to apply temporal super sampling
             _currentOutput = TonemapAndCombineTemporalAntialiasing(_currentOutput); // -> output: _temporalAAOffFrame ? _renderTargetTAA_2 : _renderTargetTAA_1
@@ -1138,6 +1144,26 @@ namespace DeferredEngine.Renderer
         {
             return _subsurfaceScatterRenderModule.Draw(_graphicsDevice, input, input, meshMaterialLibrary, _viewProjection );
         }
+        
+        private void ReconstructDepth()
+        {
+            if (_viewProjectionHasChanged)
+                Shaders.ReconstructDepthParameter_Projection.SetValue(_projection);
+
+            _graphicsDevice.DepthStencilState = DepthStencilState.Default;
+            Shaders.ReconstructDepth.CurrentTechnique.Passes[0].Apply();
+            _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+        }
+
+        private RenderTarget2D DrawForward(RenderTarget2D input, MeshMaterialLibrary meshMaterialLibrary, Camera camera, List<PointLight> pointLights)
+        {
+            if (!GameSettings.g_ForwardEnable) return input;
+
+            _graphicsDevice.SetRenderTarget(input);
+            ReconstructDepth();
+            
+            return _forwardRenderModule.Draw(_graphicsDevice, input, meshMaterialLibrary, _viewProjection, camera, pointLights);
+        }
 
         private RenderTarget2D DrawBloom(RenderTarget2D input)
         {
@@ -1241,9 +1267,9 @@ namespace DeferredEngine.Renderer
                 case RenderModes.SSR:
                     DrawMapToScreenToFullScreen(_renderTargetScreenSpaceEffectReflection);
                     break;
-                case RenderModes.SubsurfaceScattering:
-                    DrawMapToScreenToFullScreen(_renderTargetSSS);
-                    break;
+                //case RenderModes.SubsurfaceScattering:
+                //    DrawMapToScreenToFullScreen(_renderTargetSSS);
+                //    break;
                 case RenderModes.HDR:
                         DrawMapToScreenToFullScreen(currentInput);
                     break;
@@ -1321,7 +1347,7 @@ namespace DeferredEngine.Renderer
                 _renderTargetSpecular.Dispose();
                 _renderTargetVolume.Dispose();
                 _renderTargetOutput.Dispose();
-                _renderTargetSSS.Dispose();
+                //_renderTargetSSS.Dispose();
 
                 _renderTargetScreenSpaceEffectUpsampleBlurVertical.Dispose();
 
@@ -1357,8 +1383,8 @@ namespace DeferredEngine.Renderer
             _renderTargetDepth = new RenderTarget2D(_graphicsDevice, targetWidth,
                 targetHeight, false, SurfaceFormat.Single, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
 
-            _renderTargetSSS = new RenderTarget2D(_graphicsDevice, targetWidth,
-                targetHeight, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
+            //_renderTargetSSS = new RenderTarget2D(_graphicsDevice, targetWidth,
+            //    targetHeight, false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
 
             _renderTargetBinding[0] = new RenderTargetBinding(_renderTargetAlbedo);
             _renderTargetBinding[1] = new RenderTargetBinding(_renderTargetNormal);
@@ -1380,7 +1406,7 @@ namespace DeferredEngine.Renderer
             _renderTargetLightBinding[2] = new RenderTargetBinding(_renderTargetVolume);
 
             _renderTargetComposed = new RenderTarget2D(_graphicsDevice, targetWidth,
-               targetHeight, false, SurfaceFormat.HalfVector4, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
+               targetHeight, false, SurfaceFormat.HalfVector4, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
             
             _renderTargetBloom = new RenderTarget2D(_graphicsDevice, targetWidth,
                targetHeight, false, SurfaceFormat.HalfVector4, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
@@ -1406,6 +1432,7 @@ namespace DeferredEngine.Renderer
                 _deferredEnvironmentMapRenderModule.Resolution = new Vector2(targetWidth, targetHeight);
                 _renderTargetScreenSpaceEffectReflection = new RenderTarget2D(_graphicsDevice, targetWidth,
                     targetHeight, false, SurfaceFormat.HalfVector4, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
+
 
 
                 ///////////////////
