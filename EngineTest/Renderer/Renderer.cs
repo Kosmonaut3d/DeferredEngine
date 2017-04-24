@@ -1162,7 +1162,7 @@ namespace DeferredEngine.Renderer
             _graphicsDevice.SetRenderTarget(input);
             ReconstructDepth();
             
-            return _forwardRenderModule.Draw(_graphicsDevice, input, meshMaterialLibrary, _viewProjection, camera, pointLights);
+            return _forwardRenderModule.Draw(_graphicsDevice, input, meshMaterialLibrary, _viewProjection, camera, pointLights, _boundingFrustum);
         }
 
         private RenderTarget2D DrawBloom(RenderTarget2D input)

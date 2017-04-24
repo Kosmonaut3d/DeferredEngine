@@ -6,8 +6,10 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #define MAXLIGHTS 40
+#define MAXLIGHTSPERTILE 40
 
 float3 FrustumCorners[4]; //In Viewspace!
+float2 Resolution = { 1280.0, 720.0 };
 
 float4x4  World;
 float4x4  WorldViewProj;
@@ -21,6 +23,10 @@ float3 LightPositionWS[MAXLIGHTS];
 float LightRadius[MAXLIGHTS];
 float LightIntensity[MAXLIGHTS];
 float3 LightColor[MAXLIGHTS];
+
+float cols = 20.0f;
+float rows = 10.0f;
+/*uint*/float TiledListLength[200];
 
 float3 CameraPositionWS;
 
@@ -87,6 +93,14 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 		////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		//  HELPER FUNCTIONS
 		////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+float GetTileIndex(float2 texCoord)
+{
+	float row = trunc(rows * texCoord.y);
+	float col = trunc(cols * texCoord.x);
+
+	return row * cols + col;
+}
 
 		////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		//  Main function
@@ -164,7 +178,14 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR
 	//Show normals
 	//finalValue = (normal + float3(1,1,1))*0.5f;
 
-	return float4(finalValue, 0.8f);
+	float2 texCoord = input.Position.xy / Resolution;
+
+	//Tiled
+	/*float listLength = TiledListLength[GetTileIndex(texCoord)];
+
+	finalValue.rgb = listLength/4.0f;*/
+
+	return float4(finalValue, 1);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -193,7 +193,7 @@ namespace DeferredEngine.Renderer.Helper
         }
 
         /// <summary>
-        /// Update whether or not Objects are in the viewFrustum and need to be rendered or not.
+        /// Update whether or not Objects are in the viewFrustumEx and need to be rendered or not.
         /// </summary>
         /// <param name="entities"></param>
         /// <param name="boundingFrustrum"></param>
@@ -534,7 +534,7 @@ namespace DeferredEngine.Renderer.Helper
             else //if (renderType == RenderType.alpha)
             {
                 graphicsDevice.BlendState = BlendState.NonPremultiplied;
-                graphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
+                graphicsDevice.DepthStencilState = DepthStencilState.Default;
                 graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
             }
         }
@@ -630,7 +630,7 @@ namespace DeferredEngine.Renderer.Helper
         //    bool setupRender = false;
 
         //    //for culling
-        //    BoundingFrustum transformedViewFrustum = new BoundingFrustum(transformedViewProjection);
+        //    BoundingFrustumEx transformedViewFrustum = new BoundingFrustumEx(transformedViewProjection);
 
         //    for (int index1 = 0; index1 < Index; index1++)
         //    {
@@ -938,7 +938,7 @@ namespace DeferredEngine.Renderer.Helper
 
         //IF a submesh belongs to an entity that has moved we need to update the BoundingBoxWorld Position!
         //returns the mean distance of all objects iwth that material
-        public float? UpdatePositionAndCheckRender(bool cameraHasChanged, BoundingFrustum viewFrustum, Vector3 cameraPosition, BoundingSphere sphere)
+        public float? UpdatePositionAndCheckRender(bool cameraHasChanged, BoundingFrustum viewFrustumEx, Vector3 cameraPosition, BoundingSphere sphere)
         {
             float? distance = null;
 
@@ -959,7 +959,7 @@ namespace DeferredEngine.Renderer.Helper
                 {
                     sphere.Center = _worldBoundingCenters[i];
                     sphere.Radius = MeshBoundingSphere.Radius * trafoMatrix.Scale.X;
-                    if (viewFrustum.Contains(sphere) == ContainmentType.Disjoint)
+                    if (viewFrustumEx.Contains(sphere) == ContainmentType.Disjoint)
                     {
                         Rendered[i] = false;
                     }

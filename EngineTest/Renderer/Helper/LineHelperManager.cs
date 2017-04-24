@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using DeferredEngine.Recources;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -65,6 +66,26 @@ namespace DeferredEngine.Renderer.Helper
             Lines.Add(lineHelper);
         }
 
+        public static void AddFrustum(BoundingFrustumEx frustum, short timer, Color color)
+        {
+            Vector3[] corners = frustum.GetCornersNoCopy();
+            //Front
+            Lines.Add(new LineHelper(corners[0], corners[1], 1, color, color));
+            Lines.Add(new LineHelper(corners[1], corners[2], 1, color, color));
+            Lines.Add(new LineHelper(corners[2], corners[3], 1, color, color));
+            Lines.Add(new LineHelper(corners[3], corners[0], 1, color, color));
+            //Back
+            Lines.Add(new LineHelper(corners[4], corners[5], 1, color, color));
+            Lines.Add(new LineHelper(corners[5], corners[6], 1, color, color));
+            Lines.Add(new LineHelper(corners[6], corners[7], 1, color, color));
+            Lines.Add(new LineHelper(corners[7], corners[4], 1, color, color));
+            //Between
+            Lines.Add(new LineHelper(corners[4], corners[0], 1, color, color));
+            Lines.Add(new LineHelper(corners[5], corners[1], 1, color, color));
+            Lines.Add(new LineHelper(corners[6], corners[2], 1, color, color));
+            Lines.Add(new LineHelper(corners[7], corners[3], 1, color, color));
+        }
+
         public static void Draw(GraphicsDevice graphicsDevice, Matrix viewProjection)
         {
             if (!GameSettings.d_drawlines) return;
@@ -102,9 +123,9 @@ namespace DeferredEngine.Renderer.Helper
             AdjustTempVertsPoolSize();
         }
 
-        public static void CreateBoundingBoxLines(BoundingFrustum boundingFrustumShadow)
+        public static void CreateBoundingBoxLines(BoundingFrustum boundingFrustumExShadow)
         {
-            Vector3[] vertices = boundingFrustumShadow.GetCorners();
+            Vector3[] vertices = boundingFrustumExShadow.GetCorners();
             AddLineStartEnd(vertices[0], vertices[1], 1);
             AddLineStartEnd(vertices[1], vertices[2], 1);
             AddLineStartEnd(vertices[2], vertices[3], 1);

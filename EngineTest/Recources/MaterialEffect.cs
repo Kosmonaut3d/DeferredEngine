@@ -1,6 +1,10 @@
-﻿using System;
+﻿
+//#define FORWARDONLY
+
+using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+
 
 namespace DeferredEngine.Recources
 {
@@ -132,6 +136,7 @@ namespace DeferredEngine.Recources
             }
         }
 
+
         public void Initialize(Color diffuseColor, float roughness, float metalness, Texture2D albedoMap = null, Texture2D normalMap = null, Texture2D roughnessMap = null, Texture2D metallicMap = null, Texture2D mask = null, Texture2D displacementMap = null, MaterialTypes type = MaterialTypes.Basic, float emissiveStrength = 0)
         {
             DiffuseColor = diffuseColor.ToVector3();
@@ -147,6 +152,10 @@ namespace DeferredEngine.Recources
 
             Type = type;
 
+#if FORWARDONLY
+            Type = MaterialTypes.ForwardShaded;
+#endif
+
             if (emissiveStrength > 0)
             {
                 //Type = MaterialTypes.Emissive;
@@ -156,6 +165,9 @@ namespace DeferredEngine.Recources
 
         public MaterialEffect(Effect cloneSource) : base(cloneSource)
         {
+#if FORWARDONLY
+            Type = MaterialTypes.ForwardShaded;
+#endif
         }
 
         public MaterialEffect(GraphicsDevice graphicsDevice, byte[] effectCode) : base(graphicsDevice, effectCode)

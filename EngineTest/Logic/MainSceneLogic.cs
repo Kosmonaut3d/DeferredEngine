@@ -14,6 +14,7 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using DirectionalLight = DeferredEngine.Entities.DirectionalLight;
+using Matrix = Microsoft.Xna.Framework.Matrix;
 using Quaternion = BEPUutilities.Quaternion;
 using Vector3 = Microsoft.Xna.Framework.Vector3;
 
@@ -143,7 +144,7 @@ namespace DeferredEngine.Logic
             
             _physicsSpace.Add(physicsEntity = new Sphere(position: BEPUutilities.Vector3.Zero, radius: 5, mass: 50));
             AddEntity(model: _assets.IsoSphere, 
-                materialEffect: _assets.MetalRough01Material, 
+                materialEffect: _assets.AlphaBlendRim, 
                 position: new Vector3(20, 0, 10), 
                 angleX: Math.PI / 2, 
                 angleY: 0, 
@@ -266,6 +267,7 @@ namespace DeferredEngine.Logic
             //}
 
             //KeyInputs for specific tasks
+
 
             //If we are currently typing stuff into the console we should ignore the following keyboard inputs
             if (DebugScreen.ConsoleOpen) return;

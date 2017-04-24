@@ -1,12 +1,21 @@
 ﻿using System;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Graphics.PackedVector;
 
 namespace DeferredEngine.Recources.Helper
 {
    public static class Extensions
     {
-       public static Vector3 Xyz(this Vector4 vec3)
+        public static void SetValue(this EffectParameter param, int[] value)
+        {
+            for (var i = 0; i < value.Length; i++)
+                param.Elements[i].SetValue(value[i]);
+
+            //param.StateKey = unchecked(param.NextStateKey++);
+        }
+
+        public static Vector3 Xyz(this Vector4 vec3)
        {
            return new Vector3(vec3.X, vec3.Y, vec3.Z);
        }

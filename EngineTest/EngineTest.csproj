@@ -59,6 +59,7 @@
     <Compile Include="Entities\Decal.cs" />
     <Compile Include="Entities\DirectionalLight.cs" />
     <Compile Include="Entities\TransformableObject.cs" />
+    <Compile Include="Renderer\Helper\BoundingFrustumExtended.cs" />
     <Compile Include="Renderer\Helper\Editor\BillboardBuffer.cs" />
     <Compile Include="Entities\EnvironmentSample.cs" />
     <Compile Include="Main.cs" />
@@ -115,7 +116,7 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>Content\BEPUutilities.dll</HintPath>
     </Reference>
-    <Reference Include="MonoGame.Framework, Version=3.6.0.1186, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="MonoGame.Framework, Version=3.7.0.213, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\..\Program Files (x86)\MonoGame\v3.0\Assemblies\Windows\MonoGame.Framework.dll</HintPath>
     </Reference>
