@@ -4,7 +4,7 @@
 //  VARIABLES
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "helper.fx"
+#include "../Common/helper.fx"
 
 //We want to get from VS to WS. Usually this would mean an inverted VS. To get to 3x3 it's useful to use TI on this one.
 //So it's T I I = T

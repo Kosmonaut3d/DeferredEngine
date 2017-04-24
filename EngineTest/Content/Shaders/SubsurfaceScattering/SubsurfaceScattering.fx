@@ -1,9 +1,11 @@
 ﻿
-//Depth Reconstruction from linear depth buffer, TheKosmonaut 2016
+//SSS attempt, TheKosmonaut 2016
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  VARIABLES
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#include "../Common/helper.fx"
 
 float3 FrustumCorners[4]; //In Viewspace!
 
@@ -16,8 +18,6 @@ float3x3  WorldViewIT;
 Texture2D DepthMap;
 Texture2D AlbedoMap;
 Texture2D NormalMap;
-
-#include "helper.fx"
 
 SamplerState texSampler
 {

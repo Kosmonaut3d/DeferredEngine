@@ -1,4 +1,11 @@
-﻿
+﻿//Screen Space Ambient Occlusion shader TheKosmonaut 2016
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//  VARIABLES
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#include "../Common/helper.fx"
+
 float3 CameraPosition;
 //this is used to compute the world-position
 float4x4 InverseViewProjection;
@@ -9,7 +16,6 @@ float2 Resolution = float2(1280, 800);
 
 float3 FrustumCorners[4]; //In Viewspace!
 
-#include "helper.fx"
 
 Texture2D NormalMap;
 Texture2D DepthMap;

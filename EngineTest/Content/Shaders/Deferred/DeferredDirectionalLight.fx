@@ -4,6 +4,8 @@
 //  VARIABLES
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#include "../Common/helper.fx"
+
 float4x4 ViewProjection;
 
 float3 FrustumCorners[4];
@@ -38,7 +40,6 @@ int ShadowFiltering = 0; //PCF, PCF(3), PCF(7), Poisson, VSM
 float ShadowMapSize = 2048;
 float DepthBias = 0.02;
 
-#include "helper.fx"
        
 
 SamplerState pointSampler

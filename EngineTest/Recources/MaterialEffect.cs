@@ -110,12 +110,12 @@ namespace DeferredEngine.Recources
 
         public enum MaterialTypes
         {
-            Basic,
-            Emissive,
-            Hologram,
-            ProjectHologram,
-            SubsurfaceScattering,
-            ForwardShaded,
+            Basic = 0,
+            Emissive = 3,
+            Hologram = 1,
+            ProjectHologram = 2,
+            SubsurfaceScattering = 4,
+            ForwardShaded = 5,
         }
 
         public MaterialTypes Type
@@ -124,15 +124,7 @@ namespace DeferredEngine.Recources
             set
             {
                 _type = value;
-                MaterialTypeNumber = 0;
-                if (value == MaterialTypes.ProjectHologram)
-                    MaterialTypeNumber = 2;
-                else if (value == MaterialTypes.Emissive)
-                    MaterialTypeNumber = 3;
-                else if (value == MaterialTypes.SubsurfaceScattering)
-                    MaterialTypeNumber = 4;
-                else if (value == MaterialTypes.ForwardShaded)
-                    MaterialTypeNumber = 5;
+                MaterialTypeNumber = (int) value;
             }
         }
 

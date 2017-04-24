@@ -88,11 +88,22 @@ namespace DeferredEngine.Renderer.RenderModules
 
         }
 
+        /// <summary>
+        /// Draw forward shaded, alpha blended materials. Very basic and unoptimized algorithm. Can be improved to use tiling in future.
+        /// </summary>
+        /// <param name="graphicsDevice"></param>
+        /// <param name="output"></param>
+        /// <param name="meshMat"></param>
+        /// <param name="viewProjection"></param>
+        /// <param name="camera"></param>
+        /// <param name="pointLights"></param>
+        /// <param name="frustum"></param>
+        /// <returns></returns>
         public RenderTarget2D Draw(GraphicsDevice graphicsDevice, RenderTarget2D output, MeshMaterialLibrary meshMat, Matrix viewProjection, Camera camera, List<PointLight> pointLights, BoundingFrustum frustum)
         {
             graphicsDevice.DepthStencilState = DepthStencilState.Default;
 
-            SetupLighting(camera, pointLights);
+            SetupLighting(camera, pointLights, frustum);
 
             //Draw Frustum debug test
             //Matrix view = Matrix.CreateLookAt(new Vector3(-88, -11f, 4), new Vector3(38, 8, 32), Vector3.UnitZ);
@@ -207,7 +218,7 @@ namespace DeferredEngine.Renderer.RenderModules
             _tiledListLengthParam.SetValue(TiledListLength);
         }
 
-        private void SetupLighting(Camera camera, List<PointLight> pointLights)
+        private void SetupLighting(Camera camera, List<PointLight> pointLights, BoundingFrustum frustum)
         {
             //Setup camera
             _cameraPositionWSParam.SetValue(camera.Position);
@@ -216,27 +227,30 @@ namespace DeferredEngine.Renderer.RenderModules
 
             if (LightPositionWS == null || pointLights.Count != LightPositionWS.Length)
             {
-                
                 LightPositionWS = new Vector3[count];
                 LightColor = new Vector3[count];
                 LightIntensity = new float[count];
                 LightRadius = new float[count];
-
-                _lightAmountParam.SetValue( count );
             }
 
             //Fill
-
+            int lightsInBounds = 0;
 
             for (var index = 0; index < count; index++)
             {
                 PointLight light = pointLights[index];
-
-                LightPositionWS[index] = light.Position;
-                LightColor[index] = light.ColorV3;
-                LightIntensity[index] = light.Intensity;
-                LightRadius[index] = light.Radius;
+                
+                //Check frustum culling
+                if (frustum.Contains(light.BoundingSphere) == ContainmentType.Disjoint) continue;
+                
+                LightPositionWS[lightsInBounds] = light.Position;
+                LightColor[lightsInBounds] = light.ColorV3;
+                LightIntensity[lightsInBounds] = light.Intensity;
+                LightRadius[lightsInBounds] = light.Radius;
+                lightsInBounds++;
             }
+
+            _lightAmountParam.SetValue(lightsInBounds);
 
             _lightPositionWSParam.SetValue(LightPositionWS);
             _lightColorParam.SetValue(LightColor);

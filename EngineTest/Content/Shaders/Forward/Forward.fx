@@ -8,6 +8,8 @@
 #define MAXLIGHTS 40
 #define MAXLIGHTSPERTILE 40
 
+#include "../Common/helper.fx"
+
 float3 FrustumCorners[4]; //In Viewspace!
 float2 Resolution = { 1280.0, 720.0 };
 
@@ -31,8 +33,6 @@ float rows = 10.0f;
 float3 CameraPositionWS;
 
 const float OUTPUTCONST = 0.1f;
-
-#include "helper.fx"
 
 SamplerState texSampler
 {

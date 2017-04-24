@@ -3,7 +3,7 @@
 //  Composes the light buffers and the GBuffer to our final HDR Output.
 //  Converts albedo from Gamma 2.2 to 1.0 and outputs an HDR file.
 
-#include "helper.fx"
+#include "../Common/helper.fx"
 
 Texture2D colorMap;
 Texture2D diffuseLightMap;
@@ -94,6 +94,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	if (abs(materialType - 3) < 0.1f)
 	{
 		// Optional: 2 << metalness*8, pow(2, m*8) etc.
+		// Note: metalness is used as the power value in this case
 		return float4(diffuseColor.rgb * metalness * 8 + volumetrics, 1);
 	}
 
