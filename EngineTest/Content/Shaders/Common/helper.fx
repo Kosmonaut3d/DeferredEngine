@@ -27,9 +27,89 @@ static float SampleWeights[9] =
     0.077847f,
 };
 
-//////////////////////SHADOW
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//  HELPER FUNCTIONS
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//GBUFFER
+
+//float2 encode(float3 n)
+//{
+//    half2 enc = normalize(n.xy) * (sqrt(-n.z * 0.5 + 0.5));
+//    enc = enc * 0.5 + 0.5;
+//    return enc;
+//}
+
+//float3 decode(float4 enc)
+//{
+//    half4 nn = enc * half4(2, 2, 0, 0) + half4(-1, -1, 1, -1);
+//    half l = dot(nn.xyz, -nn.xyw);
+//    nn.z = l;
+//    nn.xy *= sqrt(l);
+//    return nn.xyz * 2 + half3(0, 0, -1);
+//}
+
+//float2 encode(float3 n)
+//{
+//    return float2(n.xy * 0.5 + 0.5);
+//}
+
+//float3 decode(float2 enc)
+//{
+//    float3 n;
+//    n.xy = enc * 2 - 1;
+//    n.z = sqrt(1 - dot(n.xy, n.xy));
+//    return n;
+//}
+
+//half2 encode(float3 n)
+//{
+//    half f = sqrt(8 * n.z + 8);
+//    return n.xy / f + 0.5;
+//}
+//half3 decode(half4 enc)
+//{
+//    half2 fenc = enc * 4 - 2;
+//    half f = dot(fenc, fenc);
+//    half g = sqrt(1 - f / 4);
+//    half3 n;
+//    n.xy = fenc * g;
+//    n.z = 1 - f / 2;
+//    return n;
+//}
+
+float3 encode(float3 n)
+{
+	return   0.5f * (n + 1.0f);
+}
+
+float3  decode(float3 n)
+{
+	return 2.0f * n.xyz - 1.0f;
+}
+
+//Consider using bitmaps, or moving to another, high-precision channel
+float encodeMetallicMattype(float metalness, float mattype)
+{
+	return metalness * 0.1f * 0.5f + mattype * 0.1f;
+}
+
+float decodeMetalness(float input)
+{
+	input *= 10;
+	return frac(input) * 2;
+}
+
+float decodeMattype(float input)
+{
+	input *= 10;
+	return trunc(input);
+}
 
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//SHADOW MAP STRIP
 
 float2 GetSampleOffsetY(float2 coord, float yOffset)
 {
@@ -306,69 +386,9 @@ float2 GetSampleCoordinate(float3 vec3)
 	return coord;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//LIGHTING
 
-
-
-
-
-//float2 encode(float3 n)
-//{
-//    half2 enc = normalize(n.xy) * (sqrt(-n.z * 0.5 + 0.5));
-//    enc = enc * 0.5 + 0.5;
-//    return enc;
-//}
-
-//float3 decode(float4 enc)
-//{
-//    half4 nn = enc * half4(2, 2, 0, 0) + half4(-1, -1, 1, -1);
-//    half l = dot(nn.xyz, -nn.xyw);
-//    nn.z = l;
-//    nn.xy *= sqrt(l);
-//    return nn.xyz * 2 + half3(0, 0, -1);
-//}
-
-//half4 encode(half3 n)
-//{
-//    return half4(n.xy * 0.5 + 0.5, 0, 0);
-//}
-
-//half3 decode(half2 enc)
-//{
-//    half3 n;
-//    n.xy = enc * 2 - 1;
-//    n.z = sqrt(1 - dot(n.xy, n.xy));
-//    return n;
-//}
- 
-
-float3 encode(float3 n)
-{
-    return   0.5f * (n + 1.0f);
-}
-
-float3  decode(float3 n)
-{
-    return 2.0f * n.xyz - 1.0f;
-}
-
-float encodeMetallicMattype(float metalness, float mattype)
-{
-    return metalness * 0.1f * 0.5f + mattype * 0.1f;
-}
-
-float decodeMetalness(float input)
-{
-    input *= 10;
-    return frac(input) * 2;
-}
-
-float decodeMattype(float input)
-{
-    input *= 10;
-    return trunc(input);
-}
-
-     
 float3 SpecularCookTorrance(float NdotL, float3 normal, float3 negativeLightDirection, float3 cameraDirectionP, float diffuseIntensity, float3 diffuseColor, float f0, float roughness)
 {
     float3 specular = float3(0, 0, 0);
@@ -436,19 +456,3 @@ float3 DiffuseOrenNayar(float NdotL, float3 normal, float3 lightDirection, float
     // get the final color 
     return L1 * lightColor * lightIntensity / 4;
 }
-
-//half2 encode(float3 n)
-//{
-//    half f = sqrt(8 * n.z + 8);
-//    return n.xy / f + 0.5;
-//}
-//half3 decode(half4 enc)
-//{
-//    half2 fenc = enc * 4 - 2;
-//    half f = dot(fenc, fenc);
-//    half g = sqrt(1 - f / 4);
-//    half3 n;
-//    n.xy = fenc * g;
-//    n.z = 1 - f / 2;
-//    return n;
-//}
