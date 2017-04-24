@@ -321,7 +321,7 @@ PixelShaderOutput PixelShaderUnshadowedFunction(VertexShaderOutput input)
 		//get specular intensity from the AlbedoMap
         float4 color = AlbedoMap.Sample(pointSampler, texCoord);
 
-        float metalness = decodeMetalness(color.a);
+        float metalness = decodeMetalness(normalData.b);
     
         float f0 = lerp(0.04f, color.g * 0.25 + 0.75, metalness);
 
@@ -479,7 +479,7 @@ PixelShaderOutput PixelShaderShadowedFunction(VertexShaderOutput input)
     //get specular intensity from the AlbedoMap
         float4 color = AlbedoMap.Sample(pointSampler, texCoord);
 
-        float metalness = decodeMetalness(color.a);
+		float metalness = decodeMetalness(normalData.b);
     
         float f0 = lerp(0.04f, color.g * 0.25 + 0.75, metalness);
 
@@ -531,7 +531,7 @@ PixelShaderOutput PixelShaderSSShadowedFunction(VertexShaderOutput input)
         //get specular intensity from the AlbedoMap
         float4 color = AlbedoMap.Sample(pointSampler, texCoord);
 
-        float metalness = decodeMetalness(color.a);
+		float metalness = decodeMetalness(normalData.b);
     
         float f0 = lerp(0.04f, color.g * 0.25 + 0.75, metalness);
 

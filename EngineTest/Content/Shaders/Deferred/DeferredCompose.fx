@@ -6,6 +6,7 @@
 #include "../Common/helper.fx"
 
 Texture2D colorMap;
+Texture2D normalMap;
 Texture2D diffuseLightMap;
 Texture2D specularLightMap;
 Texture2D volumeLightMap;
@@ -75,16 +76,17 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	int3 texCoordInt = int3(input.Position.xy, 0);
 
 	float4 diffuseColor = colorMap.Load(texCoordInt);
-
+	float4 normalInfo = normalMap.Load(texCoordInt);
 	//Convert gamma for linear pipeline
 	diffuseColor.rgb = pow(abs(diffuseColor.rgb), 2.2f);
 
+	// See Resources/MaterialEffect for different mat types!
 	// materialType 3 = emissive
 	// materialType 2 = hologram
 	// materialType 1 = default
-	float materialType = decodeMattype(diffuseColor.a);
+	float materialType = decodeMattype(normalInfo.a);
 
-	float metalness = decodeMetalness(diffuseColor.a);
+	float metalness = decodeMetalness(normalInfo.a);
 
 	//Our "volumetric" light data. This is a seperate buffer that is renders on top of all other stuff.
 	float3 volumetrics = volumeLightMap.Load(texCoordInt).rgb;

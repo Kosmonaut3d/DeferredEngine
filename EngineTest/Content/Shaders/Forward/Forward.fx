@@ -185,7 +185,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR
 
 	finalValue.rgb = listLength/4.0f;*/
 
-	return float4(finalValue, 1);
+	return float4(finalValue, 0.6f);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////

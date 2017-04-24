@@ -142,7 +142,7 @@ float3 GetNormalMap(float2 TexCoord)
 	return NormalMap.Sample(TextureSamplerTrilinear, TexCoord).rgb - float3(0.5f, 0.5f, 0.5f);
 }
 
-
+//See BufferSetup.dgml for overview
 PixelShaderOutput WriteBuffers(Render_IN input)
 {       
     float4 finalValue = input.Color;
@@ -153,9 +153,14 @@ PixelShaderOutput WriteBuffers(Render_IN input)
 
     Out.Color = finalValue;
 
-    Out.Color.a = encodeMetallicMattype(input.Metallic, MaterialType);
+	//Free
+	Out.Color.a = 0; //encodeMetallicMattype(input.Metallic, MaterialType);
 
+	//Only use rg with this encoding
     Out.Normal.rgb =  encode(input.Normal); //
+
+	//us b as mat type/ metallic
+	Out.Normal.b = encodeMetallicMattype(input.Metallic, MaterialType);
 
     Out.Normal.a = input.roughness;
 

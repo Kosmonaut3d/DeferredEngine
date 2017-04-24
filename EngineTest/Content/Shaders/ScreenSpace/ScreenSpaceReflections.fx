@@ -537,7 +537,7 @@ float4 PixelShaderFunctionTAA(VertexShaderOutput input) : COLOR0
 			if (!hit)
 				continue;
 
-			int3 hitCoordInt = int3(hitTexCoord.xy * resolution, 0);
+			int3 hitCoordInt = int3(  (hitTexCoord.xy * resolution), 0);
 
 			float4 albedoColor = TargetMap.Load(hitCoordInt);
 			output.rgb = albedoColor;

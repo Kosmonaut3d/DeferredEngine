@@ -34,6 +34,34 @@ static float SampleWeights[9] =
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //GBUFFER
 
+//Simply converting from [-1, 1] to [0, 1]
+
+//float3 encode(float3 n)
+//{
+//	return   0.5f * (n + 1.0f);
+//}
+//
+//float3  decode(float3 n)
+//{
+//	return 2.0f * n.xyz - 1.0f;
+//}
+
+//Leaving out the third component, since view space normals have a z that always looks towards the camera
+//it's length can be inferred from the other 2 components.
+
+float3 encode(float3 n)
+{
+	return float3(n.xy * 0.5 + 0.5, 0);
+}
+
+float3 decode(float3 enc)
+{
+	float3 n;
+	n.xy = enc.xy * 2 - 1;
+	n.z = sqrt(1 - dot(n.xy, n.xy));
+	return n;
+}
+
 //float2 encode(float3 n)
 //{
 //    half2 enc = normalize(n.xy) * (sqrt(-n.z * 0.5 + 0.5));
@@ -50,18 +78,6 @@ static float SampleWeights[9] =
 //    return nn.xyz * 2 + half3(0, 0, -1);
 //}
 
-//float2 encode(float3 n)
-//{
-//    return float2(n.xy * 0.5 + 0.5);
-//}
-
-//float3 decode(float2 enc)
-//{
-//    float3 n;
-//    n.xy = enc * 2 - 1;
-//    n.z = sqrt(1 - dot(n.xy, n.xy));
-//    return n;
-//}
 
 //half2 encode(float3 n)
 //{
@@ -79,33 +95,41 @@ static float SampleWeights[9] =
 //    return n;
 //}
 
-float3 encode(float3 n)
+//Since we encode in fp16 renderformat we can use values > 1.
+//Since I don't plan to have a lot of mattypes I use the mattype as the int and the metalness as the fractional
+float encodeMetallicMattype(float metalness, float /*int*/ mattype)
 {
-	return   0.5f * (n + 1.0f);
-}
-
-float3  decode(float3 n)
-{
-	return 2.0f * n.xyz - 1.0f;
-}
-
-//Consider using bitmaps, or moving to another, high-precision channel
-float encodeMetallicMattype(float metalness, float mattype)
-{
-	return metalness * 0.1f * 0.5f + mattype * 0.1f;
+	return metalness * 0.9f + mattype;
 }
 
 float decodeMetalness(float input)
 {
-	input *= 10;
-	return frac(input) * 2;
+	const float recip = 1.0f / 0.9f;
+	return saturate(frac(input) * recip);
 }
 
 float decodeMattype(float input)
 {
-	input *= 10;
 	return trunc(input);
 }
+
+//Consider using bitmaps, or moving to another, high-precision channel
+//float encodeMetallicMattype(float metalness, float mattype)
+//{
+//	return metalness * 0.1f * 0.5f + mattype * 0.1f;
+//}
+//
+//float decodeMetalness(float input)
+//{
+//	input *= 10;
+//	return frac(input) * 2;
+//}
+//
+//float decodeMattype(float input)
+//{
+//	input *= 10;
+//	return trunc(input);
+//}
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////

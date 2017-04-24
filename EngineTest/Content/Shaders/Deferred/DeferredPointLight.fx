@@ -344,7 +344,7 @@ PixelShaderOutput BasePixelShaderFunction(PixelShaderInput input)
         //get specular intensity from the AlbedoMap
         float4 color = AlbedoMap.Load(texCoordInt);
 		//How metallic our surface behaves
-        float metalness = decodeMetalness(color.a);
+		float metalness = decodeMetalness(normalData.b);
     
 		//A physical reflective property. This is a coarse approximation
         float f0 = lerp(0.04f, color.g * 0.25 + 0.75, metalness);
@@ -414,9 +414,10 @@ PixelShaderOutput VolumetricPixelShaderFunction(VertexShaderOutput input)
 	PixelShaderOutput output;
 	input.ScreenPosition.xyz /= input.ScreenPosition.w;
 	float2 texCoord = 0.5f * (float2(input.ScreenPosition.x, -input.ScreenPosition.y) + 1);
+	int3 texCoordInt = int3(texCoord * Resolution, 0);
 
 	//read linear depth
-	float linDepth = DepthMap.SampleLevel(PointSampler, texCoord, 0).r;
+	float linDepth = DepthMap.Load(texCoordInt).r;
 
 	//Basically extend the depth of this ray to the end of the far plane, this gives us the position of the sphere only
 	//todo: needed?
@@ -523,8 +524,6 @@ PixelShaderOutput VolumetricPixelShaderFunction(VertexShaderOutput input)
 	[branch]
 	if (distanceLtoR < lightRadius)
 	{
-		int3 texCoordInt = int3(texCoord * Resolution, 0);
-
 		//get normal data from the NormalMap
 		float4 normalData = NormalMap.Load(texCoordInt);
 		//tranform normal back into [-1,1] range
@@ -532,8 +531,10 @@ PixelShaderOutput VolumetricPixelShaderFunction(VertexShaderOutput input)
 												//get metalness
 		float roughness = normalData.a;
 		//get specular intensity from the AlbedoMap
-		float4 color = AlbedoMap.Load(texCoordInt);
-		float metalness = decodeMetalness(color.a);
+		float4 color = AlbedoMap.Load(texCoordInt); 
+		
+		float metalness = decodeMetalness(normalData.b);
+
 		float f0 = lerp(0.04f, color.g * 0.25 + 0.75, metalness);
 
 		//compute attenuation based on distance - linear attenuation
@@ -578,7 +579,7 @@ PixelShaderOutput BasePixelShaderFunctionShadow(PixelShaderInput input)
 	//get specular intensity from the AlbedoMap
 	float4 color = AlbedoMap.Load(texCoordInt);
 
-    float metalness = decodeMetalness(color.a);
+	float metalness = decodeMetalness(normalData.b);
     
     float f0 = lerp(0.04f, color.g * 0.25 + 0.75, metalness);
 
@@ -769,7 +770,7 @@ PixelShaderOutput VolumetricPixelShaderFunctionShadowed(VertexShaderOutput input
 	//get specular intensity from the AlbedoMap
 	float4 color = AlbedoMap.Load(texCoordInt);
 
-	float metalness = decodeMetalness(color.a);
+	float metalness = decodeMetalness(normalData.b);
 
 	float f0 = lerp(0.04f, color.g * 0.25 + 0.75, metalness);
 
