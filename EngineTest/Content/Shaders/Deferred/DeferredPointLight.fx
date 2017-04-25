@@ -124,10 +124,105 @@ float4 VertexShaderBasic(VertexShaderInput input) : POSITION0
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 		////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		//  HELPER DECLARATIONS
+		////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+float CalcShadowTermPCF(float linearDepthLV, float ndotl, float3 vec3);
+void LightingCalculation(in int3 texCoordInt, in float distanceToLight, in float3 lightVector, in float3 cameraDirection, inout float3 diffuseOutput, inout float3 specularOutput);
+void LightingShadowedCalculation(in int3 texCoordInt, in float distanceToLight, in float3 lightVector, in float3 cameraDirection, inout float3 diffuseOutput, inout float3 specularOutput);
+float4 LoadShadowMap(float3 vec3);
+float GetVariableBias(float nDotL);
+float ShadowCheck(float distance, float3 texCoord);
+float integrateVolume(float d2, float d1, float radius);
+
+		////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		//  HELPER FUNCTIONS
 		////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	//Check helper.fx for more helper functions
+
+	void LightingCalculation(in int3 texCoordInt, in float distanceToLight, in float3 lightVector, in float3 cameraDirection, inout float3 diffuseOutput, inout float3 specularOutput)
+	{
+		//get normal data from the NormalMap
+		float4 normalData = NormalMap.Load(texCoordInt);
+		//tranform normal back into [-1,1] range
+		float3 normal = decode(normalData.xyz); //2.0f * normalData.xyz - 1.0f;    //could do mad
+												//get metalness
+		float roughness = normalData.a;
+		//get specular intensity from the AlbedoMap
+		float4 color = AlbedoMap.Load(texCoordInt);
+
+		float metalness = decodeMetalness(normalData.b);
+
+		float f0 = lerp(0.04f, color.g * 0.25 + 0.75, metalness);
+
+		//compute attenuation based on distance - linear attenuation
+		//float attenuation = saturate(1.0f - distanceLtoR / lightRadius);
+		float relativeDistance = distanceToLight / lightRadius; //normalized
+		float denominator = (4 * relativeDistance + 1);
+
+		float attenuation = saturate(1 / (denominator*denominator) - 0.04*relativeDistance);
+
+		//normalize light vector
+		lightVector /= distanceToLight;
+
+		float NdL = saturate(dot(normal, lightVector));
+		float3 diffuseLight = 0;
+		[branch]
+		if (metalness < 0.99)
+		{
+			diffuseLight = DiffuseOrenNayar(NdL, normal, lightVector, cameraDirection, lightIntensity, lightColor, roughness); //NdL * lightColor.rgb;
+		}
+		float3 specular = SpecularCookTorrance(NdL, normal, lightVector, cameraDirection, lightIntensity, lightColor, f0, roughness);
+		diffuseOutput = (attenuation * diffuseLight * (1 - f0)) * OUTPUTCONST;
+		specularOutput = specular * attenuation * OUTPUTCONST;
+	}
+
+	void LightingShadowedCalculation(in int3 texCoordInt, in float distanceToLight, in float3 lightVector, in float3 cameraDirection, inout float3 diffuseOutput, inout float3 specularOutput)
+	{
+		float4 normalData = NormalMap.Load(texCoordInt);
+		//tranform normal back into [-1,1] range
+		float3 normal = decode(normalData.xyz); //2.0f * normalData.xyz - 1.0f;    //could do mad
+												//get metalness
+		float roughness = normalData.a;
+		//get specular intensity from the AlbedoMap
+		float4 color = AlbedoMap.Load(texCoordInt);
+
+		float metalness = decodeMetalness(normalData.b);
+
+		float f0 = lerp(0.04f, color.g * 0.25 + 0.75, metalness);
+
+		//compute attenuation based on distance - linear attenuation
+		//float attenuation = saturate(1.0f - distanceLtoR / lightRadius);
+		float relativeDistance = distanceToLight / lightRadius; //normalized
+		float denominator = (4 * relativeDistance + 1);
+
+		float attenuation = saturate(1 / (denominator*denominator) - 0.04*relativeDistance);
+
+		//normalize light vector
+		lightVector /= distanceToLight;
+		//compute diffuse light
+		float NdL = saturate(dot(normal, lightVector));
+		float3 lightVectorWS = -mul(float4(lightVector, 0), InverseView).xyz;
+
+		float shadowFactor = CalcShadowTermPCF(relativeDistance, NdL, lightVectorWS);
+
+		float3 diffuseLight = float3(0, 0, 0);
+		float3 specular = float3(0, 0, 0);
+
+		[branch]
+		if (shadowFactor > 0.01f && distanceToLight < lightRadius)
+		{
+			[branch]
+			if (metalness < 0.99)
+			{
+				diffuseLight = DiffuseOrenNayar(NdL, normal, lightVector, cameraDirection, lightIntensity, lightColor, roughness); //NdL * lightColor.rgb;
+			}
+			specular = SpecularCookTorrance(NdL, normal, lightVector, cameraDirection, lightIntensity, lightColor, f0, roughness);
+		}
+		diffuseOutput = (attenuation * diffuseLight * (1 - f0)) *shadowFactor * OUTPUTCONST;
+		specularOutput = specular * attenuation * shadowFactor* OUTPUTCONST;
+	}
 
 	//Loads a texel based off of input vector
 	float4 LoadShadowMap(float3 vec3)
@@ -332,49 +427,9 @@ PixelShaderOutput BasePixelShaderFunction(PixelShaderInput input)
     }
     else
     {
-		//Convert texCoords to int, so we can use "Load" instead of "Sample"
-        int3 texCoordInt = int3(input.TexCoord * Resolution, 0);
-
-        //get normal data from the NormalMap
-        float4 normalData = NormalMap.Load(texCoordInt);
-        //tranform normal back into [-1,1] range
-        float3 normal = decode(normalData.xyz); //2.0f * normalData.xyz - 1.0f;    //could do mad
-        //get metalness
-        float roughness = normalData.a;
-        //get specular intensity from the AlbedoMap
-        float4 color = AlbedoMap.Load(texCoordInt);
-		//How metallic our surface behaves
-		float metalness = decodeMetalness(normalData.b);
-    
-		//A physical reflective property. This is a coarse approximation
-        float f0 = lerp(0.04f, color.g * 0.25 + 0.75, metalness);
-
-        //compute attenuation based on distance - linear attenuation
-        //float attenuation = saturate(1.0f - lengthLight / lightRadius);
-		float x = lengthLight / lightRadius; //normalized
-		float bottom = (4 * x + 1);
-
-		float attenuation = saturate(1 / (bottom*bottom) - 0.04*x);
-
-        //normalize light vector
-        lightVector /= lengthLight;
-
-        float3 cameraDirection = -normalize(input.PositionVS.xyz);//normalize(cameraPosition - input.Position.xyz); //input.viewDirection; //
-        //compute diffuse light
-        float NdL = saturate(dot(normal, lightVector));
-
-        float3 diffuseLight = 0;
-
-		//Final calculations. Find them in helper.fx
-        [branch]
-        if (metalness < 0.99)
-        {
-            diffuseLight = DiffuseOrenNayar(NdL, normal, lightVector, cameraDirection, lightIntensity, lightColor, roughness); //NdL * lightColor.rgb;
-        }
-        float3 specular = SpecularCookTorrance(NdL, normal, lightVector, cameraDirection, lightIntensity, lightColor, f0, roughness);
-    
-        output.Diffuse.rgb = (attenuation * diffuseLight * (1 - f0)) * OUTPUTCONST; //* (1 - f0)) * (f0 + 1) * (f0 + 1);
-        output.Specular.rgb = specular * attenuation * OUTPUTCONST;
+		int3 texCoordInt = int3(input.TexCoord * Resolution, 0);
+		float3 cameraDirection = -normalize(input.PositionVS.xyz);
+		LightingCalculation(texCoordInt, lengthLight, lightVector, cameraDirection, output.Diffuse.rgb, output.Specular.rgb);
         return output;
     }
 }
@@ -524,41 +579,7 @@ PixelShaderOutput VolumetricPixelShaderFunction(VertexShaderOutput input)
 	[branch]
 	if (distanceLtoR < lightRadius)
 	{
-		//get normal data from the NormalMap
-		float4 normalData = NormalMap.Load(texCoordInt);
-		//tranform normal back into [-1,1] range
-		float3 normal = decode(normalData.xyz); //2.0f * normalData.xyz - 1.0f;    //could do mad
-												//get metalness
-		float roughness = normalData.a;
-		//get specular intensity from the AlbedoMap
-		float4 color = AlbedoMap.Load(texCoordInt); 
-		
-		float metalness = decodeMetalness(normalData.b);
-
-		float f0 = lerp(0.04f, color.g * 0.25 + 0.75, metalness);
-
-		//compute attenuation based on distance - linear attenuation
-		//float attenuation = saturate(1.0f - distanceLtoR / lightRadius);
-		float x = distanceLtoR / lightRadius; //normalized
-		float bottom = (4 * x + 1);
-
-		float attenuation = saturate(1 / (bottom*bottom) - 0.04*x);
-
-		//normalize light vector
-		lightVector /= distanceLtoR;
-
-		float NdL = saturate(dot(normal, lightVector));
-		float3 diffuseLight = 0;
-		[branch]
-		if (metalness < 0.99)
-		{
-			diffuseLight = DiffuseOrenNayar(NdL, normal, lightVector, -cameraDirection, lightIntensity, lightColor, roughness); //NdL * lightColor.rgb;
-		}
-		float3 specular = SpecularCookTorrance(NdL, normal, lightVector, -cameraDirection, lightIntensity, lightColor, f0, roughness);
-
-		output.Diffuse.rgb = (attenuation * diffuseLight * (1 - f0)) * OUTPUTCONST; //* (1 - f0)) * (f0 + 1) * (f0 + 1);
-		output.Specular.rgb = specular * attenuation * OUTPUTCONST;
-
+		LightingCalculation(texCoordInt, distanceLtoR, lightVector, -cameraDirection, output.Diffuse.rgb, output.Specular.rgb);
 	}
 	return output;
 }
@@ -566,23 +587,8 @@ PixelShaderOutput VolumetricPixelShaderFunction(VertexShaderOutput input)
 //Shadow mapped light!
 PixelShaderOutput BasePixelShaderFunctionShadow(PixelShaderInput input)
 {
-    
     PixelShaderOutput output;
     
-	int3 texCoordInt = int3(input.TexCoord * Resolution, 0);
-	//get normal data from the NormalMap
-	float4 normalData = NormalMap.Load(texCoordInt);
-	//tranform normal back into [-1,1] range
-	float3 normal = decode(normalData.xyz); //2.0f * normalData.xyz - 1.0f;    //could do mad
-											//get metalness
-	float roughness = normalData.a;
-	//get specular intensity from the AlbedoMap
-	float4 color = AlbedoMap.Load(texCoordInt);
-
-	float metalness = decodeMetalness(normalData.b);
-    
-    float f0 = lerp(0.04f, color.g * 0.25 + 0.75, metalness);
-
     //surface-to-light vector
     float3 lightVector = lightPosition - input.PositionVS;
 
@@ -596,40 +602,10 @@ PixelShaderOutput BasePixelShaderFunctionShadow(PixelShaderInput input)
     }
 	else
 	{
-		//compute attenuation based on distance - linear attenuation
-		//float attenuation = saturate(1.0f - lengthLight / lightRadius);
-
-		float x = lengthLight / lightRadius; //normalized
-		float bottom = (4 * x + 1);
-
-		float attenuation = saturate(1 / (bottom*bottom) - 0.04*x);
-
-		//normalize light vector
-		lightVector /= lengthLight;
-
+		int3 texCoordInt = int3(input.TexCoord * Resolution, 0);
 		float3 cameraDirection = -normalize(input.PositionVS);
-		//compute diffuse light
-		float NdL = saturate(dot(normal, lightVector));
 
-		float3 lightVectorWS = -mul(float4(lightVector, 0), InverseView).xyz;
-		
-		float shadowFactor = CalcShadowTermPCF(lengthLight / lightRadius, NdL, lightVectorWS);
-
-		float3 diffuseLight = float3(0, 0, 0);
-		float3 specular = float3(0, 0, 0);
-
-		[branch]
-		if (shadowFactor > 0.01f && lengthLight < lightRadius)
-		{
-			[branch]
-			if (metalness < 0.99)
-			{
-				diffuseLight = DiffuseOrenNayar(NdL, normal, lightVector, cameraDirection, lightIntensity, lightColor, roughness); //NdL * lightColor.rgb;
-			}
-			specular = SpecularCookTorrance(NdL, normal, lightVector, cameraDirection, lightIntensity, lightColor, f0, roughness);
-		}
-		output.Diffuse.rgb = (attenuation * diffuseLight * (1 - f0)) * shadowFactor* OUTPUTCONST ;
-		output.Specular.rgb = specular * attenuation * shadowFactor * OUTPUTCONST ; /*max(shadowVSM - 0.1f, 0);*/
+		LightingShadowedCalculation(texCoordInt, lengthLight, lightVector, cameraDirection, output.Diffuse.rgb, output.Specular.rgb);
 
 		return output;
 	}
@@ -762,48 +738,7 @@ PixelShaderOutput VolumetricPixelShaderFunctionShadowed(VertexShaderOutput input
 
 	output.Volume = float4((0.02 * lightIntensity * lightVolumeDensity * visibility) * lightColor, 0);
 
-	float4 normalData = NormalMap.Load(texCoordInt);
-	//tranform normal back into [-1,1] range
-	float3 normal = decode(normalData.xyz); //2.0f * normalData.xyz - 1.0f;    //could do mad
-											//get metalness
-	float roughness = normalData.a;
-	//get specular intensity from the AlbedoMap
-	float4 color = AlbedoMap.Load(texCoordInt);
-
-	float metalness = decodeMetalness(normalData.b);
-
-	float f0 = lerp(0.04f, color.g * 0.25 + 0.75, metalness);
-
-	//compute attenuation based on distance - linear attenuation
-	//float attenuation = saturate(1.0f - distanceLtoR / lightRadius);
-	float x = distanceLtoR / lightRadius; //normalized
-	float bottom = (4 * x + 1);
-
-	float attenuation = saturate(1 / (bottom*bottom) - 0.04*x);
-
-	//normalize light vector
-	lightVector /= distanceLtoR;
-													 //compute diffuse light
-	float NdL = saturate(dot(normal, lightVector));
-	float3 lightVectorWS = -mul(float4(lightVector, 0), InverseView).xyz;
-
-	float shadowFactor = CalcShadowTermPCF(distanceLtoR / lightRadius, NdL, lightVectorWS);
-
-	float3 diffuseLight = float3(0, 0, 0);
-	float3 specular = float3(0, 0, 0);
-
-	[branch]
-	if (shadowFactor > 0.01f && distanceLtoR < lightRadius)
-	{
-		[branch]
-		if (metalness < 0.99)
-		{
-			diffuseLight = DiffuseOrenNayar(NdL, normal, lightVector, -cameraDirection, lightIntensity, lightColor, roughness); //NdL * lightColor.rgb;
-		}
-		specular = SpecularCookTorrance(NdL, normal, lightVector, -cameraDirection, lightIntensity, lightColor, f0, roughness);
-	}
-	output.Diffuse.rgb = (attenuation * diffuseLight * (1 - f0)) *shadowFactor * OUTPUTCONST;
-	output.Specular.rgb = specular * attenuation * 0.1f * shadowFactor* OUTPUTCONST;
+	LightingShadowedCalculation(texCoordInt, distanceLtoR, lightVector, -cameraDirection, output.Diffuse.rgb, output.Specular.rgb);
 
 	return output;
 

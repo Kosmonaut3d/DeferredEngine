@@ -1,27 +1,27 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <DirectedGraph Layout="Sugiyama" ZoomLevel="-1" xmlns="http://schemas.microsoft.com/vs/2009/dgml">
   <Nodes>
-    <Node Id="AlbedoGammaSpaceR8G8B8" Bounds="619.93444728597,127.900007324219,95.76,73.84" Label="Albedo&#xD;&#xA;Gamma Space&#xD;&#xA;&#xD;&#xA;R8G8B8" UseManualLocation="True" />
+    <Node Id="AlbedoGammaSpaceR8G8B8" Bounds="619.252716437446,127.900014953613,95.76,73.84" Label="Albedo&#xD;&#xA;Gamma Space&#xD;&#xA;&#xD;&#xA;R8G8B8" UseManualLocation="True" />
     <Node Id="FP16" Bounds="303.056666666667,42.2865668701174,78.6666666666667,25.96" Label="FP16 RGBA" />
     <Node Id="FP32R" Bounds="497.398333333333,55.96,55.9833333333333,25.96" Label="FP32 R" />
     <Node Id="GBuffer" Bounds="495.456666666667,0,59.8666666666668,25.96" />
-    <Node Id="MaterialType+Metallic" Bounds="-146.58555271403,120.746678466797,343.903333333333,105.76" Label="Material Type + Metallic&#xD;&#xA;&#xD;&#xA;B16&#xD;&#xA;&#xD;&#xA;Note: Since we use FP format, we can store the type as&#xD;&#xA;an integer and the metallic value (range 0...1) in the fractional" UseManualLocation="True" />
-    <Node Id="Metallic+Mattype" Bounds="814.60406179301,135.859999694824,60.26,41.92" Label="Unused&#xD;&#xA;A8" />
+    <Node Id="MaterialType+Metallic" Bounds="-147.267283562554,120.746682281494,343.903333333333,105.76" Label="Material Type + Metallic&#xD;&#xA;&#xD;&#xA;B16&#xD;&#xA;&#xD;&#xA;Note: Since we use FP format, we can store the type as&#xD;&#xA;an integer and the metallic value (range 0...1) in the fractional" UseManualLocation="True" />
+    <Node Id="Metallic+Mattype" Bounds="745.012716437446,132.859999694824,60.26,41.92" Label="Unused&#xD;&#xA;A8" UseManualLocation="True" />
     <Node Id="R8G8B8A8" Bounds="623.435,55.96,75.91,25.96" Label="R8G8B8A8" />
-    <Node Id="Roughness" Bounds="227.317780619303,126.919999694824,216.78,89.8" Label="Roughness&#xD;&#xA;&#xD;&#xA;A16&#xD;&#xA;&#xD;&#xA;Note: Could combine with other stuff" UseManualLocation="True" />
-    <Node Id="ViewSpaceDepthR32" Bounds="474.097780619303,129.879816589355,115.836666666667,57.88" Label="View Space Depth&#xD;&#xA;&#xD;&#xA;R32" UseManualLocation="True" />
-    <Node Id="ViewSpaceNormal" Bounds="-299.352219380697,126.706759033203,122.766666666667,57.88" Label="View Space Normal&#xD;&#xA;&#xD;&#xA;R16G16" UseManualLocation="True" />
+    <Node Id="Roughness" Bounds="226.636049770779,126.919999694824,216.78,89.8" Label="Roughness&#xD;&#xA;&#xD;&#xA;A16&#xD;&#xA;&#xD;&#xA;Note: Could combine with other stuff" UseManualLocation="True" />
+    <Node Id="ViewSpaceDepthR32" Bounds="473.416049770779,129.879808959961,115.836666666667,57.88" Label="View Space Depth&#xD;&#xA;&#xD;&#xA;R32" UseManualLocation="True" />
+    <Node Id="ViewSpaceNormal" Bounds="-300.033950229221,126.706759033203,122.766666666667,57.88" Label="View Space Normal&#xD;&#xA;&#xD;&#xA;R16G16" UseManualLocation="True" />
   </Nodes>
   <Links>
-    <Link Source="FP16" Target="MaterialType+Metallic" Bounds="175.435087355697,68.2465672302246,132.188384780968,49.3522180680193" />
-    <Link Source="FP16" Target="Roughness" Bounds="338.797119036752,68.2465672302246,2.84871351194596,49.6881873127352" />
-    <Link Source="FP16" Target="ViewSpaceNormal" Bounds="-176.698486328125,60.0055084228516,479.755157470703,63.2248687744141" />
-    <Link Source="FP32R" Target="ViewSpaceDepthR32" Bounds="526.346911242306,81.92005,2.87398667443767,38.98412452997" />
+    <Link Source="FP16" Target="MaterialType+Metallic" Bounds="175.060142091211,68.2465672302246,132.488568933687,49.3581525102023" />
+    <Link Source="FP16" Target="Roughness" Bounds="338.430368207357,68.2465672302246,3.13954322750772,49.6913420753667" />
+    <Link Source="FP16" Target="ViewSpaceNormal" Bounds="-177.379867553711,59.9991683959961,480.436538696289,63.2320404052734" />
+    <Link Source="FP32R" Target="ViewSpaceDepthR32" Bounds="526.248459052229,81.92005,2.57798150980614,38.9793781198757" />
     <Link Source="GBuffer" Target="FP16" Bounds="390.49226677978,19.8967773490147,104.964399886887,24.2545868088153" />
     <Link Source="GBuffer" Target="FP32R" Bounds="525.39,25.95995,2.27373675443232E-13,21.0001" />
     <Link Source="GBuffer" Target="R8G8B8A8" Bounds="554.544702447045,24.976263284351,66.9769727828766,27.5590790130767" />
-    <Link Source="R8G8B8A8" Target="AlbedoGammaSpaceR8G8B8" Bounds="662.259725901145,81.92,2.47919744281603,37.0001431087277" />
-    <Link Source="R8G8B8A8" Target="Metallic+Mattype" Bounds="688.470177908313,81.92,118.018024387569,56.5680905693153" />
+    <Link Source="R8G8B8A8" Target="AlbedoGammaSpaceR8G8B8" Bounds="662.167434790703,81.92,2.21587572004353,36.9961149026545" />
+    <Link Source="R8G8B8A8" Target="Metallic+Mattype" Bounds="678.785267020107,81.92,61.2039406002575,45.6691551830209" />
   </Links>
   <Properties>
     <Property Id="Bounds" DataType="System.Windows.Rect" />

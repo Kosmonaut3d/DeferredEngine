@@ -147,6 +147,7 @@ namespace DeferredEngine.Recources
         public static readonly Effect DeferredCompose = Globals.content.Load<Effect>("Shaders/Deferred/DeferredCompose");
 
         public static readonly EffectParameter DeferredComposeEffectParameter_ColorMap = DeferredCompose.Parameters["colorMap"];
+        public static readonly EffectParameter DeferredComposeEffectParameter_NormalMap = DeferredCompose.Parameters["normalMap"];
         public static readonly EffectParameter DeferredComposeEffectParameter_diffuseLightMap = DeferredCompose.Parameters["diffuseLightMap"];
         public static readonly EffectParameter DeferredComposeEffectParameter_specularLightMap = DeferredCompose.Parameters["specularLightMap"];
         public static readonly EffectParameter DeferredComposeEffectParameter_volumeLightMap = DeferredCompose.Parameters["volumeLightMap"];

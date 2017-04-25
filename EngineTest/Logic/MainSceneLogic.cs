@@ -179,20 +179,20 @@ namespace DeferredEngine.Logic
             AddPointLight(position: new Vector3(-61, 0, 107),
                         radius: 150,
                         color: new Color(104, 163, 223),
-                        intensity: 40,
+                        intensity: 20,
                         castShadows: false,
                         shadowResolution: 1024,
                         staticShadow: false,
-                        isVolumetric: false);
+                        isVolumetric: true);
 
             AddPointLight(position: new Vector3(15, 0, 107),
                         radius: 150,
                         color: new Color(104, 163, 223),
-                        intensity: 40,
+                        intensity: 30,
                         castShadows: false,
                         shadowResolution: 1024,
                         staticShadow: false,
-                        isVolumetric: false);
+                        isVolumetric: true);
 
             AddPointLight(position: new Vector3(66, 0, 40),
                 radius: 120,

@@ -84,9 +84,9 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	// materialType 3 = emissive
 	// materialType 2 = hologram
 	// materialType 1 = default
-	float materialType = decodeMattype(normalInfo.a);
+	float materialType = decodeMattype(normalInfo.b);
 
-	float metalness = decodeMetalness(normalInfo.a);
+	float metalness = decodeMetalness(normalInfo.b);
 
 	//Our "volumetric" light data. This is a seperate buffer that is renders on top of all other stuff.
 	float3 volumetrics = volumeLightMap.Load(texCoordInt).rgb;
@@ -146,18 +146,18 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 		ssaoContribution = SSAOMap.SampleLevel(pointSampler, input.TexCoord, 0).r;
 	}
 
-	float f0 = lerp(0.04f, diffuseColor.g * 0.25 + 0.75, metalness);
+	//float f0 = lerp(0.04f, diffuseColor.g * 0.25 + 0.75, metalness);
 
 	float3 diffuseLight = diffuseLightMap.Load(texCoordInt).rgb;
 	float3 specularLight = specularLightMap.Load(texCoordInt).rgb;
 
 	float3 plasticFinal = diffuseColor.rgb * (diffuseLight)+specularLight;
 
-	float3 metalFinal = specularLight * diffuseColor.rgb;
+	float3 metalFinal = diffuseColor.rgb * specularLight;
 
 	float3 finalValue = lerp(plasticFinal, metalFinal, metalness) + diffuseContrib;
 
-	float3 output = (finalValue * ssaoContribution + volumetrics) ;
+	float3 output = (finalValue * ssaoContribution + volumetrics);
 
 	return float4(output, 1);
 }

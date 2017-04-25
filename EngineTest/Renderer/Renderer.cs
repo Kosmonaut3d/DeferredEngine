@@ -1490,6 +1490,7 @@ namespace DeferredEngine.Renderer
             //_subsurfaceScatterRenderModule.AlbedoMap = _renderTargetAlbedo;
 
             Shaders.DeferredComposeEffectParameter_ColorMap.SetValue(_renderTargetAlbedo);
+            Shaders.DeferredComposeEffectParameter_NormalMap.SetValue(_renderTargetNormal);
             Shaders.DeferredComposeEffectParameter_diffuseLightMap.SetValue(_renderTargetDiffuse);
             Shaders.DeferredComposeEffectParameter_specularLightMap.SetValue(_renderTargetSpecular);
             Shaders.DeferredComposeEffectParameter_volumeLightMap.SetValue(_renderTargetVolume);

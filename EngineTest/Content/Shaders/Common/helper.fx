@@ -51,14 +51,14 @@ static float SampleWeights[9] =
 
 float3 encode(float3 n)
 {
-	return float3(n.xy * 0.5 + 0.5, 0);
+	return float3((n.xy + float2(1.0f, 1.0f)) * 0.5f, 0);
 }
 
 float3 decode(float3 enc)
 {
 	float3 n;
-	n.xy = enc.xy * 2 - 1;
-	n.z = sqrt(1 - dot(n.xy, n.xy));
+	n.xy = enc.xy * 2.0f - float2(1.0f, 1.0f);
+	n.z = sqrt(1.0f - dot(n.xy, n.xy));
 	return n;
 }
 
