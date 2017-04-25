@@ -206,7 +206,7 @@ PixelShaderOutput PixelShaderFunctionBasic(VertexShaderOutput input)
     float4 color = AlbedoMap.Load(texCoordInt);
 
     float metalness = decodeMetalness(normalData.b);
-    
+
     float f0 = lerp(0.04f, color.g * 0.25 + 0.75, metalness);
 
     //float materialType = decodeMattype(color.a);

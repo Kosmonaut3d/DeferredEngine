@@ -150,7 +150,7 @@ namespace DeferredEngine.Renderer.RenderModules
             _WorldView.SetValue(worldView);
             _WorldViewProj.SetValue(localWorldMatrix * viewProjection);
 
-            worldView = Matrix.Transpose(Matrix.Invert(worldView));
+            worldView = Matrix.Invert(Matrix.Transpose(worldView));
             _WorldViewIT.SetValue(worldView);
 
             _gbufferShader.CurrentTechnique.Passes[0].Apply();

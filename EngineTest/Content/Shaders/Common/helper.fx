@@ -49,51 +49,37 @@ static float SampleWeights[9] =
 //Leaving out the third component, since view space normals have a z that always looks towards the camera
 //it's length can be inferred from the other 2 components.
 
+//float3 encode(float3 n)
+//{
+//	return float3((n.xy + float2(1.0f, 1.0f)) * 0.5f, 0);
+//}
+
+//float3 decode(float3 enc)
+//{
+//	float3 n;
+//	n.xy = enc.xy * 2.0f - float2(1.0f, 1.0f);
+//	n.z = sqrt(1.0f - dot(n.xy, n.xy));
+//	return n;
+//}
+
+//Normal encodings http://aras-p.info/texts/CompactNormalStorage.html
+//Spheremap Transform
 float3 encode(float3 n)
 {
-	return float3((n.xy + float2(1.0f, 1.0f)) * 0.5f, 0);
+	float f = sqrt(8 * n.z + 8);
+	return float3(n.xy / f + 0.5, 0);
 }
 
 float3 decode(float3 enc)
 {
+	float2 fenc = enc.xy * 4 - 2;
+	float f = dot(fenc, fenc);
+	float g = sqrt(1 - f / 4);
 	float3 n;
-	n.xy = enc.xy * 2.0f - float2(1.0f, 1.0f);
-	n.z = sqrt(1.0f - dot(n.xy, n.xy));
+	n.xy = fenc*g;
+	n.z = 1 - f / 2;
 	return n;
 }
-
-//float2 encode(float3 n)
-//{
-//    half2 enc = normalize(n.xy) * (sqrt(-n.z * 0.5 + 0.5));
-//    enc = enc * 0.5 + 0.5;
-//    return enc;
-//}
-
-//float3 decode(float4 enc)
-//{
-//    half4 nn = enc * half4(2, 2, 0, 0) + half4(-1, -1, 1, -1);
-//    half l = dot(nn.xyz, -nn.xyw);
-//    nn.z = l;
-//    nn.xy *= sqrt(l);
-//    return nn.xyz * 2 + half3(0, 0, -1);
-//}
-
-
-//half2 encode(float3 n)
-//{
-//    half f = sqrt(8 * n.z + 8);
-//    return n.xy / f + 0.5;
-//}
-//half3 decode(half4 enc)
-//{
-//    half2 fenc = enc * 4 - 2;
-//    half f = dot(fenc, fenc);
-//    half g = sqrt(1 - f / 4);
-//    half3 n;
-//    n.xy = fenc * g;
-//    n.z = 1 - f / 2;
-//    return n;
-//}
 
 //Since we encode in fp16 renderformat we can use values > 1.
 //Since I don't plan to have a lot of mattypes I use the mattype as the int and the metalness as the fractional
