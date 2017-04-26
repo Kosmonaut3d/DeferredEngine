@@ -1274,3 +1274,21 @@
 /processorParam:DebugMode=Auto
 /build:Shaders/Forward/Forward.fx
 
+#begin Shaders/PostProcessing/ColorGrading.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/PostProcessing/ColorGrading.fx
+
+#begin Shaders/PostProcessing/lut.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Shaders/PostProcessing/lut.png
+

@@ -85,7 +85,7 @@
     <Compile Include="Entities\Camera.cs" />
     <Compile Include="Logic\DebugScreen.cs" />
     <Compile Include="Renderer\Helper\FullScreenQuadRenderer.cs" />
-    <Compile Include="Renderer\RenderModules\BloomFilter.cs" />
+    <Compile Include="Renderer\RenderModules\PostProcessingFilters\BloomFilter.cs" />
     <Compile Include="Renderer\Helper\FastRand.cs" />
     <Compile Include="Renderer\Helper\LineHelper.cs" />
     <Compile Include="Renderer\Helper\LineHelperManager.cs" />
@@ -101,6 +101,7 @@
     <Compile Include="Renderer\RenderModules\Default\IRenderModule.cs" />
     <Compile Include="Renderer\RenderModules\GBufferRenderModule.cs" />
     <Compile Include="Renderer\RenderModules\DeferredEnvironmentMapRenderModule.cs" />
+    <Compile Include="Renderer\RenderModules\PostProcessingFilters\ColorGradingFilter.cs" />
     <Compile Include="Renderer\RenderModules\SubsurfaceScatterRenderModule.cs" />
     <Compile Include="Renderer\RenderModules\TemporalAntialiasingRenderModule.cs" />
     <Compile Include="Renderer\RenderModules\Default\RenderModuleTemplate.cs" />

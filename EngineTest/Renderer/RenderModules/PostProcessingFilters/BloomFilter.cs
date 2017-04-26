@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace DeferredEngine.Renderer.RenderModules
+namespace DeferredEngine.Renderer.RenderModules.PostProcessingFilters
 {
     /// <summary>
     /// Bloom / Blur, 2016 TheKosmonaut

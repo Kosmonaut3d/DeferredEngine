@@ -211,6 +211,8 @@ namespace DeferredEngine.Recources
             }
         }
 
+        public static bool g_ColorGrading = true;
+
         // SSR
 
         private static bool _g_SSReflection = true;

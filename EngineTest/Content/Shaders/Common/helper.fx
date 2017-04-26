@@ -63,6 +63,7 @@ static float SampleWeights[9] =
 //}
 
 //Normal encodings http://aras-p.info/texts/CompactNormalStorage.html
+//maybe worth checking out https://knarkowicz.wordpress.com/2014/04/16/octahedron-normal-vector-encoding/
 //Spheremap Transform
 float3 encode(float3 n)
 {

@@ -207,9 +207,15 @@ namespace DeferredEngine.Logic
                 SliderValue = GameSettings.ChromaticAbberationStrength
             });
 
-                /////////////////////////////////////////////////////////////////
-                //SSR
-                /////////////////////////////////////////////////////////////////
+            postprocessingList.AddElement(new GUITextBlockToggle(defaultStyle, "Color Grading")
+            {
+                ToggleField = typeof(GameSettings).GetField("g_ColorGrading"),
+                Toggle = GameSettings.g_ColorGrading
+            });
+
+            /////////////////////////////////////////////////////////////////
+            //SSR
+            /////////////////////////////////////////////////////////////////
 
             optionList.AddElement(new GUITextBlock(Vector2.Zero, new Vector2(200, 10), "Screen Space Reflections",
                 defaultStyle.TextFontStyle, Color.DarkSlateGray, Color.White, GUIStyle.TextAlignment.Center,

@@ -7,6 +7,7 @@ using DeferredEngine.Recources;
 using DeferredEngine.Recources.Helper;
 using DeferredEngine.Renderer.Helper;
 using DeferredEngine.Renderer.RenderModules;
+using DeferredEngine.Renderer.RenderModules.PostProcessingFilters;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
@@ -32,7 +33,6 @@ namespace DeferredEngine.Renderer
         private GaussianBlur _gaussianBlur;
         private EditorRender _editorRender;
         private CPURayMarch _cpuRayMarch;
-        private BloomFilter _bloomFilter;
         private LightAccumulationModule _lightAccumulationModule;
 
         private ShadowMapRenderModule _shadowMapRenderModule;
@@ -42,6 +42,9 @@ namespace DeferredEngine.Renderer
         private DecalRenderModule _decalRenderModule;
         private SubsurfaceScatterRenderModule _subsurfaceScatterRenderModule;
         private ForwardRenderModule _forwardRenderModule;
+
+        private BloomFilter _bloomFilter;
+        private ColorGradingFilter _colorGradingFilter;
 
         //Assets
         private Assets _assets;
@@ -144,6 +147,10 @@ namespace DeferredEngine.Renderer
         
         //Cubemap
         private RenderTargetCube _renderTargetCubeMap;
+
+        //Color Correction LUT
+
+        private Texture2D _lut;
         
 
         //Performance Profiler
@@ -184,7 +191,9 @@ namespace DeferredEngine.Renderer
 
             _inverseResolution = new Vector3(1.0f / GameSettings.g_screenwidth, 1.0f / GameSettings.g_ScreenHeight, 0);
             
-            
+            _colorGradingFilter = new ColorGradingFilter(content, "Shaders/PostProcessing/ColorGrading");
+
+            _lut = content.Load<Texture2D>("Shaders/PostProcessing/lut");
         }
 
         /// <summary>
@@ -207,6 +216,8 @@ namespace DeferredEngine.Renderer
             _cpuRayMarch.Initialize(_graphicsDevice);
 
             _bloomFilter.Initialize(_graphicsDevice, GameSettings.g_screenwidth, GameSettings.g_ScreenHeight);
+
+            _colorGradingFilter.Initialize(graphicsDevice);
 
             _lightAccumulationModule = new LightAccumulationModule();
             _lightAccumulationModule.Initialize(graphicsDevice, _quadRenderer, assets);
@@ -1309,6 +1320,9 @@ namespace DeferredEngine.Renderer
             
             Shaders.PostProcessing.CurrentTechnique.Passes[0].Apply();
             _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+
+            if(GameSettings.g_ColorGrading)
+            destinationRenderTarget = _colorGradingFilter.Draw(_graphicsDevice, destinationRenderTarget, _lut);
 
             DrawMapToScreenToFullScreen(destinationRenderTarget);
         }
