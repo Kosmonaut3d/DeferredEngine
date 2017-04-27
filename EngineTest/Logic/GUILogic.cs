@@ -42,18 +42,19 @@ namespace DeferredEngine.Logic
         private Vector3 activeObjectPos;
 
 
-        public void Initialize(Assets assets)
+        public void Initialize(Assets assets, Camera sceneLogicCamera)
         {
             _assets = assets;
 
-            CreateGUI();
+            CreateGUI(sceneLogicCamera);
         }
 
 
         /// <summary>
         /// Creates the GUI for the default editor
         /// </summary>
-        private void CreateGUI()
+        /// <param name="sceneLogicCamera"></param>
+        private void CreateGUI(Camera sceneLogicCamera)
         {
             GuiCanvas = new GUICanvas(Vector2.Zero, new Vector2(GameSettings.g_screenwidth, GameSettings.g_ScreenHeight));
 
@@ -128,6 +129,13 @@ namespace DeferredEngine.Logic
             {
                 ToggleField = typeof(GameSettings).GetField("d_defaultmaterial"),
                 Toggle = GameSettings.d_defaultmaterial
+            });
+
+            _rightSideList.AddElement(new GuiSliderFloatText(defaultStyle, 0.1f, 3/*(float) (Math.PI - 0.1)*/, 2, "Field Of View: ")
+            {
+                SliderObject = sceneLogicCamera,
+                SliderProperty = typeof(Camera).GetProperty("FieldOfView"),
+                SliderValue = sceneLogicCamera.FieldOfView
             });
 
             //_rightSideList.AddElement(new GuiDropList(defaultStyle, "Show: ")

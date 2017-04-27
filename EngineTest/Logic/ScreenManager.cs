@@ -35,7 +35,7 @@ namespace DeferredEngine.Logic
         {
             _renderer.Initialize(graphicsDevice, _assets);
             _sceneLogic.Initialize(_assets, space, graphicsDevice);
-            _guiLogic.Initialize(_assets);
+            _guiLogic.Initialize(_assets, _sceneLogic.Camera);
             _editorLogic.Initialize(graphicsDevice);
             _debug.Initialize(graphicsDevice);
             _guiRenderer.Initialize(graphicsDevice, GameSettings.g_screenwidth, GameSettings.g_ScreenHeight);

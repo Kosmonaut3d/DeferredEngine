@@ -18,7 +18,7 @@ TODO:
 
 - Integrate the physics system better into the lighting system so it doesnot update when the position doesn't change any more.
 
--http://aras-p.info/texts/CompactNormalStorage.html
+- Integrate LUTs/Color Correction into the post processing step instead of yet another rendertarget usage.
 
-
+- check out:
 https://github.com/kode80/kode80SSR/blob/master/Assets/Resources/Shaders/SSR.shader
