@@ -55,13 +55,18 @@ namespace DeferredEngine.Entities
         private float _sizeY;
         private float _sizeZ;
 
-        public VolumeTextureEntity(Vector3 vector3, Texture2D texture, Vector3 size)
+        public VolumeTextureEntity(string texturepath, GraphicsDevice graphics, Vector3 position, Vector3 size)
         {
-            Position = vector3;
+            Position = position;
 
             Id = IdGenerator.GetNewId();
             Name = GetType().Name + " " + Id;
-            Texture = texture;
+            int zdepth;
+            Texture = DataStream.LoadFromFile(graphics, texturepath, out zdepth);
+            Resolution.Y = Texture.Height;
+            Resolution.Z = zdepth;
+            Resolution.X = Texture.Width / zdepth;
+
             Size = size;
             _sizeX = size.X;
             _sizeY = size.Y;

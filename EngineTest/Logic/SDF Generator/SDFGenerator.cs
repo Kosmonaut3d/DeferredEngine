@@ -3,14 +3,17 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using BEPUphysics.BroadPhaseEntries.MobileCollidables;
 using BEPUphysics.CollisionShapes.ConvexShapes;
 using DeferredEngine.Entities;
+using DeferredEngine.Recources;
 using DeferredEngine.Recources.Helper;
 using DeferredEngine.Renderer.Helper.HelperGeometry;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 
 namespace DeferredEngine.Logic.SDF_Generator
 {
@@ -19,6 +22,10 @@ namespace DeferredEngine.Logic.SDF_Generator
         public Vector3[] vertices;
         public Triangle[] triangles;
         public List<SamplePoint> points = new List<SamplePoint>();
+        private Task generateTask;
+        private Texture2D texture;
+        private bool setup = false;
+        private Task generateTris;
 
         public struct Triangle
         {
@@ -43,9 +50,6 @@ namespace DeferredEngine.Logic.SDF_Generator
 
         public void Generate(BasicEntity entity)
         {
-
-            return;
-            
             //Extract all triangles
             //foreach (ModelMesh modelmesh in entity.Model.Meshes)
             //{
@@ -64,26 +68,29 @@ namespace DeferredEngine.Logic.SDF_Generator
             //    }
             //}
 
-            int[] indices;
-            ModelDataExtractor.GetVerticesAndIndicesFromModel(entity.Model, out vertices, out indices);
-            
-            triangles = new Triangle[indices.Length/3];
-
-            for (var index = 0; index < vertices.Length; index++)
+            generateTris = Task.Factory.StartNew(() =>
             {
-                vertices[index] = Vector3.Transform(vertices[index], entity.WorldTransform.World);
-            }
 
-            int baseIndex = 0;
-            for (var i = 0; i < triangles.Length; i++, baseIndex+=3)
-            {
-                triangles[i].a = vertices[indices[baseIndex]];
-                triangles[i].b = vertices[indices[baseIndex+1]];
-                triangles[i].c = vertices[indices[baseIndex+2]];
-                //normal
-                triangles[i].n = Vector3.Cross(triangles[i].c - triangles[i].a, triangles[i].b - triangles[i].a);
-            }
+                int[] indices;
+                ModelDataExtractor.GetVerticesAndIndicesFromModel(entity.Model, out vertices, out indices);
 
+                triangles = new Triangle[indices.Length / 3];
+
+                for (var index = 0; index < vertices.Length; index++)
+                {
+                    vertices[index] = Vector3.Transform(vertices[index], entity.WorldTransform.World);
+                }
+
+                int baseIndex = 0;
+                for (var i = 0; i < triangles.Length; i++, baseIndex += 3)
+                {
+                    triangles[i].a = vertices[indices[baseIndex]];
+                    triangles[i].b = vertices[indices[baseIndex + 1]];
+                    triangles[i].c = vertices[indices[baseIndex + 2]];
+                    //normal
+                    triangles[i].n = Vector3.Cross(triangles[i].c - triangles[i].a, triangles[i].b - triangles[i].a);
+                }
+            });
             //for (var index = 0; index < points.Length; index++)
             //{
             //    points[index] = Vector3.Transform(points[index], entity.WorldTransform.World);
@@ -112,54 +119,72 @@ namespace DeferredEngine.Logic.SDF_Generator
             //}
 
 
-            if (volumeTex.NeedsUpdate)
+            if (volumeTex.NeedsUpdate && Input.WasKeyPressed(Keys.J) && generateTris!=null && generateTris.IsCompleted)
             {
-                
-                volumeTex.NeedsUpdate = false;
-                //Let's assume 9 sample poitns for testing
-                int steps = 25;
-                int xi = 0;
-                int yi = 0;
-                int zi = 0;
-
-                int xsteps = (int) (volumeTex.SizeX * 2 / steps) + 1;
-                int ysteps = (int) (volumeTex.SizeY * 2 / steps) + 1;
-                int zsteps = (int) (volumeTex.SizeZ * 2 / steps) + 1;
-
-                Texture2D texture = new Texture2D(graphics, xsteps * zsteps, ysteps, false, SurfaceFormat.Single);
-
-                volumeTex.Resolution = new Vector3(xsteps, ysteps, zsteps);
-
-                float[] data = new float[xsteps * ysteps * zsteps];
-
-                float x;
-                float y;
-                float z;
-
-                for (x = (int) -volumeTex.SizeX, xi = 0; x <= volumeTex.SizeX; x += steps, xi++)
+                setup = true;
+                generateTask = Task.Factory.StartNew(() =>
                 {
-                    for (y = (int)-volumeTex.SizeY, yi = 0; y <= volumeTex.SizeY; y += steps, yi++)
+                    volumeTex.NeedsUpdate = false;
+
+                    int stepssize = 100;
+                    int xi = 0;
+                    int yi = 0;
+                    int zi = 0;
+
+                    int xsteps = (int) (volumeTex.SizeX * 2 / stepssize) + 1;
+                    int ysteps = (int) (volumeTex.SizeY * 2 / stepssize) + 1;
+                    int zsteps = (int) (volumeTex.SizeZ * 2 / stepssize) + 1;
+
+                    texture = new Texture2D(graphics, xsteps * zsteps, ysteps, false, SurfaceFormat.Single);
+
+                    volumeTex.Resolution = new Vector3(xsteps, ysteps, zsteps);
+
+                    float[] data = new float[xsteps * ysteps * zsteps];
+
+                    float x;
+                    float y;
+                    float z;
+
+                    for (x = (int) -volumeTex.SizeX, xi = 0; x <= volumeTex.SizeX; x += stepssize, xi++)
                     {
-                        for (z = (int)-volumeTex.SizeZ, zi = 0; z <= volumeTex.SizeZ; z += steps, zi++)
+                        for (y = (int) -volumeTex.SizeY, yi = 0; y <= volumeTex.SizeY; y += stepssize, yi++)
                         {
-                            Vector3 position = volumeTex.Position + new Vector3(x, y, z);
-                            float color = ComputeSDF(position);
-                            points.Add(new SamplePoint(position, color / 10));
+                            for (z = (int) -volumeTex.SizeZ, zi = 0; z <= volumeTex.SizeZ; z += stepssize, zi++)
+                            {
+                                Vector3 position = volumeTex.Position + new Vector3(x, y, z);
+                                float color = ComputeSDF(position);
 
-                            data[toTexCoords(xi, yi, zi, xsteps, zsteps)] = color;
+                                if (xi == 1) color = 1;
+                                //points.Add(new SamplePoint(position, color));
+
+                                data[toTexCoords(xi, yi, zi, xsteps, zsteps)] = color;
+
+                                GameStats.sdf_load = (xi + (yi + zi / (float)zsteps) / (float)ysteps) / (float)xsteps;
+                            }
                         }
+
                     }
-                }
 
-                texture.SetData(data);
+                    texture.SetData(data);
 
-                //Stream stream = File.Create("volumetex");
-                //texture.SaveAsPng(stream, texture.Width, texture.Height);
-                //stream.Dispose();
+                    string path = "sponza_sdf.sdff";
 
-                volumeTex.Texture = texture;
+                    //Store
+                    DataStream.SaveImageData(data, xsteps, ysteps, zsteps, path);
+
+                    //Stream stream = File.Create("volumetex");
+                    //texture.SaveAsPng(stream, texture.Width, texture.Height);
+                    //stream.Dispose();
+
+                    GameStats.sdf_load = 0;
+                });
             }
 
+            if (setup && generateTask != null && generateTask.IsCompleted)
+            {
+                setup = false;
+                volumeTex.Texture = texture;
+            }
 
 
             foreach (var sample in points)

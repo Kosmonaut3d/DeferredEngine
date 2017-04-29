@@ -103,11 +103,11 @@ float4 PixelShaderFunctionBasic(VertexShaderOutput input) : COLOR0
 
 	//x and y are correct, the z determines how much x is shifted.
 	float x = trunc(relativePosition.x);
-	float xfrac = relativePosition.x;
+	float xfrac = frac(relativePosition.x);
 	float y = trunc(relativePosition.y);
-	float yfrac = relativePosition.y;
+	float yfrac = frac(relativePosition.y);
 	float z = trunc(relativePosition.z);
-	float zfrac = relativePosition.z;
+	float zfrac = frac(relativePosition.z);
 
 	float x0y0z0;
 	float x1y0z0;
@@ -118,17 +118,18 @@ float4 PixelShaderFunctionBasic(VertexShaderOutput input) : COLOR0
 	float x0y1z1;
 	float x1y1z1;
 
-	x += VolumeTexResolution * z;
+	x += VolumeTexResolution.x * z;
 	 x0y0z0 = VolumeTex.Load(int3(x, y, 0)).r;
 	 x1y0z0 = VolumeTex.Load(int3(x+1, y, 0)).r;
 	 x0y1z0 = VolumeTex.Load(int3(x, y+1, 0)).r;
 	 x1y1z0 = VolumeTex.Load(int3(x+1, y + 1, 0)).r;
 
-	x += VolumeTexResolution;
+	x += VolumeTexResolution.x ;
 	 x0y0z1 = VolumeTex.Load(int3(x, y, 0)).r;
 	 x1y0z1 = VolumeTex.Load(int3(x + 1, y, 0)).r;
 	 x0y1z1 = VolumeTex.Load(int3(x, y + 1, 0)).r;
 	 x1y1z1 = VolumeTex.Load(int3(x + 1, y + 1, 0)).r;
+
 
 	float4 lerpz0 = lerp( lerp(x0y0z0, x1y0z0, xfrac), lerp(x0y1z0, x1y1z0, xfrac), yfrac);
 	float4 lerpz1 = lerp(lerp(x0y0z1, x1y0z1, xfrac), lerp(x0y1z1, x1y1z1, xfrac), yfrac);

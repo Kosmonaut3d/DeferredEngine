@@ -71,11 +71,11 @@ namespace DeferredEngine.Logic
 
             MeshMaterialLibrary = new MeshMaterialLibrary(graphicsDevice);
 
-            SetUpEditorScene();
+            SetUpEditorScene(graphicsDevice);
         }
 
         //Load our default setup!
-        private void SetUpEditorScene()
+        private void SetUpEditorScene(GraphicsDevice graphics)
         {
             ////////////////////////////////////////////////////////////////////////
             // Camera
@@ -89,7 +89,7 @@ namespace DeferredEngine.Logic
 
             EnvironmentSample = new EnvironmentSample(new Vector3(-45,-5,5));
 
-            VolumeTexture = new VolumeTextureEntity(new Vector3(-7, 0, 63), _assets.VolumeTexture, new Vector3(200, 100, 100)) {NeedsUpdate = true};
+            VolumeTexture = new VolumeTextureEntity("Content/Sponza/sponza_sdf.sdff", graphics, new Vector3(-7, 0, 63), new Vector3(200, 100, 100));
 
             _sdfGenerator = new SDFGenerator();
 

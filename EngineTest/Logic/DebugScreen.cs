@@ -60,7 +60,8 @@ namespace DeferredEngine.Logic
         private readonly StringBuilder sb_emissive = new StringBuilder(" emissive: ");
         private readonly StringBuilder sb_shadowmaps = new StringBuilder(" shadowmaps: ");
         private readonly StringBuilder sb_slash = new StringBuilder("/");
-        
+        private readonly StringBuilder sb_sdfgeneration = new StringBuilder("\n sdf generation: ");
+
         public StringBuilder[] RenderModesSB =
         {
             new StringBuilder( ((Renderer.Renderer.RenderModes)0).ToString() ),
@@ -340,6 +341,12 @@ namespace DeferredEngine.Logic
                 _mngStringBuilder.Append(GameStats.activeShadowMaps);
                 _mngStringBuilder.Append(sb_slash);
                 _mngStringBuilder.Append(GameStats.shadowMaps);
+
+                if (GameStats.sdf_load > 0)
+                {
+                    _mngStringBuilder.Append(sb_sdfgeneration);
+                    _mngStringBuilder.Append(GameStats.sdf_load);
+                }
 
                 _spriteBatch.DrawString(_monospaceFont, _mngStringBuilder.StringBuilder,
                     new Vector2(10.0f, 10.0f), Color.White);

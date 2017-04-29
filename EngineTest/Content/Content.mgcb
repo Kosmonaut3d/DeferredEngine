@@ -1310,3 +1310,6 @@
 /processorParam:DebugMode=Auto
 /build:Shaders/SignedDistanceFields/volumeProjection.fx
 
+#begin Sponza/sponza_sdf.sdff
+/copy:Sponza/sponza_sdf.sdff
+

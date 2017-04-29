@@ -356,10 +356,15 @@ namespace DeferredEngine.Renderer
             RenderMode(_currentOutput);
 
             //Draw test volume tex
-            /*_volumeProjectionRenderModule.Draw(_graphicsDevice, camera, volumeTexture, _quadRenderer);
+            _volumeProjectionRenderModule.Draw(_graphicsDevice, camera, volumeTexture, _quadRenderer);
 
             sdfGenerator.Update(volumeTexture, _graphicsDevice);
-            */
+
+            _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.PointClamp);
+                        _spriteBatch.Draw(volumeTexture.Texture,
+                            new Rectangle(0, GameSettings.g_ScreenHeight - volumeTexture.Texture.Height * 20, volumeTexture.Texture.Width * 20, volumeTexture.Texture.Height * 20), Color.White);
+                        _spriteBatch.End();
+
 
             //Additional editor elements that overlay our screen
             if (GameSettings.e_enableeditor && GameStats.e_EnableSelection)

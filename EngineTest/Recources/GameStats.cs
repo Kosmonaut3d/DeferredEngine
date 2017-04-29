@@ -34,5 +34,6 @@ namespace DeferredEngine.Recources
         public static bool e_EnableSelection = false;
         public static EditorLogic.GizmoModes e_gizmoMode = EditorLogic.GizmoModes.Translation;
         public static bool e_LocalTransformation = false;
+        public static float sdf_load = 0;
     }
 }

@@ -73,6 +73,7 @@ namespace DeferredEngine.Recources
         public SpriteFont MonospaceFont;
 
         public Texture2D VolumeTexture;
+        public Texture2D VolumeTextureSponzaSDF;
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////
         //  FUNCTIONS
@@ -125,7 +126,6 @@ namespace DeferredEngine.Recources
             NoiseMap = content.Load<Texture2D>("Shaders/noise_blur");
 
             VolumeTexture = content.Load<Texture2D>("Shaders/SignedDistanceFields/sampleTexture");
-
             //Meshes and Materials
 
             //Trabant = content.Load<Model>("Art/test/source/trabant_realtime_v3");
