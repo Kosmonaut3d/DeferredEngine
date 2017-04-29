@@ -34,7 +34,7 @@ namespace DeferredEngine.Renderer.RenderModules
             _assets = assets;
         }
 
-        public void Draw(MeshMaterialLibrary meshMat, List<Decal> decals, List<PointLight> pointLights, List<DirectionalLight> dirLights, EnvironmentSample envSample, Matrix viewProjection, Matrix view, EditorLogic.EditorSendData editorData, bool mouseMoved)
+        public void Draw(MeshMaterialLibrary meshMat, List<Decal> decals, List<PointLight> pointLights, List<DirectionalLight> dirLights, EnvironmentSample envSample, VolumeTextureEntity volumeTexture, Matrix viewProjection, Matrix view, EditorLogic.EditorSendData editorData, bool mouseMoved)
         {
             if (editorData.GizmoTransformationMode)
             {
@@ -45,14 +45,14 @@ namespace DeferredEngine.Renderer.RenderModules
 
             if (mouseMoved)
             {
-                DrawIds(meshMat, decals, pointLights, dirLights, envSample, viewProjection, view, editorData);
+                DrawIds(meshMat, decals, pointLights, dirLights, envSample, volumeTexture, viewProjection, view, editorData);
             }
 
             if(GameSettings.e_drawoutlines)
                 DrawOutlines(meshMat, viewProjection, mouseMoved, HoveredId, editorData, mouseMoved);
         }
 
-        public void DrawIds(MeshMaterialLibrary meshMat, List<Decal> decals, List<PointLight> pointLights, List<DirectionalLight> dirLights, EnvironmentSample envSample, Matrix viewProjection, Matrix view, EditorLogic.EditorSendData editorData)
+        public void DrawIds(MeshMaterialLibrary meshMat, List<Decal> decals, List<PointLight> pointLights, List<DirectionalLight> dirLights, EnvironmentSample envSample, VolumeTextureEntity volumeTexture, Matrix viewProjection, Matrix view, EditorLogic.EditorSendData editorData)
         {
             
             _graphicsDevice.SetRenderTarget(_idRenderTarget2D);
@@ -64,7 +64,7 @@ namespace DeferredEngine.Renderer.RenderModules
             meshMat.Draw(MeshMaterialLibrary.RenderType.IdRender, viewProjection);
 
             //Now onto the billboards
-            DrawBillboards(decals, pointLights, dirLights, envSample, viewProjection, view);
+            DrawBillboards(decals, pointLights, dirLights, envSample, volumeTexture, viewProjection, view);
 
             //Now onto the gizmos
             DrawGizmos(viewProjection, editorData, _assets);
@@ -76,6 +76,7 @@ namespace DeferredEngine.Renderer.RenderModules
 
             try
             {
+                if(sourceRectangle.X >= 0 && sourceRectangle.Y >= 0 && sourceRectangle.X < _idRenderTarget2D.Width - 2 && sourceRectangle.Y < _idRenderTarget2D.Height - 2)
                 _idRenderTarget2D.GetData(0, sourceRectangle, retrievedColor, 0, 1);
             }
             catch
@@ -95,7 +96,7 @@ namespace DeferredEngine.Renderer.RenderModules
             _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2);
         }
 
-        public void DrawBillboards(List<Decal> decals, List<PointLight> lights, List<DirectionalLight> dirLights, EnvironmentSample envSample, Matrix staticViewProjection, Matrix view)
+        public void DrawBillboards(List<Decal> decals, List<PointLight> lights, List<DirectionalLight> dirLights, EnvironmentSample envSample, VolumeTextureEntity volumeTexture, Matrix staticViewProjection, Matrix view)
         {
             _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
             _graphicsDevice.SetVertexBuffer(_billboardBuffer.VBuffer);
@@ -125,12 +126,16 @@ namespace DeferredEngine.Renderer.RenderModules
                 Matrix world = Matrix.CreateTranslation(light.Position);
                 DrawBillboard(world, view, staticViewProjection, light.Id);
             }
-
-
+            
             Shaders.BillboardEffectParameter_Texture.SetValue(_assets.IconEnvmap);
             {
                 Matrix world = Matrix.CreateTranslation(envSample.Position);
                 DrawBillboard(world, view, staticViewProjection, envSample.Id);
+            }
+
+            {
+                Matrix world = Matrix.CreateTranslation(volumeTexture.Position);
+                DrawBillboard(world, view, staticViewProjection, volumeTexture.Id);
             }
         }
         

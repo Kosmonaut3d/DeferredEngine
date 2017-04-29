@@ -166,7 +166,7 @@ namespace DeferredEngine.Renderer.RenderModules
 
             _graphicsDevice.DepthStencilState = DepthStencilState.Default;
             Shaders.ReconstructDepth.CurrentTechnique.Passes[0].Apply();
-            _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+            _quadRenderer.RenderFullscreenQuad(_graphicsDevice);
         }
 
         /// <summary>

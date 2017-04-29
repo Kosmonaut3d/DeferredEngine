@@ -59,7 +59,7 @@ float4 PixelShaderFunctionColor(float4 SV_POSITION: SV_Position) : SV_TARGET0
 //  TECHNIQUES
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-technique Line
+technique VertexColor
 {
 	pass Pass1
 	{
@@ -68,7 +68,7 @@ technique Line
 	}
 }
 
-technique OneColor
+technique GlobalColor
 {
     pass Pass1
     {

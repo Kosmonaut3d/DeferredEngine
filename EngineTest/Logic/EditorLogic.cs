@@ -60,7 +60,15 @@ namespace DeferredEngine.Logic
         /// <param name="gameTime"></param>
         /// <param name="entities"></param>
         /// <param name="data"></param>
-        public void Update(GameTime gameTime, List<BasicEntity> entities, List<Decal> decals, List<PointLight> pointLights, List<DirectionalLight> dirLights, EnvironmentSample envSample, EditorReceivedData data, MeshMaterialLibrary meshMaterialLibrary)
+        public void Update(GameTime gameTime, 
+            List<BasicEntity> entities, 
+            List<Decal> decals, 
+            List<PointLight> pointLights, 
+            List<DirectionalLight> dirLights, 
+            EnvironmentSample envSample, 
+            VolumeTextureEntity volumeTexture,
+            EditorReceivedData data, 
+            MeshMaterialLibrary meshMaterialLibrary)
         {
             if (!GameSettings.e_enableeditor) return;
 
@@ -147,6 +155,13 @@ namespace DeferredEngine.Logic
                         if (envSample.Id == hoveredId)
                         {
                             SelectedObject = envSample;
+                        }
+                    }
+
+                    {
+                        if (volumeTexture.Id == hoveredId)
+                        {
+                            SelectedObject = volumeTexture;
                         }
                     }
                 }

@@ -48,9 +48,6 @@ namespace DeferredEngine.Recources
         public static readonly EffectTechnique BillboardEffectTechnique_Billboard = BillboardEffect.Techniques["Billboard"];
         public static readonly EffectTechnique BillboardEffectTechnique_Id = BillboardEffect.Techniques["Id"];
 
-        //Lines
-        public static readonly Effect LineEffect = Globals.content.Load<Effect>("Shaders/Editor/LineEffect");
-        public static readonly EffectParameter LineEffectParameter_WorldViewProj = LineEffect.Parameters["WorldViewProj"];
 
         //Temporal AntiAliasing
 

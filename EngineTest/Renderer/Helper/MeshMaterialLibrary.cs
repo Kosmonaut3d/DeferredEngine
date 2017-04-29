@@ -620,7 +620,7 @@ namespace DeferredEngine.Renderer.Helper
         private void ClearFrame(GraphicsDevice graphicsDevice)
         {
             Shaders.DeferredClear.CurrentTechnique.Passes[0].Apply();
-            _quadRenderer.RenderQuad(graphicsDevice, -Vector2.One, Vector2.One);
+            _quadRenderer.RenderFullscreenQuad(graphicsDevice);
         }
 
         //I don't want to fill up the main Draw as much! Not used right  now

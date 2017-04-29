@@ -46,7 +46,7 @@ namespace DeferredEngine.Logic
         {
             _sceneLogic.Update(gameTime, isActive);
             _guiLogic.Update(gameTime, isActive, _editorLogic.SelectedObject);
-            _editorLogic.Update(gameTime, _sceneLogic.BasicEntities, _sceneLogic.Decals, _sceneLogic.PointLights, _sceneLogic.DirectionalLights, _sceneLogic.EnvironmentSample, _editorReceivedDataBuffer, _sceneLogic.MeshMaterialLibrary);
+            _editorLogic.Update(gameTime, _sceneLogic.BasicEntities, _sceneLogic.Decals, _sceneLogic.PointLights, _sceneLogic.DirectionalLights, _sceneLogic.EnvironmentSample, _sceneLogic.VolumeTexture, _editorReceivedDataBuffer, _sceneLogic.MeshMaterialLibrary);
             _renderer.Update(gameTime, isActive);
             
             _debug.Update(gameTime);
@@ -80,7 +80,16 @@ namespace DeferredEngine.Logic
         public void Draw(GameTime gameTime)
         {
             //Our renderer gives us information on what id is currently hovered over so we can update / manipulate objects in the logic functions
-            _editorReceivedDataBuffer = _renderer.Draw(_sceneLogic.Camera, _sceneLogic.MeshMaterialLibrary, _sceneLogic.BasicEntities, _sceneLogic.Decals, pointLights: _sceneLogic.PointLights, directionalLights: _sceneLogic.DirectionalLights, envSample: _sceneLogic.EnvironmentSample, editorData: _editorLogic.GetEditorData(), gameTime: gameTime);
+            _editorReceivedDataBuffer = _renderer.Draw(_sceneLogic.Camera, 
+                _sceneLogic.MeshMaterialLibrary, 
+                _sceneLogic.BasicEntities, _sceneLogic.Decals,
+                pointLights: _sceneLogic.PointLights,
+                directionalLights: _sceneLogic.DirectionalLights, 
+                envSample: _sceneLogic.EnvironmentSample, 
+                volumeTexture: _sceneLogic.VolumeTexture, 
+                editorData: _editorLogic.GetEditorData(), 
+                gameTime: gameTime,
+                sdfGenerator: _sceneLogic._sdfGenerator);
             
             if (GameSettings.e_enableeditor)
                 _guiRenderer.Draw(_guiLogic.GuiCanvas);

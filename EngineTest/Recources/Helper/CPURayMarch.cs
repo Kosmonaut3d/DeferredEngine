@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using DeferredEngine.Entities;
 using DeferredEngine.Logic;
 using DeferredEngine.Renderer.Helper;
+using DeferredEngine.Renderer.Helper.HelperGeometry;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Graphics.PackedVector;
@@ -282,16 +283,16 @@ namespace DeferredEngine.Recources.Helper
         public void Draw()
         {
             if (samplePositions.Count <= 0) return;
-            LineHelperManager.AddLineStartEnd(startPosition, startPosition+startNormal, 1);
+            HelperGeometryManager.GetInstance().AddLineStartEnd(startPosition, startPosition+startNormal, 1);
             //LineHelperManager.AddLineStartEnd(startPosition, startPosition + reflectVector * 10, 1, Color.AliceBlue, Color.Aqua);
 
             for (int index = 0; index < samplePositions.Count-1; index++)
             {
                 Vector3 v0 = samplePositions[index];
                 Vector3 v1 = samplePositions[index + 1];
-                LineHelperManager.AddLineStartEnd(v0, v1, 1, Color.Yellow, Color.Red);
+                HelperGeometryManager.GetInstance().AddLineStartEnd(v0, v1, 1, Color.Yellow, Color.Red);
 
-                LineHelperManager.AddLineStartEnd(v0, sampleTests[index],1, Color.Blue, Color.Violet);
+                HelperGeometryManager.GetInstance().AddLineStartEnd(v0, sampleTests[index],1, Color.Blue, Color.Violet);
             }
 
             //if(samplePositions.Count>0)

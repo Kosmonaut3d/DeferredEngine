@@ -59,6 +59,10 @@
     <Compile Include="Entities\Decal.cs" />
     <Compile Include="Entities\DirectionalLight.cs" />
     <Compile Include="Entities\TransformableObject.cs" />
+    <Compile Include="Entities\VolumeTextureEntity.cs" />
+    <Compile Include="Logic\SDF Generator\SDFGenerator.cs" />
+    <Compile Include="Recources\Helper\Signed Distance Fields\SamplePoint.cs" />
+    <Compile Include="Recources\Helper\Signed Distance Fields\Triangle.cs" />
     <Compile Include="Renderer\Helper\BoundingFrustumExtended.cs" />
     <Compile Include="Renderer\Helper\Editor\BillboardBuffer.cs" />
     <Compile Include="Entities\EnvironmentSample.cs" />
@@ -84,11 +88,15 @@
     <Compile Include="Entities\PointLight.cs" />
     <Compile Include="Entities\Camera.cs" />
     <Compile Include="Logic\DebugScreen.cs" />
+    <Compile Include="Renderer\Helper\HelperGeometry\HelperGeometryManager.cs" />
+    <Compile Include="Renderer\Helper\HelperGeometry\OctahedronHelperManager.cs" />
     <Compile Include="Renderer\Helper\FullScreenQuadRenderer.cs" />
+    <Compile Include="Renderer\Helper\HelperGeometry\OctahedronMesh.cs" />
+    <Compile Include="Renderer\RenderModules\HelperGeometryRenderModule.cs" />
     <Compile Include="Renderer\RenderModules\PostProcessingFilters\BloomFilter.cs" />
     <Compile Include="Renderer\Helper\FastRand.cs" />
-    <Compile Include="Renderer\Helper\LineHelper.cs" />
-    <Compile Include="Renderer\Helper\LineHelperManager.cs" />
+    <Compile Include="Renderer\Helper\HelperGeometry\LineHelper.cs" />
+    <Compile Include="Renderer\Helper\HelperGeometry\LineHelperManager.cs" />
     <Compile Include="Renderer\RenderModules\DecalRenderModule.cs" />
     <Compile Include="Renderer\RenderModules\EditorRender.cs" />
     <Compile Include="Renderer\RenderModules\ForwardRenderModule.cs" />
@@ -102,6 +110,7 @@
     <Compile Include="Renderer\RenderModules\GBufferRenderModule.cs" />
     <Compile Include="Renderer\RenderModules\DeferredEnvironmentMapRenderModule.cs" />
     <Compile Include="Renderer\RenderModules\PostProcessingFilters\ColorGradingFilter.cs" />
+    <Compile Include="Renderer\RenderModules\Signed Distance Fields\VolumeProjectionRenderModule.cs" />
     <Compile Include="Renderer\RenderModules\SubsurfaceScatterRenderModule.cs" />
     <Compile Include="Renderer\RenderModules\TemporalAntialiasingRenderModule.cs" />
     <Compile Include="Renderer\RenderModules\Default\RenderModuleTemplate.cs" />
@@ -164,6 +173,7 @@
       <Name>HelperSuite</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(MSBuildExtensionsPath)\MonoGame\v3.0\MonoGame.Content.Builder.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

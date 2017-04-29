@@ -25,6 +25,12 @@ namespace DeferredEngine.Renderer.Helper
             _indexBuffer = new short[] { 0, 3, 2, 0, 1, 3 };
         }
 
+        public void RenderFullscreenQuad(GraphicsDevice graphics)
+        {
+
+            RenderQuad(graphics, -Vector2.One, Vector2.One);
+        }
+
         public void RenderQuad(GraphicsDevice graphicsDevice, Vector2 v1, Vector2 v2)
         {
             _vertexBuffer[0].Position.X = v1.X;

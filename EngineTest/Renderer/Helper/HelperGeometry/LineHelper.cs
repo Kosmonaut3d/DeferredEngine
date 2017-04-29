@@ -1,4 +1,6 @@
-﻿using DeferredEngine.Recources;
+﻿using BEPUphysics.Paths;
+using DeferredEngine.Recources;
+using DeferredEngine.Renderer.Helper.HelperGeometry;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -14,7 +16,7 @@ namespace DeferredEngine.Renderer.Helper
 
         public short Timer;
 
-        public LineHelper(Vector3 start, Vector3 end, short time, Color starColor, Color endColor)
+        public LineHelper(Vector3 start, Vector3 end, short time, Color starColor, Color endColor, LineHelperManager lineHelperManager)
         {
             if (!GameSettings.d_drawlines) return;
 
@@ -27,13 +29,13 @@ namespace DeferredEngine.Renderer.Helper
 
             //Verts[0].Color = starColor;
             //Verts[1].Color = endColor;
-            Verts[0] = LineHelperManager.GetVertexPositionColor(_start, starColor);
-            Verts[1] = LineHelperManager.GetVertexPositionColor(_end, endColor);
+            Verts[0] = lineHelperManager.GetVertexPositionColor(_start, starColor);
+            Verts[1] = lineHelperManager.GetVertexPositionColor(_end, endColor);
 
             Timer = time;
         }
 
-        public LineHelper(Vector3 start, Vector3 end, short time)
+        public LineHelper(Vector3 start, Vector3 end, short time, LineHelperManager lineHelperManager)
         {
             if (!GameSettings.d_drawlines) return;
 
@@ -46,8 +48,8 @@ namespace DeferredEngine.Renderer.Helper
 
             //Verts[0].Color = new Color(Color.Red, 0.5f);
             //Verts[1].Color = new Color(Color.Green, 0.5f);
-            Verts[0] = LineHelperManager.GetVertexPositionColor(_start, new Color(Color.Red, 0.5f));
-            Verts[1] = LineHelperManager.GetVertexPositionColor(_end, new Color(Color.Green, 0.5f));
+            Verts[0] = lineHelperManager.GetVertexPositionColor(_start, new Color(Color.Red, 0.5f));
+            Verts[1] = lineHelperManager.GetVertexPositionColor(_end, new Color(Color.Green, 0.5f));
             Timer = time;
         }
 

@@ -1292,3 +1292,21 @@
 /processorParam:TextureFormat=Color
 /build:Shaders/PostProcessing/lut.png
 
+#begin Shaders/SignedDistanceFields/sampleTexture.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Shaders/SignedDistanceFields/sampleTexture.png
+
+#begin Shaders/SignedDistanceFields/volumeProjection.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/SignedDistanceFields/volumeProjection.fx
+

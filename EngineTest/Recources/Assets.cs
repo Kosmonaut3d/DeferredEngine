@@ -72,6 +72,8 @@ namespace DeferredEngine.Recources
         public SpriteFont DefaultFont;
         public SpriteFont MonospaceFont;
 
+        public Texture2D VolumeTexture;
+
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////
         //  FUNCTIONS
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -83,6 +85,8 @@ namespace DeferredEngine.Recources
             EditorArrowRound = content.Load<Model>("Art/Editor/ArrowRound");
 
             IsoSphere = content.Load<Model>("Art/default/isosphere");
+
+            IsoSphere.Bones[0].Transform = Matrix.Identity;
             Sphere = content.Load<Model>("Art/default/sphere");
             SphereMeshPart = Sphere.Meshes[0].MeshParts[0];
 
@@ -119,6 +123,8 @@ namespace DeferredEngine.Recources
             BaseTex.SetData(new Color[] { Color.White });
 
             NoiseMap = content.Load<Texture2D>("Shaders/noise_blur");
+
+            VolumeTexture = content.Load<Texture2D>("Shaders/SignedDistanceFields/sampleTexture");
 
             //Meshes and Materials
 

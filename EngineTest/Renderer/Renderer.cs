@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using DeferredEngine.Entities;
 using DeferredEngine.Logic;
+using DeferredEngine.Logic.SDF_Generator;
 using DeferredEngine.Recources;
 using DeferredEngine.Recources.Helper;
 using DeferredEngine.Renderer.Helper;
+using DeferredEngine.Renderer.Helper.HelperGeometry;
 using DeferredEngine.Renderer.RenderModules;
+using DeferredEngine.Renderer.RenderModules.Default;
 using DeferredEngine.Renderer.RenderModules.PostProcessingFilters;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
@@ -42,6 +45,8 @@ namespace DeferredEngine.Renderer
         private DecalRenderModule _decalRenderModule;
         private SubsurfaceScatterRenderModule _subsurfaceScatterRenderModule;
         private ForwardRenderModule _forwardRenderModule;
+        private HelperGeometryRenderModule _helperGeometryRenderModule;
+        private VolumeProjectionRenderModule _volumeProjectionRenderModule;
 
         private BloomFilter _bloomFilter;
         private ColorGradingFilter _colorGradingFilter;
@@ -188,6 +193,8 @@ namespace DeferredEngine.Renderer
             _decalRenderModule = new DecalRenderModule(content, "Shaders/Deferred/DeferredDecal");
             _subsurfaceScatterRenderModule = new SubsurfaceScatterRenderModule(content, "Shaders/SubsurfaceScattering/SubsurfaceScattering");
             _forwardRenderModule = new ForwardRenderModule(content, "Shaders/forward/forward");
+            _helperGeometryRenderModule = new HelperGeometryRenderModule(content, "Shaders/Editor/LineEffect");
+            _volumeProjectionRenderModule = new VolumeProjectionRenderModule(content, "Shaders/SignedDistanceFields/volumeProjection");
 
             _inverseResolution = new Vector3(1.0f / GameSettings.g_screenwidth, 1.0f / GameSettings.g_ScreenHeight, 0);
             
@@ -229,6 +236,8 @@ namespace DeferredEngine.Renderer
             _subsurfaceScatterRenderModule.Initialize();
 
             _forwardRenderModule.Initialize();
+
+            _helperGeometryRenderModule.Initialize();
             
             _assets = assets;
             //Apply some base settings to overwrite shader defaults with game settings defaults
@@ -273,7 +282,7 @@ namespace DeferredEngine.Renderer
         /// <param name="editorData">The data passed from our editor logic</param>
         /// <param name="gameTime"></param>
         /// <returns></returns>
-        public EditorLogic.EditorReceivedData Draw(Camera camera, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities, List<Decal> decals, List<PointLight> pointLights, List<DirectionalLight> directionalLights, EnvironmentSample envSample, EditorLogic.EditorSendData editorData, GameTime gameTime)
+        public EditorLogic.EditorReceivedData Draw(Camera camera, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities, List<Decal> decals, List<PointLight> pointLights, List<DirectionalLight> directionalLights, EnvironmentSample envSample, VolumeTextureEntity volumeTexture, EditorLogic.EditorSendData editorData, GameTime gameTime, SDFGenerator sdfGenerator)
         {
             //Reset the stat counter, so we can count stats/information for this frame only
             ResetStats();
@@ -341,17 +350,23 @@ namespace DeferredEngine.Renderer
             
             //Draw the elements that we are hovering over with outlines
             if(GameSettings.e_enableeditor && GameStats.e_EnableSelection)
-                _editorRender.DrawIds(meshMaterialLibrary, decals, pointLights, directionalLights, envSample, _staticViewProjection, _view, editorData);
+                _editorRender.DrawIds(meshMaterialLibrary, decals, pointLights, directionalLights, envSample, volumeTexture, _staticViewProjection, _view, editorData);
 
             //Draw the final rendered image, change the output based on user input to show individual buffers/rendertargets
             RenderMode(_currentOutput);
+
+            //Draw test volume tex
+            /*_volumeProjectionRenderModule.Draw(_graphicsDevice, camera, volumeTexture, _quadRenderer);
+
+            sdfGenerator.Update(volumeTexture, _graphicsDevice);
+            */
 
             //Additional editor elements that overlay our screen
             if (GameSettings.e_enableeditor && GameStats.e_EnableSelection)
             {
                 if (GameSettings.e_drawoutlines)
                     DrawMapToScreenToFullScreen(_editorRender.GetOutlines(), BlendState.Additive);
-                _editorRender.DrawEditorElements(meshMaterialLibrary, decals, pointLights, directionalLights, envSample,
+                _editorRender.DrawEditorElements(meshMaterialLibrary, decals, pointLights, directionalLights, envSample, volumeTexture,
                     _staticViewProjection, _view, editorData);
 
                 if (editorData.SelectedObject != null)
@@ -385,10 +400,9 @@ namespace DeferredEngine.Renderer
             //Debug ray marching
                 CpuRayMarch(camera);
 
-            //Draw (debug) lines
-            LineHelperManager.Draw(_graphicsDevice, _staticViewProjection);
-
-
+            //Draw debug geometry
+            _helperGeometryRenderModule.Draw(_graphicsDevice, _staticViewProjection);
+            
             //Set up the frustum culling for the next frame
             meshMaterialLibrary.FrustumCullingFinalizeFrame(entities);
 
@@ -496,7 +510,7 @@ namespace DeferredEngine.Renderer
 
                 if (_boundingFrustum == null) _boundingFrustum = new BoundingFrustum(_viewProjection);
                 else _boundingFrustum.Matrix = _viewProjection;
-                ComputeFrustumCorners(_boundingFrustum);
+                ComputeFrustumCorners(_boundingFrustum, camera);
 
                 _lightAccumulationModule.UpdateViewProjection(_boundingFrustum, _viewProjectionHasChanged, _view, _inverseView, _viewIT, _projection, _viewProjection, _inverseViewProjection);
                 
@@ -763,7 +777,7 @@ namespace DeferredEngine.Renderer
                 else _boundingFrustum.Matrix = _staticViewProjection;
 
                 // Compute the frustum corners for cheap view direction computation in shaders
-                ComputeFrustumCorners(_boundingFrustum);
+                ComputeFrustumCorners(_boundingFrustum, camera);
             }
 
             //We need to update whether or not entities are in our boundingFrustum and then cull them or not!
@@ -828,16 +842,30 @@ namespace DeferredEngine.Renderer
         /// http://mynameismjp.wordpress.com/2009/03/10/reconstructing-position-from-depth/
         /// </summary>
         /// <param name="cameraFrustum"></param>
-        private void ComputeFrustumCorners(BoundingFrustum cameraFrustum)
+        private void ComputeFrustumCorners(BoundingFrustum cameraFrustum, Camera camera)
         {
             cameraFrustum.GetCorners(_cornersWorldSpace);
+
+            /*this part is used for volume projection*/
+            //World Space Corners - Camera Position
+            for (int i = 0; i < 4; i++) //take only the 4 farthest points
+            {
+                _currentFrustumCorners[i] = _cornersWorldSpace[i + 4] - camera.Position;
+            }
+            Vector3 temp = _currentFrustumCorners[3];
+            _currentFrustumCorners[3] = _currentFrustumCorners[2];
+            _currentFrustumCorners[2] = temp;
+
+            _volumeProjectionRenderModule.FrustumCornersWorldSpace = _currentFrustumCorners;
+            
+            //View Space Corners
             //this is the inverse of our camera transform
             Vector3.Transform(_cornersWorldSpace, ref _view, _cornersViewSpace); //put the frustum into view space
             for (int i = 0; i < 4; i++) //take only the 4 farthest points
             {
                 _currentFrustumCorners[i] = _cornersViewSpace[i + 4];
             }
-            Vector3 temp = _currentFrustumCorners[3];
+            temp = _currentFrustumCorners[3];
             _currentFrustumCorners[3] = _currentFrustumCorners[2];
             _currentFrustumCorners[2] = temp;
 
@@ -1499,6 +1527,8 @@ namespace DeferredEngine.Renderer
             _deferredEnvironmentMapRenderModule.SSRMap = _renderTargetScreenSpaceEffectReflection;
 
             _decalRenderModule.DepthMap = _renderTargetDepth;
+
+            _volumeProjectionRenderModule.DepthMap = _renderTargetDepth;
             
             //_subsurfaceScatterRenderModule.NormalMap = _renderTargetNormal;
             //_subsurfaceScatterRenderModule.AlbedoMap = _renderTargetAlbedo;

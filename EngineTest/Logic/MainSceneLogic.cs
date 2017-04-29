@@ -6,9 +6,11 @@ using BEPUphysics.Entities;
 using BEPUphysics.Entities.Prefabs;
 using BEPUutilities;
 using DeferredEngine.Entities;
+using DeferredEngine.Logic.SDF_Generator;
 using DeferredEngine.Recources;
 using DeferredEngine.Recources.Helper;
 using DeferredEngine.Renderer.Helper;
+using DeferredEngine.Renderer.Helper.HelperGeometry;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
@@ -17,6 +19,7 @@ using DirectionalLight = DeferredEngine.Entities.DirectionalLight;
 using Matrix = Microsoft.Xna.Framework.Matrix;
 using Quaternion = BEPUutilities.Quaternion;
 using Vector3 = Microsoft.Xna.Framework.Vector3;
+using Vector4 = Microsoft.Xna.Framework.Vector4;
 
 namespace DeferredEngine.Logic
 {
@@ -32,6 +35,8 @@ namespace DeferredEngine.Logic
         
         public Camera Camera;
 
+        public VolumeTextureEntity VolumeTexture;
+
         //mesh library, holds all the meshes and their materials
         public MeshMaterialLibrary MeshMaterialLibrary;
 
@@ -44,6 +49,9 @@ namespace DeferredEngine.Logic
         //Which render target are we currently displaying?
         private int _renderModeCycle;
         private Space _physicsSpace;
+
+        //SDF
+        public SDFGenerator _sdfGenerator;
 
         #endregion
 
@@ -81,6 +89,10 @@ namespace DeferredEngine.Logic
 
             EnvironmentSample = new EnvironmentSample(new Vector3(-45,-5,5));
 
+            VolumeTexture = new VolumeTextureEntity(new Vector3(-7, 0, 63), _assets.VolumeTexture, new Vector3(200, 100, 100)) {NeedsUpdate = true};
+
+            _sdfGenerator = new SDFGenerator();
+
             ////////////////////////////////////////////////////////////////////////
             // GUI
 
@@ -89,13 +101,14 @@ namespace DeferredEngine.Logic
 
             // NOTE: If you don't pass a materialEffect it will use the default material from the object
 
-            AddEntity(model: _assets.SponzaModel,
+            BasicEntity testEntity = AddEntity(model: _assets.SponzaModel,
                 position: Vector3.Zero,
                 angleX: Math.PI / 2,
                 angleY: 0,
                 angleZ: 0,
                 scale: 0.1f,
                 hasStaticPhysics: false);//CHANGE BACK
+
 
             //AddEntity(model: _assets.CloneTrooper,
             //    position: new Vector3(20, 0, 10),
@@ -151,6 +164,9 @@ namespace DeferredEngine.Logic
                 angleZ: 0, 
                 scale: 5, 
                 PhysicsEntity: physicsEntity);
+
+            testEntity.ApplyTransformation();
+            _sdfGenerator.Generate(testEntity);
 
             for (int i = 0; i < 10; i++)
             {
@@ -265,6 +281,8 @@ namespace DeferredEngine.Logic
             //    PointLight point = PointLights[i];
             //    point.Position = new Vector3(point.Position.X, point.Position.Y, (float)(Math.Sin(gameTime.TotalGameTime.TotalSeconds * 0.8f + i) * 10 - 13));
             //}
+
+            HelperGeometryManager.GetInstance().AddOctahedron(VolumeTexture.Position, new Vector4(1, 1, 1, 1));
 
             //KeyInputs for specific tasks
 

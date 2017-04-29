@@ -5,6 +5,7 @@ using DeferredEngine.Logic;
 using DeferredEngine.Recources;
 using DeferredEngine.Renderer.Helper;
 using DeferredEngine.Renderer.Helper.Editor;
+using DeferredEngine.Renderer.Helper.HelperGeometry;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -64,7 +65,8 @@ namespace DeferredEngine.Renderer.RenderModules
             _idAndOutlineRenderer.SetUpRenderTarget(width, height);
         }
 
-        public void DrawBillboards(List<Decal> decals, List<PointLight> lights, List<DirectionalLight> dirLights, EnvironmentSample envSample, Matrix staticViewProjection, Matrix view, EditorLogic.EditorSendData sendData)
+
+        public void DrawBillboards(List<Decal> decals, List<PointLight> lights, List<DirectionalLight> dirLights, EnvironmentSample envSample, VolumeTextureEntity volumeTexture, Matrix staticViewProjection, Matrix view, EditorLogic.EditorSendData sendData)
         {
             _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
             _graphicsDevice.SetVertexBuffer(_billboardBuffer.VBuffer);
@@ -80,21 +82,7 @@ namespace DeferredEngine.Renderer.RenderModules
             for (int index = 0; index < decals.Count; index++)
             {
                 var decal = decals[index];
-                Matrix world = Matrix.CreateTranslation(decal.Position);
-                Shaders.BillboardEffectParameter_WorldViewProj.SetValue(world * staticViewProjection);
-                Shaders.BillboardEffectParameter_WorldView.SetValue(world * view);
-
-                if (decal.Id == GetHoveredId())
-                    Shaders.BillboardEffectParameter_IdColor.SetValue(Color.White.ToVector3());
-                if (decal.Id == sendData.SelectedObjectId)
-                    Shaders.BillboardEffectParameter_IdColor.SetValue(Color.Gold.ToVector3());
-
-                Shaders.BillboardEffect.CurrentTechnique.Passes[0].Apply();
-
-                _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2);
-
-                if (decal.Id == GetHoveredId() || decal.Id == sendData.SelectedObjectId)
-                    Shaders.BillboardEffectParameter_IdColor.SetValue(Color.Gray.ToVector3());
+                DrawBillboard(decal, staticViewProjection, view, sendData);
             }
 
             //Lights
@@ -103,89 +91,80 @@ namespace DeferredEngine.Renderer.RenderModules
             for (int index = 0; index < lights.Count; index++)
             {
                 var light = lights[index];
-                Matrix world = Matrix.CreateTranslation(light.Position);
-                Shaders.BillboardEffectParameter_WorldViewProj.SetValue(world*staticViewProjection);
-                Shaders.BillboardEffectParameter_WorldView.SetValue(world *view);
-
-                if (light.Id == GetHoveredId())
-                    Shaders.BillboardEffectParameter_IdColor.SetValue(Color.White.ToVector3());
-                if (light.Id == sendData.SelectedObjectId)
-                    Shaders.BillboardEffectParameter_IdColor.SetValue(Color.Gold.ToVector3());
-
-                Shaders.BillboardEffect.CurrentTechnique.Passes[0].Apply();
-
-                _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2);
-
-                if (light.Id == GetHoveredId() || light.Id == sendData.SelectedObjectId)
-                    Shaders.BillboardEffectParameter_IdColor.SetValue(Color.Gray.ToVector3());
+                DrawBillboard(light, staticViewProjection, view, sendData);
             }
 
             //DirectionalLights
-            foreach(DirectionalLight light in dirLights)
-            { 
-                Matrix world = Matrix.CreateTranslation(light.Position);
-                Shaders.BillboardEffectParameter_WorldViewProj.SetValue(world * staticViewProjection);
-                Shaders.BillboardEffectParameter_WorldView.SetValue(world * view);
+            for (var index = 0; index < dirLights.Count; index++)
+            {
+                DirectionalLight light = dirLights[index];
+                DrawBillboard(light, staticViewProjection, view, sendData);
 
-                if (light.Id == GetHoveredId())
-                    Shaders.BillboardEffectParameter_IdColor.SetValue(Color.White.ToVector3());
-                if (light.Id == sendData.SelectedObjectId)
-                    Shaders.BillboardEffectParameter_IdColor.SetValue(Color.Gold.ToVector3());
-
-                Shaders.BillboardEffect.CurrentTechnique.Passes[0].Apply();
-
-                _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2);
-
-                if (light.Id == GetHoveredId() || light.Id == sendData.SelectedObjectId)
-                    Shaders.BillboardEffectParameter_IdColor.SetValue(Color.Gray.ToVector3());
-
-                LineHelperManager.AddLineStartDir(light.Position, light.Direction*10, 1, Color.Black, light.Color);
-
-                LineHelperManager.AddLineStartDir(light.Position + Vector3.UnitX*10, light.Direction * 10, 1, Color.Black, light.Color);
-                LineHelperManager.AddLineStartDir(light.Position - Vector3.UnitX * 10, light.Direction * 10, 1, Color.Black, light.Color);
-                LineHelperManager.AddLineStartDir(light.Position + Vector3.UnitY * 10, light.Direction * 10, 1, Color.Black, light.Color);
-                LineHelperManager.AddLineStartDir(light.Position - Vector3.UnitY * 10, light.Direction * 10, 1, Color.Black, light.Color);
-                LineHelperManager.AddLineStartDir(light.Position + Vector3.UnitZ * 10, light.Direction * 10, 1, Color.Black, light.Color);
-                LineHelperManager.AddLineStartDir(light.Position - Vector3.UnitZ * 10, light.Direction * 10, 1, Color.Black, light.Color);
+                HelperGeometryManager.GetInstance()
+                    .AddLineStartDir(light.Position, light.Direction * 10, 1, Color.Black, light.Color);
+                HelperGeometryManager.GetInstance()
+                    .AddLineStartDir(light.Position + Vector3.UnitX * 10, light.Direction * 10, 1, Color.Black,
+                        light.Color);
+                HelperGeometryManager.GetInstance()
+                    .AddLineStartDir(light.Position - Vector3.UnitX * 10, light.Direction * 10, 1, Color.Black,
+                        light.Color);
+                HelperGeometryManager.GetInstance()
+                    .AddLineStartDir(light.Position + Vector3.UnitY * 10, light.Direction * 10, 1, Color.Black,
+                        light.Color);
+                HelperGeometryManager.GetInstance()
+                    .AddLineStartDir(light.Position - Vector3.UnitY * 10, light.Direction * 10, 1, Color.Black,
+                        light.Color);
+                HelperGeometryManager.GetInstance()
+                    .AddLineStartDir(light.Position + Vector3.UnitZ * 10, light.Direction * 10, 1, Color.Black,
+                        light.Color);
+                HelperGeometryManager.GetInstance()
+                    .AddLineStartDir(light.Position - Vector3.UnitZ * 10, light.Direction * 10, 1, Color.Black,
+                        light.Color);
 
                 if (light.CastShadows)
                 {
                     BoundingFrustum boundingFrustumShadow = new BoundingFrustum(light.LightViewProjection);
 
-                    LineHelperManager.CreateBoundingBoxLines(boundingFrustumShadow);
+                    HelperGeometryManager.GetInstance().CreateBoundingBoxLines(boundingFrustumShadow);
                 }
-
-                //DrawArrow(light.Position, 0,0,0, 2, Color.White, staticViewProjection, EditorLogic.GizmoModes.translation, light.Direction);
             }
 
             //EnvMap
 
             Shaders.BillboardEffectParameter_Texture.SetValue(_assets.IconEnvmap);
+            
+            DrawBillboard(envSample, staticViewProjection, view, sendData);
 
-            Matrix world2 = Matrix.CreateTranslation(envSample.Position);
-            Shaders.BillboardEffectParameter_WorldViewProj.SetValue(world2 * staticViewProjection);
-            Shaders.BillboardEffectParameter_WorldView.SetValue(world2 * view);
+            //Volume Texture
 
-            if (envSample.Id == GetHoveredId())
+            DrawBillboard(volumeTexture, staticViewProjection, view, sendData);
+
+        }
+        private void DrawBillboard(TransformableObject billboardObject, Matrix staticViewProjection, Matrix view, EditorLogic.EditorSendData sendData)
+        {
+            Matrix world = Matrix.CreateTranslation(billboardObject.Position);
+            Shaders.BillboardEffectParameter_WorldViewProj.SetValue(world * staticViewProjection);
+            Shaders.BillboardEffectParameter_WorldView.SetValue(world * view);
+
+            if (billboardObject.Id == GetHoveredId())
                 Shaders.BillboardEffectParameter_IdColor.SetValue(Color.White.ToVector3());
-            if (envSample.Id == sendData.SelectedObjectId)
+            if (billboardObject.Id == sendData.SelectedObjectId)
                 Shaders.BillboardEffectParameter_IdColor.SetValue(Color.Gold.ToVector3());
 
             Shaders.BillboardEffect.CurrentTechnique.Passes[0].Apply();
 
             _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2);
 
-            if (envSample.Id == GetHoveredId() || envSample.Id == sendData.SelectedObjectId)
+            if (billboardObject.Id == GetHoveredId() || billboardObject.Id == sendData.SelectedObjectId)
                 Shaders.BillboardEffectParameter_IdColor.SetValue(Color.Gray.ToVector3());
-
         }
 
-        public void DrawIds(MeshMaterialLibrary meshMaterialLibrary, List<Decal> decals, List<PointLight>lights, List<DirectionalLight> dirLights, EnvironmentSample envSample, Matrix staticViewProjection, Matrix view, EditorLogic.EditorSendData editorData)
+        public void DrawIds(MeshMaterialLibrary meshMaterialLibrary, List<Decal> decals, List<PointLight>lights, List<DirectionalLight> dirLights, EnvironmentSample envSample, VolumeTextureEntity volumeTexture, Matrix staticViewProjection, Matrix view, EditorLogic.EditorSendData editorData)
         {
-            _idAndOutlineRenderer.Draw(meshMaterialLibrary, decals, lights, dirLights, envSample, staticViewProjection, view, editorData, _mouseMovement);
+            _idAndOutlineRenderer.Draw(meshMaterialLibrary, decals, lights, dirLights, envSample, volumeTexture, staticViewProjection, view, editorData, _mouseMovement);
         }
 
-        public void DrawEditorElements(MeshMaterialLibrary meshMaterialLibrary, List<Decal> decals, List<PointLight> lights, List<DirectionalLight> dirLights, EnvironmentSample envSample, Matrix staticViewProjection, Matrix view, EditorLogic.EditorSendData editorData)
+        public void DrawEditorElements(MeshMaterialLibrary meshMaterialLibrary, List<Decal> decals, List<PointLight> lights, List<DirectionalLight> dirLights, EnvironmentSample envSample, VolumeTextureEntity volumeTexture, Matrix staticViewProjection, Matrix view, EditorLogic.EditorSendData editorData)
         {
             _graphicsDevice.SetRenderTarget(null);
             _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
@@ -193,7 +172,7 @@ namespace DeferredEngine.Renderer.RenderModules
             _graphicsDevice.BlendState = BlendState.Opaque;
             
             DrawGizmo(staticViewProjection, editorData);
-            DrawBillboards(decals, lights, dirLights, envSample, staticViewProjection, view, editorData);
+            DrawBillboards(decals, lights, dirLights, envSample, volumeTexture, staticViewProjection, view, editorData);
         }
 
         public void DrawGizmo(Matrix staticViewProjection, EditorLogic.EditorSendData editorData)
@@ -247,18 +226,16 @@ namespace DeferredEngine.Renderer.RenderModules
 
             ModelMeshPart meshpart = model.Meshes[0].MeshParts[0];
                 
-                    Shaders.IdRenderEffectDrawId.Apply();
+            Shaders.IdRenderEffectDrawId.Apply();
 
-                    _graphicsDevice.SetVertexBuffer(meshpart.VertexBuffer);
-                    _graphicsDevice.Indices = (meshpart.IndexBuffer);
-                    int primitiveCount = meshpart.PrimitiveCount;
-                    int vertexOffset = meshpart.VertexOffset;
-                    //int vCount = meshpart.NumVertices;
-                    int startIndex = meshpart.StartIndex;
+            _graphicsDevice.SetVertexBuffer(meshpart.VertexBuffer);
+            _graphicsDevice.Indices = (meshpart.IndexBuffer);
+            int primitiveCount = meshpart.PrimitiveCount;
+            int vertexOffset = meshpart.VertexOffset;
+            //int vCount = meshpart.NumVertices;
+            int startIndex = meshpart.StartIndex;
 
-                    _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset, startIndex, primitiveCount);
-                
-            
+            _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset, startIndex, primitiveCount);
         }
 
 

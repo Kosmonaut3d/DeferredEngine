@@ -154,7 +154,7 @@ namespace DeferredEngine.Renderer.RenderModules
             _paramTransposeView.SetValue(Matrix.Transpose(view));
             
             _passBasic.Apply();
-            quadRenderer.RenderQuad(graphicsDevice, Vector2.One * -1, Vector2.One);
+            quadRenderer.RenderFullscreenQuad(graphicsDevice);
 
         }
 
@@ -164,7 +164,7 @@ namespace DeferredEngine.Renderer.RenderModules
             graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
 
             _passSky.Apply();
-            quadRenderer.RenderQuad(graphicsDevice, Vector2.One * -1, Vector2.One);
+            quadRenderer.RenderFullscreenQuad(graphicsDevice);
 
         }
 
