@@ -197,7 +197,7 @@ namespace DeferredEngine.Renderer
             _helperGeometryRenderModule = new HelperGeometryRenderModule(content, "Shaders/Editor/LineEffect");
             _volumeProjectionRenderModule = new VolumeProjectionRenderModule(content, "Shaders/SignedDistanceFields/volumeProjection");
 
-            _inverseResolution = new Vector3(1.0f / GameSettings.g_screenwidth, 1.0f / GameSettings.g_ScreenHeight, 0);
+            _inverseResolution = new Vector3(1.0f / GameSettings.g_screenwidth, 1.0f / GameSettings.g_screenheight, 0);
             
             _colorGradingFilter = new ColorGradingFilter(content, "Shaders/PostProcessing/ColorGrading");
 
@@ -224,7 +224,7 @@ namespace DeferredEngine.Renderer
             _cpuRayMarch = new CPURayMarch();
             _cpuRayMarch.Initialize(_graphicsDevice);
 
-            _bloomFilter.Initialize(_graphicsDevice, GameSettings.g_screenwidth, GameSettings.g_ScreenHeight, _fullScreenTriangle);
+            _bloomFilter.Initialize(_graphicsDevice, GameSettings.g_screenwidth, GameSettings.g_screenheight, _fullScreenTriangle);
 
             _colorGradingFilter.Initialize(graphicsDevice);
 
@@ -246,7 +246,7 @@ namespace DeferredEngine.Renderer
             GameSettings.ApplySettings();
 
             Shaders.ScreenSpaceReflectionParameter_NoiseMap.SetValue(_assets.NoiseMap);
-            SetUpRenderTargets(GameSettings.g_screenwidth, GameSettings.g_ScreenHeight, false);
+            SetUpRenderTargets(GameSettings.g_screenwidth, GameSettings.g_screenheight, false);
             
         }
 
@@ -255,23 +255,27 @@ namespace DeferredEngine.Renderer
         /// </summary>
         /// <param name="gameTime"></param>
         /// <param name="isActive"></param>
-        public void Update(GameTime gameTime, bool isActive)
+        public void Update(GameTime gameTime, bool isActive, SDFGenerator sdfGenerator, VolumeTextureEntity volumeTexture)
         {
             if (!isActive) return;
             _editorRender.Update(gameTime);
+
+            //SDF Updating
+            sdfGenerator.Update(volumeTexture, _graphicsDevice);
+
         }
 
         #endregion
 
-            #region RENDER FUNCTIONS
-            ////////////////////////////////////////////////////////////////////////////////////////////////////////
-            //  RENDER FUNCTIONS
-            ////////////////////////////////////////////////////////////////////////////////////////////////////////
+        #region RENDER FUNCTIONS
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////
+        //  RENDER FUNCTIONS
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-                #region MAIN DRAW FUNCTIONS
-                ////////////////////////////////////////////////////////////////////////////////////////////////////
-                //  MAIN DRAW FUNCTIONS
-                ////////////////////////////////////////////////////////////////////////////////////////////////////
+        #region MAIN DRAW FUNCTIONS
+        ////////////////////////////////////////////////////////////////////////////////////////////////////
+        //  MAIN DRAW FUNCTIONS
+        ////////////////////////////////////////////////////////////////////////////////////////////////////
 
         /// <summary>
         /// Main Draw function of the game
@@ -284,13 +288,10 @@ namespace DeferredEngine.Renderer
         /// <param name="editorData">The data passed from our editor logic</param>
         /// <param name="gameTime"></param>
         /// <returns></returns>
-        public EditorLogic.EditorReceivedData Draw(Camera camera, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities, List<Decal> decals, List<PointLight> pointLights, List<DirectionalLight> directionalLights, EnvironmentSample envSample, VolumeTextureEntity volumeTexture, EditorLogic.EditorSendData editorData, GameTime gameTime, SDFGenerator sdfGenerator)
+        public EditorLogic.EditorReceivedData Draw(Camera camera, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities, List<Decal> decals, List<PointLight> pointLights, List<DirectionalLight> directionalLights, EnvironmentSample envSample, VolumeTextureEntity volumeTexture, EditorLogic.EditorSendData editorData, GameTime gameTime)
         {
             //Reset the stat counter, so we can count stats/information for this frame only
             ResetStats();
-
-            //SDF Updating
-            sdfGenerator.Update(volumeTexture, _graphicsDevice);
 
             if (GameSettings.d_drawnothing)
             {
@@ -371,20 +372,9 @@ namespace DeferredEngine.Renderer
             //Draw the final rendered image, change the output based on user input to show individual buffers/rendertargets
             RenderMode(_currentOutput);
 
-            //Draw test volume tex
-
-            if (GameSettings.sdf_draw)
-            {
-                _volumeProjectionRenderModule.Draw(_graphicsDevice, camera, volumeTexture, _fullScreenTriangle);
-
-
-                _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.PointClamp);
-                _spriteBatch.Draw(volumeTexture.Texture,
-                    new Rectangle(0, GameSettings.g_ScreenHeight - volumeTexture.Texture.Height,
-                        volumeTexture.Texture.Width, volumeTexture.Texture.Height), Color.White);
-                _spriteBatch.End();
-            }
-
+            //Draw signed distance field functions
+            DrawSignedDistanceFieldFunctions(volumeTexture, camera);
+            
             //Additional editor elements that overlay our screen
             if (GameSettings.e_enableeditor && GameStats.e_EnableSelection)
             {
@@ -413,7 +403,7 @@ namespace DeferredEngine.Renderer
                 //        {
                 //            _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.PointClamp);
                 //            _spriteBatch.Draw(light.ShadowMap,
-                //                new Rectangle(0, GameSettings.g_ScreenHeight - size*6, size, size*6), Color.White);
+                //                new Rectangle(0, GameSettings.g_screenheight - size*6, size, size*6), Color.White);
                 //            _spriteBatch.End();
                 //        }
                 //    }
@@ -445,8 +435,7 @@ namespace DeferredEngine.Renderer
                 ProjectionMatrix =  _projection
             };
         }
-
-
+        
         /// <summary>
         /// Another draw function, but this time for cubemaps. Doesn't need all the stuff we have in the main draw function
         /// </summary>
@@ -566,7 +555,7 @@ namespace DeferredEngine.Renderer
             Shaders.DeferredComposeEffectParameter_UseSSAO.SetValue(GameSettings.g_ssao_draw);
 
             //Change RTs back to normal
-            SetUpRenderTargets(GameSettings.g_screenwidth, GameSettings.g_ScreenHeight, true);
+            SetUpRenderTargets(GameSettings.g_screenwidth, GameSettings.g_screenheight, true);
             
             //Our camera has changed we need to reinitialize stuff because we used a different camera in the cubemap render
             camera.HasChanged = true;
@@ -751,7 +740,7 @@ namespace DeferredEngine.Renderer
                 Shaders.deferredPointLightParameter_InverseView.SetValue(_inverseView);
 
                 _projection = Matrix.CreatePerspectiveFieldOfView(camera.FieldOfView,
-                    GameSettings.g_screenwidth / (float)GameSettings.g_ScreenHeight, 1, GameSettings.g_farplane);
+                    GameSettings.g_screenwidth / (float)GameSettings.g_screenheight, 1, GameSettings.g_farplane);
                 
                 _gBufferRenderModule.Camera = camera.Position;
 
@@ -773,13 +762,13 @@ namespace DeferredEngine.Renderer
                             float translation = _temporalAAOffFrame ? 0.5f : -0.5f;
                             _viewProjection = _viewProjection *
                                               Matrix.CreateTranslation(new Vector3(translation / GameSettings.g_screenwidth,
-                                                  translation / GameSettings.g_ScreenHeight, 0));
+                                                  translation / GameSettings.g_screenheight, 0));
                         }
                             break;
                         case 1: // Just random translation
                         {
                             float randomAngle = FastRand.NextAngle();
-                            Vector3 translation = new Vector3((float)Math.Sin(randomAngle) / GameSettings.g_screenwidth, (float)Math.Cos(randomAngle) / GameSettings.g_ScreenHeight, 0) * 0.5f;
+                            Vector3 translation = new Vector3((float)Math.Sin(randomAngle) / GameSettings.g_screenwidth, (float)Math.Cos(randomAngle) / GameSettings.g_screenheight, 0) * 0.5f;
                             _viewProjection = _viewProjection *
                                               Matrix.CreateTranslation(translation);
 
@@ -1076,7 +1065,7 @@ namespace DeferredEngine.Renderer
 
             _spriteBatch.Begin(0, BlendState.Additive);
 
-            _spriteBatch.Draw(_renderTargetSSAOEffect, new Rectangle(0, 0, GameSettings.g_screenwidth, GameSettings.g_ScreenHeight), Color.Red);
+            _spriteBatch.Draw(_renderTargetSSAOEffect, new Rectangle(0, 0, GameSettings.g_screenwidth, GameSettings.g_screenheight), Color.Red);
 
             _spriteBatch.End();
 
@@ -1160,7 +1149,7 @@ namespace DeferredEngine.Renderer
             //Note: It would be better if the screen extended the same distance in each direction, right now it would probably be wider than tall
 
             //Matrix newProjection = Matrix.CreatePerspectiveFieldOfView(Math.Min((float)Math.PI, camera.FieldOfView * GameSettings.g_EmissiveDrawFOVFactor),
-            //        GameSettings.g_screenwidth / (float)GameSettings.g_ScreenHeight, 1, GameSettings.g_farplane);
+            //        GameSettings.g_screenwidth / (float)GameSettings.g_screenheight, 1, GameSettings.g_farplane);
 
             //Matrix transformedViewProjection = _view * newProjection;
 
@@ -1237,15 +1226,15 @@ namespace DeferredEngine.Renderer
             if (GameSettings.g_BloomEnable)
             {
                 Texture2D bloom = _bloomFilter.Draw(input, GameSettings.g_screenwidth,
-                    GameSettings.g_ScreenHeight);
+                    GameSettings.g_screenheight);
                 
                 _graphicsDevice.SetRenderTargets(_renderTargetBloom);
 
                 _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Additive);
 
                 _spriteBatch.Draw(input,
-                    new Rectangle(0, 0, GameSettings.g_screenwidth, GameSettings.g_ScreenHeight), Color.White);
-                _spriteBatch.Draw(bloom, new Rectangle(0, 0, GameSettings.g_screenwidth, GameSettings.g_ScreenHeight),
+                    new Rectangle(0, 0, GameSettings.g_screenwidth, GameSettings.g_screenheight), Color.White);
+                _spriteBatch.Draw(bloom, new Rectangle(0, 0, GameSettings.g_screenwidth, GameSettings.g_screenheight),
                     Color.White);
 
                 _spriteBatch.End();
@@ -1257,7 +1246,7 @@ namespace DeferredEngine.Renderer
 
                 //_graphicsDevice.SetRenderTarget(_renderTargetBloom);
                 //_spriteBatch.Begin(0, BlendState.Opaque, _supersampling > 1 ? SamplerState.LinearWrap : SamplerState.PointClamp);
-                //_spriteBatch.Draw(_renderTargetComposed, new Rectangle(0, 0, GameSettings.g_screenwidth, GameSettings.g_ScreenHeight), Color.White);
+                //_spriteBatch.Draw(_renderTargetComposed, new Rectangle(0, 0, GameSettings.g_screenwidth, GameSettings.g_screenheight), Color.White);
                 //_spriteBatch.End();
                 return input;
             }
@@ -1290,6 +1279,21 @@ namespace DeferredEngine.Renderer
             }
             
             return GameSettings.g_taa_tonemapped ? input : output;
+        }
+        
+        private void DrawSignedDistanceFieldFunctions(VolumeTextureEntity volumeTexture, Camera camera)
+        {
+            if (!GameSettings.sdf_draw) return;
+            
+            _volumeProjectionRenderModule.Draw(_graphicsDevice, camera, volumeTexture, _fullScreenTriangle);
+
+            _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.PointClamp);
+
+            int height = Math.Max(volumeTexture.Texture.Height / volumeTexture.Texture.Width * GameSettings.g_screenheight, 40);
+            _spriteBatch.Draw(volumeTexture.Texture,
+                new Rectangle(0, GameSettings.g_screenheight - height, GameSettings.g_screenwidth, height), Color.White);
+            _spriteBatch.End();
+            
         }
 
         /// <summary>
@@ -1396,10 +1400,10 @@ namespace DeferredEngine.Renderer
         /// </summary>
         public void UpdateResolution()
         {
-            _inverseResolution = new Vector3(1.0f / GameSettings.g_screenwidth, 1.0f / GameSettings.g_ScreenHeight, 0);
+            _inverseResolution = new Vector3(1.0f / GameSettings.g_screenwidth, 1.0f / GameSettings.g_screenheight, 0);
             _haltonSequence = null;
 
-            SetUpRenderTargets(GameSettings.g_screenwidth, GameSettings.g_ScreenHeight, false);
+            SetUpRenderTargets(GameSettings.g_screenwidth, GameSettings.g_screenheight, false);
         }
 
         private void SetUpRenderTargets(int width, int height, bool onlyEssentials)
@@ -1608,19 +1612,19 @@ namespace DeferredEngine.Renderer
 
             int height;
             int width;
-            if (Math.Abs(map.Width / (float)map.Height - GameSettings.g_screenwidth / (float)GameSettings.g_ScreenHeight) < 0.001)
+            if (Math.Abs(map.Width / (float)map.Height - GameSettings.g_screenwidth / (float)GameSettings.g_screenheight) < 0.001)
             //If same aspectratio
             {
-                height = GameSettings.g_ScreenHeight;
+                height = GameSettings.g_screenheight;
                 width = GameSettings.g_screenwidth;
             }
             else
             {
-                if (GameSettings.g_ScreenHeight < GameSettings.g_screenwidth)
+                if (GameSettings.g_screenheight < GameSettings.g_screenwidth)
                 {
                     //Should be squared!
-                    height = GameSettings.g_ScreenHeight;
-                    width = GameSettings.g_ScreenHeight;
+                    height = GameSettings.g_screenheight;
+                    width = GameSettings.g_screenheight;
                 }
                 else
                 {

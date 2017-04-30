@@ -14,6 +14,7 @@ Texture2D DepthMap;
 float3 VolumeTexPositionWS;
 float3 VolumeTexSize;
 float3 VolumeTexResolution = float3(2,2,2);
+float FarClip = 500;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  STRUCTS
@@ -119,10 +120,11 @@ float GetMinDistance(float3 PositionWS)
 	float lerpz1 = lerp(lerp(x0y0z1, x1y0z1, xfrac), lerp(x0y1z1, x1y1z1, xfrac), yfrac);
 	float lerpout = lerp(lerpz0, lerpz1, zfrac);
 
-	return lerpout.xxxx;
+	return lerpout;
 }
 
-float4 PixelShaderFunctionBasic(VertexShaderOutput input) : COLOR0
+
+float4 PixelShaderFunctionDrawDistanceField(VertexShaderOutput input) : COLOR0
 {
 	float3 startPoint = CameraPosition;
 	float3 endPoint = CameraPosition + input.ViewDir;
@@ -153,9 +155,74 @@ float4 PixelShaderFunctionBasic(VertexShaderOutput input) : COLOR0
 
 	float output = marchingDistance / farClip;
 
-	//if (output > 0) return input.TexCoord.xyyy;
-
 	return float4(output.xxx, 1);
+}
+
+
+float mod(float x, float y)
+{
+	return x - y * floor(x / y);
+}
+
+float3 mod3(float3 a, float3 b)
+{
+	return float3(mod(a.x, b.x), mod(a.y, b.y), mod(a.z, b.z));
+}
+
+float4 PixelShaderFunctionBasic(VertexShaderOutput input) : COLOR0
+{
+	float3 startPoint = CameraPosition;
+	float3 endPoint = CameraPosition + input.ViewDir;
+
+	float3 dir = endPoint - startPoint;
+
+	//normalize
+	dir /= FarClip;
+	float3 p = startPoint - VolumeTexPositionWS;
+
+	float marchingDistance = 0;
+
+	float3 c = float3(10, 10, 10);// VolumeTexSize / VolumeTexResolution;
+
+	int3 texCoordInt = int3(input.Position.xy, 0);
+	float linearDepth = DepthMap.Load(texCoordInt).r;
+
+	float maxDepth = FarClip * linearDepth;
+
+	//Raymarch
+	for (int i = 0; i < 128; i++)
+	{
+		const float precis = 0.0005;
+
+		//Repetition
+		float3 q = mod3(p, c) - 0.5*c;
+
+		float step = distance(q, 0) - 0.5f;  //GetMinDistance(p);
+
+
+		marchingDistance += step;
+
+		if (step <= precis)
+		{
+			float distanceValue = GetMinDistance(p + VolumeTexPositionWS);
+			if (distanceValue >= 999.0f)
+			{
+				discard;
+			}
+			else
+			{
+				return float4(distanceValue.xxx, 1) / 20;
+			}
+		}
+		if (marchingDistance > maxDepth) discard;
+		if (marchingDistance > FarClip) discard;
+
+		p += step * dir;
+	}
+
+	discard;
+
+	return float4(0,0,0, 1);
 
 }
 
@@ -184,7 +251,7 @@ technique Basic
     pass Pass1
     {
         VertexShader = compile vs_5_0 VertexShaderFunction();
-        PixelShader = compile ps_5_0 PixelShaderFunctionBasic();
+        PixelShader = compile ps_5_0 PixelShaderFunctionDrawDistanceField();
     }
 }
 

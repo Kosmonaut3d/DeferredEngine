@@ -56,7 +56,7 @@ namespace DeferredEngine.Logic
         /// <param name="sceneLogicCamera"></param>
         private void CreateGUI(Camera sceneLogicCamera)
         {
-            GuiCanvas = new GUICanvas(Vector2.Zero, new Vector2(GameSettings.g_screenwidth, GameSettings.g_ScreenHeight));
+            GuiCanvas = new GUICanvas(Vector2.Zero, new Vector2(GameSettings.g_screenwidth, GameSettings.g_screenheight));
 
             defaultStyle = new GUIStyle(
                 dimensionsStyle: new Vector2(200,35),
@@ -623,8 +623,8 @@ namespace DeferredEngine.Logic
 
         public void UpdateResolution()
         {
-            GUIControl.UpdateResolution(GameSettings.g_screenwidth, GameSettings.g_ScreenHeight);
-            GuiCanvas.Resize(GameSettings.g_screenwidth, GameSettings.g_ScreenHeight);
+            GUIControl.UpdateResolution(GameSettings.g_screenwidth, GameSettings.g_screenheight);
+            GuiCanvas.Resize(GameSettings.g_screenwidth, GameSettings.g_screenheight);
         }
     }
 }

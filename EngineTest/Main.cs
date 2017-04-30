@@ -49,7 +49,7 @@ namespace DeferredEngine
             
             //Size of our application / starting back buffer
             _graphics.PreferredBackBufferWidth = GameSettings.g_screenwidth;
-            _graphics.PreferredBackBufferHeight = GameSettings.g_ScreenHeight;
+            _graphics.PreferredBackBufferHeight = GameSettings.g_screenheight;
 
             //HiDef enables usable shaders
             _graphics.GraphicsProfile = GraphicsProfile.HiDef;
@@ -131,7 +131,7 @@ namespace DeferredEngine
                 _graphics.ApplyChanges();
 
                 GameSettings.g_screenwidth = Window.ClientBounds.Width;
-                GameSettings.g_ScreenHeight = Window.ClientBounds.Height;
+                GameSettings.g_screenheight = Window.ClientBounds.Height;
 
                 _screenManager.UpdateResolution();
             }
@@ -145,7 +145,7 @@ namespace DeferredEngine
         /// </summary>
         protected override void Initialize()
         {
-            GUIControl.Initialize(GameSettings.g_screenwidth, GameSettings.g_ScreenHeight);
+            GUIControl.Initialize(GameSettings.g_screenwidth, GameSettings.g_screenheight);
 
             _screenManager.Load(Content, GraphicsDevice);
             // TODO: Add your initialization logic here

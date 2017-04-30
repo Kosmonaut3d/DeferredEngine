@@ -333,7 +333,7 @@ namespace DeferredEngine.Logic
                     
                 _mngStringBuilder.Append(GameSettings.g_screenwidth);
                 _mngStringBuilder.Append(sb_multipliedBy);
-                _mngStringBuilder.Append(GameSettings.g_ScreenHeight);
+                _mngStringBuilder.Append(GameSettings.g_screenheight);
                 _mngStringBuilder.Append(sb_emptySpace);
                 _mngStringBuilder.Append(RenderModesToString( GameSettings.g_rendermode));
                 _mngStringBuilder.Append(sb_memoryGc);

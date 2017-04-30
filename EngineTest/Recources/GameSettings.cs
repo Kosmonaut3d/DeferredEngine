@@ -7,7 +7,7 @@ namespace DeferredEngine.Recources
     {
         //Default & Display settings
         public static int g_screenwidth = 1280;
-        public static int g_ScreenHeight = 720;
+        public static int g_screenheight = 720;
         public static bool g_vsync = false;
         public static int g_fixedfps = 0;
         public static int u_showdisplayinfo = 3;

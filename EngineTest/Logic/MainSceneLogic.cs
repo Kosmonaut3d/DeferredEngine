@@ -281,9 +281,7 @@ namespace DeferredEngine.Logic
             //    PointLight point = PointLights[i];
             //    point.Position = new Vector3(point.Position.X, point.Position.Y, (float)(Math.Sin(gameTime.TotalGameTime.TotalSeconds * 0.8f + i) * 10 - 13));
             //}
-
-            HelperGeometryManager.GetInstance().AddOctahedron(VolumeTexture.Position, new Vector4(1, 1, 1, 1));
-
+            
             //KeyInputs for specific tasks
 
 

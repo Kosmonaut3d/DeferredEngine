@@ -38,7 +38,7 @@ namespace DeferredEngine.Logic
             _guiLogic.Initialize(_assets, _sceneLogic.Camera);
             _editorLogic.Initialize(graphicsDevice);
             _debug.Initialize(graphicsDevice);
-            _guiRenderer.Initialize(graphicsDevice, GameSettings.g_screenwidth, GameSettings.g_ScreenHeight);
+            _guiRenderer.Initialize(graphicsDevice, GameSettings.g_screenwidth, GameSettings.g_screenheight);
         }
 
         //Update per frame
@@ -47,7 +47,7 @@ namespace DeferredEngine.Logic
             _sceneLogic.Update(gameTime, isActive);
             _guiLogic.Update(gameTime, isActive, _editorLogic.SelectedObject);
             _editorLogic.Update(gameTime, _sceneLogic.BasicEntities, _sceneLogic.Decals, _sceneLogic.PointLights, _sceneLogic.DirectionalLights, _sceneLogic.EnvironmentSample, _sceneLogic.VolumeTexture, _editorReceivedDataBuffer, _sceneLogic.MeshMaterialLibrary);
-            _renderer.Update(gameTime, isActive);
+            _renderer.Update(gameTime, isActive, _sceneLogic._sdfGenerator, _sceneLogic.VolumeTexture);
             
             _debug.Update(gameTime);
         }
@@ -88,8 +88,7 @@ namespace DeferredEngine.Logic
                 envSample: _sceneLogic.EnvironmentSample, 
                 volumeTexture: _sceneLogic.VolumeTexture, 
                 editorData: _editorLogic.GetEditorData(), 
-                gameTime: gameTime,
-                sdfGenerator: _sceneLogic._sdfGenerator);
+                gameTime: gameTime);
             
             if (GameSettings.e_enableeditor)
                 _guiRenderer.Draw(_guiLogic.GuiCanvas);
