@@ -22,5 +22,7 @@ TODO:
 
 - is lighting using depth buffer? (draw frontside of spheres when camera not inside)
 
+- "Firefly Reduction" needs to account for blending, right now it can possibly darken the ssr (see only reflective groundplane and object)
+
 - check out:
 https://github.com/kode80/kode80SSR/blob/master/Assets/Resources/Shaders/SSR.shader

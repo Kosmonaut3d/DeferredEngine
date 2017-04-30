@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using DeferredEngine.Entities;
 using DeferredEngine.Recources;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -10,7 +11,7 @@ namespace DeferredEngine.Renderer.Helper.HelperGeometry
         private  readonly List<LineHelper> Lines = new List<LineHelper>();
         //private  VertexBuffer _vbuffer;
         //private  IndexBuffer _ibuffer;
-
+        
         private int _tempVertsPoolLength = 100;
         public VertexPositionColor[] TempVertsPool;
         private int _tempVertsPoolIndex;
@@ -127,6 +128,33 @@ namespace DeferredEngine.Renderer.Helper.HelperGeometry
         public  void CreateBoundingBoxLines(BoundingFrustum boundingFrustumExShadow)
         {
             Vector3[] vertices = boundingFrustumExShadow.GetCorners();
+            AddLineStartEnd(vertices[0], vertices[1], 1);
+            AddLineStartEnd(vertices[1], vertices[2], 1);
+            AddLineStartEnd(vertices[2], vertices[3], 1);
+            AddLineStartEnd(vertices[3], vertices[0], 1);
+
+            AddLineStartEnd(vertices[0], vertices[4], 1);
+            AddLineStartEnd(vertices[1], vertices[5], 1);
+            AddLineStartEnd(vertices[2], vertices[6], 1);
+            AddLineStartEnd(vertices[3], vertices[7], 1);
+
+            AddLineStartEnd(vertices[4], vertices[5], 1);
+            AddLineStartEnd(vertices[5], vertices[6], 1);
+            AddLineStartEnd(vertices[6], vertices[7], 1);
+            AddLineStartEnd(vertices[7], vertices[4], 1);
+        }
+
+        public void AddBoundingBox(BasicEntity basicEntity)
+        {
+            Vector3[] vertices = new Vector3[8];
+            vertices = basicEntity.BoundingBox.GetCorners();
+
+            //Transform
+            for (var index = 0; index < vertices.Length; index++)
+            {
+                vertices[index] = Vector3.Transform(vertices[index], basicEntity.WorldTransform.World);
+            }
+
             AddLineStartEnd(vertices[0], vertices[1], 1);
             AddLineStartEnd(vertices[1], vertices[2], 1);
             AddLineStartEnd(vertices[2], vertices[3], 1);

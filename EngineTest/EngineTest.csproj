@@ -64,6 +64,7 @@
     <Compile Include="Recources\Helper\DataStream.cs" />
     <Compile Include="Recources\Helper\Signed Distance Fields\SamplePoint.cs" />
     <Compile Include="Recources\Helper\Signed Distance Fields\Triangle.cs" />
+    <Compile Include="Recources\ModelBoundingBox.cs" />
     <Compile Include="Renderer\Helper\BoundingFrustumExtended.cs" />
     <Compile Include="Renderer\Helper\Editor\BillboardBuffer.cs" />
     <Compile Include="Entities\EnvironmentSample.cs" />

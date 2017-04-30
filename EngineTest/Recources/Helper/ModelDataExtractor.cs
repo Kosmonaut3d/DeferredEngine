@@ -39,9 +39,9 @@ namespace DeferredEngine.Recources.Helper
             Matrix transform;
             foreach (ModelMesh mesh in collisionModel.Meshes)
             {
-                if (mesh.ParentBone != null)
-                    transform = transforms[mesh.ParentBone.Index];
-                else
+                //if (mesh.ParentBone != null)
+                //    transform = transforms[mesh.ParentBone.Index];
+                //else
                     transform = Matrix.Identity;
                 AddMesh(mesh, transform, verticesList, indicesList);
             }

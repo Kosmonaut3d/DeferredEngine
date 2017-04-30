@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DeferredEngine.Entities;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -58,6 +59,11 @@ namespace DeferredEngine.Renderer.Helper.HelperGeometry
         public void AddOctahedron(Vector3 position, Vector4 color)
         {
             _octahedronHelperManager.AddOctahedron(position, color);
+        }
+
+        public void AddBoundingBox(BasicEntity basicEntity)
+        {
+            _lineHelperManager.AddBoundingBox(basicEntity);
         }
     }
 }

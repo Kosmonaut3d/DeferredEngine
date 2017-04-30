@@ -82,10 +82,15 @@ namespace DeferredEngine.Logic.SDF_Generator
 
                 triangles = new Triangle[indices.Length / 3];
 
-                for (var index = 0; index < vertices.Length; index++)
-                {
-                    vertices[index] = Vector3.Transform(vertices[index], entity.WorldTransform.World);
-                }
+                //Create BOunding box
+                BoundingBox box = BoundingBox.CreateFromPoints(vertices);
+
+                //Transform to world position first? No
+
+                //for (var index = 0; index < vertices.Length; index++)
+                //{
+                //    vertices[index] = Vector3.Transform(vertices[index], entity.WorldTransform.World);
+                //}
 
                 int baseIndex = 0;
                 for (var i = 0; i < triangles.Length; i++, baseIndex += 3)
@@ -106,7 +111,7 @@ namespace DeferredEngine.Logic.SDF_Generator
             //    points[index] = Vector3.Transform(points[index], entity.WorldTransform.World);
             //}
         }
-
+        
         private int toTexCoords(int x, int y, int z, int xsteps, int zsteps)
         {
             x += z * xsteps;

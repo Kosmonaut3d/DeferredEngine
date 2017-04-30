@@ -21,9 +21,11 @@ namespace DeferredEngine.Recources
         public ModelMeshPart SphereMeshPart;
         public Model IsoSphere;
 
-        public Model Plane;
+        public ModelBoundingBox Plane;
 
         public Model Cube;
+
+        public ModelBoundingBox Tiger;
 
         public Texture2D IconLight;
         public Texture2D IconEnvmap;
@@ -32,6 +34,7 @@ namespace DeferredEngine.Recources
         //Default Materials
 
         public MaterialEffect BaseMaterial;
+        public MaterialEffect BaseMaterialGray;
         public MaterialEffect GoldMaterial;
         public MaterialEffect EmissiveMaterial;
         public MaterialEffect EmissiveMaterial2;
@@ -91,9 +94,11 @@ namespace DeferredEngine.Recources
             Sphere = content.Load<Model>("Art/default/sphere");
             SphereMeshPart = Sphere.Meshes[0].MeshParts[0];
 
-            Plane = content.Load<Model>("Art/Plane");
+            Plane = new ModelBoundingBox(content, "Art/Plane");
 
             Cube = content.Load<Model>("Art/test/cube");
+
+            Tiger = new ModelBoundingBox(content, "Art/Tiger/tiger");
 
             IconDecal = content.Load<Texture2D>("Art/Editor/icon_decal");
             IconLight = content.Load<Texture2D>("Art/Editor/icon_light");
@@ -101,6 +106,7 @@ namespace DeferredEngine.Recources
             //Default Materials
 
             BaseMaterial = CreateMaterial(Color.Red, 0.5f, 0, type: MaterialEffect.MaterialTypes.Basic);
+            BaseMaterialGray = CreateMaterial(Color.LightGray, 0.8f, 0, type: MaterialEffect.MaterialTypes.Basic);
 
             MetalRough03Material = CreateMaterial(Color.Silver, 0.2f, 1);
             AlphaBlendRim = CreateMaterial(Color.Silver, 0.05f, 1, type: MaterialEffect.MaterialTypes.ForwardShaded);

@@ -5,6 +5,7 @@ using DeferredEngine.Recources;
 using DeferredEngine.Recources.Helper;
 using DeferredEngine.Renderer.Helper;
 using Microsoft.Xna.Framework.Graphics;
+using BoundingBox = Microsoft.Xna.Framework.BoundingBox;
 using Matrix = Microsoft.Xna.Framework.Matrix;
 using Quaternion = BEPUutilities.Quaternion;
 using Vector3 = Microsoft.Xna.Framework.Vector3;
@@ -14,6 +15,8 @@ namespace DeferredEngine.Entities
     public sealed class BasicEntity : TransformableObject
     {
         public readonly Model Model;
+        public readonly BoundingBox BoundingBox;
+        public readonly Vector3 BoundingBoxOffset;
         public readonly MaterialEffect Material;
 
         private int _id;
@@ -71,7 +74,8 @@ namespace DeferredEngine.Entities
         public override TransformableObject Clone {
             get
             {
-                return new BasicEntity(Model, Material, Position, RotationMatrix, Scale );   
+                //Not very clean...
+                return new BasicEntity(new ModelBoundingBox(Model, BoundingBox), Material, Position, RotationMatrix, Scale );   
             }  
         }
 
@@ -82,12 +86,15 @@ namespace DeferredEngine.Entities
         private Matrix _worldOldMatrix = Matrix.Identity;
         private Matrix _worldNewMatrix = Matrix.Identity;
         
-        public BasicEntity(Model model, MaterialEffect material, Vector3 position, double angleZ, double angleX, double angleY, Vector3 scale, MeshMaterialLibrary library = null, Entity physicsObject = null)
+        public BasicEntity(ModelBoundingBox modelbb, MaterialEffect material, Vector3 position, double angleZ, double angleX, double angleY, Vector3 scale, MeshMaterialLibrary library = null, Entity physicsObject = null)
         {
             Id = IdGenerator.GetNewId();
             Name = GetType().Name + " " + Id;
             WorldTransform = new TransformMatrix(Matrix.Identity, Id);
-            Model = model;
+            Model = modelbb.Model;
+            BoundingBox = modelbb.BoundingBox;
+            BoundingBoxOffset = modelbb.BoundingBoxOffset;
+            
             Material = material;
             Position = position;
             Scale = scale;
@@ -103,12 +110,15 @@ namespace DeferredEngine.Entities
 
         }
 
-        public BasicEntity(Model model, MaterialEffect material, Vector3 position, Matrix rotationMatrix, Vector3 scale)
+        public BasicEntity(ModelBoundingBox modelbb, MaterialEffect material, Vector3 position, Matrix rotationMatrix, Vector3 scale)
         {
             Id = IdGenerator.GetNewId();
             Name = GetType().Name + " " + Id;
             WorldTransform = new TransformMatrix(Matrix.Identity, Id);
-            Model = model;
+            Model = modelbb.Model;
+            BoundingBox = modelbb.BoundingBox;
+            BoundingBoxOffset = modelbb.BoundingBoxOffset;
+
             Material = material;
             Position = position;
             RotationMatrix = rotationMatrix;

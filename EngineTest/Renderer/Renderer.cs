@@ -378,37 +378,7 @@ namespace DeferredEngine.Renderer
             //Additional editor elements that overlay our screen
             if (GameSettings.e_enableeditor && GameStats.e_EnableSelection)
             {
-                if (GameSettings.e_drawoutlines)
-                    DrawMapToScreenToFullScreen(_editorRender.GetOutlines(), BlendState.Additive);
-                _editorRender.DrawEditorElements(meshMaterialLibrary, decals, pointLights, directionalLights, envSample, volumeTexture,
-                    _staticViewProjection, _view, editorData);
-
-                if (editorData.SelectedObject != null)
-                {
-                    if (editorData.SelectedObject is Decal)
-                    {
-                        _decalRenderModule.DrawOutlines(_graphicsDevice, editorData.SelectedObject as Decal,
-                            _staticViewProjection, _view);
-                    }
-                }
-                // //Show shadow maps
-                //if (editorData.SelectedObject != null)
-                //{
-                //    if (editorData.SelectedObject is PointLight)
-                //    {
-                //        int size = 128;
-                //        PointLight light = pointLights[2]; /*(PointLightSource)editorData.SelectedObject*/
-                //        ;
-                //        if (light.CastShadows)
-                //        {
-                //            _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.PointClamp);
-                //            _spriteBatch.Draw(light.ShadowMap,
-                //                new Rectangle(0, GameSettings.g_screenheight - size*6, size, size*6), Color.White);
-                //            _spriteBatch.End();
-                //        }
-                //    }
-
-                //}
+                RenderEditorOverlays(editorData, meshMaterialLibrary, decals, pointLights, directionalLights, envSample, volumeTexture);
             }
 
             //Debug ray marching
@@ -435,7 +405,50 @@ namespace DeferredEngine.Renderer
                 ProjectionMatrix =  _projection
             };
         }
-        
+
+        private void RenderEditorOverlays(EditorLogic.EditorSendData editorData, MeshMaterialLibrary meshMaterialLibrary, List<Decal> decals, List<PointLight> pointLights, List<DirectionalLight> directionalLights, EnvironmentSample envSample, VolumeTextureEntity volumeTexture)
+        {
+            if (GameSettings.e_drawoutlines)
+                DrawMapToScreenToFullScreen(_editorRender.GetOutlines(), BlendState.Additive);
+            _editorRender.DrawEditorElements(meshMaterialLibrary, decals, pointLights, directionalLights, envSample, volumeTexture,
+                _staticViewProjection, _view, editorData);
+
+            if (editorData.SelectedObject != null)
+            {
+                if (editorData.SelectedObject is Decal)
+                {
+                    _decalRenderModule.DrawOutlines(_graphicsDevice, editorData.SelectedObject as Decal,
+                        _staticViewProjection, _view);
+                }
+
+                if(GameSettings.e_drawboundingbox)
+                if (editorData.SelectedObject is BasicEntity)
+                {
+                    HelperGeometryManager.GetInstance().AddBoundingBox(editorData.SelectedObject as BasicEntity);
+                }
+            }
+
+
+            // //Show shadow maps
+            //if (editorData.SelectedObject != null)
+            //{
+            //    if (editorData.SelectedObject is PointLight)
+            //    {
+            //        int size = 128;
+            //        PointLight light = pointLights[2]; /*(PointLightSource)editorData.SelectedObject*/
+            //        ;
+            //        if (light.CastShadows)
+            //        {
+            //            _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.PointClamp);
+            //            _spriteBatch.Draw(light.ShadowMap,
+            //                new Rectangle(0, GameSettings.g_screenheight - size*6, size, size*6), Color.White);
+            //            _spriteBatch.End();
+            //        }
+            //    }
+
+            //}
+        }
+
         /// <summary>
         /// Another draw function, but this time for cubemaps. Doesn't need all the stuff we have in the main draw function
         /// </summary>

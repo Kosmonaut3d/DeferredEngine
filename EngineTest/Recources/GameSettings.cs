@@ -17,6 +17,7 @@ namespace DeferredEngine.Recources
         //Editor
         public static bool e_enableeditor = true;
         public static bool e_drawoutlines = true;
+        public static bool e_drawboundingbox = true;
 
         //UI
         public static bool ui_enabled = true;
@@ -200,7 +201,7 @@ namespace DeferredEngine.Recources
             }
         }
 
-        private static float _exposure = 0.25f;
+        private static float _exposure = -0.75f;
         public static float Exposure
         {
             get { return _exposure; }
@@ -341,6 +342,7 @@ namespace DeferredEngine.Recources
         public static int sdf_threads = 4;
         public static bool sdf_draw = false;
         public static bool d_drawnothing = false;
+        public static bool e_saveBoundingBoxes = true;
 
         public static void ApplySettings()
         {
