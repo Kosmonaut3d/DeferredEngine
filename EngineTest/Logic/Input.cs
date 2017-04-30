@@ -120,12 +120,13 @@ namespace DeferredEngine.Logic
             Keys[] lastpressed = keyboardState.GetPressedKeys();
             if (lastpressed.Length < 1) return null;
 
-            foreach (Keys key in lastpressed)
+            for (var index = 0; index < lastpressed.Length; index++)
             {
+                Keys key = lastpressed[index];
                 if (keyboardLastState.IsKeyUp(key))
                 {
                     Char keyChar = TranslateChar(key, keyboardState.IsKeyDown(Keys.LeftShift), false, false);
-                    if (keyChar == (char)0) return null;
+                    if (keyChar == (char) 0) return null;
                     if (keyChar == '\t' || keyChar == '\\' || keyChar == '\'') return null;
                     return keyChar.ToString();
                 }

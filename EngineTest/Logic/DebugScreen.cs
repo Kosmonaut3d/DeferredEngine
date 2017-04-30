@@ -25,6 +25,8 @@ namespace DeferredEngine.Logic
         private static readonly List<string> StringList = new List<string>();
         public static readonly List<StringColor> AiDebugString = new List<StringColor>();
 
+        public Color consoleColor = Color.Coral;
+
         //private GraphicsDevice _graphicsDevice;
 
         private long _maxGcMemory;
@@ -141,21 +143,25 @@ namespace DeferredEngine.Logic
             if (_consoleString.Length > 0)
             {
                 PropertyInfo[] infos = typeof(GameSettings).GetProperties();
-                foreach (PropertyInfo info in infos)
+                for (var index = 0; index < infos.Length; index++)
                 {
+                    PropertyInfo info = infos[index];
                     if (info.Name.Contains(_consoleString.Split(' ')[0]))
                     {
-                        _consoleStringSuggestion.Add(info.Name + " (" + info.PropertyType.ToString().Substring(7) + ")  :  " + info.GetValue(null));
+                        _consoleStringSuggestion.Add(info.Name + " (" + info.PropertyType.ToString().Substring(7) +
+                                                     ")  :  " + info.GetValue(null));
 
                         //return;
                     }
                 }
                 FieldInfo[] info2 = typeof(GameSettings).GetFields();
-                foreach (FieldInfo info in info2)
+                for (var index = 0; index < info2.Length; index++)
                 {
+                    FieldInfo info = info2[index];
                     if (info.Name.Contains(_consoleString.Split(' ')[0]))
                     {
-                        _consoleStringSuggestion.Add(info.Name + " (" + info.FieldType.ToString().Substring(7) + ")  :  " + info.GetValue(null));
+                        _consoleStringSuggestion.Add(info.Name + " (" + info.FieldType.ToString().Substring(7) +
+                                                     ")  :  " + info.GetValue(null));
                         //return;
                     }
                 }
@@ -241,17 +247,17 @@ namespace DeferredEngine.Logic
 
                 if (Math.Abs(_minfpsshort - _minfps) > 0.1f) _minfps = _minfpsshort;
 
-                _spriteBatch.Begin(SpriteSortMode.BackToFront);
+                _spriteBatch.Begin();
 
                 LoadProfilerStrings();
 
                 if (ConsoleOpen)
                 {
-                    Color consoleColor = Color.White;
+                    Color consoleColorLocal = this.consoleColor;
                     if (_consoleErrorTimer > 0)
                     {
                         _consoleErrorTimer -= gameTime.ElapsedGameTime.Milliseconds;
-                        consoleColor = Color.Lerp(Color.White, Color.Red, _consoleErrorTimer / ConsoleErrorTimerMax);
+                        consoleColorLocal = Color.Lerp(Color.White, Color.Red, _consoleErrorTimer / ConsoleErrorTimerMax);
                     }
                     char ins = '*';
                     //CONSOLE
@@ -263,14 +269,20 @@ namespace DeferredEngine.Logic
                     //For console we don't care about performance
                     _spriteBatch.DrawString(_sprFont,
                         "CONSOLE: " + _consoleString + ins,
-                        new Vector2(10.0f, 105.0f), consoleColor);
+                        new Vector2(11.0f, 106.0f), Color.Black);
+                    _spriteBatch.DrawString(_sprFont,
+                        "CONSOLE: " + _consoleString + ins,
+                        new Vector2(10.0f, 105.0f), consoleColorLocal);
+
                     Vector2 strLength = _sprFont.MeasureString("CONSOLE: " + _consoleString + ins);
 
                     for (int index = 0; index < _consoleStringSuggestion.Count; index++)
                     {
                         string suggestion = _consoleStringSuggestion[index];
                         _spriteBatch.DrawString(_sprFont, suggestion,
-                            new Vector2(10.0f + strLength.X, 105.0f + strLength.Y * index), consoleColor);
+                            new Vector2(11.0f + strLength.X, 106.0f + strLength.Y * index), Color.Black);
+                        _spriteBatch.DrawString(_sprFont, suggestion,
+                            new Vector2(10.0f + strLength.X, 105.0f + strLength.Y * index), consoleColorLocal);
                     }
 
                     
@@ -349,7 +361,9 @@ namespace DeferredEngine.Logic
                 }
 
                 _spriteBatch.DrawString(_monospaceFont, _mngStringBuilder.StringBuilder,
-                    new Vector2(10.0f, 10.0f), Color.White);
+                    new Vector2(11.0f, 11.0f), Color.Black);
+                _spriteBatch.DrawString(_monospaceFont, _mngStringBuilder.StringBuilder,
+                    new Vector2(10.0f, 10.0f), consoleColor);
 
                 _spriteBatch.End();
             }

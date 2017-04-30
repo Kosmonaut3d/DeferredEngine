@@ -33,13 +33,6 @@ struct VertexShaderOutput
     float3 ViewDir : TEXCOORD1;
 };
 
-struct PixelShaderOutput
-{
-    float4 Diffuse : COLOR0;
-    float4 Specular : COLOR1;
-};
-
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  FUNCTIONS
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -80,26 +73,23 @@ float MaxManhattan(float3 vec)
 	return max(abs(vec.x), max(abs(vec.y), abs(vec.z)));
 }
 
-float4 PixelShaderFunctionBasic(VertexShaderOutput input) : COLOR0
+//http://iquilezles.org/www/articles/distfunctions/distfunctions.htm
+//float dBox(float3 p, float3 b)
+//{
+//	return length(max(abs(p), 0.0f));
+//}
+
+float GetMinDistance(float3 PositionWS)
 {
-    PixelShaderOutput output;
-	int3 texCoordInt = int3(input.Position.xy, 0);
-
-	float linearDepth = DepthMap.Load(texCoordInt).r;
-
-	float3 PositionWS = linearDepth * input.ViewDir + CameraPosition;
-
-	//Assume axis-aligned square
-
 	float3 relativePosition = PositionWS - VolumeTexPositionWS;
 
 	relativePosition /= VolumeTexSize;
 
 	//Out of bounds
-	if (abs(MaxManhattan(relativePosition)) > 1) discard;
+	if (abs(MaxManhattan(relativePosition)) > 1) return 1000.0f;
 
 	//Get Texcoordinate from that, normalize to texcoords first
-	relativePosition = (relativePosition + float3(1, 1, 1)) * 0.5f * (VolumeTexResolution-float3(1,1,1));
+	relativePosition = (relativePosition + float3(1, 1, 1)) * 0.5f * (VolumeTexResolution - float3(1, 1, 1));
 
 	//x and y are correct, the z determines how much x is shifted.
 	float x = trunc(relativePosition.x);
@@ -119,25 +109,75 @@ float4 PixelShaderFunctionBasic(VertexShaderOutput input) : COLOR0
 	float x1y1z1;
 
 	x += VolumeTexResolution.x * z;
-	 x0y0z0 = VolumeTex.Load(int3(x, y, 0)).r;
-	 x1y0z0 = VolumeTex.Load(int3(x+1, y, 0)).r;
-	 x0y1z0 = VolumeTex.Load(int3(x, y+1, 0)).r;
-	 x1y1z0 = VolumeTex.Load(int3(x+1, y + 1, 0)).r;
+	x0y0z0 = VolumeTex.Load(int3(x, y, 0)).r;
+	x1y0z0 = VolumeTex.Load(int3(x + 1, y, 0)).r;
+	x0y1z0 = VolumeTex.Load(int3(x, y + 1, 0)).r;
+	x1y1z0 = VolumeTex.Load(int3(x + 1, y + 1, 0)).r;
 
-	x += VolumeTexResolution.x ;
-	 x0y0z1 = VolumeTex.Load(int3(x, y, 0)).r;
-	 x1y0z1 = VolumeTex.Load(int3(x + 1, y, 0)).r;
-	 x0y1z1 = VolumeTex.Load(int3(x, y + 1, 0)).r;
-	 x1y1z1 = VolumeTex.Load(int3(x + 1, y + 1, 0)).r;
+	x += VolumeTexResolution.x;
+	x0y0z1 = VolumeTex.Load(int3(x, y, 0)).r;
+	x1y0z1 = VolumeTex.Load(int3(x + 1, y, 0)).r;
+	x0y1z1 = VolumeTex.Load(int3(x, y + 1, 0)).r;
+	x1y1z1 = VolumeTex.Load(int3(x + 1, y + 1, 0)).r;
 
 
-	float4 lerpz0 = lerp( lerp(x0y0z0, x1y0z0, xfrac), lerp(x0y1z0, x1y1z0, xfrac), yfrac);
+	float4 lerpz0 = lerp(lerp(x0y0z0, x1y0z0, xfrac), lerp(x0y1z0, x1y1z0, xfrac), yfrac);
 	float4 lerpz1 = lerp(lerp(x0y0z1, x1y0z1, xfrac), lerp(x0y1z1, x1y1z1, xfrac), yfrac);
-	float4 lerpout = lerp(lerpz0, lerpz1, zfrac) / 1000;
-	//
+	float4 lerpout = lerp(lerpz0, lerpz1, zfrac);
 
-    return lerpout;
+	return lerpout;
 }
+
+float4 PixelShaderFunctionBasic(VertexShaderOutput input) : COLOR0
+{
+	float3 startPoint = CameraPosition;
+	float3 endPoint = CameraPosition + input.ViewDir;
+
+	float3 dir = endPoint - startPoint;
+	float farClip = length(dir);
+
+	//normalize
+	dir /= farClip;
+	float3 p = startPoint;
+
+	float marchingDistance = 0;
+
+	//Raymarch
+	for (int i = 0; i < 64; i++)
+	{
+		const float precis = 0.0005;
+
+		float step = GetMinDistance(p);
+
+
+		marchingDistance += step;
+
+		if (step <= precis || marchingDistance > farClip) break;
+
+		p += step * dir;
+	}
+
+	float output = marchingDistance / farClip;
+
+	return float4(output.xxx, 1);
+
+}
+
+
+float4 PixelShaderFunctionDrawToSurface(VertexShaderOutput input) : COLOR0
+{
+	int3 texCoordInt = int3(input.Position.xy, 0);
+
+	float linearDepth = DepthMap.Load(texCoordInt).r;
+
+	float3 PositionWS = linearDepth * input.ViewDir + CameraPosition;
+
+	//Assume axis-aligned square
+
+	return GetMinDistance(PositionWS);
+	
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  TECHNIQUES
@@ -150,4 +190,13 @@ technique Basic
         VertexShader = compile vs_5_0 VertexShaderFunction();
         PixelShader = compile ps_5_0 PixelShaderFunctionBasic();
     }
+}
+
+technique DrawToSurface
+{
+	pass Pass1
+	{
+		VertexShader = compile vs_5_0 VertexShaderFunction();
+		PixelShader = compile ps_5_0 PixelShaderFunctionDrawToSurface();
+	}
 }

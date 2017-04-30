@@ -286,7 +286,21 @@ namespace DeferredEngine.Renderer
         {
             //Reset the stat counter, so we can count stats/information for this frame only
             ResetStats();
-            
+
+            //SDF Updating
+            sdfGenerator.Update(volumeTexture, _graphicsDevice);
+
+            if (GameSettings.d_DrawNothing)
+            {
+                _graphicsDevice.Clear(Color.Black);
+                return new EditorLogic.EditorReceivedData
+                {
+                    HoveredId = 0,
+                    ViewMatrix = _view,
+                    ProjectionMatrix = _projection
+                };
+            } 
+
             //Update the mesh data for changes in physics etc.
             meshMaterialLibrary.FlagMovedObjects(entities);
 
@@ -356,15 +370,18 @@ namespace DeferredEngine.Renderer
             RenderMode(_currentOutput);
 
             //Draw test volume tex
-            _volumeProjectionRenderModule.Draw(_graphicsDevice, camera, volumeTexture, _quadRenderer);
 
-            sdfGenerator.Update(volumeTexture, _graphicsDevice);
+            if (GameSettings.sdf_draw)
+            {
+                _volumeProjectionRenderModule.Draw(_graphicsDevice, camera, volumeTexture, _quadRenderer);
 
-            _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.PointClamp);
-                        _spriteBatch.Draw(volumeTexture.Texture,
-                            new Rectangle(0, GameSettings.g_ScreenHeight - volumeTexture.Texture.Height * 20, volumeTexture.Texture.Width * 20, volumeTexture.Texture.Height * 20), Color.White);
-                        _spriteBatch.End();
 
+                _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.PointClamp);
+                _spriteBatch.Draw(volumeTexture.Texture,
+                    new Rectangle(0, GameSettings.g_ScreenHeight - volumeTexture.Texture.Height,
+                        volumeTexture.Texture.Width, volumeTexture.Texture.Height), Color.White);
+                _spriteBatch.End();
+            }
 
             //Additional editor elements that overlay our screen
             if (GameSettings.e_enableeditor && GameStats.e_EnableSelection)
@@ -631,12 +648,13 @@ namespace DeferredEngine.Renderer
             {
                 _forceShadowFiltering = GameSettings.g_shadowforcefiltering;
 
-                foreach (DirectionalLight light in dirLights)
+                for (var index = 0; index < dirLights.Count; index++)
                 {
+                    DirectionalLight light = dirLights[index];
                     if (light.ShadowMap != null) light.ShadowMap.Dispose();
                     light.ShadowMap = null;
 
-                    light.ShadowFiltering = (DirectionalLight.ShadowFilteringTypes)(_forceShadowFiltering - 1);
+                    light.ShadowFiltering = (DirectionalLight.ShadowFilteringTypes) (_forceShadowFiltering - 1);
 
                     light.HasChanged = true;
                 }
@@ -646,9 +664,9 @@ namespace DeferredEngine.Renderer
             {
                 _forceShadowSS = GameSettings.g_shadowforcescreenspace;
 
-                foreach (DirectionalLight light in dirLights)
+                for (var index = 0; index < dirLights.Count; index++)
                 {
-
+                    DirectionalLight light = dirLights[index];
                     light.ScreenSpaceShadowBlur = _forceShadowSS;
 
                     light.HasChanged = true;
@@ -1003,8 +1021,9 @@ namespace DeferredEngine.Renderer
                 Shaders.deferredDirectionalLightParameterInverseViewProjection.SetValue(_inverseViewProjection);
 
             }
-            foreach (DirectionalLight light in dirLights)
+            for (var index = 0; index < dirLights.Count; index++)
             {
+                DirectionalLight light = dirLights[index];
                 if (light.CastShadows && light.ScreenSpaceShadowBlur)
                 {
                     throw new NotImplementedException();
@@ -1017,16 +1036,16 @@ namespace DeferredEngine.Renderer
                     if (_viewProjectionHasChanged)
                     {
                         light.DirectionViewSpace = Vector3.Transform(light.Direction, _viewIT);
-                        light.LightViewProjection_ViewSpace = _inverseView* light.LightViewProjection;
+                        light.LightViewProjection_ViewSpace = _inverseView * light.LightViewProjection;
                         light.LightView_ViewSpace = _inverseView * light.LightView;
-
                     }
 
-                    Shaders.deferredDirectionalLightParameterLightViewProjection.SetValue(light.LightViewProjection_ViewSpace);
+                    Shaders.deferredDirectionalLightParameterLightViewProjection.SetValue(light
+                        .LightViewProjection_ViewSpace);
                     Shaders.deferredDirectionalLightParameterLightView.SetValue(light.LightViewProjection_ViewSpace);
                     Shaders.deferredDirectionalLightParameter_ShadowMap.SetValue(light.ShadowMap);
-                    Shaders.deferredDirectionalLightParameter_ShadowFiltering.SetValue((int)light.ShadowFiltering);
-                    Shaders.deferredDirectionalLightParameter_ShadowMapSize.SetValue((float)light.ShadowResolution);
+                    Shaders.deferredDirectionalLightParameter_ShadowFiltering.SetValue((int) light.ShadowFiltering);
+                    Shaders.deferredDirectionalLightParameter_ShadowMapSize.SetValue((float) light.ShadowResolution);
 
                     Shaders.deferredDirectionalLightShadowOnly.Passes[0].Apply();
 

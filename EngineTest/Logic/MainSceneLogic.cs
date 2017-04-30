@@ -89,7 +89,7 @@ namespace DeferredEngine.Logic
 
             EnvironmentSample = new EnvironmentSample(new Vector3(-45,-5,5));
 
-            VolumeTexture = new VolumeTextureEntity("Content/Sponza/sponza_sdf.sdff", graphics, new Vector3(-7, 0, 63), new Vector3(200, 100, 100));
+            VolumeTexture = new VolumeTextureEntity("Content/Sponza/sponza_sdf.sdff", graphics, new Vector3(-7, 0, 63), new Vector3(200, 100, 100)) {NeedsUpdate = true};
 
             _sdfGenerator = new SDFGenerator();
 
