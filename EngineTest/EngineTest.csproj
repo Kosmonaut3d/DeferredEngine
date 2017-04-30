@@ -89,9 +89,9 @@
     <Compile Include="Entities\PointLight.cs" />
     <Compile Include="Entities\Camera.cs" />
     <Compile Include="Logic\DebugScreen.cs" />
+    <Compile Include="Renderer\Helper\FullScreenTriangle.cs" />
     <Compile Include="Renderer\Helper\HelperGeometry\HelperGeometryManager.cs" />
     <Compile Include="Renderer\Helper\HelperGeometry\OctahedronHelperManager.cs" />
-    <Compile Include="Renderer\Helper\FullScreenQuadRenderer.cs" />
     <Compile Include="Renderer\Helper\HelperGeometry\OctahedronMesh.cs" />
     <Compile Include="Renderer\RenderModules\HelperGeometryRenderModule.cs" />
     <Compile Include="Renderer\RenderModules\PostProcessingFilters\BloomFilter.cs" />
@@ -103,7 +103,6 @@
     <Compile Include="Renderer\RenderModules\ForwardRenderModule.cs" />
     <Compile Include="Renderer\RenderModules\GaussianBlur.cs" />
     <Compile Include="Renderer\Helper\MeshMaterialLibrary.cs" />
-    <Compile Include="Renderer\Helper\QuadRenderer.cs" />
     <Compile Include="Renderer\Renderer.cs" />
     <Compile Include="Renderer\RenderModules\IdAndOutlineRenderer.cs" />
     <Compile Include="Renderer\RenderModules\LightAccumulationModule.cs" />

@@ -10,8 +10,6 @@
 float4x4 Projection;
 float4x4 InverseProjection;
 
-float3 FrustumCorners[4]; //In Viewspace!
-
 float FarClip;
 
 float Time = 0;
@@ -45,8 +43,7 @@ SamplerState texSampler
 
 struct VertexShaderInput
 {
-    float3 Position : POSITION0;
-    float2 TexCoord : TEXCOORD0;
+    float2 Position : POSITION0;
 };
 
 struct VertexShaderOutput
@@ -64,21 +61,15 @@ struct VertexShaderOutput
 	//  VERTEX SHADER
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-float3 GetFrustumRay(float2 texCoord)
+VertexShaderOutput VertexShaderFunction(VertexShaderInput input, uint id:SV_VERTEXID)
 {
-	float index = texCoord.x + (texCoord.y * 2);
-	return FrustumCorners[index];
-}
+	VertexShaderOutput output;
+	output.Position = float4(input.Position, 0, 1);
+	output.TexCoord.x = (float)(id / 2) * 2.0;
+	output.TexCoord.y = 1.0 - (float)(id % 2) * 2.0;
 
-VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
-{
-    VertexShaderOutput output;
-    output.Position = float4(input.Position, 1);
-    output.TexCoord = input.TexCoord;
-
-	output.ViewRay = GetFrustumRay(input.TexCoord);
-    return output;
-
+	output.ViewRay = GetFrustumRay(id);
+	return output;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -307,7 +298,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 			int3 hitCoordInt = int3(hitTexCoord.xy * resolution, 0);
 
 			float4 albedoColor = TargetMap.Load(hitCoordInt);
-			output.rgb = albedoColor;
+			output.rgb = albedoColor.rgb;
 			output.a = 1;
 
 			//Fade out to the edges
@@ -540,7 +531,7 @@ float4 PixelShaderFunctionTAA(VertexShaderOutput input) : COLOR0
 			int3 hitCoordInt = int3(  (hitTexCoord.xy * resolution), 0);
 
 			float4 albedoColor = TargetMap.Load(hitCoordInt);
-			output.rgb = albedoColor;
+			output.rgb = albedoColor.rgb;
 			output.a = 1;
 
 			//Fade out to the edges

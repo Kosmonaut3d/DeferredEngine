@@ -18,16 +18,13 @@ namespace DeferredEngine.Renderer.RenderModules
         private RenderTarget2D _rt5122;
         private RenderTarget2D _rt10242;
         private RenderTarget2D _rt20482;
-
-        private QuadRenderer _quadRenderer;
+        
 
         public void Initialize(GraphicsDevice graphicsDevice)
         {
            _graphicsDevice = graphicsDevice;
             _gaussEffect = Shaders.GaussianBlurEffect;
-
-            _quadRenderer = new QuadRenderer();
-
+            
             _horizontalPass = _gaussEffect.Techniques["GaussianBlur"].Passes["Horizontal"];
             _verticalPass = _gaussEffect.Techniques["GaussianBlur"].Passes["Vertical"];
 
@@ -45,7 +42,7 @@ namespace DeferredEngine.Renderer.RenderModules
             _rt20482.Dispose();
         }
 
-        public RenderTarget2D DrawGaussianBlur(RenderTarget2D renderTargetOutput)
+        public RenderTarget2D DrawGaussianBlur(RenderTarget2D renderTargetOutput, FullScreenTriangle triangle)
         {
             //select rendertarget
             RenderTarget2D renderTargetBlur = null;
@@ -81,17 +78,17 @@ namespace DeferredEngine.Renderer.RenderModules
             Shaders.GaussianBlurEffectParameter_TargetMap.SetValue(renderTargetOutput);
 
             _horizontalPass.Apply();
-            _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+            triangle.Draw(_graphicsDevice);
 
             _graphicsDevice.SetRenderTarget(renderTargetOutput);
             Shaders.GaussianBlurEffectParameter_TargetMap.SetValue(renderTargetBlur);
             _verticalPass.Apply();
-            _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+            triangle.Draw(_graphicsDevice);
 
             return renderTargetOutput;
         }
 
-        public RenderTargetCube DrawGaussianBlur(RenderTargetCube renderTargetOutput, CubeMapFace cubeFace)
+        public RenderTargetCube DrawGaussianBlur(RenderTargetCube renderTargetOutput, CubeMapFace cubeFace, FullScreenTriangle triangle)
         {
             //select rendertarget
             RenderTarget2D renderTargetBlur = null;
@@ -127,12 +124,12 @@ namespace DeferredEngine.Renderer.RenderModules
             Shaders.GaussianBlurEffectParameter_TargetMap.SetValue(renderTargetOutput);
 
             _horizontalPass.Apply();
-            _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+            triangle.Draw(_graphicsDevice);
 
             _graphicsDevice.SetRenderTarget(renderTargetOutput, cubeFace);
             Shaders.GaussianBlurEffectParameter_TargetMap.SetValue(renderTargetBlur);
             _verticalPass.Apply();
-            _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+            triangle.Draw(_graphicsDevice);
 
             return renderTargetOutput;
         }

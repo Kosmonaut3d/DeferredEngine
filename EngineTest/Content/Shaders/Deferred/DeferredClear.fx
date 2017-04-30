@@ -3,7 +3,7 @@
 
 struct VertexShaderInput
 {
-	float3 Position : POSITION0;
+	float2 Position : POSITION0;
 };
 
 struct VertexShaderOutput

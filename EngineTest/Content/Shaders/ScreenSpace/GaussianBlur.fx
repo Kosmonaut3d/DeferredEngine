@@ -35,22 +35,22 @@ float2 InverseResolution;
 
 struct VI
 {
-    float4 Position : POSITION0;
-    float2 TexCoord0 : TEXCOORD0;
+    float2 Position : POSITION0;
 };
 
 struct VO
 {
     float4 Position : POSITION0;
-    float2 TexCoord0 : TEXCOORD0;
+    float2 TexCoord : TexCoord;
 };
 
-VO VS(VI input)
+VO VS(VI input, uint id:SV_VERTEXID)
 {
     VO output;
 
-    output.Position = input.Position;
-    output.TexCoord0 = input.TexCoord0;
+	output.Position = float4(input.Position, 0, 1);
+	output.TexCoord.x = (float)(id / 2) * 2.0;
+	output.TexCoord.y = 1.0 - (float)(id % 2) * 2.0;
 
     return output;
 }
@@ -64,7 +64,7 @@ float4 HorizontalPS(VO input) : COLOR0
     {
         float2 offset = BlurKernel[i].xy * InverseResolution.xy;
     
-        float4 sample = TargetMap.Sample(SceneSampler, input.TexCoord0 + offset);
+        float4 sample = TargetMap.Sample(SceneSampler, input.TexCoord + offset);
         sample *= BlurWeights[i];
 		
         outputColor += sample;
@@ -82,7 +82,7 @@ float4 VerticalPS(VO input) : COLOR0
     {
         float2 offset = BlurKernel[i].yx * InverseResolution.xy;
     
-        float4 sample = TargetMap.Sample(SceneSampler, input.TexCoord0 + offset);
+        float4 sample = TargetMap.Sample(SceneSampler, input.TexCoord + offset);
         sample *= BlurWeights[i];
 
         outputColor += sample;

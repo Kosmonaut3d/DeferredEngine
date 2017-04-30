@@ -100,7 +100,7 @@ namespace DeferredEngine.Renderer.RenderModules
         }
 
 
-        public void Draw(GraphicsDevice _graphicsDevice, bool useTonemap, RenderTarget2D currentFrame, RenderTarget2D previousFrames, RenderTarget2D output, Matrix currentViewToPreviousViewProjection, QuadRenderer quadRenderer)
+        public void Draw(GraphicsDevice _graphicsDevice, bool useTonemap, RenderTarget2D currentFrame, RenderTarget2D previousFrames, RenderTarget2D output, Matrix currentViewToPreviousViewProjection, FullScreenTriangle fullScreenTriangle)
         {
 
             UseTonemap = useTonemap;
@@ -113,14 +113,14 @@ namespace DeferredEngine.Renderer.RenderModules
             _paramCurrentToPrevious.SetValue(currentViewToPreviousViewProjection);
 
             _taaPass.Apply();
-            quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+            fullScreenTriangle.Draw(_graphicsDevice);
             
             if (useTonemap)
             {
                 _graphicsDevice.SetRenderTarget(currentFrame);
                 _paramUpdateMap.SetValue(output);
                 _invTonemapPass.Apply();
-                quadRenderer.RenderQuad(_graphicsDevice, Vector2.One*-1, Vector2.One);
+                fullScreenTriangle.Draw(_graphicsDevice);
             }
         }
 

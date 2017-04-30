@@ -36,8 +36,7 @@ sampler pointSampler = sampler_state
 
 struct VertexShaderInput
 {
-    float3 Position : POSITION0;
-    float2 TexCoord : TEXCOORD0;
+    float2 Position : POSITION0;
 };
 
 struct VertexShaderOutput
@@ -49,12 +48,14 @@ struct VertexShaderOutput
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  FUNCTION DEFINITIONS
 
-VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
+VertexShaderOutput VertexShaderFunction(VertexShaderInput input, uint id:SV_VERTEXID)
 {
-    VertexShaderOutput output;
-    output.Position = float4(input.Position, 1);
-    output.TexCoord = input.TexCoord;
-    return output;
+	VertexShaderOutput output;
+	output.Position = float4(input.Position, 0, 1);
+	output.TexCoord.x = (float)(id / 2) * 2.0;
+	output.TexCoord.y = 1.0 - (float)(id % 2) * 2.0;
+
+	return output;
 }
 
 // For smooth holograms

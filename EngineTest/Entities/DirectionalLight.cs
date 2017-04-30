@@ -167,10 +167,11 @@ namespace DeferredEngine.Entities
                 if (ScreenSpaceShadowBlur)
                 {
                     throw new NotImplementedException();
-
+                    /*
                     Shaders.deferredDirectionalLightParameterLightViewProjection.SetValue(LightViewProjection_ViewSpace);
                     Shaders.deferredDirectionalLightParameter_ShadowFiltering.SetValue((int)ShadowFiltering);
                     Shaders.deferredDirectionalLightSSShadowed.Passes[0].Apply();  
+                    */
                 }
                 else
                 {

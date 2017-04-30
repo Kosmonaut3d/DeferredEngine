@@ -24,7 +24,7 @@ namespace DeferredEngine.Renderer.RenderModules.PostProcessingFilters
 
         #region fields
         private readonly Effect _shaderEffect;
-        private FullScreenQuadRenderer _fsq;
+        private FullScreenTriangle _fullScreenTriangle;
 
         private RenderTarget2D _renderTarget;
         
@@ -109,13 +109,13 @@ namespace DeferredEngine.Renderer.RenderModules.PostProcessingFilters
 
         public void Initialize(GraphicsDevice graphics )
         {
-            _fsq = new FullScreenQuadRenderer(graphics);
+            _fullScreenTriangle = new FullScreenTriangle(graphics);
         }
 
         public void Dispose()
         {
             _shaderEffect?.Dispose();
-            _fsq?.Dispose();
+            _fullScreenTriangle?.Dispose();
             _renderTarget?.Dispose();
         }
 
@@ -147,7 +147,7 @@ namespace DeferredEngine.Renderer.RenderModules.PostProcessingFilters
             graphics.BlendState = BlendState.Opaque;
 
             _applyLUTPass.Apply();
-            _fsq.RenderFullscreenQuad(graphics);
+            _fullScreenTriangle.Draw(graphics);
             return _renderTarget;
         }
 
@@ -171,7 +171,7 @@ namespace DeferredEngine.Renderer.RenderModules.PostProcessingFilters
             graphics.SetRenderTarget(_renderTarget);
 
             _createLUTPass.Apply();
-            _fsq.RenderFullscreenQuad(graphics);
+            _fullScreenTriangle.Draw(graphics);
 
             //Save this texture
             Stream stream = File.Create(relativeFilePath);

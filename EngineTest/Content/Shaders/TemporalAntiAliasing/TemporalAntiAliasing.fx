@@ -37,8 +37,7 @@ SamplerState linearSampler
 
 struct VertexShaderInput
 {
-    float3 Position : POSITION0;
-    float2 TexCoord : TEXCOORD0;
+    float2 Position : POSITION0;
 };
 
 struct VertexShaderOutput
@@ -62,20 +61,34 @@ struct PixelShaderOutput
 	//  VERTEX SHADER
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-float3 GetFrustumRay(float2 texCoord)
+float3 GetFrustumRay(uint id)
 {
-	float index = texCoord.x + (texCoord.y * 2);
-	return FrustumCorners[index];
+	//Bottom left
+	if (id < 1)
+	{
+		return FrustumCorners[2];
+	}
+	else if (id < 2) //Top left
+	{
+		return FrustumCorners[2] + (FrustumCorners[0] - FrustumCorners[2]) * 2;
+	}
+	else
+	{
+		return FrustumCorners[2] + (FrustumCorners[3] - FrustumCorners[2]) * 2;
+	}
+
+}
+VertexShaderOutput VertexShaderFunction(VertexShaderInput input, uint id:SV_VERTEXID)
+{
+	VertexShaderOutput output;
+	output.Position = float4(input.Position, 0, 1);
+	output.TexCoord.x = (float)(id / 2) * 2.0;
+	output.TexCoord.y = 1.0 - (float)(id % 2) * 2.0;
+
+	output.ViewRay = GetFrustumRay(id);
+	return output;
 }
 
-VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
-{
-    VertexShaderOutput output;
-    output.Position = float4(input.Position, 1);
-	output.ViewRay = GetFrustumRay(input.TexCoord);
-    output.TexCoord = input.TexCoord;
-    return output;
-}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//  PIXEL SHADER

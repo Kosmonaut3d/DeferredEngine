@@ -25,7 +25,7 @@ namespace DeferredEngine.Renderer.Helper
         private bool _previousEditorMode = GameSettings.e_enableeditor;
         private readonly BoundingSphere _defaultBoundingSphere;
         private RasterizerState _shadowGenerationRasterizerState;
-        private QuadRenderer _quadRenderer;
+        private FullScreenTriangle _fullScreenTriangle;
         private DepthStencilState _depthWrite;
 
         private GraphicsDevice graphicsDevice;
@@ -49,7 +49,7 @@ namespace DeferredEngine.Renderer.Helper
                 DepthBufferFunction = CompareFunction.Always
             };
 
-            _quadRenderer = new QuadRenderer();
+            _fullScreenTriangle = new FullScreenTriangle(graphics);
         }
 
         /// <summary>
@@ -620,7 +620,7 @@ namespace DeferredEngine.Renderer.Helper
         private void ClearFrame(GraphicsDevice graphicsDevice)
         {
             Shaders.DeferredClear.CurrentTechnique.Passes[0].Apply();
-            _quadRenderer.RenderFullscreenQuad(graphicsDevice);
+            _fullScreenTriangle.Draw(graphicsDevice);
         }
 
         //I don't want to fill up the main Draw as much! Not used right  now

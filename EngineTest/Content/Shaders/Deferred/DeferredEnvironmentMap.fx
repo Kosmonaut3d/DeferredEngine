@@ -9,7 +9,6 @@
 //We want to get from VS to WS. Usually this would mean an inverted VS. To get to 3x3 it's useful to use TI on this one.
 //So it's T I I = T
 float3x3 TransposeView;
-float3 FrustumCorners[4];
 
 Texture2D AlbedoMap;
 Texture2D NormalMap;
@@ -43,8 +42,7 @@ SamplerState ReflectionCubeMapSampler
 
 struct VertexShaderInput
 {
-    float3 Position : POSITION0;
-    float2 TexCoord : TEXCOORD0;
+    float2 Position : POSITION0;
 };
 struct VertexShaderOutput
 {
@@ -68,19 +66,16 @@ struct PixelShaderOutput
 	//  VERTEX SHADER
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-float3 GetFrustumRay(float2 texCoord)
-{
-	float index = texCoord.x + (texCoord.y * 2);
-	return FrustumCorners[index];
-}
 
-VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
+VertexShaderOutput VertexShaderFunction(VertexShaderInput input, uint id:SV_VERTEXID)
 {
-    VertexShaderOutput output;
-    output.Position = float4(input.Position, 1);
-    output.TexCoord = input.TexCoord;
-    output.ViewDir = GetFrustumRay(input.TexCoord);
-    return output;
+	VertexShaderOutput output;
+	output.Position = float4(input.Position, 0, 1);
+	output.TexCoord.x = (float)(id / 2) * 2.0;
+	output.TexCoord.y = 1.0 - (float)(id % 2) * 2.0;
+
+	output.ViewDir = GetFrustumRay(id);
+	return output;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////

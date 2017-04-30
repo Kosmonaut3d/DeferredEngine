@@ -13,7 +13,6 @@ namespace DeferredEngine.Renderer.RenderModules
     {
         private Effect _clearShader;
         private Effect _gbufferShader;
-        private EffectParameter _parameter1;
         private EffectPass _clearGBufferPass;
 
         private EffectParameter _WorldView;
@@ -46,7 +45,7 @@ namespace DeferredEngine.Renderer.RenderModules
         private EffectTechnique _DrawTexture;
         private EffectTechnique _DrawBasic;
 
-        private FullScreenQuadRenderer _fsqRenderer;
+        private FullScreenTriangle _fullScreenTriangle;
 
         public GBufferRenderModule(ContentManager content, string shaderPathClear, string shaderPathGbuffer)
         {
@@ -80,7 +79,7 @@ namespace DeferredEngine.Renderer.RenderModules
         {
             _clearGBufferPass = _clearShader.Techniques["Clear"].Passes[0];
 
-            _fsqRenderer = new FullScreenQuadRenderer(graphicsDevice);
+            _fullScreenTriangle = new FullScreenTriangle(graphicsDevice);
             
             _WorldView = _gbufferShader.Parameters["WorldView"];
             _WorldViewProj = _gbufferShader.Parameters["WorldViewProj"];
@@ -117,9 +116,9 @@ namespace DeferredEngine.Renderer.RenderModules
             _DrawBasic = _gbufferShader.Techniques["DrawBasic"];
         }
         
-        public void Load(ContentManager content, string shaderPath, string shaderPathGbuffer)
+        public void Load(ContentManager content, string shaderPathClear, string shaderPathGbuffer)
         {
-            _clearShader = content.Load<Effect>(shaderPath);
+            _clearShader = content.Load<Effect>(shaderPathClear);
             _gbufferShader = content.Load<Effect>(shaderPathGbuffer);
         }
 
@@ -135,7 +134,7 @@ namespace DeferredEngine.Renderer.RenderModules
                 _graphicsDevice.DepthStencilState = DepthStencilState.Default;
 
                 _clearGBufferPass.Apply();
-                _fsqRenderer.RenderFullscreenQuad(_graphicsDevice);
+                _fullScreenTriangle.Draw(_graphicsDevice);
             }
 
             //Draw the Gbuffer!
@@ -303,7 +302,7 @@ namespace DeferredEngine.Renderer.RenderModules
         {
             _clearShader?.Dispose();
             _gbufferShader?.Dispose();
-            _fsqRenderer?.Dispose();
+            _fullScreenTriangle?.Dispose();
         }
     }
 }

@@ -14,9 +14,6 @@ float4x4 ViewProjection;
 
 float2 Resolution = float2(1280, 800);
 
-float3 FrustumCorners[4]; //In Viewspace!
-
-
 Texture2D NormalMap;
 Texture2D DepthMap;
 
@@ -65,8 +62,7 @@ float SampleRadius = 0.05f;
 
 struct VertexShaderInput
 {
-    float3 Position : POSITION0;
-    float2 TexCoord : TEXCOORD0;
+    float2 Position : POSITION0;
 };
 
 struct VertexShaderOutput
@@ -85,38 +81,34 @@ struct VertexShaderOutputBlur
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  FUNCTION DEFINITIONS
 
-float3 GetFrustumRay(float2 texCoord)
-{
-	float index = texCoord.x + (texCoord.y * 2);
-	return FrustumCorners[index];
-}
 
 float3 GetFrustumRay2(float2 texCoord)
 {
-	float3 x1 = lerp(FrustumCorners[0], FrustumCorners[1], texCoord.x);
+    float3 x1 = lerp(FrustumCorners[0], FrustumCorners[1], texCoord.x);
 	float3 x2 = lerp(FrustumCorners[2], FrustumCorners[3], texCoord.x);
 	float3 outV = lerp(x1, x2, texCoord.y);
 	return outV;
 }
 
-
  //  DEFAULT LIGHT SHADER FOR MODELS
-VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
+VertexShaderOutput VertexShaderFunction(VertexShaderInput input, uint id:SV_VERTEXID)
 {
-    VertexShaderOutput output;
-    output.Position = float4(input.Position, 1);
-    //align texture coordinates
-    output.TexCoord = input.TexCoord;
-	output.ViewRay = GetFrustumRay(input.TexCoord);
-    return output;
+	VertexShaderOutput output;
+	output.Position = float4(input.Position, 0, 1);
+	output.TexCoord.x = (float)(id / 2) * 2.0;
+	output.TexCoord.y = 1.0 - (float)(id % 2) * 2.0;
+
+	output.ViewRay = GetFrustumRay(id);
+	return output;
 }
 
-VertexShaderOutputBlur VertexShaderBlurFunction(VertexShaderInput input)
+VertexShaderOutputBlur VertexShaderBlurFunction(VertexShaderInput input, uint id:SV_VERTEXID)
 {
     VertexShaderOutputBlur output;
-    output.Position = float4(input.Position, 1);
-    //align texture coordinates
-    output.TexCoord = input.TexCoord;
+	output.Position = float4(input.Position, 0, 1);
+	output.TexCoord.x = (float)(id / 2) * 2.0;
+	output.TexCoord.y = 1.0 - (float)(id % 2) * 2.0;
+
     return output;
 }
 
@@ -190,7 +182,8 @@ float4 PixelShaderFunction(VertexShaderOutput input) : SV_Target
 	float3 noise = randomNormal(texCoord);
 
 	//HBAO 2 dir
-	for (int i = 0; i < Samples/2; i++)
+	int sampleshalf = Samples / 2;
+	for (int i = 0; i < sampleshalf; i++)
 	{
 		float3 kernelVec = reflect(kernel[i], noise);
 		kernelVec.xy *= aspectRatio;

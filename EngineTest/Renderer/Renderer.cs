@@ -32,7 +32,8 @@ namespace DeferredEngine.Renderer
         //Graphics & Helpers
         private GraphicsDevice _graphicsDevice;
         private SpriteBatch _spriteBatch;
-        private QuadRenderer _quadRenderer;
+        //private QuadRenderer _quadRenderer;
+        private FullScreenTriangle _fullScreenTriangle;
         private GaussianBlur _gaussianBlur;
         private EditorRender _editorRender;
         private CPURayMarch _cpuRayMarch;
@@ -184,7 +185,7 @@ namespace DeferredEngine.Renderer
         public void Load(ContentManager content)
         {
             _bloomFilter = new BloomFilter();
-            _bloomFilter.Load(content, _quadRenderer);
+            _bloomFilter.Load(content);
 
             _shadowMapRenderModule = new ShadowMapRenderModule(content, "Shaders/Shadow/ShadowMap");
             _gBufferRenderModule = new GBufferRenderModule(content, "Shaders/GbufferSetup/ClearGBuffer", "Shaders/GbufferSetup/Gbuffer");
@@ -211,7 +212,8 @@ namespace DeferredEngine.Renderer
         public void Initialize(GraphicsDevice graphicsDevice, Assets assets)
         {
             _graphicsDevice = graphicsDevice;
-            _quadRenderer = new QuadRenderer();
+            //_quadRenderer = new QuadRenderer();
+            _fullScreenTriangle = new FullScreenTriangle(graphicsDevice);
             _spriteBatch = new SpriteBatch(graphicsDevice);
             _gaussianBlur = new GaussianBlur();
             _gaussianBlur.Initialize(graphicsDevice);
@@ -222,12 +224,12 @@ namespace DeferredEngine.Renderer
             _cpuRayMarch = new CPURayMarch();
             _cpuRayMarch.Initialize(_graphicsDevice);
 
-            _bloomFilter.Initialize(_graphicsDevice, GameSettings.g_screenwidth, GameSettings.g_ScreenHeight);
+            _bloomFilter.Initialize(_graphicsDevice, GameSettings.g_screenwidth, GameSettings.g_ScreenHeight, _fullScreenTriangle);
 
             _colorGradingFilter.Initialize(graphicsDevice);
 
             _lightAccumulationModule = new LightAccumulationModule();
-            _lightAccumulationModule.Initialize(graphicsDevice, _quadRenderer, assets);
+            _lightAccumulationModule.Initialize(graphicsDevice, _fullScreenTriangle, assets);
 
             _gBufferRenderModule.Initialize(_graphicsDevice);
 
@@ -290,7 +292,7 @@ namespace DeferredEngine.Renderer
             //SDF Updating
             sdfGenerator.Update(volumeTexture, _graphicsDevice);
 
-            if (GameSettings.d_DrawNothing)
+            if (GameSettings.d_drawnothing)
             {
                 _graphicsDevice.Clear(Color.Black);
                 return new EditorLogic.EditorReceivedData
@@ -373,7 +375,7 @@ namespace DeferredEngine.Renderer
 
             if (GameSettings.sdf_draw)
             {
-                _volumeProjectionRenderModule.Draw(_graphicsDevice, camera, volumeTexture, _quadRenderer);
+                _volumeProjectionRenderModule.Draw(_graphicsDevice, camera, volumeTexture, _fullScreenTriangle);
 
 
                 _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.PointClamp);
@@ -545,7 +547,7 @@ namespace DeferredEngine.Renderer
                 GameSettings.g_VolumetricLights = false;
                 _lightAccumulationModule.DrawLights(pointLights, dirLights, origin, gameTime, _renderTargetLightBinding, _renderTargetDiffuse);
 
-                _deferredEnvironmentMapRenderModule.DrawSky(_graphicsDevice, _quadRenderer);
+                _deferredEnvironmentMapRenderModule.DrawSky(_graphicsDevice, _fullScreenTriangle);
 
                 GameSettings.g_VolumetricLights = volumeEnabled;
 
@@ -965,7 +967,7 @@ namespace DeferredEngine.Renderer
             Shaders.ScreenSpaceReflectionParameter_Projection.SetValue(_projection);
             
             Shaders.ScreenSpaceReflectionEffect.CurrentTechnique.Passes[0].Apply();
-            _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+            _fullScreenTriangle.Draw(_graphicsDevice);
 
             if (GameSettings.d_profiler)
             {
@@ -997,7 +999,7 @@ namespace DeferredEngine.Renderer
 
             Shaders.ScreenSpaceEffect.CurrentTechnique = Shaders.ScreenSpaceEffectTechnique_SSAO;
             Shaders.ScreenSpaceEffect.CurrentTechnique.Passes[0].Apply();
-            _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+            _fullScreenTriangle.Draw(_graphicsDevice);
             
             //Performance Profiler
             if (GameSettings.d_profiler)
@@ -1028,6 +1030,7 @@ namespace DeferredEngine.Renderer
                 {
                     throw new NotImplementedException();
 
+                    /*
                     //Draw our map!
                     _graphicsDevice.SetRenderTarget(_renderTargetScreenSpaceEffectUpsampleBlurVertical);
 
@@ -1050,6 +1053,7 @@ namespace DeferredEngine.Renderer
                     Shaders.deferredDirectionalLightShadowOnly.Passes[0].Apply();
 
                     _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+                    */
                 }
             }
 
@@ -1087,7 +1091,7 @@ namespace DeferredEngine.Renderer
                 Shaders.ScreenSpaceEffectParameter_SSAOMap.SetValue(_renderTargetScreenSpaceEffectUpsampleBlurVertical);
                 Shaders.ScreenSpaceEffectTechnique_BlurVertical.Passes[0].Apply();
 
-                _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+                _fullScreenTriangle.Draw(_graphicsDevice);
 
                 _graphicsDevice.SetRenderTarget(_renderTargetScreenSpaceEffectBlurFinal);
 
@@ -1096,8 +1100,8 @@ namespace DeferredEngine.Renderer
                 Shaders.ScreenSpaceEffectParameter_SSAOMap.SetValue(_renderTargetScreenSpaceEffectUpsampleBlurHorizontal);
                 Shaders.ScreenSpaceEffectTechnique_BlurHorizontal.Passes[0].Apply();
 
-                _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
-                
+                _fullScreenTriangle.Draw(_graphicsDevice);
+
             }
             else
             {
@@ -1127,7 +1131,7 @@ namespace DeferredEngine.Renderer
         {
             if (!GameSettings.g_environmentmapping) return;
 
-            _deferredEnvironmentMapRenderModule.DrawEnvironmentMap(_graphicsDevice, _view, _quadRenderer, envSample, GameSettings.g_SSReflection_FireflyReduction, GameSettings.g_SSReflection_FireflyThreshold);
+            _deferredEnvironmentMapRenderModule.DrawEnvironmentMap(_graphicsDevice, _view, _fullScreenTriangle, envSample, GameSettings.g_SSReflection_FireflyReduction, GameSettings.g_SSReflection_FireflyThreshold);
 
             //Performance Profiler
             if (GameSettings.d_profiler)
@@ -1183,7 +1187,7 @@ namespace DeferredEngine.Renderer
 
             //combine!
             Shaders.DeferredCompose.CurrentTechnique.Passes[0].Apply();
-            _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+            _fullScreenTriangle.Draw(_graphicsDevice);
 
             //Performance Profiler
             if (GameSettings.d_profiler)
@@ -1215,7 +1219,7 @@ namespace DeferredEngine.Renderer
 
             _graphicsDevice.DepthStencilState = DepthStencilState.Default;
             Shaders.ReconstructDepth.CurrentTechnique.Passes[0].Apply();
-            _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+            _fullScreenTriangle.Draw(_graphicsDevice);
         }
 
         private RenderTarget2D DrawForward(RenderTarget2D input, MeshMaterialLibrary meshMaterialLibrary, Camera camera, List<PointLight> pointLights)
@@ -1273,7 +1277,7 @@ namespace DeferredEngine.Renderer
                 currentFrame: input,
                 previousFrames: _temporalAAOffFrame? _renderTargetTAA_1 : _renderTargetTAA_2,
                 output: output,
-                quadRenderer: _quadRenderer, 
+                fullScreenTriangle: _fullScreenTriangle, 
                 currentViewToPreviousViewProjection: _currentViewToPreviousViewProjection);
             
             //Performance Profiler
@@ -1371,7 +1375,7 @@ namespace DeferredEngine.Renderer
             _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
             
             Shaders.PostProcessing.CurrentTechnique.Passes[0].Apply();
-            _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+            _fullScreenTriangle.Draw(_graphicsDevice);
 
             if(GameSettings.g_ColorGrading)
             destinationRenderTarget = _colorGradingFilter.Draw(_graphicsDevice, destinationRenderTarget, _lut);

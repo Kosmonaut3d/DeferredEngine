@@ -436,7 +436,7 @@ PixelShaderOutput BasePixelShaderFunction(PixelShaderInput input)
 
 float4 PixelShaderBasic(float4 position : POSITION) : COLOR
 {
-	return 0;
+	return float4(0,0,0,0);
 }
 
 //Base function

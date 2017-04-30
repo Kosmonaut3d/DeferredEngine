@@ -7,8 +7,6 @@
 
 #include "../Common/helper.fx"
 
-float3 FrustumCorners[4]; //In Viewspace!
-
 float4x4  World;
 float4x4  WorldViewProj;
 float3x3  WorldViewIT;
@@ -54,11 +52,6 @@ struct VertexShaderOutput
 	//  VERTEX SHADER
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-float3 GetFrustumRay(float2 texCoord)
-{
-	float index = texCoord.x + (texCoord.y * 2);
-	return FrustumCorners[index];
-}
 
 VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 {

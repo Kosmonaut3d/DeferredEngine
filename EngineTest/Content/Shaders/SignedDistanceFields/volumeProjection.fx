@@ -7,8 +7,6 @@
 #include "../Common/helper.fx"
 
 float3 CameraPosition;
-//In World Space
-float3 FrustumCorners[4];
 
 Texture2D VolumeTex;
 Texture2D DepthMap;
@@ -23,9 +21,9 @@ float3 VolumeTexResolution = float3(2,2,2);
 
 struct VertexShaderInput
 {
-    float3 Position : POSITION0;
-    float2 TexCoord : TEXCOORD0;
+    float2 Position : POSITION0;
 };
+
 struct VertexShaderOutput
 {
     float4 Position : POSITION0;
@@ -41,18 +39,14 @@ struct VertexShaderOutput
 	//  VERTEX SHADER
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-float3 GetFrustumRay(float2 texCoord)
-{
-	float index = texCoord.x + (texCoord.y * 2);
-	return FrustumCorners[index];
-}
-
-VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
+VertexShaderOutput VertexShaderFunction(VertexShaderInput input, uint id:SV_VERTEXID)
 {
     VertexShaderOutput output;
-    output.Position = float4(input.Position, 1);
-    output.TexCoord = input.TexCoord;
-    output.ViewDir = GetFrustumRay(input.TexCoord);
+    output.Position = float4(input.Position, 0, 1);
+	output.TexCoord.x = (float)(id / 2) * 2.0;
+	output.TexCoord.y = 1.0 - (float)(id % 2) * 2.0;
+
+    output.ViewDir = GetFrustumRay(id);
     return output;
 }
 
@@ -121,11 +115,11 @@ float GetMinDistance(float3 PositionWS)
 	x1y1z1 = VolumeTex.Load(int3(x + 1, y + 1, 0)).r;
 
 
-	float4 lerpz0 = lerp(lerp(x0y0z0, x1y0z0, xfrac), lerp(x0y1z0, x1y1z0, xfrac), yfrac);
-	float4 lerpz1 = lerp(lerp(x0y0z1, x1y0z1, xfrac), lerp(x0y1z1, x1y1z1, xfrac), yfrac);
-	float4 lerpout = lerp(lerpz0, lerpz1, zfrac);
+	float lerpz0 = lerp(lerp(x0y0z0, x1y0z0, xfrac), lerp(x0y1z0, x1y1z0, xfrac), yfrac);
+	float lerpz1 = lerp(lerp(x0y0z1, x1y0z1, xfrac), lerp(x0y1z1, x1y1z1, xfrac), yfrac);
+	float lerpout = lerp(lerpz0, lerpz1, zfrac);
 
-	return lerpout;
+	return lerpout.xxxx;
 }
 
 float4 PixelShaderFunctionBasic(VertexShaderOutput input) : COLOR0
@@ -158,6 +152,8 @@ float4 PixelShaderFunctionBasic(VertexShaderOutput input) : COLOR0
 	}
 
 	float output = marchingDistance / farClip;
+
+	//if (output > 0) return input.TexCoord.xyyy;
 
 	return float4(output.xxx, 1);
 

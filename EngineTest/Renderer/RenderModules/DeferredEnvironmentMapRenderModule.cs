@@ -141,7 +141,7 @@ namespace DeferredEngine.Renderer.RenderModules
 
         }
 
-        public void DrawEnvironmentMap(GraphicsDevice graphicsDevice, Matrix view, QuadRenderer quadRenderer, EnvironmentSample envSample, bool fireflyReduction, float ffThreshold)
+        public void DrawEnvironmentMap(GraphicsDevice graphicsDevice, Matrix view, FullScreenTriangle fullScreenTriangle, EnvironmentSample envSample, bool fireflyReduction, float ffThreshold)
         {
             FireflyReduction = fireflyReduction;
             FireflyThreshold = ffThreshold;
@@ -154,17 +154,17 @@ namespace DeferredEngine.Renderer.RenderModules
             _paramTransposeView.SetValue(Matrix.Transpose(view));
             
             _passBasic.Apply();
-            quadRenderer.RenderFullscreenQuad(graphicsDevice);
+            fullScreenTriangle.Draw(graphicsDevice);
 
         }
 
-        public void DrawSky(GraphicsDevice graphicsDevice, QuadRenderer quadRenderer)
+        public void DrawSky(GraphicsDevice graphicsDevice, FullScreenTriangle quadRenderer)
         {
             graphicsDevice.DepthStencilState = DepthStencilState.None;
             graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
 
             _passSky.Apply();
-            quadRenderer.RenderFullscreenQuad(graphicsDevice);
+            quadRenderer.Draw(graphicsDevice);
 
         }
 

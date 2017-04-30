@@ -12,7 +12,7 @@ namespace DeferredEngine.Renderer.RenderModules
     public class LightAccumulationModule : IDisposable
     {
         private GraphicsDevice _graphicsDevice;
-        private QuadRenderer _quadRenderer;
+        private FullScreenTriangle _fullScreenTriangle;
         private Assets _assets;
         private bool _g_UseDepthStencilLightCulling;
         private BlendState _lightBlendState;
@@ -29,10 +29,10 @@ namespace DeferredEngine.Renderer.RenderModules
         private DepthStencilState _stencilCullPass1;
         private DepthStencilState _stencilCullPass2;
 
-        public void Initialize(GraphicsDevice graphicsDevice, QuadRenderer quadRenderer, Assets assets)
+        public void Initialize(GraphicsDevice graphicsDevice, FullScreenTriangle fullScreenTriangle, Assets assets)
         {
             _graphicsDevice = graphicsDevice;
-            _quadRenderer = quadRenderer;
+            _fullScreenTriangle = fullScreenTriangle;
             _assets = assets;
 
             _lightBlendState = new BlendState
@@ -166,7 +166,7 @@ namespace DeferredEngine.Renderer.RenderModules
 
             _graphicsDevice.DepthStencilState = DepthStencilState.Default;
             Shaders.ReconstructDepth.CurrentTechnique.Passes[0].Apply();
-            _quadRenderer.RenderFullscreenQuad(_graphicsDevice);
+            _fullScreenTriangle.Draw(_graphicsDevice);
         }
 
         /// <summary>
@@ -316,7 +316,7 @@ namespace DeferredEngine.Renderer.RenderModules
             Shaders.deferredDirectionalLightParameter_LightDirection.SetValue(light.DirectionViewSpace);
             Shaders.deferredDirectionalLightParameter_LightIntensity.SetValue(light.Intensity);
             light.ApplyShader();
-            _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+            _fullScreenTriangle.Draw(_graphicsDevice);
         }
 
         public void Dispose()

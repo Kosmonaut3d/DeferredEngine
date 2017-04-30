@@ -30,7 +30,6 @@ namespace DeferredEngine.Recources.Helper
             if (data.Length != width * height * zdepth)
             {
                 throw new Exception("Your output dimensions do not match!");
-                return;
             }
 
             var byteArray = new byte[data.Length * 4];

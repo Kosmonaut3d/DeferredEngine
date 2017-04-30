@@ -184,8 +184,6 @@ namespace DeferredEngine.Logic.SDF_Generator
                         {
                             data[i] = dataArray[i % numberOfThreads][i];
                         }
-
-                        int breakpoint = 0;
                     }
                     else
                     {

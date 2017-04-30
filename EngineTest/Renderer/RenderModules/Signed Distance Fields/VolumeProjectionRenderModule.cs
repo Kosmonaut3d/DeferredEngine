@@ -81,7 +81,7 @@ namespace DeferredEngine.Renderer.RenderModules.Default
             _shader?.Dispose();
         }
         
-        public void Draw(GraphicsDevice graphicsDevice, Camera camera, VolumeTextureEntity volumeTextureEntity, QuadRenderer quadRenderer)
+        public void Draw(GraphicsDevice graphicsDevice, Camera camera, VolumeTextureEntity volumeTextureEntity, FullScreenTriangle fullScreenTriangle)
         {
             CameraPosition = camera.Position;
 
@@ -91,7 +91,8 @@ namespace DeferredEngine.Renderer.RenderModules.Default
             VolumeTexSize = volumeTextureEntity.Size;
 
             _basicPass.Apply();
-            quadRenderer.RenderFullscreenQuad(graphicsDevice);
+            fullScreenTriangle.Draw(graphicsDevice);
+            //quadRenderer.RenderFullscreenQuad(graphicsDevice);
         }
     }
 }

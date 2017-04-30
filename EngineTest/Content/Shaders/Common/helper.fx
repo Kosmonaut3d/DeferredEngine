@@ -4,6 +4,8 @@
 //  VARIABLES
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+float3 FrustumCorners[4]; //In Viewspace!
+
 float2 InverseResolution = float2(1.0f / 1280.0f, 1.0f / 800.0f);
 
 #define SAMPLE_COUNT 9
@@ -30,6 +32,30 @@ static float SampleWeights[9] =
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  HELPER FUNCTIONS
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+float3 GetFrustumRay(float2 texCoord)
+{
+	float index = texCoord.x + (texCoord.y * 2);
+	return FrustumCorners[index];
+}
+
+float3 GetFrustumRay(uint id)
+{
+	//Bottom left
+	if (id < 1)
+	{
+		return FrustumCorners[2];
+	}
+	else if (id < 2) //Top left
+	{
+		return FrustumCorners[2] + (FrustumCorners[0] - FrustumCorners[2]) * 2;
+	}
+	else
+	{
+		return FrustumCorners[2] + (FrustumCorners[3] - FrustumCorners[2]) * 2;
+	}
+
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //GBUFFER

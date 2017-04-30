@@ -8,8 +8,6 @@
 
 float4x4 ViewProjection;
 
-float3 FrustumCorners[4];
-
 //color of the light 
 float3 lightColor;
 //position of the camera, for specular light
@@ -75,8 +73,7 @@ SamplerState ShadowSampler
 
 struct VertexShaderInput
 {
-    float3 Position : POSITION0;
-    float2 TexCoord : TEXCOORD0;
+    float2 Position : POSITION0;
 };
 struct VertexShaderOutput
 {
@@ -100,21 +97,15 @@ struct PixelShaderOutput
 	//  VERTEX SHADER
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-float3 GetFrustumRay(float2 texCoord)
+VertexShaderOutput VertexShaderFunction(VertexShaderInput input, uint id:SV_VERTEXID)
 {
-	float index = texCoord.x + (texCoord.y * 2);
-	return FrustumCorners[index];
-}
+	VertexShaderOutput output;
+	output.Position = float4(input.Position, 0, 1);
+	output.TexCoord.x = (float)(id / 2) * 2.0;
+	output.TexCoord.y = 1.0 - (float)(id % 2) * 2.0;
 
-VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
-{
-    VertexShaderOutput output;
-    output.Position = float4(input.Position, 1);
-    //align texture coordinates
-    output.TexCoord = input.TexCoord;
-	output.ViewDir = GetFrustumRay(input.TexCoord);
-    return output;
-
+	output.ViewDir = GetFrustumRay(id);
+	return output;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////

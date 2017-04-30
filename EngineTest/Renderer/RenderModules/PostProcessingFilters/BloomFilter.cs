@@ -60,7 +60,7 @@ namespace DeferredEngine.Renderer.RenderModules.PostProcessingFilters
 
         //Objects
         private GraphicsDevice _graphicsDevice;
-        private QuadRenderer _quadRenderer;
+        private FullScreenTriangle _fullScreenTriangle;
 
         //Shader + variables
         private Effect _bloomEffect;
@@ -210,8 +210,10 @@ namespace DeferredEngine.Renderer.RenderModules.PostProcessingFilters
         #region initialize
 
         //Initialize graphicsDevice
-        public void Initialize(GraphicsDevice graphicsDevice, int width, int height)
+        public void Initialize(GraphicsDevice graphicsDevice, int width, int height, FullScreenTriangle fullScreenTriangle)
         {
+            _fullScreenTriangle = fullScreenTriangle;
+
             _graphicsDevice = graphicsDevice;
             UpdateResolution(width, height);
 
@@ -225,11 +227,8 @@ namespace DeferredEngine.Renderer.RenderModules.PostProcessingFilters
         /// <param name="width">initial value for creating the rendertargets</param>
         /// <param name="height">initial value for creating the rendertargets</param>
         /// <param name="quadRenderer">if you already have quadRenderer you may reuse it here</param>
-        public void Load( ContentManager content,  QuadRenderer quadRenderer = null)
+        public void Load( ContentManager content)
         {
-            //if quadRenderer == null -> new, otherwise not
-            _quadRenderer = quadRenderer ?? new QuadRenderer();
-
             //Load the shader parameters and passes for cheap and easy access
             _bloomEffect = content.Load<Effect>("Shaders/BloomFilter/Bloom");
             _bloomInverseResolutionParameter = _bloomEffect.Parameters["InverseResolution"];
@@ -388,7 +387,7 @@ namespace DeferredEngine.Renderer.RenderModules.PostProcessingFilters
             
             if (BloomUseLuminance) _bloomPassExtractLuminance.Apply(); 
             else _bloomPassExtract.Apply();
-            _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+            _fullScreenTriangle.Draw(_graphicsDevice);
             
             //Now downsample to the next lower mip texture
             if (BloomDownsamplePasses > 0)
@@ -400,7 +399,7 @@ namespace DeferredEngine.Renderer.RenderModules.PostProcessingFilters
                 BloomScreenTexture = _bloomRenderTarget2DMip0;
                 //Pass
                 _bloomPassDownsample.Apply();
-                _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+                _fullScreenTriangle.Draw(_graphicsDevice);
 
                 if (BloomDownsamplePasses > 1)
                 {
@@ -413,7 +412,7 @@ namespace DeferredEngine.Renderer.RenderModules.PostProcessingFilters
                     BloomScreenTexture = _bloomRenderTarget2DMip1;
                     //Pass
                     _bloomPassDownsample.Apply();
-                    _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+                    _fullScreenTriangle.Draw(_graphicsDevice);
 
                     if (BloomDownsamplePasses > 2)
                     {
@@ -425,7 +424,7 @@ namespace DeferredEngine.Renderer.RenderModules.PostProcessingFilters
                         BloomScreenTexture = _bloomRenderTarget2DMip2;
                         //Pass
                         _bloomPassDownsample.Apply();
-                        _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+                        _fullScreenTriangle.Draw(_graphicsDevice);
                         
                         if (BloomDownsamplePasses > 3)
                         {
@@ -437,7 +436,7 @@ namespace DeferredEngine.Renderer.RenderModules.PostProcessingFilters
                             BloomScreenTexture = _bloomRenderTarget2DMip3;
                             //Pass
                             _bloomPassDownsample.Apply();
-                            _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+                            _fullScreenTriangle.Draw(_graphicsDevice);
 
                             if (BloomDownsamplePasses > 4)
                             {
@@ -449,7 +448,7 @@ namespace DeferredEngine.Renderer.RenderModules.PostProcessingFilters
                                 BloomScreenTexture = _bloomRenderTarget2DMip4;
                                 //Pass
                                 _bloomPassDownsample.Apply();
-                                _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+                                _fullScreenTriangle.Draw(_graphicsDevice);
 
                                 ChangeBlendState();
 
@@ -460,7 +459,7 @@ namespace DeferredEngine.Renderer.RenderModules.PostProcessingFilters
                                 BloomStrength = _bloomStrength5;
                                 BloomRadius = _bloomRadius5;
                                 _bloomPassUpsample.Apply();
-                                _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+                                _fullScreenTriangle.Draw(_graphicsDevice);
 
                                 BloomInverseResolution /= 2;
                             }
@@ -474,7 +473,7 @@ namespace DeferredEngine.Renderer.RenderModules.PostProcessingFilters
                             BloomStrength = _bloomStrength4;
                             BloomRadius = _bloomRadius4;
                             _bloomPassUpsample.Apply();
-                            _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+                            _fullScreenTriangle.Draw(_graphicsDevice);
 
                             BloomInverseResolution /= 2;
 
@@ -489,7 +488,7 @@ namespace DeferredEngine.Renderer.RenderModules.PostProcessingFilters
                         BloomStrength = _bloomStrength3;
                         BloomRadius = _bloomRadius3;
                         _bloomPassUpsample.Apply();
-                        _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+                        _fullScreenTriangle.Draw(_graphicsDevice);
 
                         BloomInverseResolution /= 2;
 
@@ -504,7 +503,7 @@ namespace DeferredEngine.Renderer.RenderModules.PostProcessingFilters
                     BloomStrength = _bloomStrength2;
                     BloomRadius = _bloomRadius2;
                     _bloomPassUpsample.Apply();
-                    _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+                    _fullScreenTriangle.Draw(_graphicsDevice);
 
                     BloomInverseResolution /= 2;
                 }
@@ -519,7 +518,7 @@ namespace DeferredEngine.Renderer.RenderModules.PostProcessingFilters
                 BloomRadius = _bloomRadius1;
 
                 _bloomPassUpsample.Apply();
-                _quadRenderer.RenderQuad(_graphicsDevice, Vector2.One * -1, Vector2.One);
+                _fullScreenTriangle.Draw(_graphicsDevice);
             }
 
             //Note the final step could be done as a blend to the final texture.

@@ -13,9 +13,7 @@ namespace DeferredEngine.Renderer.RenderModules
         public EffectParameter Texture;
 
         public Texture2D tex;
-
-        private QuadRenderer _quadRenderer;
-
+        
         private GraphicsDevice _graphics;
         private SpriteBatch _spriteBatch;
 
@@ -31,7 +29,6 @@ namespace DeferredEngine.Renderer.RenderModules
 
         public void Initialize(GraphicsDevice graphicsDevice)
         {
-            _quadRenderer = new QuadRenderer();
             _graphics = graphicsDevice;
             _spriteBatch = new SpriteBatch(_graphics);
         }

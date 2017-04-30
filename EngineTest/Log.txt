@@ -20,5 +20,7 @@ TODO:
 
 - Integrate LUTs/Color Correction into the post processing step instead of yet another rendertarget usage.
 
+- is lighting using depth buffer? (draw frontside of spheres when camera not inside)
+
 - check out:
 https://github.com/kode80/kode80SSR/blob/master/Assets/Resources/Shaders/SSR.shader
