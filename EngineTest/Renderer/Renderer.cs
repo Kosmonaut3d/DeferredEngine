@@ -11,6 +11,7 @@ using DeferredEngine.Renderer.Helper.HelperGeometry;
 using DeferredEngine.Renderer.RenderModules;
 using DeferredEngine.Renderer.RenderModules.Default;
 using DeferredEngine.Renderer.RenderModules.PostProcessingFilters;
+using DeferredEngine.Renderer.RenderModules.Signed_Distance_Fields;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
@@ -47,7 +48,7 @@ namespace DeferredEngine.Renderer
         private SubsurfaceScatterRenderModule _subsurfaceScatterRenderModule;
         private ForwardRenderModule _forwardRenderModule;
         private HelperGeometryRenderModule _helperGeometryRenderModule;
-        private VolumeProjectionRenderModule _volumeProjectionRenderModule;
+        private DistanceFieldRenderModule _distanceFieldRenderModule;
 
         private BloomFilter _bloomFilter;
         private ColorGradingFilter _colorGradingFilter;
@@ -195,7 +196,7 @@ namespace DeferredEngine.Renderer
             _subsurfaceScatterRenderModule = new SubsurfaceScatterRenderModule(content, "Shaders/SubsurfaceScattering/SubsurfaceScattering");
             _forwardRenderModule = new ForwardRenderModule(content, "Shaders/forward/forward");
             _helperGeometryRenderModule = new HelperGeometryRenderModule(content, "Shaders/Editor/LineEffect");
-            _volumeProjectionRenderModule = new VolumeProjectionRenderModule(content, "Shaders/SignedDistanceFields/volumeProjection");
+            _distanceFieldRenderModule = new DistanceFieldRenderModule(content, "Shaders/SignedDistanceFields/volumeProjection");
 
             _inverseResolution = new Vector3(1.0f / GameSettings.g_screenwidth, 1.0f / GameSettings.g_screenheight, 0);
             
@@ -261,7 +262,7 @@ namespace DeferredEngine.Renderer
             _editorRender.Update(gameTime);
 
             //SDF Updating
-            sdfGenerator.Update(volumeTexture, _graphicsDevice);
+            sdfGenerator.Update(volumeTexture, _graphicsDevice, false, _distanceFieldRenderModule, _fullScreenTriangle);
 
         }
 
@@ -883,7 +884,7 @@ namespace DeferredEngine.Renderer
             _currentFrustumCorners[3] = _currentFrustumCorners[2];
             _currentFrustumCorners[2] = temp;
 
-            _volumeProjectionRenderModule.FrustumCornersWorldSpace = _currentFrustumCorners;
+            _distanceFieldRenderModule.FrustumCornersWorldSpace = _currentFrustumCorners;
             
             //View Space Corners
             //this is the inverse of our camera transform
@@ -1298,7 +1299,7 @@ namespace DeferredEngine.Renderer
         {
             if (!GameSettings.sdf_draw) return;
             
-            _volumeProjectionRenderModule.Draw(_graphicsDevice, camera, volumeTexture, _fullScreenTriangle);
+            _distanceFieldRenderModule.Draw(_graphicsDevice, camera, volumeTexture, _fullScreenTriangle);
 
             _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.PointClamp);
 
@@ -1573,7 +1574,7 @@ namespace DeferredEngine.Renderer
 
             _decalRenderModule.DepthMap = _renderTargetDepth;
 
-            _volumeProjectionRenderModule.DepthMap = _renderTargetDepth;
+            _distanceFieldRenderModule.DepthMap = _renderTargetDepth;
             
             //_subsurfaceScatterRenderModule.NormalMap = _renderTargetNormal;
             //_subsurfaceScatterRenderModule.AlbedoMap = _renderTargetAlbedo;

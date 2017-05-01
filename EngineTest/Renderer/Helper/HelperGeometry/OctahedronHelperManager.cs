@@ -10,7 +10,7 @@ namespace DeferredEngine.Renderer.Helper
         private OctahedronMesh _octahedronMesh;
         private List<Vector3> positions = new List<Vector3>();
         private List<Vector4> colors = new List<Vector4>();
-        private Matrix scale = Matrix.CreateScale(.5f);
+        private Matrix scale = Matrix.CreateScale(.005f);
 
         public void AddOctahedron(Vector3 position, Vector4 color)
         {

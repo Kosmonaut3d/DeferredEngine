@@ -18,36 +18,12 @@ namespace DeferredEngine.Entities
         public override bool IsEnabled { get; set; }
         public override TransformableObject Clone { get; }
         public sealed override string Name { get; set; }
-
+        
         public Vector3 Size;
 
-        public float SizeX
-        {
-            get { return _sizeX; }
-            set { _sizeX = value;
-                Size.X = value;
-            }
-        }
-        public float SizeY
-        {
-            get { return _sizeY; }
-            set
-            {
-                _sizeY = value;
-                Size.Y = value;
-            }
-        }
-        public float SizeZ
-        {
-            get { return _sizeZ; }
-            set
-            {
-                _sizeZ = value;
-                Size.Z = value;
-            }
-        }
-
         public Vector3 Resolution = 2 * Vector3.One;
+
+        public Vector3 Offset;
 
         public Texture2D Texture;
         public bool NeedsUpdate = false;
@@ -68,9 +44,6 @@ namespace DeferredEngine.Entities
             Resolution.X = Texture.Width / zdepth;
 
             Size = size;
-            _sizeX = size.X;
-            _sizeY = size.Y;
-            _sizeZ = size.Z;
 
         }
     }

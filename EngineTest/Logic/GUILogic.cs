@@ -602,12 +602,12 @@ namespace DeferredEngine.Logic
                     _objectSlider2.IsHidden = false;
                     if (activeObject != selectedObject)
                     {
-                        _objectSlider0.SetProperty(selectedObject, "SizeX");
-                        _objectSlider0.SetValues("Size X: ", 0.1f, 200, 2);
-                        _objectSlider1.SetProperty(selectedObject, "SizeY");
-                        _objectSlider1.SetValues("Size Y: ", 0.1f, 200, 2);
-                        _objectSlider2.SetProperty(selectedObject, "SizeZ");
-                        _objectSlider2.SetValues("Size Z: ", 0.1f, 200, 2);
+                        //_objectSlider0.SetProperty(selectedObject, "SizeX");
+                        //_objectSlider0.SetValues("Size X: ", 0.1f, 200, 2);
+                        //_objectSlider1.SetProperty(selectedObject, "SizeY");
+                        //_objectSlider1.SetValues("Size Y: ", 0.1f, 200, 2);
+                        //_objectSlider2.SetProperty(selectedObject, "SizeZ");
+                        //_objectSlider2.SetValues("Size Z: ", 0.1f, 200, 2);
                     }
                 }
 

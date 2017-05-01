@@ -111,7 +111,7 @@
     <Compile Include="Renderer\RenderModules\GBufferRenderModule.cs" />
     <Compile Include="Renderer\RenderModules\DeferredEnvironmentMapRenderModule.cs" />
     <Compile Include="Renderer\RenderModules\PostProcessingFilters\ColorGradingFilter.cs" />
-    <Compile Include="Renderer\RenderModules\Signed Distance Fields\VolumeProjectionRenderModule.cs" />
+    <Compile Include="Renderer\RenderModules\Signed Distance Fields\DistanceFieldRenderModule.cs" />
     <Compile Include="Renderer\RenderModules\SubsurfaceScatterRenderModule.cs" />
     <Compile Include="Renderer\RenderModules\TemporalAntialiasingRenderModule.cs" />
     <Compile Include="Renderer\RenderModules\Default\RenderModuleTemplate.cs" />

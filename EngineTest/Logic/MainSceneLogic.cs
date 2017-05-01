@@ -53,6 +53,8 @@ namespace DeferredEngine.Logic
         //SDF
         public SDFGenerator _sdfGenerator;
 
+        private BasicEntity testEntity;
+
         #endregion
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -109,7 +111,7 @@ namespace DeferredEngine.Logic
                 angleZ: 0,
                 scale: 200);
 
-            BasicEntity testEntity = AddEntity(model: _assets.Tiger,
+            testEntity = AddEntity(model: _assets.Tiger,
                 materialEffect: _assets.BaseMaterial,
                 position: new Vector3(40, -10, 3.317f),
                 angleX: Math.PI / 2,
@@ -117,8 +119,17 @@ namespace DeferredEngine.Logic
                 angleZ: 0,
                 scale: 10);
 
-            //testEntity.ApplyTransformation();
+
+            testEntity.ApplyTransformation();
+
+            VolumeTexture.Position = testEntity.Position;
+            VolumeTexture.Size = (testEntity.BoundingBox.Max - testEntity.BoundingBox.Min) / 2;
+            VolumeTexture.RotationMatrix = testEntity.WorldTransform.InverseWorld;
+            VolumeTexture.Offset = testEntity.BoundingBoxOffset;
+
             _sdfGenerator.Generate(testEntity);
+            
+            //_sdfGenerator.Update(VolumeTexture, graphics, true, null, null);
 
             //BasicEntity testEntity = AddEntity(model: _assets.SponzaModel,
             //    position: Vector3.Zero,
@@ -287,13 +298,18 @@ namespace DeferredEngine.Logic
             //Upd
             Input.Update(gameTime, Camera);
 
+            VolumeTexture.RotationMatrix = testEntity.WorldTransform.InverseWorld;
+            VolumeTexture.Scale = testEntity.WorldTransform.Scale;
+            VolumeTexture.Size = (testEntity.BoundingBox.Max - testEntity.BoundingBox.Min) / 2;
+
+
             //Make the lights move up and down
             //for (var i = 2; i < PointLights.Count; i++)
             //{
             //    PointLight point = PointLights[i];
             //    point.Position = new Vector3(point.Position.X, point.Position.Y, (float)(Math.Sin(gameTime.TotalGameTime.TotalSeconds * 0.8f + i) * 10 - 13));
             //}
-            
+
             //KeyInputs for specific tasks
 
 

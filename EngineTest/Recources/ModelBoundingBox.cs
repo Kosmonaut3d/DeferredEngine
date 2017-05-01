@@ -23,7 +23,7 @@ namespace DeferredEngine.Recources
             Model = content.Load<Model>(assetpath);
 
             //Look if there is a bounding box already created, otherwise create a new one
-            if (DataStream.LoadBoundingBox(content.RootDirectory + "/" + assetpath + ".bbox", out BoundingBox) == false)
+            if (! DataStream.LoadBoundingBox(content.RootDirectory + "/" + assetpath + ".bbox", out BoundingBox))
             {
                 CreateBoundingBox(Model);
 
@@ -49,7 +49,8 @@ namespace DeferredEngine.Recources
         {
             Vector3[] vertices;
             int[] indices;
-            ModelDataExtractor.GetVerticesAndIndicesFromModel(model, out vertices, out indices);
+            Vector3[] normals;
+            ModelDataExtractor.GetVerticesAndIndicesFromModel(model, out vertices, out normals, out indices);
 
             BoundingBox = BoundingBox.CreateFromPoints(vertices);
 

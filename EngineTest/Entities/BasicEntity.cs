@@ -4,6 +4,7 @@ using BEPUutilities;
 using DeferredEngine.Recources;
 using DeferredEngine.Recources.Helper;
 using DeferredEngine.Renderer.Helper;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using BoundingBox = Microsoft.Xna.Framework.BoundingBox;
 using Matrix = Microsoft.Xna.Framework.Matrix;
@@ -153,6 +154,8 @@ namespace DeferredEngine.Entities
 
                 WorldTransform.Scale = Scale;
                 WorldTransform.World = _worldOldMatrix;
+
+                WorldTransform.InverseWorld = Matrix.Invert( Matrix.CreateTranslation(BoundingBoxOffset * Scale) * RotationMatrix * Matrix.CreateTranslation(Position));
                 
                 if (StaticPhysicsObject != null && !GameSettings.e_enableeditor)
                 {
@@ -220,12 +223,14 @@ namespace DeferredEngine.Entities
 
     public class TransformMatrix
     {
-        public Matrix World;
+        public Matrix InverseWorld;
         public bool Rendered = true;
         public bool HasChanged = true;
         public readonly int Id;
 
         public Vector3 Scale;
+
+        public Matrix World;
 
         public TransformMatrix(Matrix world, int id)
         {
