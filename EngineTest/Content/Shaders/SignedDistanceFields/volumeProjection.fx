@@ -239,6 +239,33 @@ float3 GetVertex(float vertexIndex)
 
 float dot2(in float3 v) { return dot(v, v); }
 
+float RayCast(float3 a, float3 b, float3 c, float3 origin, float3 dir)
+{
+	const float EPSILON = 0.0000001f;
+
+	float3 edge1 = b - a;
+	float3 edge2 = c - a;
+	float3 pvec = cross(dir, edge2);
+	float det = dot(edge1, pvec);
+
+	if (det > -EPSILON && det < EPSILON) return 0.0f;
+
+	float inv_det = 1.0f / det;
+	float3 tvec = origin - a;
+	float u = dot(tvec, pvec) * inv_det;
+
+	if (u < 0 || u > 1) return 0.0f;
+	float3 qvec = cross(tvec, edge1);
+	float v = dot(dir, qvec) * inv_det;
+	if (v < 0 || u + v > 1) return 0.0f;
+
+	float t = dot(edge2, qvec) * inv_det;
+
+	if (t > EPSILON) return 1.0f;
+
+	return 0.0f;
+}
+
 float4 PixelShaderFunctionGenerateSDF(VertexShaderOutput input) : COLOR0
 {
 	//Generate SDFs
@@ -261,6 +288,12 @@ float4 PixelShaderFunctionGenerateSDF(VertexShaderOutput input) : COLOR0
 	int vertexIndex = 0;
 	
 	float minvalue = 100000;
+
+	float3 ray = float3(1, 0, 0);
+	float intersections = 0.0f;
+
+
+	//Ray cast to find out if we are inside or outside... complicated but safe
 
 	for (int i = 0; i < TriangleAmount; i++, vertexIndex+=3)
 	{
@@ -285,10 +318,11 @@ float4 PixelShaderFunctionGenerateSDF(VertexShaderOutput input) : COLOR0
 			:
 			dot(nor, pa)*dot(nor, pa) / dot2(nor);
 
+		intersections += RayCast(a, b, c, p, ray);
 		//Inside?
-		float signum = sign(dot(pa, nor));
+		/*float signum = sign(dot(pa, nor));
 
-		value = abs(value) * signum;
+		value = abs(value) * signum;*/
 
 		if (abs(value) < abs(minvalue))
 		{
@@ -296,7 +330,9 @@ float4 PixelShaderFunctionGenerateSDF(VertexShaderOutput input) : COLOR0
 		}
 	}
 
-	float output = sqrt(abs(minvalue)) * sign(minvalue);
+	int signum = intersections % 2 == 0 ? 1 : -1;
+
+	float output = sqrt(abs(minvalue)) * signum;
 
 	//Check neighbors
 	

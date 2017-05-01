@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using BEPUphysics;
 using BEPUphysics.BroadPhaseEntries.MobileCollidables;
 using BEPUphysics.CollisionShapes.ConvexShapes;
 using DeferredEngine.Entities;
@@ -345,6 +346,12 @@ namespace DeferredEngine.Logic.SDF_Generator
 
             float SignWeight = 0;
 
+            //Shoot a ray in some direction to check if we are inside the mesh or outside
+
+            Vector3 dir = Vector3.Up;
+
+            int intersections = 0;
+
             for (var index = 0; index < triangles.Length; index++)
             {
                 var tri = triangles[index];
@@ -370,10 +377,13 @@ namespace DeferredEngine.Logic.SDF_Generator
                                 : 
                                 Vector3.Dot(nor, pa) * Vector3.Dot(nor, pa) / dot2(nor);
 
+                //intersection
+                intersections += RayCast(a, b, c, p, dir);
 
-                int sign = Math.Sign(Vector3.Dot(pa, nor));
 
-                value = /*Math.Abs(value)*/value * sign;
+                //int sign = Math.Sign(Vector3.Dot(pa, nor));
+
+                //value = /*Math.Abs(value)*/value * sign;
 
                 if (Math.Abs(value) < Math.Abs(min))
                 {
@@ -381,7 +391,36 @@ namespace DeferredEngine.Logic.SDF_Generator
                 }
             }
 
-            return (float) Math.Sqrt(Math.Abs(min)) * Math.Sign(min);
+            int signum = intersections % 2 == 0 ? 1 : -1;
+
+            return (float) Math.Sqrt(Math.Abs(min)) * signum; /** Math.Sign(min)*/;
+        }
+
+        private int RayCast(Vector3 a, Vector3 b, Vector3 c, Vector3 origin, Vector3 dir)
+        {
+            Vector3 edge1 = b - a;
+            Vector3 edge2 = c - a;
+            Vector3 pvec = Vector3.Cross(dir, edge2);
+            float det = Vector3.Dot(edge1, pvec);
+
+            const float EPSILON = 0.0000001f;
+
+            if (det > -EPSILON && det < EPSILON) return 0;
+
+            float inv_det = 1.0f / det;
+            Vector3 tvec = origin - a;
+            float u = Vector3.Dot(tvec, pvec) * inv_det;
+
+            if (u < 0 || u > 1) return 0;
+            Vector3 qvec = Vector3.Cross(tvec, edge1);
+            float v = Vector3.Dot(dir, qvec) * inv_det;
+            if (v < 0 || u + v > 1) return 0;
+
+            float t = Vector3.Dot(edge2, qvec) * inv_det;
+
+            if (t > EPSILON) return 1;
+
+            return 0;
         }
     }
 }

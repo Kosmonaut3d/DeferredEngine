@@ -339,7 +339,7 @@ namespace DeferredEngine.Recources
 
         
         public static float ShadowBias = 0.005f;
-        public static int sdf_threads = 1;
+        public static int sdf_threads = 4;
         public static bool sdf_cpu = false;
         public static bool sdf_draw = true;
         public static bool d_drawnothing = false;
