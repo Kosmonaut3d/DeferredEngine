@@ -91,7 +91,7 @@ namespace DeferredEngine.Logic.SDF_Generator
                 //DO IT LIVE! ON THE GPU
                 
             }
-
+            /*
             for (var index = 0; index < triangles.Length; index++)
             {
                 //vertices[index] = Vector3.Transform(vertices[index], entity.WorldTransform.World);
@@ -107,6 +107,7 @@ namespace DeferredEngine.Logic.SDF_Generator
 
                 HelperGeometryManager.GetInstance().AddLineStartDir(points[index].p, pointsend[index].p, 10000, Color.Blue, Color.Red);
             }
+            */
         }
         
         private int toTexCoords(int x, int y, int z, int xsteps, int zsteps)
@@ -142,6 +143,8 @@ namespace DeferredEngine.Logic.SDF_Generator
                     //Send triangles to gpu
                     //Waste of space, but maybe reading a v4 is faster than 3 floats
 
+                    Stopwatch stopwatch = Stopwatch.StartNew();
+
                     int maxwidth = 4096;
                     int requiredData = triangles.Length * 3;
 
@@ -166,8 +169,21 @@ namespace DeferredEngine.Logic.SDF_Generator
 
                     texture =
                         distanceFieldRenderModule.CreateSDFTexture(graphics, triangleData, xsteps, ysteps, zsteps, volumeTex, fullScreenTriangle, triangles.Length);
-                    
+
+                    Debug.Write("\nSDF generated in " + stopwatch.ElapsedMilliseconds + "ms on GPU");
+
                     volumeTex.Resolution = new Vector3(xsteps, ysteps, zsteps);
+
+
+                    string path = "sponza_sdf.sdff";
+
+                    float[] texData = new float[xsteps * ysteps*zsteps];
+
+                
+                    texture.GetData(texData);
+
+                    //Store
+                    DataStream.SaveImageData(texData, xsteps, ysteps, zsteps, path);
 
                     volumeTex.Texture = texture;
                 }

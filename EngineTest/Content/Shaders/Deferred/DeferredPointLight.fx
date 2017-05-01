@@ -6,11 +6,11 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "../Common/helper.fx"
+#include "../Common/sdf.fx"
 
 float4x4 WorldView;
 float4x4 WorldViewProj;
 float4x4 InverseView;
-float FarClip;
 
 //Is the camera inside the light sphere?
 int inside = -1;
@@ -414,6 +414,10 @@ PixelShaderOutput BasePixelShaderFunction(PixelShaderInput input)
 {
     PixelShaderOutput output;
 
+	output.Diffuse = float4(0, 0, 0, 0);
+	output.Specular = float4(0, 0, 0, 0);
+	output.Volume = float4(0, 0, 0, 0);
+
     //surface-to-light vector, in VS
     float3 lightVector = lightPosition - input.PositionVS.xyz;
     float lengthLight = length(lightVector);
@@ -434,6 +438,7 @@ PixelShaderOutput BasePixelShaderFunction(PixelShaderInput input)
     }
 }
 
+//Stencil masking
 float4 PixelShaderBasic(float4 position : POSITION) : COLOR
 {
 	return float4(0,0,0,0);
@@ -457,6 +462,13 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input)
 	else
 	{
 		Output = BasePixelShaderFunction(p_input);
+
+		float3 positionWS = mul(float4(p_input.PositionVS, 1), InverseView).xyz;
+		float3 lightWS = mul(float4(lightPosition, 1), InverseView).xyz;
+		float shadow = RaymarchSoft(positionWS, lightWS, distance(positionWS, lightWS), 32);
+		
+		Output.Diffuse = Output.Diffuse * shadow;
+		Output.Specular *= shadow;
 
 		return Output;
 	}

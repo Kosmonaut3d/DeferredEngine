@@ -318,7 +318,7 @@ namespace DeferredEngine.Renderer
             //We do this either when pressing C or at the start of the program (_renderTargetCube == null) or when the game settings want us to do it every frame
             if (envSample.NeedsUpdate || GameSettings.g_envmapupdateeveryframe)
             {
-                DrawCubeMap(envSample.Position, meshMaterialLibrary, entities, pointLights, directionalLights, envSample, 300, gameTime, camera);
+                DrawCubeMap(envSample.Position, meshMaterialLibrary, entities, pointLights, directionalLights, volumeTexture, envSample, 300, gameTime, camera);
                 envSample.NeedsUpdate = false;
             }
 
@@ -344,7 +344,7 @@ namespace DeferredEngine.Renderer
             DrawBilateralBlur();
 
             //Light the scene
-            _lightAccumulationModule.DrawLights(pointLights, directionalLights, camera.Position, gameTime, _renderTargetLightBinding, _renderTargetDiffuse);
+            _lightAccumulationModule.DrawLights(pointLights, directionalLights, volumeTexture, camera.Position, gameTime, _renderTargetLightBinding, _renderTargetDiffuse);
 
             //Draw the environment cube map as a fullscreen effect on all meshes
             DrawEnvironmentMap(envSample);
@@ -461,7 +461,7 @@ namespace DeferredEngine.Renderer
         /// <param name="farPlane"></param>
         /// <param name="gameTime"></param>
         /// <param name="camera"></param>
-        private void DrawCubeMap(Vector3 origin, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities, List<PointLight> pointLights, List<DirectionalLight> dirLights, EnvironmentSample envSample, float farPlane, GameTime gameTime, Camera camera)
+        private void DrawCubeMap(Vector3 origin, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities, List<PointLight> pointLights, List<DirectionalLight> dirLights, VolumeTextureEntity volumeTex, EnvironmentSample envSample, float farPlane, GameTime gameTime, Camera camera)
         {
             //If our cubemap is not yet initialized, create a new one
             if (_renderTargetCubeMap == null)
@@ -548,7 +548,7 @@ namespace DeferredEngine.Renderer
 
                 bool volumeEnabled = GameSettings.g_VolumetricLights;
                 GameSettings.g_VolumetricLights = false;
-                _lightAccumulationModule.DrawLights(pointLights, dirLights, origin, gameTime, _renderTargetLightBinding, _renderTargetDiffuse);
+                _lightAccumulationModule.DrawLights(pointLights, dirLights, volumeTex, origin, gameTime, _renderTargetLightBinding, _renderTargetDiffuse);
 
                 _deferredEnvironmentMapRenderModule.DrawSky(_graphicsDevice, _fullScreenTriangle);
 

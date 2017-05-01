@@ -217,6 +217,13 @@ namespace DeferredEngine.Recources
         public static readonly EffectParameter deferredPointLightParameter_FarClip = deferredPointLight.Parameters["FarClip"];
         public static readonly EffectParameter deferredPointLightParameter_LightVolumeDensity = deferredPointLight.Parameters["lightVolumeDensity"];
 
+        public static readonly EffectParameter deferredPointLightParameter_VolumeTexParam = deferredPointLight.Parameters["VolumeTex"];
+        public static readonly EffectParameter deferredPointLightParameter_VolumeTexPositionParam = deferredPointLight.Parameters["VolumeTexPositionWS"];
+        public static readonly EffectParameter deferredPointLightParameter_VolumeTexSizeParam = deferredPointLight.Parameters["VolumeTexSize"];
+        public static readonly EffectParameter deferredPointLightParameter_VolumeTexResolution = deferredPointLight.Parameters["VolumeTexResolution"];
+        public static readonly EffectParameter deferredPointLightParameter_VolumeTexInverseMatrix = deferredPointLight.Parameters["VolumeTexInverseMatrix"];
+        public static readonly EffectParameter deferredPointLightParameter_VolumeTexScale = deferredPointLight.Parameters["VolumeTexScale"];
+
         public static readonly EffectParameter deferredPointLightParameter_NoiseMap = deferredPointLight.Parameters["NoiseMap"];
         public static readonly EffectParameter deferredPointLightParameter_AlbedoMap = deferredPointLight.Parameters["AlbedoMap"];
         public static readonly EffectParameter deferredPointLightParameter_NormalMap = deferredPointLight.Parameters["NormalMap"];

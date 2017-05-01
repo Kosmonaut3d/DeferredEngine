@@ -123,7 +123,7 @@ namespace DeferredEngine.Logic
             testEntity.ApplyTransformation();
 
             VolumeTexture.Position = testEntity.Position;
-            VolumeTexture.Size = (testEntity.BoundingBox.Max - testEntity.BoundingBox.Min) / 2;
+            VolumeTexture.Size = (testEntity.BoundingBox.Max - testEntity.BoundingBox.Min) / 1.8f;
             VolumeTexture.RotationMatrix = testEntity.WorldTransform.InverseWorld;
             VolumeTexture.Offset = testEntity.BoundingBoxOffset;
 
@@ -300,9 +300,7 @@ namespace DeferredEngine.Logic
 
             VolumeTexture.RotationMatrix = testEntity.WorldTransform.InverseWorld;
             VolumeTexture.Scale = testEntity.WorldTransform.Scale;
-            VolumeTexture.Size = (testEntity.BoundingBox.Max - testEntity.BoundingBox.Min) / 2;
-
-
+            
             //Make the lights move up and down
             //for (var i = 2; i < PointLights.Count; i++)
             //{

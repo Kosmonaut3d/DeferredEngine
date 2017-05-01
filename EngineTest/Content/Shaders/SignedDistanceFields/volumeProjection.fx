@@ -16,8 +16,8 @@ float TriangleAmount;
 
 float3 VolumeTexPositionWS;
 float4x4 VolumeTexInverseMatrix;
-float3 VolumeTexSize;
 float3 VolumeTexScale;
+float3 VolumeTexSize;
 float3 VolumeTexResolution = float3(2,2,2);
 float FarClip = 500;
 
@@ -92,7 +92,7 @@ float GetMinDistance(float3 PositionWS)
 	{
 		float3 clamped = clamp(relativePosition, float3(-1,-1,-1), float3(1,1,1));
 
-		initialDistance = length(relativePosition - clamped) * VolumeTexSize * 0.5f; //AGAIN //////////////////////////////////////////////////////
+		initialDistance = length((relativePosition - clamped)*VolumeTexSize); //AGAIN //////////////////////////////////////////////////////
 		
 		relativePosition = clamped;
 	}
@@ -169,7 +169,7 @@ float4 PixelShaderFunctionBasic(VertexShaderOutput input) : COLOR0
 
 		//IMPORTANT -> this won't work then!
 		//CHANGE
-		float step = GetMinDistance(q / VolumeTexScale) * VolumeTexScale; //AGAIN //////////////////////////////////////////////////////
+		float step = GetMinDistance(q / VolumeTexScale) * min(VolumeTexScale.x, min(VolumeTexScale.y, VolumeTexScale.z));
 
 		marchingDistance += step;
 
@@ -184,51 +184,81 @@ float4 PixelShaderFunctionBasic(VertexShaderOutput input) : COLOR0
 
 }
 
-float4 PixelShaderFunctionDrawDistanceField(VertexShaderOutput input) : COLOR0
-{
-	float3 startPoint = CameraPosition;
-	float3 endPoint = CameraPosition + input.ViewDir;
-
-	float3 dir = endPoint - startPoint;
-	float farClip = length(dir);
-
-	//normalize
-	dir /= farClip;
-	float3 p = startPoint;
-
-	float marchingDistance = 0;
-
-	//Raymarch
-	for (int i = 0; i < 512; i++)
-	{
-		const float precis = 0.0005;
-
-		float step = GetMinDistance(p);
-
-		marchingDistance += step;
-
-		if (step <= precis) break;
-		if(marchingDistance > farClip) discard;
-
-		p += step * dir;
-	}
-
-	float output = marchingDistance / farClip;
-
-	return float4(output.xxx, 1);
-}
-
 float4 PixelShaderFunctionDrawToSurface(VertexShaderOutput input) : COLOR0
 {
 	int3 texCoordInt = int3(input.Position.xy, 0);
 
 	float linearDepth = DepthMap.Load(texCoordInt).r;
 
-	float3 PositionWS = linearDepth * input.ViewDir + CameraPosition;
+	float3 p = linearDepth * input.ViewDir + CameraPosition;
 
 	//Assume axis-aligned square
 
-	return GetMinDistance(PositionWS);
+	//float3 q = mul(float4(p, 1), VolumeTexInverseMatrix).xyz;
+
+	//float step = GetMinDistance(q / VolumeTexScale) * min(VolumeTexScale.x, min(VolumeTexScale.y, VolumeTexScale.z)); 
+
+	float3 light = float3(26, 0, 10);
+
+	float3 dir = light - p;
+	float maxdist = length(dir);
+
+	//normalize
+	dir /= maxdist;
+
+	float marchingdistance = 0;
+
+	//avoid self-shadowing
+	//p += dir * 0.1f;
+
+	//for (int i = 0; i < 32; i++)
+	//{
+	//	const float precis = 0.005f;
+
+	//	float3 q = mul(float4(p, 1), VolumeTexInverseMatrix).xyz;
+
+	//	//float step = sdBox(q / VolumeTexScale, VolumeTexSize) * VolumeTexScale;
+
+	//	//IMPORTANT -> this won't work then!
+	//	//CHANGE
+	//	float step = GetMinDistance(q / VolumeTexScale) * min(VolumeTexScale.x, min(VolumeTexScale.y, VolumeTexScale.z));
+
+	//	marchingdistance += step;
+
+	//	if (step <= precis)  return float4(0.0f, 0.0f, 0.0f, 1);
+
+	//	if (marchingdistance >= maxdist - 1) return float4(1,1,1, 1);
+
+	//	p += step * dir;
+	//}
+
+	float t = 0.05;
+
+	float k = 32;
+	float res = 1.0f;
+
+	while (t<maxdist-1)
+	{
+		const float precis = 0.005f;
+
+		float3 ro = p + t * dir;
+
+		float3 q = mul(float4(ro, 1), VolumeTexInverseMatrix).xyz;
+
+		//float step = sdBox(q / VolumeTexScale, VolumeTexSize) * VolumeTexScale;
+
+		//IMPORTANT -> this won't work then!
+		//CHANGE
+		float step = GetMinDistance(q / VolumeTexScale) * min(VolumeTexScale.x, min(VolumeTexScale.y, VolumeTexScale.z));
+
+		if (step <= precis)  return float4(0.0f, 0.0f, 0.0f, 1);
+
+		res = min(res, k * step / t);
+
+		t += step;
+	}
+
+	return float4(res.xxx, 1);
 	
 }
 
@@ -241,6 +271,7 @@ float dot2(in float3 v) { return dot(v, v); }
 
 float RayCast(float3 a, float3 b, float3 c, float3 origin, float3 dir)
 {
+	//https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
 	const float EPSILON = 0.0000001f;
 
 	float3 edge1 = b - a;
@@ -351,7 +382,7 @@ technique Basic
     pass Pass1
     {
         VertexShader = compile vs_5_0 VertexShaderFunction();
-        PixelShader = compile ps_5_0 PixelShaderFunctionBasic();
+        PixelShader = compile ps_5_0 PixelShaderFunctionDrawToSurface();
     }
 }
 

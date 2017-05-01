@@ -44,9 +44,9 @@ namespace DeferredEngine.Logic
         //Update per frame
         public void Update(GameTime gameTime, bool isActive)
         {
-            _sceneLogic.Update(gameTime, isActive);
             _guiLogic.Update(gameTime, isActive, _editorLogic.SelectedObject);
             _editorLogic.Update(gameTime, _sceneLogic.BasicEntities, _sceneLogic.Decals, _sceneLogic.PointLights, _sceneLogic.DirectionalLights, _sceneLogic.EnvironmentSample, _sceneLogic.VolumeTexture, _editorReceivedDataBuffer, _sceneLogic.MeshMaterialLibrary);
+            _sceneLogic.Update(gameTime, isActive);
             _renderer.Update(gameTime, isActive, _sceneLogic._sdfGenerator, _sceneLogic.VolumeTexture);
             
             _debug.Update(gameTime);
@@ -90,7 +90,7 @@ namespace DeferredEngine.Logic
                 editorData: _editorLogic.GetEditorData(), 
                 gameTime: gameTime);
             
-            if (GameSettings.e_enableeditor)
+            if (GameSettings.e_enableeditor && GameSettings.ui_enabled)
                 _guiRenderer.Draw(_guiLogic.GuiCanvas);
 
             _debug.Draw(gameTime);

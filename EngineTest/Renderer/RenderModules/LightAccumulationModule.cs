@@ -119,7 +119,7 @@ namespace DeferredEngine.Renderer.RenderModules
         /// <param name="gameTime"></param>
         /// <param name="renderTargetLightBinding"></param>
         /// <param name="renderTargetDiffuse"></param>
-        public void DrawLights(List<PointLight> pointLights, List<DirectionalLight> dirLights,
+        public void DrawLights(List<PointLight> pointLights, List<DirectionalLight> dirLights, VolumeTextureEntity volumeTex,
             Vector3 cameraOrigin, GameTime gameTime, RenderTargetBinding[] renderTargetLightBinding, RenderTarget2D  renderTargetDiffuse)
         {
             //Reconstruct Depth
@@ -141,6 +141,14 @@ namespace DeferredEngine.Renderer.RenderModules
                     _graphicsDevice.Clear(ClearOptions.DepthBuffer, Color.TransparentBlack, 1, 0);
                 }
             }
+
+            //Setup volumetex
+            Shaders.deferredPointLightParameter_VolumeTexParam.SetValue(volumeTex.Texture);
+            Shaders.deferredPointLightParameter_VolumeTexInverseMatrix.SetValue(volumeTex.RotationMatrix);
+            Shaders.deferredPointLightParameter_VolumeTexPositionParam.SetValue(volumeTex.Position);
+            Shaders.deferredPointLightParameter_VolumeTexResolution.SetValue(volumeTex.Resolution);
+            Shaders.deferredPointLightParameter_VolumeTexScale.SetValue(volumeTex.Scale);
+            Shaders.deferredPointLightParameter_VolumeTexSizeParam.SetValue(volumeTex.Size);
 
             _graphicsDevice.SetRenderTargets(renderTargetLightBinding);
             _graphicsDevice.Clear(ClearOptions.Target, Color.TransparentBlack, 1, 0);
