@@ -9,16 +9,23 @@
 float3 CameraPosition;
 
 Texture2D VolumeTex;
+float3 VolumeTexSize;
+float3 VolumeTexResolution = float3(2, 2, 2);
 Texture2D DepthMap;
 
+//Generation
 float2 TriangleTexResolution;
 float TriangleAmount;
+float3 MeshOffset;
 
-float3 VolumeTexPositionWS;
-float4x4 VolumeTexInverseMatrix;
-float3 VolumeTexScale;
-float3 VolumeTexSize;
-float3 VolumeTexResolution = float3(2,2,2);
+
+#define MAXINSTANCES 40
+
+float4x4 InstanceInverseMatrix[MAXINSTANCES];
+float3 InstanceScale[MAXINSTANCES];
+
+float InstancesCount = 0;
+
 float FarClip = 500;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -79,34 +86,16 @@ float MaxManhattan(float3 vec)
 //	return length(max(abs(p), 0.0f));
 //}
 
-float GetMinDistance(float3 PositionWS)
+
+float InterpolateSDF(float3 texCoords)
 {
-	float3 relativePosition = PositionWS;
-
-	relativePosition /= VolumeTexSize;
-
-	float initialDistance = 0;
-
-	//Out of bounds
-	if (abs(MaxManhattan(relativePosition)) > 1) 
-	{
-		float3 clamped = clamp(relativePosition, float3(-1,-1,-1), float3(1,1,1));
-
-		initialDistance = length((relativePosition - clamped)*VolumeTexSize); //AGAIN //////////////////////////////////////////////////////
-		
-		relativePosition = clamped;
-	}
-
-	//Get Texcoordinate from that, normalize to texcoords first
-	relativePosition = (relativePosition + float3(1, 1, 1)) * 0.5f * (VolumeTexResolution - float3(1, 1, 1));
-
 	//x and y are correct, the z determines how much x is shifted.
-	float x = trunc(relativePosition.x);
-	float xfrac = frac(relativePosition.x);
-	float y = trunc(relativePosition.y);
-	float yfrac = frac(relativePosition.y);
-	float z = trunc(relativePosition.z);
-	float zfrac = frac(relativePosition.z);
+	float x = trunc(texCoords.x);
+	float xfrac = frac(texCoords.x);
+	float y = trunc(texCoords.y);
+	float yfrac = frac(texCoords.y);
+	float z = trunc(texCoords.z);
+	float zfrac = frac(texCoords.z);
 
 	float x0y0z0;
 	float x1y0z0;
@@ -131,9 +120,62 @@ float GetMinDistance(float3 PositionWS)
 
 	float lerpz0 = lerp(lerp(x0y0z0, x1y0z0, xfrac), lerp(x0y1z0, x1y1z0, xfrac), yfrac);
 	float lerpz1 = lerp(lerp(x0y0z1, x1y0z1, xfrac), lerp(x0y1z1, x1y1z1, xfrac), yfrac);
-	float lerpout = lerp(lerpz0, lerpz1, zfrac);
+	return lerp(lerpz0, lerpz1, zfrac);
+}
 
-	return lerpout + initialDistance;
+float GetMinDistance(float3 Position)
+{
+	float3 relativePosition = Position;
+
+	relativePosition /= VolumeTexSize;
+
+	float distanceToBounds = 0;
+
+	//FS = field space
+	float3 outsideFS;
+
+
+	//Out of bounds
+	if (abs(MaxManhattan(relativePosition)) > 1) 
+	{
+		float3 clamped = clamp(relativePosition, float3(-1,-1,-1), float3(1,1,1));
+		outsideFS = (relativePosition - clamped);
+		distanceToBounds = length(outsideFS * VolumeTexSize);
+
+		relativePosition = clamped;
+	}
+
+	//Get Texcoordinate from that, normalize to texcoords first
+	//These are not in [0...1] but instead in [0 ... VolumeTexResolution]
+	float3 texCoords = (relativePosition + float3(1, 1, 1)) * 0.5f * (VolumeTexResolution - float3(1, 1, 1));
+
+	float value = InterpolateSDF(texCoords);
+
+	//Get back to our initial problem - are we outside?
+
+	[branch]
+	//must always be larger than 0 if we are outside
+	if (abs(distanceToBounds) > 0)
+	{
+		//normalize
+		//outsideFS /= distanceToBounds;
+
+		//We went one step inside, opposite to our direction to the field
+		float value2 = InterpolateSDF(texCoords - normalize(outsideFS)/*(outsideFS * VolumeTexSize) /distanceToBounds*/);
+		//Same
+		//float value3 = InterpolateSDF(((relativePosition - outsideFS / distanceToBounds / VolumeTexResolution*2) + float3(1, 1, 1)) * 0.5f * (VolumeTexResolution - float3(1, 1, 1)));
+
+		//gradient, this is the change per 1 texel
+		float gradient = value - value2;
+
+		//how many texels have we advanced?
+		float texelsCovered =  length(outsideFS * VolumeTexSize * VolumeTexResolution);
+
+		return distanceToBounds + value; /// gradient; ///*texelsCovered * gradient*/value + texelsCovered * gradient;
+	}
+
+
+	return value;
 }
 
 //http://www.iquilezles.org/www/articles/distfunctions/distfunctions.htm
@@ -143,15 +185,33 @@ float sdBox(float3 p, float3 b)
 	return min(max(d.x, max(d.y, d.z)), 0.0) + length(max(d, 0.0));
 }
 
-float4 PixelShaderFunctionBasic(VertexShaderOutput input) : COLOR0
+float FindMin(float3 ro)
+{
+	float minimum = FarClip;
+
+	for (uint i = 0; i < InstancesCount; i++)
+	{
+		float3 q = mul(float4(ro, 1), InstanceInverseMatrix[i]).xyz;
+
+		//Note: Minimum could be precomputed
+		float dist = GetMinDistance(q / InstanceScale[i]) * min(InstanceScale[i].x, min(InstanceScale[i].y, InstanceScale[i].z));
+
+		if (dist < minimum) minimum = dist;
+	}
+
+	return minimum;
+}
+
+float4 PixelShaderFunctionVisualizeVolume(VertexShaderOutput input) : COLOR0
 {
 	float3 startPoint = CameraPosition;
 	float3 endPoint = CameraPosition + input.ViewDir;
 
 	float3 dir = normalize(endPoint - startPoint);
 
-	//normalize
-	//dir /= FarClip;
+	int3 texCoordInt = int3(input.Position.xy, 0);
+
+	float linearDepth = DepthMap.Load(texCoordInt).r;
 
 	//Get min dist to box
 	float3 p = startPoint;
@@ -163,40 +223,30 @@ float4 PixelShaderFunctionBasic(VertexShaderOutput input) : COLOR0
 	{
 		const float precis = 0.005f;
 
-		float3 q = mul(float4(p,1), VolumeTexInverseMatrix).xyz;
-
-		//float step = sdBox(q / VolumeTexScale, VolumeTexSize) * VolumeTexScale;
-
-		//IMPORTANT -> this won't work then!
-		//CHANGE
-		float step = GetMinDistance(q / VolumeTexScale) * min(VolumeTexScale.x, min(VolumeTexScale.y, VolumeTexScale.z));
+		float step = FindMin(p);
 
 		marchingDistance += step;
 
 		if (step <= precis)  return marchingDistance / FarClip;
 
-		if(marchingDistance > FarClip) discard;
+		if (marchingDistance > FarClip) discard;
 
 		p += step * dir;
+
+		//if (marchingDistance > linearDepth * FarClip) return float4(1.0, marchingDistance/FarClip, 0, 1);
 	}
 
 	return float4(0,0,0, 1);
 
 }
 
-float4 PixelShaderFunctionDrawToSurface(VertexShaderOutput input) : COLOR0
+float4 PixelShaderFunctionDrawShadow(VertexShaderOutput input) : COLOR0
 {
 	int3 texCoordInt = int3(input.Position.xy, 0);
 
 	float linearDepth = DepthMap.Load(texCoordInt).r;
 
 	float3 p = linearDepth * input.ViewDir + CameraPosition;
-
-	//Assume axis-aligned square
-
-	//float3 q = mul(float4(p, 1), VolumeTexInverseMatrix).xyz;
-
-	//float step = GetMinDistance(q / VolumeTexScale) * min(VolumeTexScale.x, min(VolumeTexScale.y, VolumeTexScale.z)); 
 
 	float3 light = float3(26, 0, 10);
 
@@ -208,48 +258,25 @@ float4 PixelShaderFunctionDrawToSurface(VertexShaderOutput input) : COLOR0
 
 	float marchingdistance = 0;
 
-	//avoid self-shadowing
-	//p += dir * 0.1f;
-
-	//for (int i = 0; i < 32; i++)
-	//{
-	//	const float precis = 0.005f;
-
-	//	float3 q = mul(float4(p, 1), VolumeTexInverseMatrix).xyz;
-
-	//	//float step = sdBox(q / VolumeTexScale, VolumeTexSize) * VolumeTexScale;
-
-	//	//IMPORTANT -> this won't work then!
-	//	//CHANGE
-	//	float step = GetMinDistance(q / VolumeTexScale) * min(VolumeTexScale.x, min(VolumeTexScale.y, VolumeTexScale.z));
-
-	//	marchingdistance += step;
-
-	//	if (step <= precis)  return float4(0.0f, 0.0f, 0.0f, 1);
-
-	//	if (marchingdistance >= maxdist - 1) return float4(1,1,1, 1);
-
-	//	p += step * dir;
-	//}
-
 	float t = 0.05;
 
 	float k = 32;
 	float res = 1.0f;
 
+	//
+	float step = FindMin(p);
+
+	return float4(frac(step).xxx, 1);
+
+
+	/*
 	while (t<maxdist-1)
 	{
 		const float precis = 0.005f;
 
 		float3 ro = p + t * dir;
 
-		float3 q = mul(float4(ro, 1), VolumeTexInverseMatrix).xyz;
-
-		//float step = sdBox(q / VolumeTexScale, VolumeTexSize) * VolumeTexScale;
-
-		//IMPORTANT -> this won't work then!
-		//CHANGE
-		float step = GetMinDistance(q / VolumeTexScale) * min(VolumeTexScale.x, min(VolumeTexScale.y, VolumeTexScale.z));
+		float step = FindMin(ro);
 
 		if (step <= precis)  return float4(0.0f, 0.0f, 0.0f, 1);
 
@@ -257,9 +284,9 @@ float4 PixelShaderFunctionDrawToSurface(VertexShaderOutput input) : COLOR0
 
 		t += step;
 	}
-
-	return float4(res.xxx, 1);
 	
+
+	return float4(res.xxx, 1);*/
 }
 
 float3 GetVertex(float vertexIndex)
@@ -300,16 +327,16 @@ float RayCast(float3 a, float3 b, float3 c, float3 origin, float3 dir)
 float4 PixelShaderFunctionGenerateSDF(VertexShaderOutput input) : COLOR0
 {
 	//Generate SDFs
-	float2 pixel = trunc(input.Position.xy);
+	float2 pixel = input.Position.xy;
 
 	//Get 3d position from our position
 	
 	float x = trunc(pixel.x % VolumeTexResolution.x);
-	float y = pixel.y;
+	float y = trunc(pixel.y);
 	float z = trunc(pixel.x / VolumeTexResolution.x);
 
 	//Used as offset here
-	float3 offset = VolumeTexPositionWS;
+	float3 offset = MeshOffset;
 	float3 p = offset + float3(x * VolumeTexSize.x * 2.0f / (VolumeTexResolution.x - 1) - VolumeTexSize.x * 1.0f,
 		y * VolumeTexSize.y * 2.0f / (VolumeTexResolution.y - 1) - VolumeTexSize.y * 1.0f,
 		z * VolumeTexSize.z * 2.0f / (VolumeTexResolution.z - 1) - VolumeTexSize.z * 1.0f);
@@ -377,21 +404,21 @@ float4 PixelShaderFunctionGenerateSDF(VertexShaderOutput input) : COLOR0
 //  TECHNIQUES
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-technique Basic
+technique Volume
 {
     pass Pass1
     {
         VertexShader = compile vs_5_0 VertexShaderFunction();
-        PixelShader = compile ps_5_0 PixelShaderFunctionDrawToSurface();
+        PixelShader = compile ps_5_0 PixelShaderFunctionVisualizeVolume();
     }
 }
 
-technique DrawToSurface
+technique Distance
 {
 	pass Pass1
 	{
 		VertexShader = compile vs_5_0 VertexShaderFunction();
-		PixelShader = compile ps_5_0 PixelShaderFunctionDrawToSurface();
+		PixelShader = compile ps_5_0 PixelShaderFunctionDrawShadow();
 	}
 }
 

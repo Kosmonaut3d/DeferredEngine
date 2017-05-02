@@ -15,9 +15,12 @@ namespace DeferredEngine.Entities
 {
     public sealed class BasicEntity : TransformableObject
     {
+        //Avoid nesting, but i could also just provide the ModelDefinition instead
+        public readonly ModelDefinition ModelDefinition;
         public readonly Model Model;
         public readonly BoundingBox BoundingBox;
         public readonly Vector3 BoundingBoxOffset;
+        public readonly SignedDistanceField SignedDistanceField;
         public readonly MaterialEffect Material;
 
         private int _id;
@@ -76,7 +79,7 @@ namespace DeferredEngine.Entities
             get
             {
                 //Not very clean...
-                return new BasicEntity(new ModelBoundingBox(Model, BoundingBox), Material, Position, RotationMatrix, Scale );   
+                return new BasicEntity(ModelDefinition, Material, Position, RotationMatrix, Scale );   
             }  
         }
 
@@ -87,14 +90,16 @@ namespace DeferredEngine.Entities
         private Matrix _worldOldMatrix = Matrix.Identity;
         private Matrix _worldNewMatrix = Matrix.Identity;
         
-        public BasicEntity(ModelBoundingBox modelbb, MaterialEffect material, Vector3 position, double angleZ, double angleX, double angleY, Vector3 scale, MeshMaterialLibrary library = null, Entity physicsObject = null)
+        public BasicEntity(ModelDefinition modelbb, MaterialEffect material, Vector3 position, double angleZ, double angleX, double angleY, Vector3 scale, MeshMaterialLibrary library = null, Entity physicsObject = null)
         {
             Id = IdGenerator.GetNewId();
             Name = GetType().Name + " " + Id;
             WorldTransform = new TransformMatrix(Matrix.Identity, Id);
+            ModelDefinition = modelbb;
             Model = modelbb.Model;
             BoundingBox = modelbb.BoundingBox;
             BoundingBoxOffset = modelbb.BoundingBoxOffset;
+            SignedDistanceField = modelbb.SDF;
             
             Material = material;
             Position = position;
@@ -111,7 +116,7 @@ namespace DeferredEngine.Entities
 
         }
 
-        public BasicEntity(ModelBoundingBox modelbb, MaterialEffect material, Vector3 position, Matrix rotationMatrix, Vector3 scale)
+        public BasicEntity(ModelDefinition modelbb, MaterialEffect material, Vector3 position, Matrix rotationMatrix, Vector3 scale)
         {
             Id = IdGenerator.GetNewId();
             Name = GetType().Name + " " + Id;
@@ -119,6 +124,7 @@ namespace DeferredEngine.Entities
             Model = modelbb.Model;
             BoundingBox = modelbb.BoundingBox;
             BoundingBoxOffset = modelbb.BoundingBoxOffset;
+            SignedDistanceField = modelbb.SDF;
 
             Material = material;
             Position = position;
@@ -155,7 +161,7 @@ namespace DeferredEngine.Entities
                 WorldTransform.Scale = Scale;
                 WorldTransform.World = _worldOldMatrix;
 
-                WorldTransform.InverseWorld = Matrix.Invert( Matrix.CreateTranslation(BoundingBoxOffset * Scale) * RotationMatrix * Matrix.CreateTranslation(Position));
+                WorldTransform.InverseWorld = Matrix.Invert(Matrix.CreateTranslation(BoundingBoxOffset * Scale) * RotationMatrix * Matrix.CreateTranslation(Position));
                 
                 if (StaticPhysicsObject != null && !GameSettings.e_enableeditor)
                 {

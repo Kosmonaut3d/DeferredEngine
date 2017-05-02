@@ -21,11 +21,12 @@ namespace DeferredEngine.Recources
         public ModelMeshPart SphereMeshPart;
         public Model IsoSphere;
 
-        public ModelBoundingBox Plane;
+        public ModelDefinition Plane;
 
         public Model Cube;
 
-        public ModelBoundingBox Tiger;
+        //https://sketchfab.com/models/95c4008c4c764c078f679d4c320e7b18
+        public ModelDefinition Tiger;
 
         public Texture2D IconLight;
         public Texture2D IconEnvmap;
@@ -94,11 +95,11 @@ namespace DeferredEngine.Recources
             Sphere = content.Load<Model>("Art/default/sphere");
             SphereMeshPart = Sphere.Meshes[0].MeshParts[0];
 
-            Plane = new ModelBoundingBox(content, "Art/Plane");
+            Plane = new ModelDefinition(content, "Art/Plane", graphicsDevice);
 
             Cube = content.Load<Model>("Art/test/cube");
 
-            Tiger = new ModelBoundingBox(content, "Art/Tiger/tiger");
+            Tiger = new ModelDefinition(content, "Art/Tiger/tiger", graphicsDevice, true, new Vector3(50,50,50));
 
             IconDecal = content.Load<Texture2D>("Art/Editor/icon_decal");
             IconLight = content.Load<Texture2D>("Art/Editor/icon_light");

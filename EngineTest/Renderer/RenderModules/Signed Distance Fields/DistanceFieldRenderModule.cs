@@ -1,5 +1,8 @@
-﻿using System;
+﻿
+using System;
+using System.Collections.Generic;
 using DeferredEngine.Entities;
+using DeferredEngine.Recources;
 using DeferredEngine.Renderer.Helper;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
@@ -11,17 +14,27 @@ namespace DeferredEngine.Renderer.RenderModules.Signed_Distance_Fields
     public class DistanceFieldRenderModule : IDisposable
     {
         private Effect _shader;
-        private EffectPass _basicPass;
         private EffectPass _generateSDFPass;
+        private EffectPass _volumePass;
+        private EffectPass _distancePass;
         private EffectParameter _frustumCornersParam;
         private EffectParameter _cameraPositonParam;
         private EffectParameter _depthMapParam;
         private EffectParameter _volumeTexParam;
-        private EffectParameter _volumeTexPositionParam;
+        private EffectParameter _meshOffset;
         private EffectParameter _volumeTexSizeParam;
         private EffectParameter _volumeTexResolution;
-        private EffectParameter _volumeTexInverseMatrix;
-        private EffectParameter _volumeTexScale;
+
+        private EffectParameter _instanceInverseMatrixArrayParam;
+        private EffectParameter _instanceScaleArrayParam;
+        private EffectParameter _instancesCountParam;
+
+        private const int InstanceMaxCount = 40;
+
+        private Matrix[] _instanceInverseMatrixArray = new Matrix[40];
+        private Vector3[] _instanceScaleArray = new Vector3[40];
+        private int _instancesCount = 0;
+
         private EffectParameter _triangleTexResolution;
         private EffectParameter _triangleAmount;
 
@@ -47,18 +60,15 @@ namespace DeferredEngine.Renderer.RenderModules.Signed_Distance_Fields
             }
         }
 
-        public Vector3 VolumeTexPosition
+        public Vector3 MeshOffset
         {
-            set { _volumeTexPositionParam.SetValue(value); }
+            set { _meshOffset.SetValue(value); }
         }
 
         public Vector3 VolumeTexSize { set { _volumeTexSizeParam.SetValue(value); } }
-
-
-        public Vector3 VolumeTexScale { set { _volumeTexScale.SetValue(value); } }
-
+        
         public Vector3 VolumeTexResolution { set { _volumeTexResolution.SetValue(value); } }
-        public Matrix VolumeTexInverseMatrix { set { _volumeTexInverseMatrix.SetValue(value); } }
+        
 
         public DistanceFieldRenderModule(ContentManager content, string shaderPath)
         {
@@ -71,17 +81,21 @@ namespace DeferredEngine.Renderer.RenderModules.Signed_Distance_Fields
             _frustumCornersParam = _shader.Parameters["FrustumCorners"];
             _cameraPositonParam = _shader.Parameters["CameraPosition"];
             _depthMapParam = _shader.Parameters["DepthMap"];
+
             _volumeTexParam = _shader.Parameters["VolumeTex"];
-            _volumeTexPositionParam = _shader.Parameters["VolumeTexPositionWS"];
             _volumeTexSizeParam = _shader.Parameters["VolumeTexSize"];
             _volumeTexResolution = _shader.Parameters["VolumeTexResolution"];
-            _volumeTexInverseMatrix = _shader.Parameters["VolumeTexInverseMatrix"];
-            _volumeTexScale = _shader.Parameters["VolumeTexScale"];
 
+            _instanceInverseMatrixArrayParam = _shader.Parameters["InstanceInverseMatrix"];
+            _instanceScaleArrayParam = _shader.Parameters["InstanceScale"];
+            _instancesCountParam = _shader.Parameters["InstancesCount"];
+
+            _meshOffset = _shader.Parameters["MeshOffset"];
             _triangleTexResolution = _shader.Parameters["TriangleTexResolution"];
             _triangleAmount = _shader.Parameters["TriangleAmount"];
 
-            _basicPass = _shader.Techniques["Basic"].Passes[0];
+            _distancePass = _shader.Techniques["Distance"].Passes[0];
+            _volumePass = _shader.Techniques["Volume"].Passes[0];
             _generateSDFPass = _shader.Techniques["GenerateSDF"].Passes[0];
         }
         
@@ -96,23 +110,56 @@ namespace DeferredEngine.Renderer.RenderModules.Signed_Distance_Fields
             _shader?.Dispose();
         }
         
-        public void Draw(GraphicsDevice graphicsDevice, Camera camera, VolumeTextureEntity volumeTextureEntity, FullScreenTriangle fullScreenTriangle)
+        public void Draw(GraphicsDevice graphicsDevice, Camera camera, FullScreenTriangle fullScreenTriangle)
         {
             CameraPosition = camera.Position;
 
-            VolumeTex = volumeTextureEntity.Texture;
-            VolumeTexPosition = volumeTextureEntity.Position;
-            VolumeTexResolution = volumeTextureEntity.Resolution;
-            VolumeTexSize = volumeTextureEntity.Size;
-            VolumeTexInverseMatrix = volumeTextureEntity.RotationMatrix;
-            VolumeTexScale = volumeTextureEntity.Scale;
-
-            _basicPass.Apply();
+            if (GameSettings.sdf_drawvolume)
+                _volumePass.Apply(); 
+            else
+                _distancePass.Apply(); 
             fullScreenTriangle.Draw(graphicsDevice);
             //quadRenderer.RenderFullscreenQuad(graphicsDevice);
         }
 
-        public RenderTarget2D CreateSDFTexture(GraphicsDevice graphics, Texture2D triangleData, int xsteps, int ysteps, int zsteps, VolumeTextureEntity volumeTex, FullScreenTriangle fullScreenTriangle, int trianglesLength)
+        public void UpdateDistanceFieldTransformations(List<BasicEntity> entities)
+        {
+            if (!GameSettings.sdf_draw) return;
+
+            int i = 0;
+            for (var index = 0; index < entities.Count; index++)
+            {
+                BasicEntity entity = entities[index];
+
+                if (entity.SignedDistanceField.IsUsed)
+                {
+                    _instanceInverseMatrixArray[i] = entity.WorldTransform.InverseWorld;
+                    _instanceScaleArray[i] = entity.WorldTransform.Scale;
+
+                    // Should only be done once
+
+                    VolumeTex = entity.SignedDistanceField.SdfTexture;
+                    VolumeTexResolution = entity.SignedDistanceField.TextureResolution;
+                    VolumeTexSize = entity.SignedDistanceField.VolumeSize;
+
+                    i++;
+                    if (i >= InstanceMaxCount) break;
+                }
+                
+            }
+
+            _instancesCount = i;
+
+            //Submit
+            _instanceInverseMatrixArrayParam.SetValue(_instanceInverseMatrixArray);
+            _instanceScaleArrayParam.SetValue(_instanceScaleArray);
+            _instancesCountParam.SetValue((float)_instancesCount);
+
+        }
+
+
+
+        public RenderTarget2D CreateSDFTexture(GraphicsDevice graphics, Texture2D triangleData, int xsteps, int ysteps, int zsteps, SignedDistanceField sdf, FullScreenTriangle fullScreenTriangle, int trianglesLength)
         {
             RenderTarget2D output = new RenderTarget2D(graphics, xsteps * zsteps, ysteps, false, SurfaceFormat.Single, DepthFormat.None);
 
@@ -120,8 +167,8 @@ namespace DeferredEngine.Renderer.RenderModules.Signed_Distance_Fields
 
             //Offset isntead of position!
             VolumeTexResolution = new Vector3(xsteps, ysteps, zsteps);
-            VolumeTexSize = volumeTex.Size;
-            VolumeTexPosition = volumeTex.Offset;
+            VolumeTexSize = sdf.VolumeSize;
+            MeshOffset = sdf.Offset;
             VolumeTex = triangleData;
 
             _triangleTexResolution.SetValue(new Vector2(triangleData.Width, triangleData.Height));
@@ -132,5 +179,6 @@ namespace DeferredEngine.Renderer.RenderModules.Signed_Distance_Fields
 
             return output;
         }
+
     }
 }

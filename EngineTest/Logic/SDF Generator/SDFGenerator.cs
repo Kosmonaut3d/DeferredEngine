@@ -21,18 +21,12 @@ using Microsoft.Xna.Framework.Input;
 
 namespace DeferredEngine.Logic.SDF_Generator
 {
-    public class SDFGenerator
+    public class SdfGenerator
     {
-        public Vector3[] vertexPositions;
-        private Vector3[] vertexNormals;
-        public Triangle[] triangles;
-        public List<SamplePoint> points = new List<SamplePoint>();
-        public List<SamplePoint> pointsend = new List<SamplePoint>();
         private Task generateTask;
-        private Texture2D texture;
-        private bool setup = false;
-        private Task generateTris;
 
+        private List<ModelDefinition> modelDefinitions = new List<ModelDefinition>();
+        
         public struct Triangle
         {
             public Vector3 a;
@@ -56,247 +50,228 @@ namespace DeferredEngine.Logic.SDF_Generator
                 this.sdf = sdf;
             }
         }
-        
 
-        public void Generate(BasicEntity entity)
+
+        public void GenerateTriangles(Model model, out Triangle[] triangles)
         {
-            //generateTris = Task.Factory.StartNew(() =>
+            Vector3[] vertexPositions;
+            Vector3[] vertexNormals;
+            int[] indices;
+            ModelDataExtractor.GetVerticesAndIndicesFromModel(model, out vertexPositions, out indices);
+            triangles = new Triangle[indices.Length / 3];
+            int baseIndex = 0;
+            for (var i = 0; i < triangles.Length; i++, baseIndex += 3)
             {
+                triangles[i].a = vertexPositions[indices[baseIndex]];
+                triangles[i].b = vertexPositions[indices[baseIndex + 1]];
+                triangles[i].c = vertexPositions[indices[baseIndex + 2]];
+                //normal
+                triangles[i].ba = triangles[i].b - triangles[i].a;
+                triangles[i].cb = triangles[i].c - triangles[i].b;
+                triangles[i].ac = triangles[i].a - triangles[i].c;
 
-                int[] indices;
-                ModelDataExtractor.GetVerticesAndIndicesFromModel(entity.Model, out vertexPositions, out vertexNormals, out indices);
-
-                triangles = new Triangle[indices.Length / 3];
-
-                //Transform to world position first? No
-
-
-                int baseIndex = 0;
-                for (var i = 0; i < triangles.Length; i++, baseIndex += 3)
-                {
-                    triangles[i].a = vertexPositions[indices[baseIndex]];
-                    triangles[i].b = vertexPositions[indices[baseIndex + 1]];
-                    triangles[i].c = vertexPositions[indices[baseIndex + 2]];
-                    //normal
-                    triangles[i].ba = triangles[i].b - triangles[i].a;
-                    triangles[i].cb = triangles[i].c - triangles[i].b;
-                    triangles[i].ac = triangles[i].a - triangles[i].c;
-
-                    triangles[i].n = Vector3.Cross(triangles[i].ba, triangles[i].ac);
-                    triangles[i].n.Normalize();
-                    triangles[i].n *= 0.03f;
-                }
-                //});
-
-                //DO IT LIVE! ON THE GPU
-                
+                triangles[i].n = Vector3.Cross(triangles[i].ba, triangles[i].ac);
+                triangles[i].n.Normalize();
+                triangles[i].n *= 0.03f;
             }
-            /*
-            for (var index = 0; index < triangles.Length; index++)
-            {
-                //vertices[index] = Vector3.Transform(vertices[index], entity.WorldTransform.World);
-                points.Add(new SamplePoint(triangles[index].a, 0.5f));
-                pointsend.Add(new SamplePoint(triangles[index].n, 0.5f));
-
-            }
-
-            for (var index = 0; index < points.Count; index++)
-            {
-                //points[index] = new SamplePoint( Vector3.Transform(points[index].p, entity.WorldTransform.World), 1);
-                //pointsend[index] = new SamplePoint(Vector3.Transform(points[index].p, entity.WorldTransform.World), 1);
-
-                HelperGeometryManager.GetInstance().AddLineStartDir(points[index].p, pointsend[index].p, 10000, Color.Blue, Color.Red);
-            }
-            */
         }
-        
+
+        public void GenerateDistanceFields(BasicEntity entity, GraphicsDevice graphics, DistanceFieldRenderModule distanceFieldRenderModule, FullScreenTriangle fullScreenTriangle)
+        {
+            SignedDistanceField uncomputedSignedDistanceField = entity.SignedDistanceField;
+            Model unprocessedModel = entity.Model;
+
+            //Set to false so it won't get covered in future
+            uncomputedSignedDistanceField.NeedsToBeGenerated = false;
+            uncomputedSignedDistanceField.IsLoaded = false;
+            uncomputedSignedDistanceField.SdfTexture?.Dispose();
+
+            //First generate tris
+            Triangle[] triangles;
+            GenerateTriangles(unprocessedModel, out triangles);
+
+            int xsteps = (int)uncomputedSignedDistanceField.TextureResolution.X;
+            int ysteps = (int)uncomputedSignedDistanceField.TextureResolution.Y;
+            int zsteps = (int)uncomputedSignedDistanceField.TextureResolution.Z;
+
+            Texture2D output;
+
+            if (!GameSettings.sdf_cpu)
+            {
+                Stopwatch stopwatch = Stopwatch.StartNew();
+
+                int maxwidth = 4096;
+                int requiredData = triangles.Length * 3;
+
+                int x = Math.Min(requiredData, maxwidth);
+                int y = requiredData / x + 1;
+
+                Vector4[] data = new Vector4[x * y];
+
+                int index = 0;
+                for (int i = 0; i < triangles.Length; i++, index += 3)
+                {
+                    data[index] = new Vector4(triangles[i].a, 0);
+                    data[index + 1] = new Vector4(triangles[i].b, 0);
+                    data[index + 2] = new Vector4(triangles[i].c, 0);
+                }
+
+                //16k
+
+                Texture2D triangleData = new Texture2D(graphics, x, y, false, SurfaceFormat.Vector4);
+
+                triangleData.SetData(data);
+
+                output = distanceFieldRenderModule.CreateSDFTexture(graphics, triangleData, xsteps, ysteps,
+                    zsteps, uncomputedSignedDistanceField, fullScreenTriangle, triangles.Length);
+
+                stopwatch.Stop();
+
+                Debug.Write("\nSDF generated in " + stopwatch.ElapsedMilliseconds + "ms on GPU");
+
+                float[] texData = new float[xsteps * ysteps * zsteps];
+
+                output.GetData(texData);
+
+                string path = uncomputedSignedDistanceField.TexturePath;
+                DataStream.SaveImageData(texData, xsteps, ysteps, zsteps, path);
+                uncomputedSignedDistanceField.TextureResolution = new Vector3(xsteps, ysteps, zsteps);
+                uncomputedSignedDistanceField.SdfTexture = output;
+                uncomputedSignedDistanceField.IsLoaded = true;
+
+            }
+            else
+            {
+                generateTask = Task.Factory.StartNew(() =>
+                {
+                    output = new Texture2D(graphics, xsteps * zsteps, ysteps, false, SurfaceFormat.Single);
+
+                    float[] data = new float[xsteps * ysteps * zsteps];
+
+                    Stopwatch stopwatch = Stopwatch.StartNew();
+
+                    int numberOfThreads = GameSettings.sdf_threads;
+
+                    if (numberOfThreads > 1)
+                    {
+                        Task[] threads = new Task[numberOfThreads - 1];
+
+                        //Make local datas
+
+                        float[][] dataArray = new float[numberOfThreads][];
+
+                        for (int index = 0; index < threads.Length; index++)
+                        {
+                            int i = index;
+                            dataArray[index + 1] = new float[xsteps * ysteps * zsteps];
+                            threads[i] = Task.Factory.StartNew(() =>
+                            {
+                                GenerateData(xsteps, ysteps, zsteps, uncomputedSignedDistanceField,
+                                    ref dataArray[i + 1], i + 1,
+                                    numberOfThreads, triangles);
+                            });
+                        }
+
+                        dataArray[0] = data;
+                        GenerateData(xsteps, ysteps, zsteps, uncomputedSignedDistanceField, ref dataArray[0], 0,
+                            numberOfThreads, triangles);
+
+                        Task.WaitAll(threads);
+
+                        //Something broke?
+                        for (int i = 0; i < data.Length; i++)
+                        {
+                            //data[i] = dataArray[i % numberOfThreads][i];
+                            for (int j = 0; j < numberOfThreads; j++)
+                            {
+                                if (dataArray[j][i] != 0)
+                                {
+                                    data[i] = dataArray[j][i];
+                                    break;
+                                }
+                            }
+                        }
+
+                        for (var index2 = 0; index2 < threads.Length; index2++)
+                        {
+                            threads[index2].Dispose();
+                        }
+                    }
+                    else
+                    {
+                        GenerateData(xsteps, ysteps, zsteps, uncomputedSignedDistanceField, ref data, 0,
+                            numberOfThreads, triangles);
+                    }
+
+                    stopwatch.Stop();
+
+                    Debug.Write("\nSDF generated in " + stopwatch.ElapsedMilliseconds + "ms with " +
+                                GameSettings.sdf_threads + " thread(s)");
+
+                    string path = uncomputedSignedDistanceField.TexturePath;
+                    DataStream.SaveImageData(data, xsteps, ysteps, zsteps, path);
+                    output.SetData(data);
+                    uncomputedSignedDistanceField.TextureResolution = new Vector3(xsteps, ysteps, zsteps);
+                    uncomputedSignedDistanceField.SdfTexture = output;
+                    uncomputedSignedDistanceField.IsLoaded = true;
+                });
+            }
+        }
+
         private int toTexCoords(int x, int y, int z, int xsteps, int zsteps)
         {
             x += z * xsteps;
             return x + y * xsteps * zsteps;
         }
 
-        public void Update(VolumeTextureEntity volumeTex, GraphicsDevice graphics, bool force, DistanceFieldRenderModule distanceFieldRenderModule, FullScreenTriangle fullScreenTriangle)
+        
+        public void Update(List<BasicEntity> entities, GraphicsDevice graphics, DistanceFieldRenderModule distanceFieldRenderModule, FullScreenTriangle fullScreenTriangle)
         {
-            
-            HelperGeometryManager manager = HelperGeometryManager.GetInstance();
-            //foreach (var point in points)
-            //{
-            //    manager.AddOctahedron(point, Vector4.One);
-            //}
+            //First let's check which entities need building, if at all!
+            modelDefinitions.Clear();
 
-            //Show normals
-            //foreach (var tri in triangles)
-            //{
-            //    manager.AddLineStartDir(tri.a, tri.n, 1, Color.Red, Color.Blue);
-            //}
-
-
-            if (!DebugScreen.ConsoleOpen && Input.WasKeyPressed(Keys.J) /*&& generateTris!=null && generateTris.IsCompleted*/ || force)
+            //This should preferably be a list of meshes that are in the scene, instead of a list of entities
+            for (var index0 = 0; index0 < entities.Count; index0++)
             {
-                int xsteps = 50;
-                int ysteps = 50;
-                int zsteps = 50;
-
-                if (!GameSettings.sdf_cpu)
+                BasicEntity entity = entities[index0];
+                if (entity.SignedDistanceField.NeedsToBeGenerated)
                 {
-                    //Send triangles to gpu
-                    //Waste of space, but maybe reading a v4 is faster than 3 floats
+                    GenerateDistanceFields(entity, graphics, distanceFieldRenderModule, fullScreenTriangle);
+                }
 
-                    Stopwatch stopwatch = Stopwatch.StartNew();
-
-                    int maxwidth = 4096;
-                    int requiredData = triangles.Length * 3;
-
-                    int x = Math.Min(requiredData, maxwidth);
-                    int y = requiredData / maxwidth + 1;
-
-                    Vector4[] data = new Vector4[x*y];
-                    
-                    int index = 0;
-                    for (int i = 0; i < triangles.Length; i++, index+=3)
+                bool found = false;
+                //Compile a list of all mbbs used right now
+                for (var i = 0; i < modelDefinitions.Count; i++)
+                {
+                    if (entity.ModelDefinition == modelDefinitions[i])
                     {
-                        data[index] = new Vector4(triangles[i].a, 0);
-                        data[index + 1] = new Vector4(triangles[i].b, 0);
-                        data[index + 2] = new Vector4(triangles[i].c, 0);
+                        found = true;
+                        break;
                     }
+                }
+                modelDefinitions.Add(entity.ModelDefinition);
 
-                    //16k
+            }
 
-                    Texture2D triangleData = new Texture2D(graphics, x, y, false, SurfaceFormat.Vector4);
-
-                    triangleData.SetData(data);
-
-                    texture =
-                        distanceFieldRenderModule.CreateSDFTexture(graphics, triangleData, xsteps, ysteps, zsteps, volumeTex, fullScreenTriangle, triangles.Length);
-
-                    Debug.Write("\nSDF generated in " + stopwatch.ElapsedMilliseconds + "ms on GPU");
-
-                    volumeTex.Resolution = new Vector3(xsteps, ysteps, zsteps);
-
-
-                    string path = "sponza_sdf.sdff";
-
-                    float[] texData = new float[xsteps * ysteps*zsteps];
-
+            //Now for the model definitions
+            for(var i = 0; i < modelDefinitions.Count; i++)
+            {
+                if (GameSettings.sdf_regenerate)
+                {
+                    modelDefinitions[i].SDF.NeedsToBeGenerated = true;
+                }
                 
-                    texture.GetData(texData);
-
-                    //Store
-                    DataStream.SaveImageData(texData, xsteps, ysteps, zsteps, path);
-
-                    volumeTex.Texture = texture;
-                }
-                else
-                { 
-                    setup = true;
-                    generateTask = Task.Factory.StartNew(() =>
-                    {
-                        volumeTex.NeedsUpdate = false;
-                        
-                        texture?.Dispose();
-                        texture = new Texture2D(graphics, xsteps * zsteps, ysteps, false, SurfaceFormat.Single);
-
-                        float[] data = new float[xsteps * ysteps * zsteps];
-
-                        Stopwatch stopwatch = Stopwatch.StartNew();
-
-                        int numberOfThreads = GameSettings.sdf_threads;
-
-                        if (numberOfThreads > 1)
-                        {
-                            Task[] threads = new Task[numberOfThreads - 1];
-
-                            //Make local datas
-
-                            float[][] dataArray = new float[numberOfThreads][];
-
-                            for (int index = 0; index < threads.Length; index++)
-                            {
-                                int i = index;
-                                dataArray[index + 1] = new float[xsteps * ysteps * zsteps];
-                                threads[i] = Task.Factory.StartNew(() =>
-                                {
-                                    GenerateData(xsteps, ysteps, zsteps, volumeTex, ref dataArray[i + 1], i + 1,
-                                        numberOfThreads);
-                                });
-                            }
-
-                            dataArray[0] = data;
-                            GenerateData(xsteps, ysteps, zsteps, volumeTex, ref dataArray[0], 0, numberOfThreads);
-
-                            Task.WaitAll(threads);
-
-                            //Something broke?
-                            for (int i = 0; i < data.Length; i++)
-                            {
-                                //data[i] = dataArray[i % numberOfThreads][i];
-                                for (int j = 0; j < numberOfThreads; j++)
-                                {
-                                    if (dataArray[j][i] != 0)
-                                    {
-                                        data[i] = dataArray[j][i];
-                                        break;
-                                    }
-                                }
-                            }
-
-                            for (var index2 = 0; index2 < threads.Length; index2++)
-                            {
-                                threads[index2].Dispose();
-                            }
-                        }
-                        else
-                        {
-                            GenerateData(xsteps, ysteps, zsteps, volumeTex, ref data, 0, numberOfThreads);
-                        }
-
-
-                        stopwatch.Stop();
-
-                        Debug.Write("\nSDF generated in " + stopwatch.ElapsedMilliseconds + "ms with " +
-                                    GameSettings.sdf_threads + " thread(s)");
-
-                        string path = "sponza_sdf.sdff";
-
-                        //Store
-                        DataStream.SaveImageData(data, xsteps, ysteps, zsteps, path);
-
-                        texture.SetData(data);
-
-                        volumeTex.Resolution = new Vector3(xsteps, ysteps, zsteps);
-
-                        //Stream stream = File.Create("volumetex");
-                        //texture.SaveAsPng(stream, texture.Width, texture.Height);
-                        //stream.Dispose();
-
-                        GameStats.sdf_load = 0;
-                    });
-                }
             }
-
-            if (setup && generateTask != null && generateTask.IsCompleted)
-            {
-                setup = false;
-                volumeTex.Texture = texture;
-                generateTask.Dispose();
-            }
-
-
-            if((generateTask != null && generateTask.IsCompleted) || generateTask == null)
-            foreach (var sample in points)
-            {
-                manager.AddOctahedron(sample.p, Vector4.One * sample.sdf);
-            }
+            GameSettings.sdf_regenerate = false;
         }
 
-        private void GenerateData(int xsteps, int ysteps, int zsteps, VolumeTextureEntity volumeTex, ref float[] data, int threadindex, int numberOfThreads)
+        private void GenerateData(int xsteps, int ysteps, int zsteps, SignedDistanceField volumeTex, ref float[] data, int threadindex, int numberOfThreads, Triangle[] triangles)
         {
             int xi, yi, zi;
 
-            float volumeTexSizeX = volumeTex.Size.X;
-            float volumeTexSizeY = volumeTex.Size.Y;
-            float volumeTexSizeZ = volumeTex.Size.Z;
+            float volumeTexSizeX = volumeTex.VolumeSize.X;
+            float volumeTexSizeY = volumeTex.VolumeSize.Y;
+            float volumeTexSizeZ = volumeTex.VolumeSize.Z;
 
             Vector3 offset = new Vector3(volumeTex.Offset.X, volumeTex.Offset.Y, volumeTex.Offset.Z);
 
@@ -314,25 +289,9 @@ namespace DeferredEngine.Logic.SDF_Generator
                         Vector3 position = new Vector3(xi * volumeTexSizeX * 2.0f / (xsteps-1) - volumeTexSizeX,
                             yi * volumeTexSizeY * 2.0f / (ysteps-1) - volumeTexSizeY,
                             zi * volumeTexSizeZ * 2.0f / (zsteps -1) - volumeTexSizeZ ) + offset;
-
-
-
-                        float color = ComputeSDF(position);
-
-                        //if (xi == 2 && yi == 3 && zi == 0)
-                        //{
-                        //    int breakdown = 0;
-                        //    color = -color;
-                        //}
-
-                        //color = color > 0 ? 1 : 0;
-
-                        //float color = 0;//
-                        //if (zi % 2 == 1  && xi%2 != yi%2) color = .25f;
-
-                        if (numberOfThreads == 1 && color < 0.1f)
-                        points.Add(new SamplePoint(position, color));
-
+                        
+                        float color = ComputeSDF(position, triangles);
+                        
                         data[toTexCoords(xi, yi, zi, xsteps, zsteps)] = color;
 
                         if(threadindex==0)
@@ -353,7 +312,7 @@ namespace DeferredEngine.Logic.SDF_Generator
             return x < 0 ? 0 : x > 1 ? 1 : x;
         }
 
-        private float ComputeSDF(Vector3 p)
+        private float ComputeSDF(Vector3 p, Triangle[] triangles)
         {
             //Find nearest distance.
             //http://iquilezles.org/www/articles/distfunctions/distfunctions.htm

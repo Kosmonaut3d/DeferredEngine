@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms.VisualStyles;
+using DeferredEngine.Entities;
 using DeferredEngine.Recources.Helper;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
@@ -11,13 +12,14 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace DeferredEngine.Recources
 {
-    public class ModelBoundingBox
+    public class ModelDefinition
     {
         public BoundingBox BoundingBox;
         public Vector3 BoundingBoxOffset;
         public Model Model;
+        public SignedDistanceField SDF;
 
-        public ModelBoundingBox(ContentManager content, string assetpath)
+        public ModelDefinition(ContentManager content, string assetpath, GraphicsDevice graphics, bool UseSDF, Vector3 sdfResolution /*default = 50^3*/)
         {
             
             Model = content.Load<Model>(assetpath);
@@ -36,9 +38,18 @@ namespace DeferredEngine.Recources
 
             //Find the middle
             BoundingBoxOffset = (BoundingBox.Max + BoundingBox.Min) / 2.0f;
+
+            //SDF
+            SDF = new SignedDistanceField(content.RootDirectory + "/" + assetpath + ".sdft", graphics, BoundingBox, BoundingBoxOffset, sdfResolution);
+            SDF.IsUsed = UseSDF;
         }
 
-        public ModelBoundingBox(Model model, BoundingBox box)
+        public ModelDefinition(ContentManager content, string assetpath, GraphicsDevice graphics, bool UseSDF = false) : this(content,
+            assetpath, graphics, UseSDF, new Vector3(50, 50, 50))
+        { }
+        
+
+        public ModelDefinition(Model model, BoundingBox box)
         {
             Model = model;
             BoundingBox = box;
@@ -50,7 +61,7 @@ namespace DeferredEngine.Recources
             Vector3[] vertices;
             int[] indices;
             Vector3[] normals;
-            ModelDataExtractor.GetVerticesAndIndicesFromModel(model, out vertices, out normals, out indices);
+            ModelDataExtractor.GetVerticesAndIndicesFromModel(model, out vertices, out indices);
 
             BoundingBox = BoundingBox.CreateFromPoints(vertices);
 

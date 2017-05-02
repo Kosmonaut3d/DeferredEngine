@@ -59,12 +59,13 @@
     <Compile Include="Entities\Decal.cs" />
     <Compile Include="Entities\DirectionalLight.cs" />
     <Compile Include="Entities\TransformableObject.cs" />
-    <Compile Include="Entities\VolumeTextureEntity.cs" />
+    <Compile Include="Entities\DebugEntity.cs" />
     <Compile Include="Logic\SDF Generator\SDFGenerator.cs" />
     <Compile Include="Recources\Helper\DataStream.cs" />
     <Compile Include="Recources\Helper\Signed Distance Fields\SamplePoint.cs" />
     <Compile Include="Recources\Helper\Signed Distance Fields\Triangle.cs" />
-    <Compile Include="Recources\ModelBoundingBox.cs" />
+    <Compile Include="Recources\ModelDefinition.cs" />
+    <Compile Include="Recources\SignedDistanceField.cs" />
     <Compile Include="Renderer\Helper\BoundingFrustumExtended.cs" />
     <Compile Include="Renderer\Helper\Editor\BillboardBuffer.cs" />
     <Compile Include="Entities\EnvironmentSample.cs" />

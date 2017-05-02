@@ -256,13 +256,13 @@ namespace DeferredEngine.Renderer
         /// </summary>
         /// <param name="gameTime"></param>
         /// <param name="isActive"></param>
-        public void Update(GameTime gameTime, bool isActive, SDFGenerator sdfGenerator, VolumeTextureEntity volumeTexture)
+        public void Update(GameTime gameTime, bool isActive, SdfGenerator sdfGenerator, List<BasicEntity> entities)
         {
             if (!isActive) return;
             _editorRender.Update(gameTime);
 
             //SDF Updating
-            sdfGenerator.Update(volumeTexture, _graphicsDevice, false, _distanceFieldRenderModule, _fullScreenTriangle);
+            sdfGenerator.Update(entities, _graphicsDevice, _distanceFieldRenderModule, _fullScreenTriangle);
 
         }
 
@@ -289,7 +289,7 @@ namespace DeferredEngine.Renderer
         /// <param name="editorData">The data passed from our editor logic</param>
         /// <param name="gameTime"></param>
         /// <returns></returns>
-        public EditorLogic.EditorReceivedData Draw(Camera camera, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities, List<Decal> decals, List<PointLight> pointLights, List<DirectionalLight> directionalLights, EnvironmentSample envSample, VolumeTextureEntity volumeTexture, EditorLogic.EditorSendData editorData, GameTime gameTime)
+        public EditorLogic.EditorReceivedData Draw(Camera camera, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities, List<Decal> decals, List<PointLight> pointLights, List<DirectionalLight> directionalLights, EnvironmentSample envSample, List<DebugEntity> debugEntities, EditorLogic.EditorSendData editorData, GameTime gameTime)
         {
             //Reset the stat counter, so we can count stats/information for this frame only
             ResetStats();
@@ -313,12 +313,15 @@ namespace DeferredEngine.Renderer
 
             //Render ShadowMaps
             DrawShadowMaps(meshMaterialLibrary, entities, pointLights, directionalLights, camera);
+
+            //Update SDFs
+            _distanceFieldRenderModule.UpdateDistanceFieldTransformations(entities);
             
             //Render EnvironmentMaps
             //We do this either when pressing C or at the start of the program (_renderTargetCube == null) or when the game settings want us to do it every frame
             if (envSample.NeedsUpdate || GameSettings.g_envmapupdateeveryframe)
             {
-                DrawCubeMap(envSample.Position, meshMaterialLibrary, entities, pointLights, directionalLights, volumeTexture, envSample, 300, gameTime, camera);
+                DrawCubeMap(envSample.Position, meshMaterialLibrary, entities, pointLights, directionalLights, envSample, 300, gameTime, camera);
                 envSample.NeedsUpdate = false;
             }
 
@@ -344,7 +347,7 @@ namespace DeferredEngine.Renderer
             DrawBilateralBlur();
 
             //Light the scene
-            _lightAccumulationModule.DrawLights(pointLights, directionalLights, volumeTexture, camera.Position, gameTime, _renderTargetLightBinding, _renderTargetDiffuse);
+            _lightAccumulationModule.DrawLights(pointLights, directionalLights, camera.Position, gameTime, _renderTargetLightBinding, _renderTargetDiffuse);
 
             //Draw the environment cube map as a fullscreen effect on all meshes
             DrawEnvironmentMap(envSample);
@@ -368,18 +371,18 @@ namespace DeferredEngine.Renderer
             
             //Draw the elements that we are hovering over with outlines
             if(GameSettings.e_enableeditor && GameStats.e_EnableSelection)
-                _editorRender.DrawIds(meshMaterialLibrary, decals, pointLights, directionalLights, envSample, volumeTexture, _staticViewProjection, _view, editorData);
+                _editorRender.DrawIds(meshMaterialLibrary, decals, pointLights, directionalLights, envSample, debugEntities, _staticViewProjection, _view, editorData);
 
             //Draw the final rendered image, change the output based on user input to show individual buffers/rendertargets
             RenderMode(_currentOutput);
 
             //Draw signed distance field functions
-            DrawSignedDistanceFieldFunctions(volumeTexture, camera);
+            DrawSignedDistanceFieldFunctions(camera);
             
             //Additional editor elements that overlay our screen
             if (GameSettings.e_enableeditor && GameStats.e_EnableSelection)
             {
-                RenderEditorOverlays(editorData, meshMaterialLibrary, decals, pointLights, directionalLights, envSample, volumeTexture);
+                RenderEditorOverlays(editorData, meshMaterialLibrary, decals, pointLights, directionalLights, envSample, debugEntities);
             }
 
             //Debug ray marching
@@ -407,11 +410,11 @@ namespace DeferredEngine.Renderer
             };
         }
 
-        private void RenderEditorOverlays(EditorLogic.EditorSendData editorData, MeshMaterialLibrary meshMaterialLibrary, List<Decal> decals, List<PointLight> pointLights, List<DirectionalLight> directionalLights, EnvironmentSample envSample, VolumeTextureEntity volumeTexture)
+        private void RenderEditorOverlays(EditorLogic.EditorSendData editorData, MeshMaterialLibrary meshMaterialLibrary, List<Decal> decals, List<PointLight> pointLights, List<DirectionalLight> directionalLights, EnvironmentSample envSample, List<DebugEntity> debugEntities)
         {
             if (GameSettings.e_drawoutlines)
                 DrawMapToScreenToFullScreen(_editorRender.GetOutlines(), BlendState.Additive);
-            _editorRender.DrawEditorElements(meshMaterialLibrary, decals, pointLights, directionalLights, envSample, volumeTexture,
+            _editorRender.DrawEditorElements(meshMaterialLibrary, decals, pointLights, directionalLights, envSample, debugEntities,
                 _staticViewProjection, _view, editorData);
 
             if (editorData.SelectedObject != null)
@@ -461,7 +464,7 @@ namespace DeferredEngine.Renderer
         /// <param name="farPlane"></param>
         /// <param name="gameTime"></param>
         /// <param name="camera"></param>
-        private void DrawCubeMap(Vector3 origin, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities, List<PointLight> pointLights, List<DirectionalLight> dirLights, VolumeTextureEntity volumeTex, EnvironmentSample envSample, float farPlane, GameTime gameTime, Camera camera)
+        private void DrawCubeMap(Vector3 origin, MeshMaterialLibrary meshMaterialLibrary, List<BasicEntity> entities, List<PointLight> pointLights, List<DirectionalLight> dirLights, EnvironmentSample envSample, float farPlane, GameTime gameTime, Camera camera)
         {
             //If our cubemap is not yet initialized, create a new one
             if (_renderTargetCubeMap == null)
@@ -548,7 +551,7 @@ namespace DeferredEngine.Renderer
 
                 bool volumeEnabled = GameSettings.g_VolumetricLights;
                 GameSettings.g_VolumetricLights = false;
-                _lightAccumulationModule.DrawLights(pointLights, dirLights, volumeTex, origin, gameTime, _renderTargetLightBinding, _renderTargetDiffuse);
+                _lightAccumulationModule.DrawLights(pointLights, dirLights, origin, gameTime, _renderTargetLightBinding, _renderTargetDiffuse);
 
                 _deferredEnvironmentMapRenderModule.DrawSky(_graphicsDevice, _fullScreenTriangle);
 
@@ -1295,18 +1298,18 @@ namespace DeferredEngine.Renderer
             return GameSettings.g_taa_tonemapped ? input : output;
         }
         
-        private void DrawSignedDistanceFieldFunctions(VolumeTextureEntity volumeTexture, Camera camera)
+        private void DrawSignedDistanceFieldFunctions(Camera camera)
         {
             if (!GameSettings.sdf_draw) return;
             
-            _distanceFieldRenderModule.Draw(_graphicsDevice, camera, volumeTexture, _fullScreenTriangle);
+            _distanceFieldRenderModule.Draw(_graphicsDevice, camera, _fullScreenTriangle);
 
-            _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.PointClamp);
+            //_spriteBatch.Begin(0, BlendState.Opaque, SamplerState.PointClamp);
 
-            int height = Math.Max(volumeTexture.Texture.Height / volumeTexture.Texture.Width * GameSettings.g_screenheight, 40);
-            _spriteBatch.Draw(volumeTexture.Texture,
-                new Rectangle(0, GameSettings.g_screenheight - height, GameSettings.g_screenwidth, height), Color.White);
-            _spriteBatch.End();
+            //int height = Math.Max(volumeTexture.Texture.Height / volumeTexture.Texture.Width * GameSettings.g_screenheight, 40);
+            //_spriteBatch.Draw(volumeTexture.Texture,
+            //    new Rectangle(0, GameSettings.g_screenheight - height, GameSettings.g_screenwidth, height), Color.White);
+            //_spriteBatch.End();
             
         }
 

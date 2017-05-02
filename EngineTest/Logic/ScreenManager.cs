@@ -45,9 +45,9 @@ namespace DeferredEngine.Logic
         public void Update(GameTime gameTime, bool isActive)
         {
             _guiLogic.Update(gameTime, isActive, _editorLogic.SelectedObject);
-            _editorLogic.Update(gameTime, _sceneLogic.BasicEntities, _sceneLogic.Decals, _sceneLogic.PointLights, _sceneLogic.DirectionalLights, _sceneLogic.EnvironmentSample, _sceneLogic.VolumeTexture, _editorReceivedDataBuffer, _sceneLogic.MeshMaterialLibrary);
+            _editorLogic.Update(gameTime, _sceneLogic.BasicEntities, _sceneLogic.Decals, _sceneLogic.PointLights, _sceneLogic.DirectionalLights, _sceneLogic.EnvironmentSample, _sceneLogic.DebugEntities, _editorReceivedDataBuffer, _sceneLogic.MeshMaterialLibrary);
             _sceneLogic.Update(gameTime, isActive);
-            _renderer.Update(gameTime, isActive, _sceneLogic._sdfGenerator, _sceneLogic.VolumeTexture);
+            _renderer.Update(gameTime, isActive, _sceneLogic._sdfGenerator, _sceneLogic.BasicEntities);
             
             _debug.Update(gameTime);
         }
@@ -85,8 +85,8 @@ namespace DeferredEngine.Logic
                 _sceneLogic.BasicEntities, _sceneLogic.Decals,
                 pointLights: _sceneLogic.PointLights,
                 directionalLights: _sceneLogic.DirectionalLights, 
-                envSample: _sceneLogic.EnvironmentSample, 
-                volumeTexture: _sceneLogic.VolumeTexture, 
+                envSample: _sceneLogic.EnvironmentSample,
+                debugEntities: _sceneLogic.DebugEntities, 
                 editorData: _editorLogic.GetEditorData(), 
                 gameTime: gameTime);
             

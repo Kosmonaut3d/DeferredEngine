@@ -9,7 +9,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace DeferredEngine.Entities
 {
-    public class VolumeTextureEntity : TransformableObject
+    public class DebugEntity : TransformableObject
     {
         public sealed override Vector3 Position { get; set; }
         public override Vector3 Scale { get; set; }
@@ -31,19 +31,20 @@ namespace DeferredEngine.Entities
         private float _sizeY;
         private float _sizeZ;
 
-        public VolumeTextureEntity(string texturepath, GraphicsDevice graphics, Vector3 position, Vector3 size)
+        public DebugEntity(string texturepath, GraphicsDevice graphics, Vector3 position, Vector3 size)
         {
-            Position = position;
+            throw new NotImplementedException();
+            //Position = position;
 
-            Id = IdGenerator.GetNewId();
-            Name = GetType().Name + " " + Id;
-            int zdepth;
-            Texture = DataStream.LoadFromFile(graphics, texturepath, out zdepth);
-            Resolution.Y = Texture.Height;
-            Resolution.Z = zdepth;
-            Resolution.X = Texture.Width / zdepth;
+            //Id = IdGenerator.GetNewId();
+            //Name = GetType().Name + " " + Id;
+            //int zdepth;
+            //Texture = DataStream.LoadFromFile(graphics, texturepath, out zdepth);
+            //Resolution.Y = Texture.Height;
+            //Resolution.Z = zdepth;
+            //Resolution.X = Texture.Width / zdepth;
 
-            Size = size;
+            //Size = size;
 
         }
     }

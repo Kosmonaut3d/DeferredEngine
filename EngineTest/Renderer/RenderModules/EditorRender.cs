@@ -66,7 +66,7 @@ namespace DeferredEngine.Renderer.RenderModules
         }
 
 
-        public void DrawBillboards(List<Decal> decals, List<PointLight> lights, List<DirectionalLight> dirLights, EnvironmentSample envSample, VolumeTextureEntity volumeTexture, Matrix staticViewProjection, Matrix view, EditorLogic.EditorSendData sendData)
+        public void DrawBillboards(List<Decal> decals, List<PointLight> lights, List<DirectionalLight> dirLights, EnvironmentSample envSample, List<DebugEntity> debug, Matrix staticViewProjection, Matrix view, EditorLogic.EditorSendData sendData)
         {
             _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
             _graphicsDevice.SetVertexBuffer(_billboardBuffer.VBuffer);
@@ -135,9 +135,12 @@ namespace DeferredEngine.Renderer.RenderModules
             
             DrawBillboard(envSample, staticViewProjection, view, sendData);
 
-            //Volume Texture
-
-            DrawBillboard(volumeTexture, staticViewProjection, view, sendData);
+            //Dbg
+            for (int index = 0; index < debug.Count; index++)
+            {
+                var dbgEntity = debug[index];
+                DrawBillboard(dbgEntity, staticViewProjection, view, sendData);
+            }
 
         }
         private void DrawBillboard(TransformableObject billboardObject, Matrix staticViewProjection, Matrix view, EditorLogic.EditorSendData sendData)
@@ -159,12 +162,12 @@ namespace DeferredEngine.Renderer.RenderModules
                 Shaders.BillboardEffectParameter_IdColor.SetValue(Color.Gray.ToVector3());
         }
 
-        public void DrawIds(MeshMaterialLibrary meshMaterialLibrary, List<Decal> decals, List<PointLight>lights, List<DirectionalLight> dirLights, EnvironmentSample envSample, VolumeTextureEntity volumeTexture, Matrix staticViewProjection, Matrix view, EditorLogic.EditorSendData editorData)
+        public void DrawIds(MeshMaterialLibrary meshMaterialLibrary, List<Decal> decals, List<PointLight>lights, List<DirectionalLight> dirLights, EnvironmentSample envSample, List<DebugEntity> debug, Matrix staticViewProjection, Matrix view, EditorLogic.EditorSendData editorData)
         {
-            _idAndOutlineRenderer.Draw(meshMaterialLibrary, decals, lights, dirLights, envSample, volumeTexture, staticViewProjection, view, editorData, _mouseMovement);
+            _idAndOutlineRenderer.Draw(meshMaterialLibrary, decals, lights, dirLights, envSample, debug, staticViewProjection, view, editorData, _mouseMovement);
         }
 
-        public void DrawEditorElements(MeshMaterialLibrary meshMaterialLibrary, List<Decal> decals, List<PointLight> lights, List<DirectionalLight> dirLights, EnvironmentSample envSample, VolumeTextureEntity volumeTexture, Matrix staticViewProjection, Matrix view, EditorLogic.EditorSendData editorData)
+        public void DrawEditorElements(MeshMaterialLibrary meshMaterialLibrary, List<Decal> decals, List<PointLight> lights, List<DirectionalLight> dirLights, EnvironmentSample envSample, List<DebugEntity> debug, Matrix staticViewProjection, Matrix view, EditorLogic.EditorSendData editorData)
         {
             _graphicsDevice.SetRenderTarget(null);
             _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
@@ -172,7 +175,7 @@ namespace DeferredEngine.Renderer.RenderModules
             _graphicsDevice.BlendState = BlendState.Opaque;
             
             DrawGizmo(staticViewProjection, editorData);
-            DrawBillboards(decals, lights, dirLights, envSample, volumeTexture, staticViewProjection, view, editorData);
+            DrawBillboards(decals, lights, dirLights, envSample, debug, staticViewProjection, view, editorData);
         }
 
         public void DrawGizmo(Matrix staticViewProjection, EditorLogic.EditorSendData editorData)

@@ -35,7 +35,6 @@ namespace DeferredEngine.Logic
         
         public Camera Camera;
 
-        public VolumeTextureEntity VolumeTexture;
 
         //mesh library, holds all the meshes and their materials
         public MeshMaterialLibrary MeshMaterialLibrary;
@@ -44,6 +43,7 @@ namespace DeferredEngine.Logic
         public readonly List<Decal> Decals = new List<Decal>();
         public readonly List<PointLight> PointLights = new List<PointLight>();
         public readonly List<DirectionalLight> DirectionalLights = new List<DirectionalLight>();
+        public readonly List<DebugEntity> DebugEntities = new List<DebugEntity>();
         public EnvironmentSample EnvironmentSample;
 
         //Which render target are we currently displaying?
@@ -51,7 +51,7 @@ namespace DeferredEngine.Logic
         private Space _physicsSpace;
 
         //SDF
-        public SDFGenerator _sdfGenerator;
+        public SdfGenerator _sdfGenerator;
 
         private BasicEntity testEntity;
 
@@ -91,9 +91,9 @@ namespace DeferredEngine.Logic
 
             EnvironmentSample = new EnvironmentSample(new Vector3(21, -22, 7)/*new Vector3(-45,-5,5)*/) {SpecularStrength = 0.5f};
 
-            VolumeTexture = new VolumeTextureEntity("Content/Sponza/sponza_sdf.sdff", graphics, new Vector3(-7, 0, 63), new Vector3(200, 100, 100)) {NeedsUpdate = true};
+            //VolumeTexture = new VolumeTextureEntity("Content/Sponza/sponza_sdf.sdff", graphics, new Vector3(-7, 0, 63), new Vector3(200, 100, 100)) {NeedsUpdate = true};
 
-            _sdfGenerator = new SDFGenerator();
+            _sdfGenerator = new SdfGenerator();
 
             ////////////////////////////////////////////////////////////////////////
             // GUI
@@ -118,16 +118,11 @@ namespace DeferredEngine.Logic
                 angleY: 0,
                 angleZ: 0,
                 scale: 10);
-
-
-            testEntity.ApplyTransformation();
-
-            VolumeTexture.Position = testEntity.Position;
-            VolumeTexture.Size = (testEntity.BoundingBox.Max - testEntity.BoundingBox.Min) / 1.8f;
-            VolumeTexture.RotationMatrix = testEntity.WorldTransform.InverseWorld;
-            VolumeTexture.Offset = testEntity.BoundingBoxOffset;
-
-            _sdfGenerator.Generate(testEntity);
+            
+            //VolumeTexture.Position = testEntity.Position;
+            //VolumeTexture.Size = (testEntity.BoundingBox.Max - testEntity.BoundingBox.Min) / 2.0f * 52.0f/50.0f;
+            //VolumeTexture.RotationMatrix = testEntity.WorldTransform.InverseWorld;
+            //VolumeTexture.Offset = testEntity.BoundingBoxOffset;
             
             //_sdfGenerator.Update(VolumeTexture, graphics, true, null, null);
 
@@ -298,8 +293,8 @@ namespace DeferredEngine.Logic
             //Upd
             Input.Update(gameTime, Camera);
 
-            VolumeTexture.RotationMatrix = testEntity.WorldTransform.InverseWorld;
-            VolumeTexture.Scale = testEntity.WorldTransform.Scale;
+            //VolumeTexture.RotationMatrix = testEntity.WorldTransform.InverseWorld;
+            //VolumeTexture.Scale = testEntity.WorldTransform.Scale;
             
             //Make the lights move up and down
             //for (var i = 2; i < PointLights.Count; i++)
@@ -319,6 +314,8 @@ namespace DeferredEngine.Logic
             {
                 GameSettings.e_enableeditor = !GameSettings.e_enableeditor;
             }
+
+            
             
             //Spawns a new light on the ground
             if (Input.keyboardState.IsKeyDown(Keys.L))
@@ -420,7 +417,7 @@ namespace DeferredEngine.Logic
         /// <param name="PhysicsEntity">attached physical object</param>
         /// <param name="hasStaticPhysics">if "true" a static mesh will be computed based on the model mesh. Other physical objects can collide with the entity</param>
         /// <returns>returns the basicEntity we created</returns>
-        private BasicEntity AddEntity(ModelBoundingBox model, Vector3 position, double angleX, double angleY, double angleZ, float scale, Entity PhysicsEntity = null, bool hasStaticPhysics = false)
+        private BasicEntity AddEntity(ModelDefinition model, Vector3 position, double angleX, double angleY, double angleZ, float scale, Entity PhysicsEntity = null, bool hasStaticPhysics = false)
         {
             BasicEntity entity = new BasicEntity(model,
                 null, 
@@ -451,7 +448,7 @@ namespace DeferredEngine.Logic
         /// <param name="PhysicsEntity">attached physical object</param>
         /// <param name="hasStaticPhysics">if "true" a static mesh will be computed based on the model mesh. Other physical objects can collide with the entity</param>
         /// <returns>returns the basicEntity we created</returns>
-        private BasicEntity AddEntity(ModelBoundingBox model, MaterialEffect materialEffect, Vector3 position, double angleX, double angleY, double angleZ, float scale, Entity PhysicsEntity = null, bool hasStaticPhysics = false )
+        private BasicEntity AddEntity(ModelDefinition model, MaterialEffect materialEffect, Vector3 position, double angleX, double angleY, double angleZ, float scale, Entity PhysicsEntity = null, bool hasStaticPhysics = false )
         {
             BasicEntity entity = new BasicEntity(model,
                 materialEffect,

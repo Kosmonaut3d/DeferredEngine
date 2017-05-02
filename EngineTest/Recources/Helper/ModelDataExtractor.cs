@@ -20,7 +20,7 @@ namespace DeferredEngine.Recources.Helper
         {
             Microsoft.Xna.Framework.Vector3[] tempVertices;
             Microsoft.Xna.Framework.Vector3[] tempNormals;
-            GetVerticesAndIndicesFromModel(collisionModel, out tempVertices, out tempNormals, out indices);
+            GetVerticesAndIndicesFromModel(collisionModel, out tempVertices, out indices);
             vertices = MathConverter.Convert(tempVertices);
         }
 
@@ -30,10 +30,9 @@ namespace DeferredEngine.Recources.Helper
         /// <param name="collisionModel">Model to use for the collision shape.</param>
         /// <param name="vertices">Compiled set of vertices from the model.</param>
         /// <param name="indices">Compiled set of indices from the model.</param>
-        public static void GetVerticesAndIndicesFromModel(Model collisionModel, out Microsoft.Xna.Framework.Vector3[] vertices, out Microsoft.Xna.Framework.Vector3[] normals, out int[] indices)
+        public static void GetVerticesAndIndicesFromModel(Model collisionModel, out Microsoft.Xna.Framework.Vector3[] vertices, out int[] indices)
         {
             var verticesList = new List<Microsoft.Xna.Framework.Vector3>();
-            var normalList = new List<Microsoft.Xna.Framework.Vector3>();
             var indicesList = new List<int>();
             var transforms = new Matrix[collisionModel.Bones.Count];
             collisionModel.CopyAbsoluteBoneTransformsTo(transforms);
@@ -45,13 +44,11 @@ namespace DeferredEngine.Recources.Helper
                 //    transform = transforms[mesh.ParentBone.Index];
                 //else
                     transform = Matrix.Identity;
-                AddMesh(mesh, transform, verticesList, normalList, indicesList);
+                AddMesh(mesh, transform, verticesList, indicesList);
             }
 
             vertices = verticesList.ToArray();
             indices = indicesList.ToArray();
-            normals = normalList.ToArray();
-
         }
 
         /// <summary>
@@ -61,48 +58,25 @@ namespace DeferredEngine.Recources.Helper
         /// <param name="transform">Transform to apply to the mesh.</param>
         /// <param name="vertices">List to receive vertices from the mesh.</param>
         /// <param name="indices">List to receive indices from the mesh.</param>
-        public static void AddMesh(ModelMesh collisionModelMesh, Matrix transform, List<Microsoft.Xna.Framework.Vector3> vertices, List<Microsoft.Xna.Framework.Vector3> normals, IList<int> indices)
+        public static void AddMesh(ModelMesh collisionModelMesh, Matrix transform, List<Microsoft.Xna.Framework.Vector3> vertices, IList<int> indices)
         {
             foreach (ModelMeshPart meshPart in collisionModelMesh.MeshParts)
             {
                 int startIndex = vertices.Count;
                 ////Grab position data from the mesh part.
-                //int stride = meshPart.VertexBuffer.VertexDeclaration.VertexStride;
-                //meshPart.VertexBuffer.GetData(
-                //        meshPart.VertexOffset * stride,
-                //        meshPartVertices,
-                //        0,
-                //        meshPart.NumVertices,
-                //        stride);
-
-                var meshPartVertices = new VertexPositionNormalTexture[meshPart.NumVertices];
+                var meshPartVertices = new Microsoft.Xna.Framework.Vector3[meshPart.NumVertices];
                 //Grab position data from the mesh part.
-                
-               //meshPart.VertexBuffer.GetData(meshPartVertices, 0, meshPart.NumVertices);
-
                 int stride = meshPart.VertexBuffer.VertexDeclaration.VertexStride;
-                meshPart.VertexBuffer.GetData<VertexPositionNormalTexture>(
-                        meshPart.VertexOffset * stride,
-                        meshPartVertices,
-                        0,
-                        meshPart.NumVertices,
-                        stride);
-
-                //Copy
-
-                var meshPartVerticePosition = new Microsoft.Xna.Framework.Vector3[meshPart.NumVertices];
-                var meshPartVerticeNormal = new Microsoft.Xna.Framework.Vector3[meshPart.NumVertices];
-                for (int i = 0; i < meshPartVertices.Length; i++)
-                {
-                    meshPartVerticePosition[i] = meshPartVertices[i].Position;
-                    meshPartVerticeNormal[i] = meshPartVertices[i].Normal;
-                }
-
+                meshPart.VertexBuffer.GetData(
+                    meshPart.VertexOffset * stride,
+                    meshPartVertices,
+                    0,
+                    meshPart.NumVertices,
+                    stride);
 
                 //Transform it so its vertices are located in the model's space as opposed to mesh part space.
-                Microsoft.Xna.Framework.Vector3.Transform(meshPartVerticePosition, ref transform, meshPartVerticePosition);
-                vertices.AddRange(meshPartVerticePosition);
-                normals.AddRange(meshPartVerticePosition);
+                Microsoft.Xna.Framework.Vector3.Transform(meshPartVertices, ref transform, meshPartVertices);
+                vertices.AddRange(meshPartVertices);
 
                 if (meshPart.IndexBuffer.IndexElementSize == IndexElementSize.ThirtyTwoBits)
                 {

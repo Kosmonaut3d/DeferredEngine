@@ -595,7 +595,7 @@ namespace DeferredEngine.Logic
                     }
                 }
 
-                else if (selectedObject is VolumeTextureEntity)
+                else if (selectedObject is DebugEntity)
                 {
                     _objectSlider0.IsHidden = false;
                     _objectSlider1.IsHidden = false;

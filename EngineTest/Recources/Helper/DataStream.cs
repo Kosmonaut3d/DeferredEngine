@@ -64,21 +64,31 @@ namespace DeferredEngine.Recources.Helper
             }
         }
 
-        public static Texture2D LoadFromFile(GraphicsDevice graphics, string path, out int zdepth)
+        /// <summary>
+        /// Returns a true and a texture if the file is available. Otherwise false and nulls.
+        /// </summary>
+        /// <param name="graphics"></param>
+        /// <param name="path"></param>
+        /// <param name="zdepth"></param>
+        /// <param name="output"></param>
+        /// <returns></returns>
+        public static bool LoadFromFile(GraphicsDevice graphics, string path, out int zdepth, out Texture2D output)
         {
-            Texture2D output;
             float[] data;
             int width;
             int height;
-            LoadFloatArray(path, out data, out width, out height, out zdepth);
-
-            output = new Texture2D(graphics, width * zdepth, height, false, SurfaceFormat.Single);
-            output.SetData(data);
-
-            return output;
+            if (LoadFloatArray(path, out data, out width, out height, out zdepth))
+            {
+                output = new Texture2D(graphics, width * zdepth, height, false, SurfaceFormat.Single);
+                output.SetData(data);
+                return true;
+            }
+            output = null;
+            return false;
         }
 
-        public static void LoadFloatArray(string path, out float[] floatArray, out int width, out int height, out int zdepth )
+        //Returns true if successful, else false
+        public static bool LoadFloatArray(string path, out float[] floatArray, out int width, out int height, out int zdepth )
         {
             //Debug.WriteLine(path);  
 
@@ -102,12 +112,23 @@ namespace DeferredEngine.Recources.Helper
             }
             catch (Exception e)
             {
-                throw e;
+                width = 0;
+                height = 0;
+                zdepth = 0;
+                floatArray = null;
+
+                Debug.WriteLine(e.Message);
+                return false;
+
+
+                //throw e;
+                
             }
             finally
             {
                 if (fs != null) fs.Dispose();
             }
+            return true;
         }
 
         #endregion

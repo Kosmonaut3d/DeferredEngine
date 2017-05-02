@@ -34,7 +34,7 @@ namespace DeferredEngine.Renderer.RenderModules
             _assets = assets;
         }
 
-        public void Draw(MeshMaterialLibrary meshMat, List<Decal> decals, List<PointLight> pointLights, List<DirectionalLight> dirLights, EnvironmentSample envSample, VolumeTextureEntity volumeTexture, Matrix viewProjection, Matrix view, EditorLogic.EditorSendData editorData, bool mouseMoved)
+        public void Draw(MeshMaterialLibrary meshMat, List<Decal> decals, List<PointLight> pointLights, List<DirectionalLight> dirLights, EnvironmentSample envSample, List<DebugEntity> debug, Matrix viewProjection, Matrix view, EditorLogic.EditorSendData editorData, bool mouseMoved)
         {
             if (editorData.GizmoTransformationMode)
             {
@@ -45,14 +45,14 @@ namespace DeferredEngine.Renderer.RenderModules
 
             if (mouseMoved)
             {
-                DrawIds(meshMat, decals, pointLights, dirLights, envSample, volumeTexture, viewProjection, view, editorData);
+                DrawIds(meshMat, decals, pointLights, dirLights, envSample, debug, viewProjection, view, editorData);
             }
 
             if(GameSettings.e_drawoutlines)
                 DrawOutlines(meshMat, viewProjection, mouseMoved, HoveredId, editorData, mouseMoved);
         }
 
-        public void DrawIds(MeshMaterialLibrary meshMat, List<Decal> decals, List<PointLight> pointLights, List<DirectionalLight> dirLights, EnvironmentSample envSample, VolumeTextureEntity volumeTexture, Matrix viewProjection, Matrix view, EditorLogic.EditorSendData editorData)
+        public void DrawIds(MeshMaterialLibrary meshMat, List<Decal> decals, List<PointLight> pointLights, List<DirectionalLight> dirLights, EnvironmentSample envSample, List<DebugEntity> debug, Matrix viewProjection, Matrix view, EditorLogic.EditorSendData editorData)
         {
             
             _graphicsDevice.SetRenderTarget(_idRenderTarget2D);
@@ -64,7 +64,7 @@ namespace DeferredEngine.Renderer.RenderModules
             meshMat.Draw(MeshMaterialLibrary.RenderType.IdRender, viewProjection);
 
             //Now onto the billboards
-            DrawBillboards(decals, pointLights, dirLights, envSample, volumeTexture, viewProjection, view);
+            DrawBillboards(decals, pointLights, dirLights, envSample, debug, viewProjection, view);
 
             //Now onto the gizmos
             DrawGizmos(viewProjection, editorData, _assets);
@@ -96,7 +96,7 @@ namespace DeferredEngine.Renderer.RenderModules
             _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2);
         }
 
-        public void DrawBillboards(List<Decal> decals, List<PointLight> lights, List<DirectionalLight> dirLights, EnvironmentSample envSample, VolumeTextureEntity volumeTexture, Matrix staticViewProjection, Matrix view)
+        public void DrawBillboards(List<Decal> decals, List<PointLight> lights, List<DirectionalLight> dirLights, EnvironmentSample envSample, List<DebugEntity> debugEntities, Matrix staticViewProjection, Matrix view)
         {
             _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
             _graphicsDevice.SetVertexBuffer(_billboardBuffer.VBuffer);
@@ -133,9 +133,11 @@ namespace DeferredEngine.Renderer.RenderModules
                 DrawBillboard(world, view, staticViewProjection, envSample.Id);
             }
 
+            for (int index = 0; index < debugEntities.Count; index++)
             {
-                Matrix world = Matrix.CreateTranslation(volumeTexture.Position);
-                DrawBillboard(world, view, staticViewProjection, volumeTexture.Id);
+                var debug = debugEntities[index];
+                Matrix world = Matrix.CreateTranslation(debug.Position);
+                DrawBillboard(world, view, staticViewProjection, debug.Id);
             }
         }
         

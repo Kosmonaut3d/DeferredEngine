@@ -127,10 +127,11 @@ float RaymarchSoft(float3 p, float3 destination, float distanceToDestination, fl
 		float3 q = mul(float4(ro, 1), VolumeTexInverseMatrix).xyz;
 
 		//float step = sdBox(q / VolumeTexScale, VolumeTexSize) * VolumeTexScale;
-
-		//IMPORTANT -> this won't work then!
-		//CHANGE
+		
+		// should step always be < distance to light?
 		float step = GetMinDistance(q / VolumeTexScale) * min(VolumeTexScale.x, min(VolumeTexScale.y, VolumeTexScale.z));
+
+		//Idea
 
 		if (step <= precis)  return 0.0f;
 

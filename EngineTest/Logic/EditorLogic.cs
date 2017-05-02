@@ -66,15 +66,18 @@ namespace DeferredEngine.Logic
             List<PointLight> pointLights, 
             List<DirectionalLight> dirLights, 
             EnvironmentSample envSample, 
-            VolumeTextureEntity volumeTexture,
+            List<DebugEntity> debugEntities,
             EditorReceivedData data, 
             MeshMaterialLibrary meshMaterialLibrary)
         {
             if (!GameSettings.e_enableeditor) return;
 
-            if(Input.WasKeyPressed(Keys.R)) GameStats.e_gizmoMode = GizmoModes.Rotation;
-            if (Input.WasKeyPressed(Keys.T)) GameStats.e_gizmoMode = GizmoModes.Translation;
-            if (Input.WasKeyPressed(Keys.Z)) GameStats.e_gizmoMode = GizmoModes.Scale;
+            if (!DebugScreen.ConsoleOpen)
+            {
+                if (Input.WasKeyPressed(Keys.R)) GameStats.e_gizmoMode = GizmoModes.Rotation;
+                if (Input.WasKeyPressed(Keys.T)) GameStats.e_gizmoMode = GizmoModes.Translation;
+                if (Input.WasKeyPressed(Keys.Z)) GameStats.e_gizmoMode = GizmoModes.Scale;
+            }
 
             _gizmoMode = GameStats.e_gizmoMode;
 
@@ -158,10 +161,13 @@ namespace DeferredEngine.Logic
                         }
                     }
 
+                    for (int index = 0; index < debugEntities.Count; index++)
                     {
-                        if (volumeTexture.Id == hoveredId)
+                        DirectionalLight debugEntity = dirLights[index];
+                        if (debugEntity.Id == hoveredId)
                         {
-                            SelectedObject = volumeTexture;
+                            SelectedObject = debugEntity;
+                            break;
                         }
                     }
                 }
