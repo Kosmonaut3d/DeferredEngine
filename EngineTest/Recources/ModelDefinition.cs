@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,15 +25,16 @@ namespace DeferredEngine.Recources
             
             Model = content.Load<Model>(assetpath);
 
+            string bbxpath = content.RootDirectory + "/" + assetpath + ".bbox";
             //Look if there is a bounding box already created, otherwise create a new one
-            if (! DataStream.LoadBoundingBox(content.RootDirectory + "/" + assetpath + ".bbox", out BoundingBox))
+            if (!File.Exists(bbxpath) || !DataStream.LoadBoundingBox(bbxpath, out BoundingBox))
             {
                 CreateBoundingBox(Model);
 
                 //Optionally save that new one
                 if (GameSettings.e_saveBoundingBoxes)
                 {
-                    DataStream.SaveBoundingBoxData(BoundingBox, content.RootDirectory + "/" + assetpath + ".bbox");
+                    DataStream.SaveBoundingBoxData(BoundingBox, bbxpath);
                 }
             }
 

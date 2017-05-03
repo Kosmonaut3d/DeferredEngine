@@ -99,7 +99,7 @@ namespace DeferredEngine.Recources
 
             Cube = content.Load<Model>("Art/test/cube");
 
-            Tiger = new ModelDefinition(content, "Art/Tiger/tiger", graphicsDevice, true, new Vector3(50,50,50));
+            Tiger = new ModelDefinition(content, "Art/Tiger/Tiger", graphicsDevice, true, new Vector3(2,2,2));
 
             IconDecal = content.Load<Texture2D>("Art/Editor/icon_decal");
             IconLight = content.Load<Texture2D>("Art/Editor/icon_light");

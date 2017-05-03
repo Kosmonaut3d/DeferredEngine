@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -40,7 +41,7 @@ namespace DeferredEngine.Recources
 
             //Check if our file is available
             int zdepth;
-            if (DataStream.LoadFromFile(graphics, texturepath, out zdepth, out SdfTexture))
+            if (File.Exists(texturepath) && DataStream.LoadFromFile(graphics, texturepath, out zdepth, out SdfTexture))
             {
                 TextureResolution.Y = SdfTexture.Height;
                 TextureResolution.Z = zdepth;

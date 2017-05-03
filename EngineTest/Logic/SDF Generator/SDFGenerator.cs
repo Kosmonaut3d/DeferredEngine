@@ -100,10 +100,10 @@ namespace DeferredEngine.Logic.SDF_Generator
             {
                 Stopwatch stopwatch = Stopwatch.StartNew();
 
-                int maxwidth = 4096;
+                int maxwidth = 4096; //16384
                 int requiredData = triangles.Length * 3;
 
-                int x = Math.Min(requiredData, maxwidth);
+                int x = maxwidth;//Math.Min(requiredData, maxwidth);
                 int y = requiredData / x + 1;
 
                 Vector4[] data = new Vector4[x * y];
