@@ -43,6 +43,7 @@ namespace DeferredEngine.Renderer.RenderModules
         private EffectTechnique _DrawTextureSpecular;
         private EffectTechnique _DrawTextureSpecularMetallic;
         private EffectTechnique _DrawTexture;
+        private EffectTechnique _DrawNormal;
         private EffectTechnique _DrawBasic;
 
         private FullScreenTriangle _fullScreenTriangle;
@@ -113,6 +114,7 @@ namespace DeferredEngine.Renderer.RenderModules
             _DrawTextureSpecular = _gbufferShader.Techniques["DrawTextureSpecular"];
             _DrawTextureSpecularMetallic = _gbufferShader.Techniques["DrawTextureSpecularMetallic"];
             _DrawTexture = _gbufferShader.Techniques["DrawTexture"];
+            _DrawNormal = _gbufferShader.Techniques["DrawNormal"];
             _DrawBasic = _gbufferShader.Techniques["DrawBasic"];
         }
         
@@ -259,6 +261,12 @@ namespace DeferredEngine.Renderer.RenderModules
                         _gbufferShader.CurrentTechnique =
                             _DrawTextureSpecular;
                     }
+
+                    else if (material.HasNormalMap && !material.HasDiffuse)
+                    {
+                        _Material_NormalMap.SetValue(material.NormalMap);
+                        _gbufferShader.CurrentTechnique = _DrawNormal;
+                    } 
 
                     else if (material.HasDiffuse)
                     {

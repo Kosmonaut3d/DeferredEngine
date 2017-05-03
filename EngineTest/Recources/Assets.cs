@@ -68,16 +68,16 @@ namespace DeferredEngine.Recources
 
         public Model HelmetModel;
 
-        public Model StanfordDragon;
-        
+        public ModelDefinition StanfordDragon;
+        public ModelDefinition StanfordDragonLowpoly;
+
         public MaterialEffect RockMaterial;
 
 
         public SpriteFont DefaultFont;
         public SpriteFont MonospaceFont;
-
-        public Texture2D VolumeTexture;
-        public Texture2D VolumeTextureSponzaSDF;
+        
+        public MaterialEffect DragonLowPolyMaterial;
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////
         //  FUNCTIONS
@@ -99,7 +99,7 @@ namespace DeferredEngine.Recources
 
             Cube = content.Load<Model>("Art/test/cube");
 
-            Tiger = new ModelDefinition(content, "Art/Tiger/Tiger", graphicsDevice, true, new Vector3(2,2,2));
+            Tiger = new ModelDefinition(content, "Art/Tiger/Tiger", graphicsDevice, true, new Vector3(50,50,50));
 
             IconDecal = content.Load<Texture2D>("Art/Editor/icon_decal");
             IconLight = content.Load<Texture2D>("Art/Editor/icon_light");
@@ -131,8 +131,6 @@ namespace DeferredEngine.Recources
             BaseTex.SetData(new Color[] { Color.White });
 
             NoiseMap = content.Load<Texture2D>("Shaders/noise_blur");
-
-            VolumeTexture = content.Load<Texture2D>("Shaders/SignedDistanceFields/sampleTexture");
             //Meshes and Materials
 
             //Trabant = content.Load<Model>("Art/test/source/trabant_realtime_v3");
@@ -155,7 +153,11 @@ namespace DeferredEngine.Recources
 
             //
 
-            StanfordDragon = content.Load<Model>("Art/default/dragon_uv_smooth");
+            StanfordDragon = new ModelDefinition(content, "Art/default/dragon_uv_smooth", graphicsDevice); 
+            StanfordDragonLowpoly = new ModelDefinition(content, "Art/default/dragon_lowpoly", graphicsDevice, true, new Vector3(50, 50, 50));
+
+            DragonLowPolyMaterial = CreateMaterial(Color.Red, 0.5f, 0, type: MaterialEffect.MaterialTypes.Basic, normalMap: content.Load<Texture2D>("Art/default/dragon_normal"));
+
             HelmetModel = content.Load<Model>("Art/default/daft_helmets");
             SkullModel = content.Load<Model>("Art/default/skull");
 

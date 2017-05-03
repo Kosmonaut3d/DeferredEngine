@@ -323,6 +323,28 @@ PixelShaderOutput DrawTextureNormal_PixelShader(DrawNormals_VSOut input)
     return WriteBuffers(renderParams);
 }
 
+[earlydepthstencil]      //experimental
+PixelShaderOutput DrawNormal_PixelShader(DrawNormals_VSOut input)
+{
+	Render_IN renderParams;
+	float4 outputColor = DiffuseColor; //* input.Color;
+
+	float3x3 worldSpace = input.WorldToTangentSpace;
+
+	// NORMAL MAP ////
+	float3 normalMap = GetNormalMap(input.TexCoord);
+	normalMap = normalize(mul(normalMap, worldSpace));
+
+	renderParams.Position = input.Position;
+	renderParams.Color = outputColor;
+	renderParams.Normal = normalMap;
+	renderParams.Depth = input.Depth;
+	renderParams.Metallic = Metallic;
+	renderParams.roughness = Roughness;
+
+	return WriteBuffers(renderParams);
+}
+
       //experimental
 PixelShaderOutput DrawTextureMask_PixelShader(DrawBasic_VSOut input) 
 {
@@ -555,6 +577,15 @@ technique DrawTextureNormal
         VertexShader = compile vs_4_0 DrawNormals_VertexShader();
         PixelShader = compile ps_5_0 DrawTextureNormal_PixelShader();
     }
+}
+
+technique DrawNormal
+{
+	pass Pass1
+	{
+		VertexShader = compile vs_4_0 DrawNormals_VertexShader();
+		PixelShader = compile ps_5_0 DrawNormal_PixelShader();
+	}
 }
 
 technique DrawTextureMask

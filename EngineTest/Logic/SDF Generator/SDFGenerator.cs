@@ -55,7 +55,6 @@ namespace DeferredEngine.Logic.SDF_Generator
         public void GenerateTriangles(Model model, out Triangle[] triangles)
         {
             Vector3[] vertexPositions;
-            Vector3[] vertexNormals;
             int[] indices;
             ModelDataExtractor.GetVerticesAndIndicesFromModel(model, out vertexPositions, out indices);
             triangles = new Triangle[indices.Length / 3];
@@ -249,6 +248,7 @@ namespace DeferredEngine.Logic.SDF_Generator
                         break;
                     }
                 }
+                if(found)
                 modelDefinitions.Add(entity.ModelDefinition);
 
             }
@@ -318,9 +318,7 @@ namespace DeferredEngine.Logic.SDF_Generator
             //http://iquilezles.org/www/articles/distfunctions/distfunctions.htm
 
             float min = 100000;
-
-            float SignWeight = 0;
-
+            
             //Shoot a ray in some direction to check if we are inside the mesh or outside
 
             Vector3 dir = Vector3.Up;

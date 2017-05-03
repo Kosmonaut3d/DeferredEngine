@@ -62,7 +62,6 @@ namespace DeferredEngine.Recources
         {
             Vector3[] vertices;
             int[] indices;
-            Vector3[] normals;
             ModelDataExtractor.GetVerticesAndIndicesFromModel(model, out vertices, out indices);
 
             BoundingBox = BoundingBox.CreateFromPoints(vertices);

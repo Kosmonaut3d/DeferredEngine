@@ -111,19 +111,19 @@ namespace DeferredEngine.Logic
                 angleZ: 0,
                 scale: 200);
 
-            testEntity = AddEntity(model: _assets.Tiger,
-                materialEffect: _assets.BaseMaterial,
-                position: new Vector3(40, -10, 3.317f),
-                angleX: Math.PI / 2,
-                angleY: 0,
-                angleZ: 0,
-                scale: 10);
-            
+            //testEntity = AddEntity(model: _assets.Tiger,
+            //    materialEffect: _assets.DragonLowPolyMaterial,
+            //    position: new Vector3(40, -10, 3.317f),
+            //    angleX: Math.PI / 2,
+            //    angleY: 0,
+            //    angleZ: 0,
+            //    scale: 10);
+
             //VolumeTexture.Position = testEntity.Position;
             //VolumeTexture.Size = (testEntity.BoundingBox.Max - testEntity.BoundingBox.Min) / 2.0f * 52.0f/50.0f;
             //VolumeTexture.RotationMatrix = testEntity.WorldTransform.InverseWorld;
             //VolumeTexture.Offset = testEntity.BoundingBoxOffset;
-            
+
             //_sdfGenerator.Update(VolumeTexture, graphics, true, null, null);
 
             //BasicEntity testEntity = AddEntity(model: _assets.SponzaModel,
