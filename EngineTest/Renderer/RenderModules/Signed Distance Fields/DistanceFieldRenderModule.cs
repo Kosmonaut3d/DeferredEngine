@@ -13,6 +13,8 @@ namespace DeferredEngine.Renderer.RenderModules.Signed_Distance_Fields
     //Just a template
     public class DistanceFieldRenderModule : IDisposable
     {
+        private RenderTarget2D _atlasRenderTarget2D;
+
         private Effect _shader;
         private EffectPass _generateSDFPass;
         private EffectPass _volumePass;
@@ -23,17 +25,25 @@ namespace DeferredEngine.Renderer.RenderModules.Signed_Distance_Fields
         private EffectParameter _volumeTexParam;
         private EffectParameter _meshOffset;
         private EffectParameter _volumeTexSizeParam;
-        private EffectParameter _volumeTexResolution;
+        private EffectParameter _volumeTexResolutionParam;
 
         private EffectParameter _instanceInverseMatrixArrayParam;
         private EffectParameter _instanceScaleArrayParam;
+        private EffectParameter _instanceSDFIndexArrayParam;
         private EffectParameter _instancesCountParam;
 
         private const int InstanceMaxCount = 40;
 
-        private Matrix[] _instanceInverseMatrixArray = new Matrix[40];
-        private Vector3[] _instanceScaleArray = new Vector3[40];
+        private Matrix[] _instanceInverseMatrixArray = new Matrix[InstanceMaxCount];
+        private Vector3[] _instanceScaleArray = new Vector3[InstanceMaxCount];
+        private float[] _instanceSDFIndexArray = new float[InstanceMaxCount];
         private int _instancesCount = 0;
+
+        private Vector3[] _volumeTexSizeArray = new Vector3[40];
+        private Vector4[] _volumeTexResolutionArray = new Vector4[40];
+
+        private SignedDistanceField[] _signedDistanceFieldDefinitions = new SignedDistanceField[40];
+        private int _signedDistanceFieldDefinitionsCount = 0;
 
         private EffectParameter _triangleTexResolution;
         private EffectParameter _triangleAmount;
@@ -64,10 +74,6 @@ namespace DeferredEngine.Renderer.RenderModules.Signed_Distance_Fields
         {
             set { _meshOffset.SetValue(value); }
         }
-
-        public Vector3 VolumeTexSize { set { _volumeTexSizeParam.SetValue(value); } }
-        
-        public Vector3 VolumeTexResolution { set { _volumeTexResolution.SetValue(value); } }
         
 
         public DistanceFieldRenderModule(ContentManager content, string shaderPath)
@@ -84,10 +90,11 @@ namespace DeferredEngine.Renderer.RenderModules.Signed_Distance_Fields
 
             _volumeTexParam = _shader.Parameters["VolumeTex"];
             _volumeTexSizeParam = _shader.Parameters["VolumeTexSize"];
-            _volumeTexResolution = _shader.Parameters["VolumeTexResolution"];
+            _volumeTexResolutionParam = _shader.Parameters["VolumeTexResolution"];
 
             _instanceInverseMatrixArrayParam = _shader.Parameters["InstanceInverseMatrix"];
             _instanceScaleArrayParam = _shader.Parameters["InstanceScale"];
+            _instanceSDFIndexArrayParam = _shader.Parameters["InstanceSDFIndex"];
             _instancesCountParam = _shader.Parameters["InstancesCount"];
 
             _meshOffset = _shader.Parameters["MeshOffset"];
@@ -98,33 +105,36 @@ namespace DeferredEngine.Renderer.RenderModules.Signed_Distance_Fields
             _volumePass = _shader.Techniques["Volume"].Passes[0];
             _generateSDFPass = _shader.Techniques["GenerateSDF"].Passes[0];
         }
-        
+
         public void Load(ContentManager content, string shaderPath)
         {
             _shader = content.Load<Effect>(shaderPath);
 
         }
-       
+
         public void Dispose()
         {
             _shader?.Dispose();
         }
-        
+
         public void Draw(GraphicsDevice graphicsDevice, Camera camera, FullScreenTriangle fullScreenTriangle)
         {
             CameraPosition = camera.Position;
 
             if (GameSettings.sdf_drawvolume)
-                _volumePass.Apply(); 
+                _volumePass.Apply();
             else
-                _distancePass.Apply(); 
+                _distancePass.Apply();
             fullScreenTriangle.Draw(graphicsDevice);
             //quadRenderer.RenderFullscreenQuad(graphicsDevice);
         }
 
-        public void UpdateDistanceFieldTransformations(List<BasicEntity> entities)
+        public void UpdateDistanceFieldTransformations(List<BasicEntity> entities, List<SignedDistanceField> sdfDefinitions, DeferredEnvironmentMapRenderModule environmentMapRenderModule, GraphicsDevice graphics, SpriteBatch spriteBatch)
         {
-            if (!GameSettings.sdf_draw) return;
+            //if (!GameSettings.sdf_draw) return;
+            
+            //First of all let's build the atlas
+            UpdateAtlas(sdfDefinitions, graphics, spriteBatch, environmentMapRenderModule);
 
             int i = 0;
             for (var index = 0; index < entities.Count; index++)
@@ -135,28 +145,128 @@ namespace DeferredEngine.Renderer.RenderModules.Signed_Distance_Fields
                 {
                     _instanceInverseMatrixArray[i] = entity.WorldTransform.InverseWorld;
                     _instanceScaleArray[i] = entity.WorldTransform.Scale;
-
-                    // Should only be done once
-
-                    VolumeTex = entity.SignedDistanceField.SdfTexture;
-                    VolumeTexResolution = entity.SignedDistanceField.TextureResolution;
-                    VolumeTexSize = entity.SignedDistanceField.VolumeSize;
+                    _instanceSDFIndexArray[i] = entity.SignedDistanceField.ArrayIndex;
 
                     i++;
+
                     if (i >= InstanceMaxCount) break;
                 }
-                
+
             }
 
             _instancesCount = i;
 
+
             //Submit
+            //Instances
+
             _instanceInverseMatrixArrayParam.SetValue(_instanceInverseMatrixArray);
             _instanceScaleArrayParam.SetValue(_instanceScaleArray);
+            _instanceSDFIndexArrayParam.SetValue(_instanceSDFIndexArray);
             _instancesCountParam.SetValue((float)_instancesCount);
+
+
+            Shaders.deferredPointLightParameter_InstanceInverseMatrix.SetValue(_instanceInverseMatrixArray);
+            Shaders.deferredPointLightParameter_InstanceScale.SetValue(_instanceScaleArray);
+            Shaders.deferredPointLightParameter_InstanceSDFIndex.SetValue(_instanceSDFIndexArray);
+            Shaders.deferredPointLightParameter_InstancesCount.SetValue((float)_instancesCount);
+
+            environmentMapRenderModule.ParamInstanceInverseMatrix.SetValue(_instanceInverseMatrixArray);
+            environmentMapRenderModule.ParamInstanceScale.SetValue(_instanceScaleArray);
+            environmentMapRenderModule.ParamInstanceSDFIndex.SetValue(_instanceSDFIndexArray);
+            environmentMapRenderModule.ParamInstancesCount.SetValue((float)_instancesCount);
+
+
 
         }
 
+        private void UpdateAtlas(List<SignedDistanceField> sdfDefinitionsPassed, GraphicsDevice graphics,
+            SpriteBatch spriteBatch, DeferredEnvironmentMapRenderModule environmentMapRenderModule)
+        {
+            if (sdfDefinitionsPassed.Count < 1) return;
+
+            bool updateAtlas = false;
+
+            if (_signedDistanceFieldDefinitions == null || sdfDefinitionsPassed.Count !=
+                _signedDistanceFieldDefinitionsCount)
+            {
+                _signedDistanceFieldDefinitionsCount = 0;
+                updateAtlas = true;
+            }
+            
+
+            {
+                for (int i = 0; i < sdfDefinitionsPassed.Count; i++)
+                {
+                    bool found = false;
+                    for (int j = 0; j < _signedDistanceFieldDefinitionsCount; j++)
+                    {
+                        if (sdfDefinitionsPassed[i] == _signedDistanceFieldDefinitions[j])
+                        {
+                            found = true;
+                            break;
+
+                            if(sdfDefinitionsPassed[i].NeedsToBeGenerated) throw new Exception("test");
+                        }
+                    }
+
+                    if (!found)
+                    {
+                        _signedDistanceFieldDefinitions[_signedDistanceFieldDefinitionsCount] = sdfDefinitionsPassed[i];
+                        sdfDefinitionsPassed[i].ArrayIndex = _signedDistanceFieldDefinitionsCount;
+                        _signedDistanceFieldDefinitionsCount++;
+
+                        updateAtlas = true;
+                    }
+                }
+            }
+
+            //Now build the atlas
+
+            if (!updateAtlas) return;
+
+            _atlasRenderTarget2D?.Dispose();
+
+            int x = 0, y = 0;
+            //Count size
+            for (int i = 0; i < _signedDistanceFieldDefinitionsCount; i++)
+            {
+                x = (int) Math.Max(_signedDistanceFieldDefinitions[i].SdfTexture.Width, x);
+                _signedDistanceFieldDefinitions[i].TextureResolution.W = y;
+                y += _signedDistanceFieldDefinitions[i].SdfTexture.Height;
+
+                _volumeTexResolutionArray[i] = _signedDistanceFieldDefinitions[i].TextureResolution;
+                _volumeTexSizeArray[i] = _signedDistanceFieldDefinitions[i].VolumeSize;
+            }
+
+            //todo: Check if we can use half here
+            _atlasRenderTarget2D = new RenderTarget2D(graphics, x, y, false, SurfaceFormat.Single, DepthFormat.None);
+
+            graphics.SetRenderTarget(_atlasRenderTarget2D);
+            spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Opaque, SamplerState.PointClamp);
+            for (int i = 0; i < _signedDistanceFieldDefinitionsCount; i++)
+            {
+                spriteBatch.Draw(_signedDistanceFieldDefinitions[i].SdfTexture, 
+                    new Rectangle(0, (int) _signedDistanceFieldDefinitions[i].TextureResolution.W, _signedDistanceFieldDefinitions[i].SdfTexture.Width, _signedDistanceFieldDefinitions[i].SdfTexture.Height), Color.White);
+            }
+            spriteBatch.End();
+
+
+            //Atlas
+            VolumeTex = _atlasRenderTarget2D;
+            _volumeTexSizeParam.SetValue(_volumeTexSizeArray);
+            _volumeTexResolutionParam.SetValue(_volumeTexResolutionArray);
+
+            Shaders.deferredPointLightParameter_VolumeTexParam.SetValue(_atlasRenderTarget2D);
+            Shaders.deferredPointLightParameter_VolumeTexSizeParam.SetValue(_volumeTexSizeArray);
+            Shaders.deferredPointLightParameter_VolumeTexResolution.SetValue(_volumeTexResolutionArray);
+
+            environmentMapRenderModule.ParamVolumeTexParam.SetValue(_atlasRenderTarget2D);
+            environmentMapRenderModule.ParamVolumeTexSizeParam.SetValue(_volumeTexSizeArray);
+            environmentMapRenderModule.ParamVolumeTexResolution.SetValue(_volumeTexResolutionArray);
+
+
+        }
 
 
         public RenderTarget2D CreateSDFTexture(GraphicsDevice graphics, Texture2D triangleData, int xsteps, int ysteps, int zsteps, SignedDistanceField sdf, FullScreenTriangle fullScreenTriangle, int trianglesLength)
@@ -166,16 +276,22 @@ namespace DeferredEngine.Renderer.RenderModules.Signed_Distance_Fields
             graphics.SetRenderTarget(output);
 
             //Offset isntead of position!
-            VolumeTexResolution = new Vector3(xsteps, ysteps, zsteps);
-            VolumeTexSize = sdf.VolumeSize;
+            _volumeTexResolutionArray[0] = new Vector4(xsteps, ysteps, zsteps, 0);
+            _volumeTexSizeArray[0] = sdf.VolumeSize;
+
+            _volumeTexSizeParam.SetValue(_volumeTexSizeArray);
+            _volumeTexResolutionParam.SetValue(_volumeTexResolutionArray);
+
             MeshOffset = sdf.Offset;
             VolumeTex = triangleData;
 
             _triangleTexResolution.SetValue(new Vector2(triangleData.Width, triangleData.Height));
-            _triangleAmount.SetValue((float) trianglesLength);
+            _triangleAmount.SetValue((float)trianglesLength);
 
             _generateSDFPass.Apply();
             fullScreenTriangle.Draw(graphics);
+
+            _signedDistanceFieldDefinitionsCount = -1;
 
             return output;
         }

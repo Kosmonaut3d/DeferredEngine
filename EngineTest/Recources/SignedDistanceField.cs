@@ -15,7 +15,7 @@ namespace DeferredEngine.Recources
         public Texture2D SdfTexture;
         
         public Vector3 VolumeSize;
-        public Vector3 TextureResolution = new Vector3(50,50,50);
+        public Vector4 TextureResolution = new Vector4(50,50,50,0); //x,y,z and w is index/starty in atlas
         public Vector3 Offset;
 
         public string TexturePath;
@@ -25,6 +25,8 @@ namespace DeferredEngine.Recources
         //For stuff like background etc. that doesn't need an SDF
         public bool IsUsed = true;
 
+        public int ArrayIndex;
+
         /// <summary>
         /// A volume texture around for meshes. Sample points give the minimum distance.
         /// </summary>
@@ -33,7 +35,7 @@ namespace DeferredEngine.Recources
         public SignedDistanceField(string texturepath, GraphicsDevice graphics, BoundingBox boundingBox, Vector3 offset, Vector3 textureResolution)
         {
             TexturePath = texturepath;
-            TextureResolution = textureResolution;
+            TextureResolution = new Vector4(textureResolution, 0);
 
             //Automatic padding
             VolumeSize = (boundingBox.Max - boundingBox.Min) / 2.0f/* * (textureResolution+Vector3.One *2) / textureResolution;*/ ;

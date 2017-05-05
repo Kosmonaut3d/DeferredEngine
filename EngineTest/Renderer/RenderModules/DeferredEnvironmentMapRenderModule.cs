@@ -14,7 +14,9 @@ namespace DeferredEngine.Renderer.RenderModules
         private EffectParameter _paramAlbedoMap;
         private EffectParameter _paramNormalMap;
         private EffectParameter _paramSSRMap;
+        private EffectParameter _paramDepthMap;
         private EffectParameter _paramFrustumCorners;
+        private EffectParameter _paramCameraPositionWS;
         private EffectParameter _paramReflectionCubeMap;
         private EffectParameter _paramResolution;
         private EffectParameter _paramFireflyReduction;
@@ -23,6 +25,16 @@ namespace DeferredEngine.Renderer.RenderModules
         private EffectParameter _paramSpecularStrength;
         private EffectParameter _paramSpecularStrengthRcp;
         private EffectParameter _paramDiffuseStrength;
+
+        public EffectParameter ParamVolumeTexParam;
+        public EffectParameter ParamVolumeTexSizeParam;
+        public EffectParameter ParamVolumeTexResolution;
+        public EffectParameter ParamInstanceInverseMatrix;
+        public EffectParameter ParamInstanceScale;
+        public EffectParameter ParamInstanceSDFIndex;
+        public EffectParameter ParamInstancesCount;
+
+
         private EffectPass _passBasic;
         private EffectPass _passSky;
         private bool _fireflyReduction;
@@ -45,6 +57,11 @@ namespace DeferredEngine.Renderer.RenderModules
         {
             set { _paramAlbedoMap.SetValue(value); }
         }
+        public Texture2D DepthMap
+        {
+            set { _paramDepthMap.SetValue(value); }
+        }
+
         public Texture2D NormalMap
         {
             set { _paramNormalMap.SetValue(value); }
@@ -54,9 +71,14 @@ namespace DeferredEngine.Renderer.RenderModules
             set { _paramSSRMap.SetValue(value); }
         }
 
-        public Vector3[] FrustumCorners
+        public Vector3[] FrustumCornersWS
         {
             set { _paramFrustumCorners.SetValue(value); }
+        }
+
+        public Vector3 CameraPositionWS
+        {
+            set { _paramCameraPositionWS.SetValue(value); }
         }
 
         public Vector2 Resolution
@@ -120,6 +142,7 @@ namespace DeferredEngine.Renderer.RenderModules
             //Environment
             _paramAlbedoMap = _deferredEnvironmentShader.Parameters["AlbedoMap"];
             _paramNormalMap = _deferredEnvironmentShader.Parameters["NormalMap"];
+            _paramDepthMap = _deferredEnvironmentShader.Parameters["DepthMap"];
             _paramFrustumCorners = _deferredEnvironmentShader.Parameters["FrustumCorners"];
             _paramSSRMap = _deferredEnvironmentShader.Parameters["ReflectionMap"];
             _paramReflectionCubeMap = _deferredEnvironmentShader.Parameters["ReflectionCubeMap"];
@@ -130,8 +153,19 @@ namespace DeferredEngine.Renderer.RenderModules
             _paramSpecularStrength = _deferredEnvironmentShader.Parameters["EnvironmentMapSpecularStrength"];
             _paramSpecularStrengthRcp = _deferredEnvironmentShader.Parameters["EnvironmentMapSpecularStrengthRcp"];
             _paramDiffuseStrength = _deferredEnvironmentShader.Parameters["EnvironmentMapDiffuseStrength"];
+            _paramCameraPositionWS = _deferredEnvironmentShader.Parameters["CameraPositionWS"];
+            
+            //SDF
+            ParamVolumeTexParam = _deferredEnvironmentShader.Parameters["VolumeTex"];
+            ParamVolumeTexSizeParam = _deferredEnvironmentShader.Parameters["VolumeTexSize"];
+            ParamVolumeTexResolution = _deferredEnvironmentShader.Parameters["VolumeTexResolution"];
+            ParamInstanceInverseMatrix = _deferredEnvironmentShader.Parameters["InstanceInverseMatrix"];
+            ParamInstanceScale = _deferredEnvironmentShader.Parameters["InstanceScale"];
+            ParamInstanceSDFIndex = _deferredEnvironmentShader.Parameters["InstanceSDFIndex"];
+            ParamInstancesCount = _deferredEnvironmentShader.Parameters["InstancesCount"];
 
-            _passSky = _deferredEnvironmentShader.Techniques["Sky"].Passes[0];
+
+        _passSky = _deferredEnvironmentShader.Techniques["Sky"].Passes[0];
             _passBasic = _deferredEnvironmentShader.Techniques["Basic"].Passes[0];
         }
         
@@ -141,13 +175,15 @@ namespace DeferredEngine.Renderer.RenderModules
 
         }
 
-        public void DrawEnvironmentMap(GraphicsDevice graphicsDevice, Matrix view, FullScreenTriangle fullScreenTriangle, EnvironmentSample envSample, bool fireflyReduction, float ffThreshold)
+        public void DrawEnvironmentMap(GraphicsDevice graphicsDevice, Camera camera, Matrix view, FullScreenTriangle fullScreenTriangle, EnvironmentSample envSample, bool fireflyReduction, float ffThreshold)
         {
             FireflyReduction = fireflyReduction;
             FireflyThreshold = ffThreshold;
 
             SpecularStrength = envSample.SpecularStrength;
             DiffuseStrength = envSample.DiffuseStrength;
+
+            CameraPositionWS = camera.Position;
             
             graphicsDevice.DepthStencilState = DepthStencilState.None;
             graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;

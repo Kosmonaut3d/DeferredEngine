@@ -34,6 +34,9 @@ namespace DeferredEngine.Recources
 
         //Default Materials
 
+        public MaterialEffect MaterialSSS_Red;
+        public MaterialEffect MaterialSSS_Green;
+        public MaterialEffect MaterialSSS_Cyan;
         public MaterialEffect BaseMaterial;
         public MaterialEffect BaseMaterialGray;
         public MaterialEffect GoldMaterial;
@@ -107,6 +110,11 @@ namespace DeferredEngine.Recources
             //Default Materials
 
             BaseMaterial = CreateMaterial(Color.Red, 0.5f, 0, type: MaterialEffect.MaterialTypes.Basic);
+
+            MaterialSSS_Red = CreateMaterial(Color.Red, 0.5f, 0, type: MaterialEffect.MaterialTypes.SubsurfaceScattering);
+            MaterialSSS_Green = CreateMaterial(Color.Lime, 0.5f, 0, type: MaterialEffect.MaterialTypes.SubsurfaceScattering);
+            MaterialSSS_Cyan = CreateMaterial(Color.Cyan, 0.5f, 0, type: MaterialEffect.MaterialTypes.SubsurfaceScattering);
+
             BaseMaterialGray = CreateMaterial(Color.LightGray, 0.8f, 0, type: MaterialEffect.MaterialTypes.Basic);
 
             MetalRough03Material = CreateMaterial(Color.Silver, 0.2f, 1);

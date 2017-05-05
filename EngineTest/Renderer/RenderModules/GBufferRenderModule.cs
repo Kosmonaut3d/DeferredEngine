@@ -302,6 +302,15 @@ namespace DeferredEngine.Renderer.RenderModules
                         ? GameSettings.m_defaultroughness
                         : material.Roughness);
                 _Material_Metallic.SetValue(material.Metallic);
+
+                if (material.Type == MaterialEffect.MaterialTypes.SubsurfaceScattering)
+                {
+                    if(GameSettings.sdf_subsurface)
+                        _Material_MaterialType.SetValue(material.MaterialTypeNumber);
+                    else
+                        _Material_MaterialType.SetValue(0);
+                }
+                else
                 _Material_MaterialType.SetValue(material.MaterialTypeNumber);
             }
         }

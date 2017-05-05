@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using DeferredEngine.Entities;
 using DeferredEngine.Logic;
-using DeferredEngine.Logic.SDF_Generator;
 using DeferredEngine.Recources;
 using DeferredEngine.Recources.Helper;
 using DeferredEngine.Renderer.Helper;
@@ -12,6 +11,7 @@ using DeferredEngine.Renderer.RenderModules;
 using DeferredEngine.Renderer.RenderModules.Default;
 using DeferredEngine.Renderer.RenderModules.PostProcessingFilters;
 using DeferredEngine.Renderer.RenderModules.Signed_Distance_Fields;
+using DeferredEngine.Renderer.RenderModules.Signed_Distance_Fields.SDF_Generator;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
@@ -93,6 +93,9 @@ namespace DeferredEngine.Renderer
         private bool _forceShadowSS;
         private bool _ssr = true;
         private bool _g_SSReflectionNoise;
+
+        //SDF
+        private List<SignedDistanceField> _sdfDefinitions;
 
         //Render modes
         public enum RenderModes {
@@ -262,7 +265,7 @@ namespace DeferredEngine.Renderer
             _editorRender.Update(gameTime);
 
             //SDF Updating
-            sdfGenerator.Update(entities, _graphicsDevice, _distanceFieldRenderModule, _fullScreenTriangle);
+            sdfGenerator.Update(entities, _graphicsDevice, _distanceFieldRenderModule, _fullScreenTriangle, ref _sdfDefinitions);
 
         }
 
@@ -315,7 +318,7 @@ namespace DeferredEngine.Renderer
             DrawShadowMaps(meshMaterialLibrary, entities, pointLights, directionalLights, camera);
 
             //Update SDFs
-            _distanceFieldRenderModule.UpdateDistanceFieldTransformations(entities);
+            _distanceFieldRenderModule.UpdateDistanceFieldTransformations(entities, _sdfDefinitions, _deferredEnvironmentMapRenderModule, _graphicsDevice, _spriteBatch);
             
             //Render EnvironmentMaps
             //We do this either when pressing C or at the start of the program (_renderTargetCube == null) or when the game settings want us to do it every frame
@@ -350,7 +353,7 @@ namespace DeferredEngine.Renderer
             _lightAccumulationModule.DrawLights(pointLights, directionalLights, camera.Position, gameTime, _renderTargetLightBinding, _renderTargetDiffuse);
 
             //Draw the environment cube map as a fullscreen effect on all meshes
-            DrawEnvironmentMap(envSample);
+            DrawEnvironmentMap(envSample, camera);
 
             //Draw emissive materials on an offscreen render target
             //DrawEmissiveEffect(camera, meshMaterialLibrary, gameTime);
@@ -888,7 +891,8 @@ namespace DeferredEngine.Renderer
             _currentFrustumCorners[2] = temp;
 
             _distanceFieldRenderModule.FrustumCornersWorldSpace = _currentFrustumCorners;
-            
+            _deferredEnvironmentMapRenderModule.FrustumCornersWS = _currentFrustumCorners;
+
             //View Space Corners
             //this is the inverse of our camera transform
             Vector3.Transform(_cornersWorldSpace, ref _view, _cornersViewSpace); //put the frustum into view space
@@ -900,7 +904,6 @@ namespace DeferredEngine.Renderer
             _currentFrustumCorners[3] = _currentFrustumCorners[2];
             _currentFrustumCorners[2] = temp;
 
-            _deferredEnvironmentMapRenderModule.FrustumCorners = _currentFrustumCorners;
             Shaders.ScreenSpaceReflectionParameter_FrustumCorners.SetValue(_currentFrustumCorners);
             Shaders.ScreenSpaceEffectParameter_FrustumCorners.SetValue(_currentFrustumCorners);
             _temporalAntialiasingRenderModule.FrustumCorners = _currentFrustumCorners;
@@ -1133,11 +1136,11 @@ namespace DeferredEngine.Renderer
         /// <summary>
         /// Apply our environment cubemap to the renderer
         /// </summary>
-        private void DrawEnvironmentMap(EnvironmentSample envSample)
+        private void DrawEnvironmentMap(EnvironmentSample envSample, Camera camera)
         {
             if (!GameSettings.g_environmentmapping) return;
 
-            _deferredEnvironmentMapRenderModule.DrawEnvironmentMap(_graphicsDevice, _view, _fullScreenTriangle, envSample, GameSettings.g_SSReflection_FireflyReduction, GameSettings.g_SSReflection_FireflyThreshold);
+            _deferredEnvironmentMapRenderModule.DrawEnvironmentMap(_graphicsDevice, camera, _view, _fullScreenTriangle, envSample, GameSettings.g_SSReflection_FireflyReduction, GameSettings.g_SSReflection_FireflyThreshold);
 
             //Performance Profiler
             if (GameSettings.d_profiler)
@@ -1574,6 +1577,7 @@ namespace DeferredEngine.Renderer
             _deferredEnvironmentMapRenderModule.AlbedoMap = _renderTargetAlbedo;
             _deferredEnvironmentMapRenderModule.NormalMap = _renderTargetNormal;
             _deferredEnvironmentMapRenderModule.SSRMap = _renderTargetScreenSpaceEffectReflection;
+            _deferredEnvironmentMapRenderModule.DepthMap = _renderTargetDepth;
 
             _decalRenderModule.DepthMap = _renderTargetDepth;
 

@@ -224,6 +224,84 @@ float integrateVolume(float d2, float d1, float radius);
 		specularOutput = specular * attenuation * shadowFactor* OUTPUTCONST;
 	}
 
+	void LightingSDFCalculation(in float3 posVS, in int3 texCoordInt, in float distanceToLight, in float3 lightVector, in float3 cameraDirection, inout float3 diffuseOutput, inout float3 specularOutput)
+	{
+		float4 normalData = NormalMap.Load(texCoordInt);
+		//tranform normal back into [-1,1] range
+		float3 normal = decode(normalData.xyz); //2.0f * normalData.xyz - 1.0f;    //could do mad
+												//get metalness
+		float roughness = normalData.a;
+		//get specular intensity from the AlbedoMap
+		float4 color = AlbedoMap.Load(texCoordInt);
+
+		float metalness = decodeMetalness(normalData.b);
+
+		float f0 = lerp(0.04f, color.g * 0.25 + 0.75, metalness);
+
+		//compute attenuation based on distance - linear attenuation
+		//float attenuation = saturate(1.0f - distanceLtoR / lightRadius);
+		float relativeDistance = distanceToLight / lightRadius; //normalized
+		float denominator = (4 * relativeDistance + 1);
+
+		float attenuation = saturate(1 / (denominator*denominator) - 0.04*relativeDistance);
+
+		//normalize light vector
+		lightVector /= distanceToLight;
+		//compute diffuse light
+		float NdL = saturate(dot(normal, lightVector));
+
+
+		float3 positionWS = mul(float4(posVS, 1), InverseView).xyz;
+		float3 lightWS = mul(float4(lightPosition, 1), InverseView).xyz;
+
+		float shadowFactor = 0;//should be
+		float4 sss = 0;
+
+		bool hasSubsurfaceScattering = abs(decodeMattype(normalData.b) - 4.0) < 0.01f;
+
+		[branch]
+		if (NdL <= 0.25f && hasSubsurfaceScattering)
+		{
+			float3 exitpoint = 0;
+			sss.rgb = Subsurface(positionWS, lightWS, distance(positionWS, lightWS), exitpoint);
+			sss.rgb = saturate(1 - sss.rgb / ShadowMapRadius) * 0.05f;
+
+			sss.a = max(max(sss.r, sss.g), sss.b);
+
+			positionWS = exitpoint;
+		}
+
+		[branch]
+		if (NdL > 0 || sss.a > 0)
+		{
+			/*float3 start = sss.a > 0 ? lightWS : positionWS;
+			float3 end = sss.a > 0 ? positionWS : lightWS;*/
+
+			float3 start = positionWS;
+			float3 end = lightWS;
+			
+			shadowFactor = RaymarchSoft(start, end, distance(positionWS, lightWS), sss.a > 0 ? 16.0f :32.0f);
+
+		}
+		
+
+		float3 diffuseLight = float3(0, 0, 0);
+		float3 specular = float3(0, 0, 0);
+
+		[branch]
+		if (shadowFactor > 0.01f && distanceToLight < lightRadius)
+		{
+			[branch]
+			if (metalness < 0.99)
+			{
+				diffuseLight = DiffuseOrenNayar(NdL, normal, lightVector, cameraDirection, lightIntensity, lightColor, roughness); //NdL * lightColor.rgb;
+			}
+			specular = SpecularCookTorrance(NdL, normal, lightVector, cameraDirection, lightIntensity, lightColor, f0, roughness);
+		}
+		diffuseOutput = (attenuation * diffuseLight * (1 - f0)) *shadowFactor * OUTPUTCONST+ color * shadowFactor * sss.rgb * attenuation * lightIntensity * lightColor * OUTPUTCONST;
+		specularOutput = specular * attenuation * shadowFactor* OUTPUTCONST;
+	}
+
 	//Loads a texel based off of input vector
 	float4 LoadShadowMap(float3 vec3)
 	{
@@ -433,7 +511,7 @@ PixelShaderOutput BasePixelShaderFunction(PixelShaderInput input)
     {
 		int3 texCoordInt = int3(input.TexCoord * Resolution, 0);
 		float3 cameraDirection = -normalize(input.PositionVS.xyz);
-		LightingCalculation(texCoordInt, lengthLight, lightVector, cameraDirection, output.Diffuse.rgb, output.Specular.rgb);
+		LightingSDFCalculation(input.PositionVS, texCoordInt, lengthLight, lightVector, cameraDirection, output.Diffuse.rgb, output.Specular.rgb);
         return output;
     }
 }
@@ -461,16 +539,7 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input)
 	}
 	else
 	{
-		Output = BasePixelShaderFunction(p_input);
-
-		float3 positionWS = mul(float4(p_input.PositionVS, 1), InverseView).xyz;
-		float3 lightWS = mul(float4(lightPosition, 1), InverseView).xyz;
-		float shadow = RaymarchSoft(positionWS, lightWS, distance(positionWS, lightWS), 32);
-		
-		Output.Diffuse = Output.Diffuse * shadow;
-		Output.Specular *= shadow;
-
-		return Output;
+		return BasePixelShaderFunction(p_input);
 	}
 
 }

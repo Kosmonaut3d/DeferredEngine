@@ -329,17 +329,20 @@ namespace DeferredEngine.Logic
                 float diffL = x - previousMouseX + y - previousMouseY;
                 diffL /= 50;
 
+                if (Input.keyboardState.IsKeyDown(Keys.LeftControl))
+                    gizmoId = 4;
+
                 if (_gizmoMode == GizmoModes.Rotation)
                 {
 
                     if (!GameStats.e_LocalTransformation)
                     {
-                        if (gizmoId == 1)
+                        if (gizmoId == 1 )
                         {
                             SelectedObject.RotationMatrix = SelectedObject.RotationMatrix*
                                                             Matrix.CreateRotationZ((float) diffL);
                         }
-                        if (gizmoId == 2)
+                        if (gizmoId == 2 )
                         {
                             SelectedObject.RotationMatrix = SelectedObject.RotationMatrix*
                                                             Matrix.CreateRotationY((float) diffL);
@@ -371,17 +374,17 @@ namespace DeferredEngine.Logic
                 }
                 else
                 {
-                    if (gizmoId == 1)
+                    if (gizmoId == 1 || gizmoId == 4)
                     {
-                        SelectedObject.Scale += (float) diffL * Vector3.UnitZ;
+                        SelectedObject.Scale = new Vector3(SelectedObject.Scale.X, SelectedObject.Scale.Y, MathHelper.Max(SelectedObject.Scale.Z + (float) diffL, 0.01f));
                     }
-                    if (gizmoId == 2)
+                    if (gizmoId == 2 || gizmoId == 4)
                     {
-                        SelectedObject.Scale += (float)diffL * Vector3.UnitY;
+                        SelectedObject.Scale = new Vector3(SelectedObject.Scale.X,  MathHelper.Max(SelectedObject.Scale.Y + (float)diffL, 0.01f), SelectedObject.Scale.Z);
                     }
-                    if (gizmoId == 3)
+                    if (gizmoId == 3 || gizmoId == 4)
                     {
-                        SelectedObject.Scale += (float)diffL * Vector3.UnitX;
+                        SelectedObject.Scale = new Vector3(MathHelper.Max(SelectedObject.Scale.X + (float)diffL, 0.01f), SelectedObject.Scale.Y, SelectedObject.Scale.Z);
                     }
                 }
 

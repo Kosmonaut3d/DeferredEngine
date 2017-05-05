@@ -159,24 +159,24 @@ PixelShaderOutput WriteBuffers(Render_IN input)
 	Out.Color.a = 0; //encodeMetallicMattype(input.Metallic, MaterialType);
 
 	//Only use rg with this encoding
-    Out.Normal.rgb =  encode(input.Normal); //
+    Out.Normal.rg =  encode(input.Normal).xy; //
 
 	//us b as mat type/ metallic
 	Out.Normal.b = encodeMetallicMattype(input.Metallic, MaterialType);
 
 	//Test normal encoding
 	
-#ifdef TESTNORMALENCODING
-
-	if (input.Position.x % 8 < 4 != input.Position.y % 8 < 4)
-		Out.Normal.rgb = decode(encode(input.Normal));
-	else
-		Out.Normal.rgb = input.Normal.rgb;
-
-	//to range
-	Out.Normal.rgb = (Out.Normal.rgb + float3(1, 1, 1)) * 0.5f;
-
-#endif
+//#ifdef TESTNORMALENCODING
+//
+//	if (input.Position.x % 8 < 4 != input.Position.y % 8 < 4)
+//		Out.Normal.rgb = decode(encode(input.Normal));
+//	else
+//		Out.Normal.rgb = input.Normal.rgb;
+//
+//	//to range
+//	Out.Normal.rgb = (Out.Normal.rgb + float3(1, 1, 1)) * 0.5f;
+//
+//#endif
 
 
     Out.Normal.a = input.roughness;

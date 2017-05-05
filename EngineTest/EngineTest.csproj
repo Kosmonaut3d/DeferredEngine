@@ -60,10 +60,8 @@
     <Compile Include="Entities\DirectionalLight.cs" />
     <Compile Include="Entities\TransformableObject.cs" />
     <Compile Include="Entities\DebugEntity.cs" />
-    <Compile Include="Logic\SDF Generator\SDFGenerator.cs" />
+    <Compile Include="Renderer\RenderModules\Signed Distance Fields\SDF Generator\SDFGenerator.cs" />
     <Compile Include="Recources\Helper\DataStream.cs" />
-    <Compile Include="Recources\Helper\Signed Distance Fields\SamplePoint.cs" />
-    <Compile Include="Recources\Helper\Signed Distance Fields\Triangle.cs" />
     <Compile Include="Recources\ModelDefinition.cs" />
     <Compile Include="Recources\SignedDistanceField.cs" />
     <Compile Include="Renderer\Helper\BoundingFrustumExtended.cs" />

@@ -1,31 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
-using BEPUphysics;
-using BEPUphysics.BroadPhaseEntries.MobileCollidables;
-using BEPUphysics.CollisionShapes.ConvexShapes;
 using DeferredEngine.Entities;
 using DeferredEngine.Recources;
 using DeferredEngine.Recources.Helper;
 using DeferredEngine.Renderer.Helper;
-using DeferredEngine.Renderer.Helper.HelperGeometry;
-using DeferredEngine.Renderer.RenderModules.Signed_Distance_Fields;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 
-namespace DeferredEngine.Logic.SDF_Generator
+namespace DeferredEngine.Renderer.RenderModules.Signed_Distance_Fields.SDF_Generator
 {
     public class SdfGenerator
     {
         private Task generateTask;
 
-        private List<ModelDefinition> modelDefinitions = new List<ModelDefinition>();
+        private List<SignedDistanceField> sdfDefinitions = new List<SignedDistanceField>();
         
         public struct Triangle
         {
@@ -134,7 +124,7 @@ namespace DeferredEngine.Logic.SDF_Generator
 
                 string path = uncomputedSignedDistanceField.TexturePath;
                 DataStream.SaveImageData(texData, xsteps, ysteps, zsteps, path);
-                uncomputedSignedDistanceField.TextureResolution = new Vector3(xsteps, ysteps, zsteps);
+                uncomputedSignedDistanceField.TextureResolution = new Vector4(xsteps, ysteps, zsteps, 0);
                 uncomputedSignedDistanceField.SdfTexture = output;
                 uncomputedSignedDistanceField.IsLoaded = true;
 
@@ -210,7 +200,7 @@ namespace DeferredEngine.Logic.SDF_Generator
                     string path = uncomputedSignedDistanceField.TexturePath;
                     DataStream.SaveImageData(data, xsteps, ysteps, zsteps, path);
                     output.SetData(data);
-                    uncomputedSignedDistanceField.TextureResolution = new Vector3(xsteps, ysteps, zsteps);
+                    uncomputedSignedDistanceField.TextureResolution = new Vector4(xsteps, ysteps, zsteps, 0);
                     uncomputedSignedDistanceField.SdfTexture = output;
                     uncomputedSignedDistanceField.IsLoaded = true;
                 });
@@ -224,15 +214,19 @@ namespace DeferredEngine.Logic.SDF_Generator
         }
 
         
-        public void Update(List<BasicEntity> entities, GraphicsDevice graphics, DistanceFieldRenderModule distanceFieldRenderModule, FullScreenTriangle fullScreenTriangle)
+        public void Update(List<BasicEntity> entities, GraphicsDevice graphics, DistanceFieldRenderModule distanceFieldRenderModule, FullScreenTriangle fullScreenTriangle, ref List<SignedDistanceField> sdfDefinitionsOut)
         {
             //First let's check which entities need building, if at all!
-            modelDefinitions.Clear();
+            sdfDefinitions.Clear();
 
             //This should preferably be a list of meshes that are in the scene, instead of a list of entities
             for (var index0 = 0; index0 < entities.Count; index0++)
             {
                 BasicEntity entity = entities[index0];
+
+
+                if (!entity.SignedDistanceField.IsUsed) continue;
+
                 if (entity.SignedDistanceField.NeedsToBeGenerated)
                 {
                     GenerateDistanceFields(entity, graphics, distanceFieldRenderModule, fullScreenTriangle);
@@ -240,29 +234,31 @@ namespace DeferredEngine.Logic.SDF_Generator
 
                 bool found = false;
                 //Compile a list of all mbbs used right now
-                for (var i = 0; i < modelDefinitions.Count; i++)
+                for (var i = 0; i < sdfDefinitions.Count; i++)
                 {
-                    if (entity.ModelDefinition == modelDefinitions[i])
+                    if (entity.SignedDistanceField == sdfDefinitions[i])
                     {
                         found = true;
                         break;
                     }
                 }
-                if(found)
-                modelDefinitions.Add(entity.ModelDefinition);
+                if(!found)
+                sdfDefinitions.Add(entity.SignedDistanceField);
 
             }
 
             //Now for the model definitions
-            for(var i = 0; i < modelDefinitions.Count; i++)
+            for(var i = 0; i < sdfDefinitions.Count; i++)
             {
                 if (GameSettings.sdf_regenerate)
                 {
-                    modelDefinitions[i].SDF.NeedsToBeGenerated = true;
+                    sdfDefinitions[i].NeedsToBeGenerated = true;
                 }
-                
             }
+
             GameSettings.sdf_regenerate = false;
+
+            sdfDefinitionsOut = sdfDefinitions;
         }
 
         private void GenerateData(int xsteps, int ysteps, int zsteps, SignedDistanceField volumeTex, ref float[] data, int threadindex, int numberOfThreads, Triangle[] triangles)

@@ -5,6 +5,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "../Common/helper.fx"
+#include "../Common/sdf.fx"
 
 //We want to get from VS to WS. Usually this would mean an inverted VS. To get to 3x3 it's useful to use TI on this one.
 //So it's T I I = T
@@ -14,9 +15,14 @@ Texture2D AlbedoMap;
 Texture2D NormalMap;
 Texture2D ReflectionMap;
 
+//SDF
+bool UseSDFAO = true;
+Texture2D DepthMap;
+
 float2 Resolution = { 1280, 800 };
 
 float3 SkyColor = float3(0.1385, 0.3735f, 0.9805f);
+float3 CameraPositionWS;
 
 bool FireflyReduction;
 float FireflyThreshold = 0.1f;
@@ -206,14 +212,14 @@ PixelShaderOutput PixelShaderFunctionBasic(VertexShaderOutput input)
 
     //float materialType = decodeMattype(color.a);
 
-	//The incoming vector from the camera
-    float3 incident = normalize(input.ViewDir);
+	//The incoming vector from the camera //EDIT: In world space now
+    float3 incident = normalize(input.ViewDir - CameraPositionWS);
+
+	//Transform the reflectionVector from VS to WS
+	normal = mul(normal, TransposeView);
 
 	//The reflected vector which points to our cube map
     float3 reflectionVector = reflect(incident, normal);
-
-	//Transform the reflectionVector from VS to WS
-	reflectionVector = mul(reflectionVector, TransposeView);
 
 	//Fresnel
     float VdotH = saturate(dot(normal, incident));
@@ -238,9 +244,23 @@ PixelShaderOutput PixelShaderFunctionBasic(VertexShaderOutput input)
 	float4 ssreflectionMap = GetSSR(input.TexCoord);
 	
 	if (ssreflectionMap.a > 0) specularReflection.rgb = ssreflectionMap.rgb * EnvironmentMapSpecularStrengthRcp;
+
+	float ao = 1;
+
+	[branch]
+	if (UseSDFAO)
+	{
+		//Compute WS position 
+		float linearDepth = DepthMap.Load(texCoordInt).r;
+		float3 PositionWS = CameraPositionWS + linearDepth * input.ViewDir;
+
+		ao = RaymarchAO(PositionWS, PositionWS + normalize(normal) * 10, 10);
+
+		ao = smoothstep(0, 1, ao);
+	}
 	
-    output.Diffuse = float4(diffuseReflection.xyz, 0) * EnvironmentMapDiffuseStrength;
-    output.Specular = float4(specularReflection.xyz, 0) *EnvironmentMapSpecularStrength;
+    output.Diffuse = float4(diffuseReflection.xyz, 0) * EnvironmentMapDiffuseStrength * ao;
+    output.Specular = float4(specularReflection.xyz, 0) *EnvironmentMapSpecularStrength * (ao * 0.5f + 0.5f);
 
     return output;
 }

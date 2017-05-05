@@ -134,6 +134,8 @@ namespace DeferredEngine.Entities
 
         public virtual void ApplyShader(Matrix inverseView)
         {
+            
+
             if (ShadowMap != null && CastShadows)
             {
                 Shaders.deferredPointLightParameterShadowMap.SetValue(ShadowMap);
@@ -152,6 +154,10 @@ namespace DeferredEngine.Entities
             }
             else
             {
+                //todo: remove
+
+                Shaders.deferredPointLightParameter_ShadowMapRadius.SetValue((float)ShadowMapRadius);
+
                 if (IsVolumetric && GameSettings.g_VolumetricLights)
                 {
                     Shaders.deferredPointLightParameter_LightVolumeDensity.SetValue(_lightVolumeDensity);

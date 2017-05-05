@@ -6,11 +6,11 @@ using BEPUphysics.Entities;
 using BEPUphysics.Entities.Prefabs;
 using BEPUutilities;
 using DeferredEngine.Entities;
-using DeferredEngine.Logic.SDF_Generator;
 using DeferredEngine.Recources;
 using DeferredEngine.Recources.Helper;
 using DeferredEngine.Renderer.Helper;
 using DeferredEngine.Renderer.Helper.HelperGeometry;
+using DeferredEngine.Renderer.RenderModules.Signed_Distance_Fields.SDF_Generator;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
@@ -111,13 +111,29 @@ namespace DeferredEngine.Logic
                 angleZ: 0,
                 scale: 200);
 
-            //testEntity = AddEntity(model: _assets.Tiger,
-            //    materialEffect: _assets.DragonLowPolyMaterial,
-            //    position: new Vector3(40, -10, 3.317f),
-            //    angleX: Math.PI / 2,
-            //    angleY: 0,
-            //    angleZ: 0,
-            //    scale: 10);
+            testEntity = AddEntity(model: _assets.Tiger,
+                materialEffect: _assets.MaterialSSS_Red,
+                position: new Vector3(40, -10, 3.317f),
+                angleX: Math.PI / 2,
+                angleY: 0,
+                angleZ: 0,
+                scale: 10);
+
+            testEntity = AddEntity(model: _assets.Tiger,
+                materialEffect: _assets.MaterialSSS_Cyan,
+                position: new Vector3(40, -20, 3.317f),
+                angleX: Math.PI / 2,
+                angleY: 0,
+                angleZ: 0,
+                scale: 10);
+
+            AddEntity(model: _assets.StanfordDragonLowpoly,
+                materialEffect: _assets.MaterialSSS_Green,
+                position: new Vector3(20, -10, 3.317f),
+                angleX: Math.PI / 2,
+                angleY: 0,
+                angleZ: 0,
+                scale: 5);
 
             //VolumeTexture.Position = testEntity.Position;
             //VolumeTexture.Size = (testEntity.BoundingBox.Max - testEntity.BoundingBox.Min) / 2.0f * 52.0f/50.0f;
@@ -204,7 +220,7 @@ namespace DeferredEngine.Logic
                 radius: 120,
                 color: new Color(255, 248, 232),
                 intensity: 120,
-                castShadows: true,
+                castShadows: false,
                 shadowResolution: 1024,
                 softShadowBlurAmount: 0,
                 staticShadow: false,
