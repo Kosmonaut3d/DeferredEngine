@@ -383,10 +383,9 @@ namespace DeferredEngine.Renderer
             DrawSignedDistanceFieldFunctions(camera);
             
             //Additional editor elements that overlay our screen
-            if (GameSettings.e_enableeditor && GameStats.e_EnableSelection)
-            {
-                RenderEditorOverlays(editorData, meshMaterialLibrary, decals, pointLights, directionalLights, envSample, debugEntities);
-            }
+            
+            RenderEditorOverlays(editorData, meshMaterialLibrary, decals, pointLights, directionalLights, envSample, debugEntities);
+            
 
             //Debug ray marching
                 CpuRayMarch(camera);
@@ -415,26 +414,40 @@ namespace DeferredEngine.Renderer
 
         private void RenderEditorOverlays(EditorLogic.EditorSendData editorData, MeshMaterialLibrary meshMaterialLibrary, List<Decal> decals, List<PointLight> pointLights, List<DirectionalLight> directionalLights, EnvironmentSample envSample, List<DebugEntity> debugEntities)
         {
-            if (GameSettings.e_drawoutlines)
-                DrawMapToScreenToFullScreen(_editorRender.GetOutlines(), BlendState.Additive);
-            _editorRender.DrawEditorElements(meshMaterialLibrary, decals, pointLights, directionalLights, envSample, debugEntities,
-                _staticViewProjection, _view, editorData);
 
-            if (editorData.SelectedObject != null)
+            if (GameSettings.e_enableeditor && GameStats.e_EnableSelection)
             {
-                if (editorData.SelectedObject is Decal)
-                {
-                    _decalRenderModule.DrawOutlines(_graphicsDevice, editorData.SelectedObject as Decal,
-                        _staticViewProjection, _view);
-                }
+                if (GameSettings.e_drawoutlines)
+                    DrawMapToScreenToFullScreen(_editorRender.GetOutlines(), BlendState.Additive);
 
-                if(GameSettings.e_drawboundingbox)
-                if (editorData.SelectedObject is BasicEntity)
+                _editorRender.DrawEditorElements(meshMaterialLibrary, decals, pointLights, directionalLights, envSample,
+                    debugEntities,
+                    _staticViewProjection, _view, editorData);
+
+
+                if (editorData.SelectedObject != null)
                 {
-                    HelperGeometryManager.GetInstance().AddBoundingBox(editorData.SelectedObject as BasicEntity);
+                    if (editorData.SelectedObject is Decal)
+                    {
+                        _decalRenderModule.DrawOutlines(_graphicsDevice, editorData.SelectedObject as Decal,
+                            _staticViewProjection, _view);
+                    }
+
+                    if (GameSettings.e_drawboundingbox)
+                        if (editorData.SelectedObject is BasicEntity)
+                        {
+                            HelperGeometryManager.GetInstance()
+                                .AddBoundingBox(editorData.SelectedObject as BasicEntity);
+                        }
                 }
             }
 
+            if(GameSettings.sdf_debug)
+            {
+                _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.PointClamp);
+                _spriteBatch.Draw(_distanceFieldRenderModule.GetAtlas() , new Rectangle(0, GameSettings.g_screenheight - 200, GameSettings.g_screenwidth, 200), Color.White);
+                _spriteBatch.End();
+            }
 
             // //Show shadow maps
             //if (editorData.SelectedObject != null)

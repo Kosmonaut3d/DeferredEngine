@@ -122,6 +122,7 @@ namespace DeferredEngine.Entities
             Name = GetType().Name + " " + Id;
             WorldTransform = new TransformMatrix(Matrix.Identity, Id);
             Model = modelbb.Model;
+            ModelDefinition = modelbb;
             BoundingBox = modelbb.BoundingBox;
             BoundingBoxOffset = modelbb.BoundingBoxOffset;
             SignedDistanceField = modelbb.SDF;

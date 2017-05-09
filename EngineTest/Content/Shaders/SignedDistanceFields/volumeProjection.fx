@@ -125,10 +125,10 @@ float4 PixelShaderFunctionDrawShadow(VertexShaderOutput input) : COLOR0
 	float res = 1.0f;
 
 	//
-	/*float step = FindMin(p);
+	float step = FindMin(p);
 
 	return float4(frac(step).xxx, 1);
-*/
+
 
 	
 	while (t<maxdist-1)

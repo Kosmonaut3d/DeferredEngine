@@ -266,7 +266,7 @@ namespace DeferredEngine.Recources
         private static bool _g_SSReflection_Taa = true;
         public static bool g_SSReflectionNoise = true;
         public static bool g_VolumetricLights = true;
-        public static bool e_CPURayMarch = true;
+        public static bool e_CPURayMarch = false;
         public static bool g_ClearGBuffer = true;
         public static bool g_PostProcessing = true;
 
@@ -342,6 +342,7 @@ namespace DeferredEngine.Recources
         public static int sdf_threads = 4;
         public static bool sdf_cpu = false;
         public static bool sdf_draw = false;
+        public static bool sdf_debug = false;
         public static bool sdf_subsurface = true;
         public static bool sdf_drawvolume = false;
         public static bool sdf_regenerate;

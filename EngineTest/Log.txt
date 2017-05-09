@@ -24,5 +24,12 @@ TODO:
 
 - "Firefly Reduction" needs to account for blending, right now it can possibly darken the ssr (see only reflective groundplane and object)
 
+//Unreal MartinM_GDC11_DX11_presentation.pdf
+- Barely documented but very useful: 
+	– HLSL Semantic SV_SampleIndex Used as input causes the shader to run per MSAA sample. 
+	Can be used intexture.Load(float2(u,v),SampleIndex) 
+	orEvaluateAttributeAtSample(Interpolator,SampleIndex) 
+	 HLSL Semantic SV_Coverage uint, MSAA bit mask, PS input and output 
+
 - check out:
 https://github.com/kode80/kode80SSR/blob/master/Assets/Resources/Shaders/SSR.shader

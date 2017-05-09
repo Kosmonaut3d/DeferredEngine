@@ -28,6 +28,8 @@ namespace DeferredEngine.Recources
         //https://sketchfab.com/models/95c4008c4c764c078f679d4c320e7b18
         public ModelDefinition Tiger;
 
+        public ModelDefinition HumanModel;
+
         public Texture2D IconLight;
         public Texture2D IconEnvmap;
         public Texture2D IconDecal;
@@ -103,6 +105,7 @@ namespace DeferredEngine.Recources
             Cube = content.Load<Model>("Art/test/cube");
 
             Tiger = new ModelDefinition(content, "Art/Tiger/Tiger", graphicsDevice, true, new Vector3(50,50,50));
+            HumanModel = new ModelDefinition(content, "Art/Human/human", graphicsDevice, true, new Vector3(50, 50, 50));
 
             IconDecal = content.Load<Texture2D>("Art/Editor/icon_decal");
             IconLight = content.Load<Texture2D>("Art/Editor/icon_light");
@@ -161,8 +164,8 @@ namespace DeferredEngine.Recources
 
             //
 
-            StanfordDragon = new ModelDefinition(content, "Art/default/dragon_uv_smooth", graphicsDevice); 
-            StanfordDragonLowpoly = new ModelDefinition(content, "Art/default/dragon_lowpoly", graphicsDevice, true, new Vector3(50, 50, 50));
+            StanfordDragon = new ModelDefinition(content, "Art/default/dragon_uv_smooth", graphicsDevice, true); 
+            StanfordDragonLowpoly = new ModelDefinition(content, "Art/default/dragon_lowpoly", graphicsDevice, true, new Vector3(70, 70, 70));
 
             DragonLowPolyMaterial = CreateMaterial(Color.Red, 0.5f, 0, type: MaterialEffect.MaterialTypes.Basic, normalMap: content.Load<Texture2D>("Art/default/dragon_normal"));
 

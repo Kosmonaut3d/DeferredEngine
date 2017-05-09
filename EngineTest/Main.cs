@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Threading;
+using System.Windows.Forms;
 using BEPUphysics;
 using DeferredEngine.Logic;
 using DeferredEngine.Recources;
 using HelperSuite.GUIHelper;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 using BEPUutilities;
+using Keys = Microsoft.Xna.Framework.Input.Keys;
 
 namespace DeferredEngine
 {
@@ -76,6 +77,7 @@ namespace DeferredEngine
         {
             if(_vsync != GameSettings.g_vsync || _fixFPS != GameSettings.g_fixedfps)
             {
+                
                 SetFPSLimit();
                 _vsync = GameSettings.g_vsync;
                 _fixFPS = GameSettings.g_fixedfps;

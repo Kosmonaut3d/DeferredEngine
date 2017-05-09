@@ -48,7 +48,18 @@ namespace DeferredEngine.Recources
                 TextureResolution.Y = SdfTexture.Height;
                 TextureResolution.Z = zdepth;
                 TextureResolution.X = SdfTexture.Width / zdepth;
-                IsLoaded = true;
+
+                //Need new?
+                if (Vector3.Distance(new Vector3(TextureResolution.X, TextureResolution.Y, TextureResolution.Z),
+                        new Vector3(textureResolution.X, textureResolution.Y, textureResolution.Z)) > 0.1f)
+                {
+                    TextureResolution = new Vector4(textureResolution, 0);
+                    NeedsToBeGenerated = true;
+                }
+                else
+                {
+                    IsLoaded = true;
+                }
             }
             else //otherwise create a new one
             {

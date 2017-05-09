@@ -296,5 +296,9 @@ namespace DeferredEngine.Renderer.RenderModules.Signed_Distance_Fields
             return output;
         }
 
+        public Texture2D GetAtlas()
+        {
+            return _atlasRenderTarget2D;
+        }
     }
 }

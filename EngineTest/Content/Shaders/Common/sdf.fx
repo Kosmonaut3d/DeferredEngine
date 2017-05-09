@@ -130,15 +130,32 @@ float GetMinDistance(float3 Position, float SDFIndex)
 }
 
 //http://www.iquilezles.org/www/articles/distfunctions/distfunctions.htm
-float sdBox(float3 p, float3 b)
+float sdBox(float3 p/*, float3 b*/)
 {
-	float3 d = abs(p) - b;
+	float3 d = abs(p)/* - b*/;
 	return min(max(d.x, max(d.y, d.z)), 0.0) + length(max(d, 0.0));
 }
 
 float FindMin(float3 ro)
 {
 	float minimum = FarClip;
+
+	/*for (uint i = 0; i < InstancesCount; i++)
+	{
+		float3 q = mul(float4(ro, 1), InstanceInverseMatrix[i]).xyz;
+
+		float dist = sdBox(q / InstanceScale[testId]) * min(InstanceScale[testId].x, min(InstanceScale[testId].y, InstanceScale[testId].z));
+
+		if (dist < minimum)
+		{
+			minimum = dist;
+			testId = i;
+		}
+	}
+
+	float3 q = mul(float4(ro, 1), InstanceInverseMatrix[testId]).xyz;
+
+	minimum = GetMinDistance(q / InstanceScale[testId], InstanceSDFIndex[testId]) * min(InstanceScale[testId].x, min(InstanceScale[testId].y, InstanceScale[testId].z));*/
 
 	for (uint i = 0; i < InstancesCount; i++)
 	{

@@ -119,17 +119,25 @@ namespace DeferredEngine.Logic
                 angleZ: 0,
                 scale: 10);
 
-            testEntity = AddEntity(model: _assets.Tiger,
-                materialEffect: _assets.MaterialSSS_Cyan,
-                position: new Vector3(40, -20, 3.317f),
+            testEntity = AddEntity(model: _assets.HumanModel,
+                materialEffect: _assets.MaterialSSS_Green,
+                position: new Vector3(40, -10, 3.317f),
+                angleX: 0,
+                angleY: 0,
+                angleZ: 0,
+                scale: 1);
+
+            AddEntity(model: _assets.StanfordDragon,
+                materialEffect: _assets.MirrorMaterial,
+                position: new Vector3(20, -10, 3.317f),
                 angleX: Math.PI / 2,
                 angleY: 0,
                 angleZ: 0,
-                scale: 10);
+                scale: 5);
 
-            AddEntity(model: _assets.StanfordDragonLowpoly,
-                materialEffect: _assets.MaterialSSS_Green,
-                position: new Vector3(20, -10, 3.317f),
+            AddEntity(model: _assets.StanfordDragon,
+                materialEffect: _assets.BaseMaterialGray,
+                position: new Vector3(20, -20, 3.317f),
                 angleX: Math.PI / 2,
                 angleY: 0,
                 angleZ: 0,
