@@ -127,8 +127,8 @@ namespace DeferredEngine.Logic
                 angleZ: 0,
                 scale: 1);
 
-            AddEntity(model: _assets.StanfordDragon,
-                materialEffect: _assets.MirrorMaterial,
+            AddEntity(model: _assets.Cube,
+                materialEffect: _assets.MaterialSSS_Cyan,
                 position: new Vector3(20, -10, 3.317f),
                 angleX: Math.PI / 2,
                 angleY: 0,

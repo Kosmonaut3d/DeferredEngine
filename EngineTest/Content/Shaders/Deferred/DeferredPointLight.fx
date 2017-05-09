@@ -280,7 +280,7 @@ float integrateVolume(float d2, float d1, float radius);
 			float3 start = positionWS;
 			float3 end = lightWS;
 			
-			shadowFactor = RaymarchSoft(start, end, distance(positionWS, lightWS), sss.a > 0 ? 16.0f :32.0f);
+			shadowFactor = RaymarchSoft(start, end, distance(positionWS, lightWS), sss.a > 0 ? (1-sss.a)*8.0f :32.0f);
 
 		}
 		

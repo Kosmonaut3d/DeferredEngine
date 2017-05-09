@@ -23,7 +23,7 @@ namespace DeferredEngine.Recources
 
         public ModelDefinition Plane;
 
-        public Model Cube;
+        public ModelDefinition Cube;
 
         //https://sketchfab.com/models/95c4008c4c764c078f679d4c320e7b18
         public ModelDefinition Tiger;
@@ -102,7 +102,7 @@ namespace DeferredEngine.Recources
 
             Plane = new ModelDefinition(content, "Art/Plane", graphicsDevice);
 
-            Cube = content.Load<Model>("Art/test/cube");
+            Cube = new ModelDefinition(content, "Art/test/cube", graphicsDevice, true, new Vector3(50, 50, 50));
 
             Tiger = new ModelDefinition(content, "Art/Tiger/Tiger", graphicsDevice, true, new Vector3(50,50,50));
             HumanModel = new ModelDefinition(content, "Art/Human/human", graphicsDevice, true, new Vector3(50, 50, 50));

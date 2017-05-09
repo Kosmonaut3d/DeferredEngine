@@ -368,8 +368,7 @@ namespace DeferredEngine.Renderer.Helper
                 for (int i = 0; i < matLib.Index; i++)
                 {
                     MeshLibrary meshLib = matLib.GetMeshLibrary()[i];
-                    for (int index = 0; index < meshLib.Index; index++)
-                    {
+                    
                         //If it's set to "not rendered" skip
                         for (int j = 0; j < meshLib.Rendered.Length; j++)
                         {
@@ -384,10 +383,6 @@ namespace DeferredEngine.Renderer.Helper
                                 break;
 
                         }
-
-                        if (isUsed)// && hasAnyObjectMoved)
-                            break;
-                    }
                 }
 
                 if (!isUsed) continue;
