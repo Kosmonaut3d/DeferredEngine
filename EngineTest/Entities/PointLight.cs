@@ -1,5 +1,6 @@
 ﻿using DeferredEngine.Recources;
 using DeferredEngine.Recources.Helper;
+using DeferredEngine.Renderer.RenderModules;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -40,7 +41,7 @@ namespace DeferredEngine.Entities
         public int SoftShadowBlurAmount = 0;
 
         public readonly bool IsVolumetric;
-        private readonly float _lightVolumeDensity = 1;
+        public readonly float LightVolumeDensity = 1;
 
 
         /// <summary>
@@ -69,7 +70,7 @@ namespace DeferredEngine.Entities
 
             ShadowResolution = shadowResolution;
             StaticShadows = staticShadow;
-            _lightVolumeDensity = volumeDensity;
+            LightVolumeDensity = volumeDensity;
             IsEnabled = isEnabled;
             Id = IdGenerator.GetNewId();
             Name = GetType().Name + " " + Id;
@@ -136,38 +137,6 @@ namespace DeferredEngine.Entities
         {
             
 
-            if (ShadowMap != null && CastShadows)
-            {
-                Shaders.deferredPointLightParameterShadowMap.SetValue(ShadowMap);
-                Shaders.deferredPointLightParameter_ShadowMapRadius.SetValue((float)ShadowMapRadius);
-                Shaders.deferredPointLightParameter_ShadowMapSize.SetValue((float)ShadowResolution);
-                
-                if (IsVolumetric && GameSettings.g_VolumetricLights)
-                {
-                    Shaders.deferredPointLightParameter_LightVolumeDensity.SetValue(_lightVolumeDensity);
-                    Shaders.deferredPointLightShadowedVolumetric.Passes[0].Apply();
-                }
-                else
-                {
-                    Shaders.deferredPointLightShadowed.Passes[0].Apply();
-                }
-            }
-            else
-            {
-                //todo: remove
-
-                Shaders.deferredPointLightParameter_ShadowMapRadius.SetValue((float)ShadowMapRadius);
-
-                if (IsVolumetric && GameSettings.g_VolumetricLights)
-                {
-                    Shaders.deferredPointLightParameter_LightVolumeDensity.SetValue(_lightVolumeDensity);
-                    Shaders.deferredPointLightUnshadowedVolumetric.Passes[0].Apply();
-                }
-                else
-                {
-                    Shaders.deferredPointLightUnshadowed.Passes[0].Apply();
-                }
-            }
         }
     }
     

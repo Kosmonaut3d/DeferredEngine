@@ -23,10 +23,11 @@ namespace DeferredEngine.Logic
         private GUILogic _guiLogic;
         private EditorLogic _editorLogic;
         private Assets _assets;
+        private ShaderManager _shaderManager;
         private DebugScreen _debug;
 
         private EditorLogic.EditorReceivedData _editorReceivedDataBuffer;
-        
+
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////
         //  FUNCTIONS
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -44,6 +45,8 @@ namespace DeferredEngine.Logic
         //Update per frame
         public void Update(GameTime gameTime, bool isActive)
         {
+            _shaderManager.CheckForChanges();
+
             _guiLogic.Update(gameTime, isActive, _editorLogic.SelectedObject);
             _editorLogic.Update(gameTime, _sceneLogic.BasicEntities, _sceneLogic.Decals, _sceneLogic.PointLights, _sceneLogic.DirectionalLights, _sceneLogic.EnvironmentSample, _sceneLogic.DebugEntities, _editorReceivedDataBuffer, _sceneLogic.MeshMaterialLibrary);
             _sceneLogic.Update(gameTime, isActive);
@@ -65,8 +68,9 @@ namespace DeferredEngine.Logic
 
             Globals.content = content;
             Shaders.Load(content);
+            _shaderManager = new ShaderManager(content, graphicsDevice);
             _assets.Load(content, graphicsDevice);
-            _renderer.Load(content);
+            _renderer.Load(content, _shaderManager);
             _sceneLogic.Load(content);
             _debug.LoadContent(content);
             _guiRenderer.Load(content);

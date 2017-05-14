@@ -201,7 +201,7 @@ namespace DeferredEngine.Recources
             }
         }
 
-        private static float _exposure = -0.75f;
+        private static float _exposure = 0.75f;
         public static float Exposure
         {
             get { return _exposure; }
@@ -348,6 +348,7 @@ namespace DeferredEngine.Recources
         public static bool sdf_regenerate;
         public static bool d_drawnothing = false;
         public static bool e_saveBoundingBoxes = true;
+        public static bool d_hotreloadshaders = true;
 
         public static void ApplySettings()
         {

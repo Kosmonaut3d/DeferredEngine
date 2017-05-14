@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using DeferredEngine.Entities;
 using DeferredEngine.Recources;
 using DeferredEngine.Renderer.Helper;
+using DeferredEngine.Renderer.RenderModules.DeferredLighting;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using DirectionalLight = DeferredEngine.Entities.DirectionalLight;
@@ -26,8 +27,14 @@ namespace DeferredEngine.Renderer.RenderModules
         private Matrix _projection;
         private Matrix _viewProjection;
         private Matrix _inverseViewProjection;
-        private DepthStencilState _stencilCullPass1;
-        private DepthStencilState _stencilCullPass2;
+
+        public PointLightRenderModule PointLightRenderModule;
+        
+
+        public LightAccumulationModule(ShaderManager shaderManager, string shaderPath)
+        {
+            PointLightRenderModule = new PointLightRenderModule(shaderManager, shaderPath);
+        }
 
         public void Initialize(GraphicsDevice graphicsDevice, FullScreenTriangle fullScreenTriangle, Assets assets)
         {
@@ -43,40 +50,16 @@ namespace DeferredEngine.Renderer.RenderModules
                 AlphaDestinationBlend = Blend.One
             };
             
-            _stencilCullPass1 = new DepthStencilState()
-            {
-                DepthBufferEnable = true,
-                DepthBufferWriteEnable = false,
-                DepthBufferFunction = CompareFunction.LessEqual,
-                StencilFunction = CompareFunction.Always,
-                StencilDepthBufferFail = StencilOperation.IncrementSaturation,
-                StencilPass = StencilOperation.Keep,
-                StencilFail = StencilOperation.Keep,
-                CounterClockwiseStencilFunction = CompareFunction.Always,
-                CounterClockwiseStencilDepthBufferFail = StencilOperation.Keep,
-                CounterClockwiseStencilPass = StencilOperation.Keep,
-                CounterClockwiseStencilFail = StencilOperation.Keep,
-                StencilMask = 0,
-                ReferenceStencil = 0,
-                StencilEnable = true,
-            };
+        }
 
-            _stencilCullPass2 = new DepthStencilState()
-            {
-                DepthBufferEnable = false,
-                DepthBufferWriteEnable = false,
-                DepthBufferFunction = CompareFunction.GreaterEqual,
-                CounterClockwiseStencilFunction = CompareFunction.Equal,
-                StencilFunction = CompareFunction.Equal,
-                StencilFail = StencilOperation.Zero,
-                StencilPass = StencilOperation.Zero,
-                CounterClockwiseStencilFail = StencilOperation.Zero,
-                CounterClockwiseStencilPass = StencilOperation.Zero,
-                ReferenceStencil = 0,
-                StencilEnable = true,
-                StencilMask = 0,
 
-            };
+        private void Load(ShaderManager shaderManager, string shaderPath)
+        {
+            //"Shaders/Deferred/DeferredPointLight"
+        }
+        private void InitializeShader()
+        {
+            
         }
 
         /// <summary>
@@ -154,7 +137,7 @@ namespace DeferredEngine.Renderer.RenderModules
             _graphicsDevice.Clear(ClearOptions.Target, Color.TransparentBlack, 1, 0);
             _graphicsDevice.BlendState = _lightBlendState;
 
-            DrawPointLights(pointLights, cameraOrigin, gameTime);
+            PointLightRenderModule.Draw(pointLights, cameraOrigin, gameTime, _assets, _boundingFrustum, _viewProjectionHasChanged, _view, _viewProjection, _inverseView, _graphicsDevice);
             DrawDirectionalLights(dirLights, cameraOrigin);
 
             ////Performance Profiler
@@ -177,104 +160,6 @@ namespace DeferredEngine.Renderer.RenderModules
             _fullScreenTriangle.Draw(_graphicsDevice);
         }
 
-        /// <summary>
-        /// Draw the point lights, set up some stuff first
-        /// </summary>
-        /// <param name="pointLights"></param>
-        /// <param name="cameraOrigin"></param>
-        /// <param name="gameTime"></param>
-        private void DrawPointLights(List<PointLight> pointLights, Vector3 cameraOrigin, GameTime gameTime)
-        {
-            
-            if (pointLights.Count < 1) return;
-
-            ModelMeshPart meshpart = _assets.SphereMeshPart;
-            _graphicsDevice.SetVertexBuffer(meshpart.VertexBuffer);
-            _graphicsDevice.Indices = (meshpart.IndexBuffer);
-            int primitiveCount = meshpart.PrimitiveCount;
-            int vertexOffset = meshpart.VertexOffset;
-            int startIndex = meshpart.StartIndex;
-
-            if (GameSettings.g_VolumetricLights)
-                Shaders.deferredPointLightParameter_Time.SetValue((float)gameTime.TotalGameTime.TotalSeconds % 1000);
-
-            for (int index = 0; index < pointLights.Count; index++)
-            {
-                PointLight light = pointLights[index];
-                DrawPointLight(light, cameraOrigin, vertexOffset, startIndex, primitiveCount);
-            }
-        }
-
-        /// <summary>
-        /// Draw each individual point lights
-        /// </summary>
-        /// <param name="light"></param>
-        /// <param name="cameraOrigin"></param>
-        private void DrawPointLight(PointLight light, Vector3 cameraOrigin, int vertexOffset, int startIndex, int primitiveCount)
-        {
-            if (!light.IsEnabled) return;
-
-            //first let's check if the light is even in bounds
-            if (_boundingFrustum.Contains(light.BoundingSphere) == ContainmentType.Disjoint ||
-                !_boundingFrustum.Intersects(light.BoundingSphere))
-                return;
-
-            //For our stats
-            GameStats.LightsDrawn++;
-
-            //Send the light parameters to the shader
-            if (_viewProjectionHasChanged)
-            {
-                light.LightViewSpace = light.WorldMatrix * _view;
-                light.LightWorldViewProj = light.WorldMatrix * _viewProjection;
-            }
-
-            Shaders.deferredPointLightParameter_WorldView.SetValue(light.LightViewSpace);
-            Shaders.deferredPointLightParameter_WorldViewProjection.SetValue(light.LightWorldViewProj);
-            Shaders.deferredPointLightParameter_LightPosition.SetValue(light.LightViewSpace.Translation);
-            Shaders.deferredPointLightParameter_LightColor.SetValue(light.ColorV3);
-            Shaders.deferredPointLightParameter_LightRadius.SetValue(light.Radius);
-            Shaders.deferredPointLightParameter_LightIntensity.SetValue(light.Intensity);
-
-            //Compute whether we are inside or outside and use 
-            float cameraToCenter = Vector3.Distance(cameraOrigin, light.Position);
-            int inside = cameraToCenter < light.Radius * 1.2f ? 1 : -1;
-            Shaders.deferredPointLightParameter_Inside.SetValue(inside);
-
-            if (GameSettings.g_UseDepthStencilLightCulling == 2)
-            {
-                _graphicsDevice.DepthStencilState = _stencilCullPass1;
-                //draw front faces
-                _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
-
-                Shaders.deferredPointLightWriteStencil.Passes[0].Apply();
-
-                _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset, startIndex, primitiveCount);
-
-                ////////////
-
-                _graphicsDevice.DepthStencilState = _stencilCullPass2;
-                //draw backfaces
-                _graphicsDevice.RasterizerState = RasterizerState.CullClockwise;
-
-                light.ApplyShader(_inverseView);
-
-                _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset, startIndex, primitiveCount);
-            }
-            else
-            {
-                //If we are inside compute the backfaces, otherwise frontfaces of the sphere
-                _graphicsDevice.RasterizerState = inside > 0 ? RasterizerState.CullClockwise : RasterizerState.CullCounterClockwise;
-
-                light.ApplyShader(_inverseView);
-
-                _graphicsDevice.DepthStencilState = GameSettings.g_UseDepthStencilLightCulling > 0 && !light.IsVolumetric && inside < 0 ? DepthStencilState.DepthRead : DepthStencilState.None;
-
-                _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, vertexOffset, startIndex, primitiveCount);
-            }
-
-            //Draw the sphere
-        }
 
         /// <summary>
         /// Draw all directional lights, set up some shader variables first
@@ -332,8 +217,8 @@ namespace DeferredEngine.Renderer.RenderModules
             _graphicsDevice?.Dispose();
             _assets?.Dispose();
             _lightBlendState?.Dispose();
-            _stencilCullPass1?.Dispose();
-            _stencilCullPass2?.Dispose();
+
+            PointLightRenderModule.Dispose();
         }
     }
 }

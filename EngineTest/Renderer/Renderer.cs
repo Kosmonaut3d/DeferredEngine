@@ -186,20 +186,22 @@ namespace DeferredEngine.Renderer
         /// Initialize variables
         /// </summary>
         /// <param name="content"></param>
-        public void Load(ContentManager content)
+        public void Load(ContentManager content, ShaderManager shaderManager)
         {
             _bloomFilter = new BloomFilter();
             _bloomFilter.Load(content);
 
+
+            _lightAccumulationModule = new LightAccumulationModule(shaderManager, "Shaders/Deferred/DeferredPointLight");
             _shadowMapRenderModule = new ShadowMapRenderModule(content, "Shaders/Shadow/ShadowMap");
             _gBufferRenderModule = new GBufferRenderModule(content, "Shaders/GbufferSetup/ClearGBuffer", "Shaders/GbufferSetup/Gbuffer");
             _temporalAntialiasingRenderModule = new TemporalAntialiasingRenderModule(content, "Shaders/TemporalAntiAliasing/TemporalAntiAliasing");
             _deferredEnvironmentMapRenderModule = new DeferredEnvironmentMapRenderModule(content, "Shaders/Deferred/DeferredEnvironmentMap");
-            _decalRenderModule = new DecalRenderModule(content, "Shaders/Deferred/DeferredDecal");
+            _decalRenderModule = new DecalRenderModule(shaderManager, "Shaders/Deferred/DeferredDecal");
             _subsurfaceScatterRenderModule = new SubsurfaceScatterRenderModule(content, "Shaders/SubsurfaceScattering/SubsurfaceScattering");
             _forwardRenderModule = new ForwardRenderModule(content, "Shaders/forward/forward");
             _helperGeometryRenderModule = new HelperGeometryRenderModule(content, "Shaders/Editor/LineEffect");
-            _distanceFieldRenderModule = new DistanceFieldRenderModule(content, "Shaders/SignedDistanceFields/volumeProjection");
+            _distanceFieldRenderModule = new DistanceFieldRenderModule(shaderManager, "Shaders/SignedDistanceFields/volumeProjection");
 
             _inverseResolution = new Vector3(1.0f / GameSettings.g_screenwidth, 1.0f / GameSettings.g_screenheight, 0);
             
@@ -232,7 +234,6 @@ namespace DeferredEngine.Renderer
 
             _colorGradingFilter.Initialize(graphicsDevice);
 
-            _lightAccumulationModule = new LightAccumulationModule();
             _lightAccumulationModule.Initialize(graphicsDevice, _fullScreenTriangle, assets);
 
             _gBufferRenderModule.Initialize(_graphicsDevice);
@@ -318,7 +319,7 @@ namespace DeferredEngine.Renderer
             DrawShadowMaps(meshMaterialLibrary, entities, pointLights, directionalLights, camera);
 
             //Update SDFs
-            _distanceFieldRenderModule.UpdateDistanceFieldTransformations(entities, _sdfDefinitions, _deferredEnvironmentMapRenderModule, _graphicsDevice, _spriteBatch);
+            _distanceFieldRenderModule.UpdateDistanceFieldTransformations(entities, _sdfDefinitions, _deferredEnvironmentMapRenderModule, _graphicsDevice, _spriteBatch, _lightAccumulationModule);
             
             //Render EnvironmentMaps
             //We do this either when pressing C or at the start of the program (_renderTargetCube == null) or when the game settings want us to do it every frame
@@ -549,7 +550,7 @@ namespace DeferredEngine.Renderer
 
                 //Pass these values to our shader
                 Shaders.ScreenSpaceEffectParameter_InverseViewProjection.SetValue(_inverseView);
-                Shaders.deferredPointLightParameter_InverseView.SetValue(_inverseView);
+                _lightAccumulationModule.PointLightRenderModule.deferredPointLightParameter_InverseView.SetValue(_inverseView);
 
                 //yep we changed
                 _viewProjectionHasChanged = true;
@@ -645,7 +646,7 @@ namespace DeferredEngine.Renderer
                 _g_FarClip = GameSettings.g_farplane;
                 _gBufferRenderModule.FarClip = _g_FarClip;
                 _decalRenderModule.FarClip = _g_FarClip;
-                Shaders.deferredPointLightParameter_FarClip.SetValue(_g_FarClip);
+                _lightAccumulationModule.PointLightRenderModule.deferredPointLightParameter_FarClip.SetValue(_g_FarClip);
                 Shaders.BillboardEffectParameter_FarClip.SetValue(_g_FarClip);
                 Shaders.ScreenSpaceReflectionParameter_FarClip.SetValue(_g_FarClip);
                 Shaders.ReconstructDepthParameter_FarClip.SetValue(_g_FarClip);
@@ -770,7 +771,7 @@ namespace DeferredEngine.Renderer
 
                 _viewIT = Matrix.Transpose(_inverseView);
 
-                Shaders.deferredPointLightParameter_InverseView.SetValue(_inverseView);
+                _lightAccumulationModule.PointLightRenderModule.deferredPointLightParameter_InverseView.SetValue(_inverseView);
 
                 _projection = Matrix.CreatePerspectiveFieldOfView(camera.FieldOfView,
                     GameSettings.g_screenwidth / (float)GameSettings.g_screenheight, 1, GameSettings.g_farplane);
@@ -1506,7 +1507,7 @@ namespace DeferredEngine.Renderer
             _renderTargetVolume = new RenderTarget2D(_graphicsDevice, targetWidth,
                targetHeight, false, SurfaceFormat.HalfVector4, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
 
-            Shaders.deferredPointLightParameterResolution.SetValue(new Vector2(targetWidth, targetHeight));
+            _lightAccumulationModule.PointLightRenderModule.deferredPointLightParameterResolution.SetValue(new Vector2(targetWidth, targetHeight));
 
             _renderTargetLightBinding[0] = new RenderTargetBinding(_renderTargetDiffuse);
             _renderTargetLightBinding[1] = new RenderTargetBinding(_renderTargetSpecular);
@@ -1577,9 +1578,9 @@ namespace DeferredEngine.Renderer
 
             Shaders.ReconstructDepthParameter_DepthMap.SetValue(_renderTargetDepth);
 
-            Shaders.deferredPointLightParameter_AlbedoMap.SetValue(_renderTargetAlbedo);
-            Shaders.deferredPointLightParameter_DepthMap.SetValue(_renderTargetDepth);
-            Shaders.deferredPointLightParameter_NormalMap.SetValue(_renderTargetNormal);
+            _lightAccumulationModule.PointLightRenderModule.deferredPointLightParameter_AlbedoMap.SetValue(_renderTargetAlbedo);
+            _lightAccumulationModule.PointLightRenderModule.deferredPointLightParameter_DepthMap.SetValue(_renderTargetDepth);
+            _lightAccumulationModule.PointLightRenderModule.deferredPointLightParameter_NormalMap.SetValue(_renderTargetNormal);
 
             Shaders.deferredDirectionalLightParameter_AlbedoMap.SetValue(_renderTargetAlbedo);
             Shaders.deferredDirectionalLightParameter_DepthMap.SetValue(_renderTargetDepth);

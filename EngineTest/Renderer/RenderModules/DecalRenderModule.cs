@@ -30,14 +30,31 @@ namespace DeferredEngine.Renderer.RenderModules
         private EffectPass _outlinePass;
 
         private BlendState _decalBlend;
+        private int _shaderIndex;
+        private ShaderManager _shaderManagerReference;
 
         public float FarClip { set {_paramFarClip.SetValue(value);} }
         public Texture2D DepthMap { set { _paramDepthMap.SetValue(value); } }
 
-        public DecalRenderModule(ContentManager content, string shaderPath)
+        public DecalRenderModule(ShaderManager shaderManager, string shaderPath)
         {
-            _decalShader = content.Load<Effect>(shaderPath);
+            
+            Load(shaderManager, shaderPath);
+            InitializeShader();
+        }
 
+        public void Load(ShaderManager shaderManager, string shaderPath)
+        {
+            _shaderIndex = shaderManager.AddShader(shaderPath);
+
+            _decalShader = shaderManager.GetShader(_shaderIndex);
+
+            _shaderManagerReference = shaderManager;
+
+        }
+
+        private void InitializeShader()
+        {
             _paramDecalMap = _decalShader.Parameters["DecalMap"];
             _paramWorldView = _decalShader.Parameters["WorldView"];
             _paramWorldViewProj = _decalShader.Parameters["WorldViewProj"];
@@ -48,7 +65,6 @@ namespace DeferredEngine.Renderer.RenderModules
             _decalPass = _decalShader.Techniques["Decal"].Passes[0];
             _outlinePass = _decalShader.Techniques["Outline"].Passes[0];
         }
-
 
         public void Initialize(GraphicsDevice graphicsDevice)
         {
@@ -129,6 +145,8 @@ namespace DeferredEngine.Renderer.RenderModules
 
         public void Draw(GraphicsDevice graphics, List<Decal> decals, Matrix view, Matrix viewProjection, Matrix inverseView)
         {
+            CheckForShaderChanges();
+
             graphics.SetVertexBuffer(_vertexBuffer);
             graphics.Indices = _indexBufferCube;
             graphics.RasterizerState = RasterizerState.CullClockwise;
@@ -165,6 +183,16 @@ namespace DeferredEngine.Renderer.RenderModules
 
             graphics.DrawIndexedPrimitives(PrimitiveType.LineList, 0, 0, 12);
             
+        }
+
+
+        private void CheckForShaderChanges()
+        {
+            if (_shaderManagerReference.GetShaderHasChanged(_shaderIndex))
+            {
+                _decalShader = _shaderManagerReference.GetShader(_shaderIndex);
+                InitializeShader();
+            }
         }
 
         public void Dispose()

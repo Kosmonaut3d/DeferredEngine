@@ -19,7 +19,7 @@ namespace DeferredEngine.Recources
 
         public Model Sphere;
         public ModelMeshPart SphereMeshPart;
-        public Model IsoSphere;
+        public ModelDefinition IsoSphere;
 
         public ModelDefinition Plane;
 
@@ -63,7 +63,7 @@ namespace DeferredEngine.Recources
         //public Model Trabant;
         //public MaterialEffect TrabantBigParts;
 
-        public Model SponzaModel;
+        public ModelDefinition SponzaModel;
         readonly List<Texture2D> _sponzaTextures = new List<Texture2D>();
         private Texture2D sponza_fabric_metallic;
         private Texture2D sponza_fabric_spec;
@@ -94,9 +94,8 @@ namespace DeferredEngine.Recources
             EditorArrow = content.Load<Model>("Art/Editor/Arrow");
             EditorArrowRound = content.Load<Model>("Art/Editor/ArrowRound");
 
-            IsoSphere = content.Load<Model>("Art/default/isosphere");
-
-            IsoSphere.Bones[0].Transform = Matrix.Identity;
+            IsoSphere = new ModelDefinition(content, "Art/default/isosphere", graphicsDevice, false);
+            
             Sphere = content.Load<Model>("Art/default/sphere");
             SphereMeshPart = Sphere.Meshes[0].MeshParts[0];
 
@@ -174,7 +173,7 @@ namespace DeferredEngine.Recources
 
             //
 
-            SponzaModel = content.Load<Model>("Sponza/Sponza");
+            SponzaModel = new ModelDefinition(content, "Sponza/Sponza", graphicsDevice, true);
             _sponzaTextures.Add(content.Load<Texture2D>("Sponza/textures/background_ddn"));
             _sponzaTextures.Add( content.Load<Texture2D>("Sponza/textures/chain_texture_ddn"));
             _sponzaTextures.Add( content.Load<Texture2D>("Sponza/textures/chain_texture_mask"));
@@ -348,7 +347,7 @@ namespace DeferredEngine.Recources
         //Assign specific materials to submeshes
         private void ProcessSponza()
         {
-            foreach (ModelMesh mesh in SponzaModel.Meshes)
+            foreach (ModelMesh mesh in SponzaModel.Model.Meshes)
             {
                 foreach (ModelMeshPart meshPart in mesh.MeshParts)
                 {

@@ -60,6 +60,8 @@
     <Compile Include="Entities\DirectionalLight.cs" />
     <Compile Include="Entities\TransformableObject.cs" />
     <Compile Include="Entities\DebugEntity.cs" />
+    <Compile Include="Recources\ShaderManager.cs" />
+    <Compile Include="Renderer\RenderModules\DeferredLighting\PointLightRenderModule.cs" />
     <Compile Include="Renderer\RenderModules\Signed Distance Fields\SDF Generator\SDFGenerator.cs" />
     <Compile Include="Recources\Helper\DataStream.cs" />
     <Compile Include="Recources\ModelDefinition.cs" />
@@ -105,7 +107,7 @@
     <Compile Include="Renderer\Helper\MeshMaterialLibrary.cs" />
     <Compile Include="Renderer\Renderer.cs" />
     <Compile Include="Renderer\RenderModules\IdAndOutlineRenderer.cs" />
-    <Compile Include="Renderer\RenderModules\LightAccumulationModule.cs" />
+    <Compile Include="Renderer\RenderModules\DeferredLighting\LightAccumulationModule.cs" />
     <Compile Include="Renderer\RenderModules\Default\IRenderModule.cs" />
     <Compile Include="Renderer\RenderModules\GBufferRenderModule.cs" />
     <Compile Include="Renderer\RenderModules\DeferredEnvironmentMapRenderModule.cs" />

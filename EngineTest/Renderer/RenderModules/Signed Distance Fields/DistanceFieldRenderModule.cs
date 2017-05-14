@@ -15,7 +15,10 @@ namespace DeferredEngine.Renderer.RenderModules.Signed_Distance_Fields
     {
         private RenderTarget2D _atlasRenderTarget2D;
 
+        private ShaderManager _shaderManagerReference;
+
         private Effect _shader;
+        private int _shaderIndex;
         private EffectPass _generateSDFPass;
         private EffectPass _volumePass;
         private EffectPass _distancePass;
@@ -76,9 +79,9 @@ namespace DeferredEngine.Renderer.RenderModules.Signed_Distance_Fields
         }
         
 
-        public DistanceFieldRenderModule(ContentManager content, string shaderPath)
+        public DistanceFieldRenderModule(ShaderManager shaderManager, string shaderPath)
         {
-            Load(content, shaderPath);
+            Load(shaderManager, shaderPath);
             Initialize();
         }
 
@@ -106,10 +109,13 @@ namespace DeferredEngine.Renderer.RenderModules.Signed_Distance_Fields
             _generateSDFPass = _shader.Techniques["GenerateSDF"].Passes[0];
         }
 
-        public void Load(ContentManager content, string shaderPath)
+        public void Load(ShaderManager shaderManager, string shaderPath)
         {
-            _shader = content.Load<Effect>(shaderPath);
+            _shaderIndex = shaderManager.AddShader(shaderPath);
 
+            _shader = shaderManager.GetShader(_shaderIndex);
+
+            _shaderManagerReference = shaderManager;
         }
 
         public void Dispose()
@@ -121,6 +127,9 @@ namespace DeferredEngine.Renderer.RenderModules.Signed_Distance_Fields
         {
             CameraPosition = camera.Position;
 
+            //CheckUpdate
+            CheckForShaderChanges();
+
             if (GameSettings.sdf_drawvolume)
                 _volumePass.Apply();
             else
@@ -129,12 +138,21 @@ namespace DeferredEngine.Renderer.RenderModules.Signed_Distance_Fields
             //quadRenderer.RenderFullscreenQuad(graphicsDevice);
         }
 
-        public void UpdateDistanceFieldTransformations(List<BasicEntity> entities, List<SignedDistanceField> sdfDefinitions, DeferredEnvironmentMapRenderModule environmentMapRenderModule, GraphicsDevice graphics, SpriteBatch spriteBatch)
+        private void CheckForShaderChanges()
+        {
+            if (_shaderManagerReference.GetShaderHasChanged(_shaderIndex))
+            {
+                _shader = _shaderManagerReference.GetShader(_shaderIndex);
+                Initialize();
+            }
+        }
+
+        public void UpdateDistanceFieldTransformations(List<BasicEntity> entities, List<SignedDistanceField> sdfDefinitions, DeferredEnvironmentMapRenderModule environmentMapRenderModule, GraphicsDevice graphics, SpriteBatch spriteBatch, LightAccumulationModule lightAccumulationModule)
         {
             //if (!GameSettings.sdf_draw) return;
             
             //First of all let's build the atlas
-            UpdateAtlas(sdfDefinitions, graphics, spriteBatch, environmentMapRenderModule);
+            UpdateAtlas(sdfDefinitions, graphics, spriteBatch, environmentMapRenderModule, lightAccumulationModule);
 
             int i = 0;
             for (var index = 0; index < entities.Count; index++)
@@ -165,23 +183,19 @@ namespace DeferredEngine.Renderer.RenderModules.Signed_Distance_Fields
             _instanceSDFIndexArrayParam.SetValue(_instanceSDFIndexArray);
             _instancesCountParam.SetValue((float)_instancesCount);
 
-
-            Shaders.deferredPointLightParameter_InstanceInverseMatrix.SetValue(_instanceInverseMatrixArray);
-            Shaders.deferredPointLightParameter_InstanceScale.SetValue(_instanceScaleArray);
-            Shaders.deferredPointLightParameter_InstanceSDFIndex.SetValue(_instanceSDFIndexArray);
-            Shaders.deferredPointLightParameter_InstancesCount.SetValue((float)_instancesCount);
+            lightAccumulationModule.PointLightRenderModule.deferredPointLightParameter_InstanceInverseMatrix.SetValue(_instanceInverseMatrixArray);
+            lightAccumulationModule.PointLightRenderModule.deferredPointLightParameter_InstanceScale.SetValue(_instanceScaleArray);
+            lightAccumulationModule.PointLightRenderModule.deferredPointLightParameter_InstanceSDFIndex.SetValue(_instanceSDFIndexArray);
+            lightAccumulationModule.PointLightRenderModule.deferredPointLightParameter_InstancesCount.SetValue((float)_instancesCount);
 
             environmentMapRenderModule.ParamInstanceInverseMatrix.SetValue(_instanceInverseMatrixArray);
             environmentMapRenderModule.ParamInstanceScale.SetValue(_instanceScaleArray);
             environmentMapRenderModule.ParamInstanceSDFIndex.SetValue(_instanceSDFIndexArray);
             environmentMapRenderModule.ParamInstancesCount.SetValue((float)_instancesCount);
-
-
-
         }
 
         private void UpdateAtlas(List<SignedDistanceField> sdfDefinitionsPassed, GraphicsDevice graphics,
-            SpriteBatch spriteBatch, DeferredEnvironmentMapRenderModule environmentMapRenderModule)
+            SpriteBatch spriteBatch, DeferredEnvironmentMapRenderModule environmentMapRenderModule, LightAccumulationModule lightAccumulationModule)
         {
             if (sdfDefinitionsPassed.Count < 1) return;
 
@@ -257,9 +271,9 @@ namespace DeferredEngine.Renderer.RenderModules.Signed_Distance_Fields
             _volumeTexSizeParam.SetValue(_volumeTexSizeArray);
             _volumeTexResolutionParam.SetValue(_volumeTexResolutionArray);
 
-            Shaders.deferredPointLightParameter_VolumeTexParam.SetValue(_atlasRenderTarget2D);
-            Shaders.deferredPointLightParameter_VolumeTexSizeParam.SetValue(_volumeTexSizeArray);
-            Shaders.deferredPointLightParameter_VolumeTexResolution.SetValue(_volumeTexResolutionArray);
+            lightAccumulationModule.PointLightRenderModule.deferredPointLightParameter_VolumeTexParam.SetValue(_atlasRenderTarget2D);
+            lightAccumulationModule.PointLightRenderModule.deferredPointLightParameter_VolumeTexSizeParam.SetValue(_volumeTexSizeArray);
+            lightAccumulationModule.PointLightRenderModule.deferredPointLightParameter_VolumeTexResolution.SetValue(_volumeTexResolutionArray);
 
             environmentMapRenderModule.ParamVolumeTexParam.SetValue(_atlasRenderTarget2D);
             environmentMapRenderModule.ParamVolumeTexSizeParam.SetValue(_volumeTexSizeArray);

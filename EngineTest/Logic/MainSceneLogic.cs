@@ -89,7 +89,7 @@ namespace DeferredEngine.Logic
 
             Camera = new Camera(position: new Vector3(21, -22, 7)/*new Vector3(-88, -11f, 4)*/, lookat: new Vector3(40, -10, 3.317f)/*new Vector3(38, 8, 32)*/);
 
-            EnvironmentSample = new EnvironmentSample(new Vector3(21, -22, 7)/*new Vector3(-45,-5,5)*/) {SpecularStrength = 0.5f};
+            EnvironmentSample = new EnvironmentSample(new Vector3(21, -22, 7)/*new Vector3(-45, -5, 5)*/) {SpecularStrength = 0.5f};
 
             //VolumeTexture = new VolumeTextureEntity("Content/Sponza/sponza_sdf.sdff", graphics, new Vector3(-7, 0, 63), new Vector3(200, 100, 100)) {NeedsUpdate = true};
 
@@ -111,7 +111,7 @@ namespace DeferredEngine.Logic
                 angleZ: 0,
                 scale: 200);
 
-            testEntity = AddEntity(model: _assets.Tiger,
+            AddEntity(model: _assets.Tiger,
                 materialEffect: _assets.MaterialSSS_Red,
                 position: new Vector3(40, -10, 3.317f),
                 angleX: Math.PI / 2,
@@ -127,13 +127,13 @@ namespace DeferredEngine.Logic
                 angleZ: 0,
                 scale: 1);
 
-            AddEntity(model: _assets.Cube,
-                materialEffect: _assets.MaterialSSS_Cyan,
-                position: new Vector3(20, -10, 3.317f),
-                angleX: Math.PI / 2,
-                angleY: 0,
-                angleZ: 0,
-                scale: 5);
+            //AddEntity(model: _assets.Cube,
+            //    materialEffect: _assets.MaterialSSS_Cyan,
+            //    position: new Vector3(20, -10, 3.317f),
+            //    angleX: Math.PI / 2,
+            //    angleY: 0,
+            //    angleZ: 0,
+            //    scale: 5);
 
             AddEntity(model: _assets.StanfordDragon,
                 materialEffect: _assets.BaseMaterialGray,
@@ -143,12 +143,6 @@ namespace DeferredEngine.Logic
                 angleZ: 0,
                 scale: 5);
 
-            //VolumeTexture.Position = testEntity.Position;
-            //VolumeTexture.Size = (testEntity.BoundingBox.Max - testEntity.BoundingBox.Min) / 2.0f * 52.0f/50.0f;
-            //VolumeTexture.RotationMatrix = testEntity.WorldTransform.InverseWorld;
-            //VolumeTexture.Offset = testEntity.BoundingBoxOffset;
-
-            //_sdfGenerator.Update(VolumeTexture, graphics, true, null, null);
 
             //BasicEntity testEntity = AddEntity(model: _assets.SponzaModel,
             //    position: Vector3.Zero,
@@ -163,8 +157,8 @@ namespace DeferredEngine.Logic
             //    for (int y = -5; y <= 5; y++)
             //    {
             //        AddEntity(model: _assets.Plane,
-            //            materialEffect: ((x+5+y+5)%2==1) ? _assets.MirrorMaterial : _assets.MetalRough03Material,
-            //            position: new Vector3(30 + x*4, y*4 + 4, 0),
+            //            materialEffect: ((x + 5 + y + 5) % 2 == 1) ? _assets.MirrorMaterial : _assets.MetalRough03Material,
+            //            position: new Vector3(30 + x * 4, y * 4 + 4, 0),
             //            angleX: 0,
             //            angleY: 0,
             //            angleZ: 0,
@@ -208,7 +202,7 @@ namespace DeferredEngine.Logic
             //    _physicsSpace.Add(physicsEntity = new Sphere(position: BEPUutilities.Vector3.Zero, radius: 5, mass: 50));
             //    AddEntity(model: _assets.IsoSphere,
             //        materialEffect: test,
-            //        position: new Vector3(30 + i*10, 0, 10),
+            //        position: new Vector3(30 + i * 10, 0, 10),
             //        angleX: Math.PI / 2,
             //        angleY: 0,
             //        angleZ: 0,
@@ -262,7 +256,7 @@ namespace DeferredEngine.Logic
             //    staticShadow: false,
             //    isVolumetric: false);
 
-            //volumetric light!
+            ////volumetric light!
             //AddPointLight(position: new Vector3(-4, 40, 66),
             //    radius: 80,
             //    color: Color.White,
