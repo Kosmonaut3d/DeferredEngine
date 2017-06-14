@@ -298,7 +298,7 @@ float integrateVolume(float d2, float d1, float radius);
 			}
 			specular = SpecularCookTorrance(NdL, normal, lightVector, cameraDirection, lightIntensity, lightColor, f0, roughness);
 		}
-		diffuseOutput = (attenuation * diffuseLight * (1 - f0)) *shadowFactor * OUTPUTCONST+ color * shadowFactor * sss.rgb * attenuation * lightIntensity * lightColor * OUTPUTCONST;
+		diffuseOutput = (attenuation * diffuseLight * (1 - f0)) *shadowFactor * OUTPUTCONST; //+ color * shadowFactor * sss.rgb * attenuation * lightIntensity * lightColor * OUTPUTCONST;
 		specularOutput = specular * attenuation * shadowFactor* OUTPUTCONST;
 	}
 

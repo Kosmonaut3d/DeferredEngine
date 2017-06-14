@@ -83,6 +83,9 @@ namespace DeferredEngine.Recources
         public SpriteFont MonospaceFont;
         
         public MaterialEffect DragonLowPolyMaterial;
+        
+        public ModelDefinition TruckModel;
+        public MaterialEffect TruckMaterialEffect;
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////
         //  FUNCTIONS
@@ -105,6 +108,7 @@ namespace DeferredEngine.Recources
 
             Tiger = new ModelDefinition(content, "Art/Tiger/Tiger", graphicsDevice, true, new Vector3(50,50,50));
             HumanModel = new ModelDefinition(content, "Art/Human/human", graphicsDevice, true, new Vector3(50, 50, 50));
+            TruckModel = new ModelDefinition(content, "Art/Truck/truck_skeleton", graphicsDevice, true, new Vector3(100,100,100));
 
             IconDecal = content.Load<Texture2D>("Art/Editor/icon_decal");
             IconLight = content.Load<Texture2D>("Art/Editor/icon_light");
@@ -112,6 +116,19 @@ namespace DeferredEngine.Recources
             //Default Materials
 
             BaseMaterial = CreateMaterial(Color.Red, 0.5f, 0, type: MaterialEffect.MaterialTypes.Basic);
+
+            TruckMaterialEffect = CreateMaterial(color: Color.White,
+                albedoMap: content.Load<Texture2D>("Art/Truck/truck_skeleton_albedo"),
+                normalMap: content.Load<Texture2D>("Art/Truck/truck_skeleton_normal"),
+                roughnessMap: content.Load<Texture2D>("Art/Truck/truck_skeleton_roughness"),
+                metallicMap: content.Load<Texture2D>("Art/Truck/truck_skeleton_metalness"), 
+                metallic: 0,
+                roughness: 0,
+                mask: null,
+                displacementMap: null,
+                type: MaterialEffect.MaterialTypes.SubsurfaceScattering,
+                emissiveStrength: 0
+            );
 
             MaterialSSS_Red = CreateMaterial(Color.Red, 0.5f, 0, type: MaterialEffect.MaterialTypes.SubsurfaceScattering);
             MaterialSSS_Green = CreateMaterial(Color.Lime, 0.5f, 0, type: MaterialEffect.MaterialTypes.SubsurfaceScattering);
@@ -163,8 +180,8 @@ namespace DeferredEngine.Recources
 
             //
 
-            StanfordDragon = new ModelDefinition(content, "Art/default/dragon_uv_smooth", graphicsDevice, true); 
-            StanfordDragonLowpoly = new ModelDefinition(content, "Art/default/dragon_lowpoly", graphicsDevice, true, new Vector3(70, 70, 70));
+            StanfordDragon = new ModelDefinition(content, "Art/default/dragon_uv_smooth", graphicsDevice, false, new Vector3(70, 70, 70)); 
+            StanfordDragonLowpoly = new ModelDefinition(content, "Art/default/dragon_lowpoly", graphicsDevice, true, new Vector3(60, 60,60));
 
             DragonLowPolyMaterial = CreateMaterial(Color.Red, 0.5f, 0, type: MaterialEffect.MaterialTypes.Basic, normalMap: content.Load<Texture2D>("Art/default/dragon_normal"));
 

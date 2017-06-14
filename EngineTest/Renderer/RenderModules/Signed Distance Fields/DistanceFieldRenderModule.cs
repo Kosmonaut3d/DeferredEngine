@@ -278,8 +278,6 @@ namespace DeferredEngine.Renderer.RenderModules.Signed_Distance_Fields
             environmentMapRenderModule.ParamVolumeTexParam.SetValue(_atlasRenderTarget2D);
             environmentMapRenderModule.ParamVolumeTexSizeParam.SetValue(_volumeTexSizeArray);
             environmentMapRenderModule.ParamVolumeTexResolution.SetValue(_volumeTexResolutionArray);
-
-
         }
 
 

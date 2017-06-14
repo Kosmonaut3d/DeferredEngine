@@ -59,6 +59,20 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input, uint id:SV_VERT
 		//  HELPER FUNCTIONS
 		////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+float GetRandom(float2 uv, float seed)
+{
+	uv = uv * frac(uv + seed);
+	return (frac(sin(dot(uv, float2(15.8989, 76.132) * 1.0f)) * 46336.23745));
+}
+
+float4 CreateSeededColor(float input)
+{
+	float r = GetRandom(float2(1, 1), input);
+	float g = GetRandom(float2(1, 1), r);
+	float b = GetRandom(float2(1, 1), g);
+	return float4(r, g, b, 1);
+}
+
 		////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		//  BASE FUNCTIONS
 		////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -79,17 +93,19 @@ float4 PixelShaderFunctionVisualizeVolume(VertexShaderOutput input) : COLOR0
 
 	float marchingDistance = 0;
 
+	float maxStep = FarClip / 256.0f;
+
 	//Raymarch
 	for (int i = 0; i < 128; i++)
 	{
-		const float precis = 0.005f;
+		const float precis = 0.05f;
 
 		float step = FindMin(p);
 
-		marchingDistance += step;
 
 		if (step <= precis)  return marchingDistance / FarClip;
 
+		marchingDistance += step;
 		if (marchingDistance > FarClip) discard;
 
 		p += step * dir;
@@ -97,8 +113,41 @@ float4 PixelShaderFunctionVisualizeVolume(VertexShaderOutput input) : COLOR0
 		//if (marchingDistance > linearDepth * FarClip) return float4(1.0, marchingDistance/FarClip, 0, 1);
 	}
 
+	discard;
 	return float4(0,0,0, 1);
+}
 
+float4 PixelShaderFunctionVisualizeVolume2(VertexShaderOutput input) : COLOR0
+{
+	float3 startPoint = CameraPosition;
+	float3 endPoint = CameraPosition + input.ViewDir;
+
+	float3 dir = normalize(endPoint - startPoint);
+
+	int3 texCoordInt = int3(input.Position.xy, 0);
+
+	float linearDepth = DepthMap.Load(texCoordInt).r;
+
+	//Get min dist to box
+	float3 p = startPoint;
+
+	float marchingDistance = 0;
+
+	//Raymarch
+	for (int i = 0; i < 128; i++)
+	{
+		p += FarClip / 128.0f;
+
+		float inside = FindMinBoundingBox(p);
+
+		if (inside >= 0.0f)
+		{
+			return float4(1, 1, 1, 1); //CreateSeededColor(inside);
+		}
+
+	}
+	discard;
+	return float4(0,0,0, 1);
 }
 
 float4 PixelShaderFunctionDrawShadow(VertexShaderOutput input) : COLOR0
@@ -129,8 +178,6 @@ float4 PixelShaderFunctionDrawShadow(VertexShaderOutput input) : COLOR0
 
 	return float4(frac(step * 1.5f).xxx, 1);
 
-
-	
 	while (t<maxdist-1)
 	{
 		const float precis = 0.005f;
@@ -193,7 +240,7 @@ float4 PixelShaderFunctionGenerateSDF(VertexShaderOutput input) : COLOR0
 	//Get 3d position from our position
 
 	float3 baseSize = VolumeTexSize[0];
-	float3 resolution = VolumeTexResolution[0];
+	float3 resolution = VolumeTexResolution[0].xyz;
 	
 	float x = trunc(pixel.x % resolution.x);
 	float y = trunc(pixel.y);
@@ -211,8 +258,15 @@ float4 PixelShaderFunctionGenerateSDF(VertexShaderOutput input) : COLOR0
 	
 	float minvalue = 100000;
 
-	float3 ray = float3(1, 0, 0);
-	float intersections = 0.0f;
+	float3 ray1 = float3(1, 0, 0);
+	float intersections1 = 0.0f;
+
+	//more rays
+	float3 ray2 = float3(1, 1, 0);
+	float intersections2 = 0.0f;
+
+	float3 ray3 = float3(1, 0, 1);
+	float intersections3 = 0.0f;
 
 
 	//Ray cast to find out if we are inside or outside... complicated but safe
@@ -240,7 +294,11 @@ float4 PixelShaderFunctionGenerateSDF(VertexShaderOutput input) : COLOR0
 			:
 			dot(nor, pa)*dot(nor, pa) / dot2(nor);
 
-		intersections += RayCast(a, b, c, p, ray);
+		intersections1 += RayCast(a, b, c, p, ray1);
+
+		intersections2 += RayCast(a, b, c, p, ray2);
+
+		intersections3 += RayCast(a, b, c, p, ray3);
 		//Inside?
 		/*float signum = sign(dot(pa, nor));
 
@@ -252,7 +310,12 @@ float4 PixelShaderFunctionGenerateSDF(VertexShaderOutput input) : COLOR0
 		}
 	}
 
-	int signum = intersections % 2 == 0 ? 1 : -1;
+	//even == outside
+	int signum1 = intersections1 % 2 == 0 ? 1 : -1;
+	int signum2 = intersections2 % 2 == 0 ? 1 : -1;
+	int signum3 = intersections3 % 2 == 0 ? 1 : -1;
+
+	int signum = sign(signum1 + signum2 + signum3);
 
 	float output = sqrt(abs(minvalue)) * signum;
 

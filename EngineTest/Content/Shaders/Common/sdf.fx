@@ -125,8 +125,20 @@ float GetMinDistance(float3 Position, float SDFIndex)
 		return distanceToBounds + value; /// gradient; ///*texelsCovered * gradient*/value + texelsCovered * gradient;
 	}
 
-
 	return value;
+}
+
+//returns true if position is inside SDF of given index
+bool GetIsInsideVolume(float3 Position, float SDFIndex)
+{
+	float3 samplePosition = Position;
+
+	float3 baseSize = VolumeTexSize[SDFIndex];
+
+	samplePosition /= baseSize;
+
+	//Inside bounds?
+	return (abs(MaxManhattan(samplePosition)) < 1.0f);
 }
 
 //http://www.iquilezles.org/www/articles/distfunctions/distfunctions.htm
@@ -157,7 +169,7 @@ float FindMin(float3 ro)
 
 	minimum = GetMinDistance(q / InstanceScale[testId], InstanceSDFIndex[testId]) * min(InstanceScale[testId].x, min(InstanceScale[testId].y, InstanceScale[testId].z));*/
 
-	for (uint i = 0; i < InstancesCount; i++)
+	for (float i = 0; i < InstancesCount; i++)
 	{
 		float3 q = mul(float4(ro, 1), InstanceInverseMatrix[i]).xyz;
 
@@ -168,6 +180,22 @@ float FindMin(float3 ro)
 	}
 
 	return minimum;
+}
+
+
+float FindMinBoundingBox(float3 ro)
+{
+	for (float i = 0; i < InstancesCount; i++)
+	{
+		float3 q = mul(float4(ro, 1), InstanceInverseMatrix[i]).xyz;
+
+		//Note: Minimum could be precomputed
+		bool dist = GetIsInsideVolume(q / InstanceScale[i], InstanceSDFIndex[i]);
+
+		if (dist) return i;
+	}
+
+	return -1;
 }
 
 //origin, destination, distance(dest-ori), softness factor

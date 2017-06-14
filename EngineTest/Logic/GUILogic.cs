@@ -170,9 +170,32 @@ namespace DeferredEngine.Logic
             GuiListToggle optionList = new GuiListToggle(Vector2.Zero, defaultStyle);
             _rightSideList.AddElement(optionList);
 
-                /////////////////////////////////////////////////////////////////
-                //Post Processing
-                /////////////////////////////////////////////////////////////////
+            /////////////////////////////////////////////////////////////////
+            //SDF
+            /////////////////////////////////////////////////////////////////
+            /// 
+            optionList.AddElement(new GUITextBlock(Vector2.Zero, new Vector2(200, 10), "SDF",
+                defaultStyle.TextFontStyle, Color.DarkSlateGray, Color.White, GUIStyle.TextAlignment.Center,
+                Vector2.Zero));
+
+            GuiListToggle sdfList = new GuiListToggle(Vector2.Zero, defaultStyle) { ToggleBlockColor = Color.DarkSlateGray, IsToggled = false };
+            optionList.AddElement(sdfList);
+
+            sdfList.AddElement(new GUITextBlockToggle(defaultStyle, "Draw SDF")
+            {
+                ToggleField = typeof(GameSettings).GetField("sdf_draw"),
+                Toggle = GameSettings.sdf_draw
+            });
+
+            sdfList.AddElement(new GUITextBlockToggle(defaultStyle, "Draw SDF volume")
+            {
+                ToggleField = typeof(GameSettings).GetField("sdf_drawvolume"),
+                Toggle = GameSettings.sdf_drawvolume
+            });
+
+            /////////////////////////////////////////////////////////////////
+            //Post Processing
+            /////////////////////////////////////////////////////////////////
 
             optionList.AddElement(new GUITextBlock(defaultStyle, "PostProcessing") { BlockColor = Color.DarkSlateGray, Dimensions = new Vector2(200, 10), TextAlignment = GUIStyle.TextAlignment.Center });
 

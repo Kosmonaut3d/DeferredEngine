@@ -29,7 +29,7 @@ namespace DeferredEngine.Recources
 
         //Default Material
         public static bool d_defaultmaterial = false;
-        public static float m_defaultroughness = 0;
+        public static float m_defaultroughness = 0.5f;
         
         //Settings
         public static float g_farplane = 500;
@@ -53,7 +53,7 @@ namespace DeferredEngine.Recources
         public static bool g_drawdecals = true;
 
         //Forward pass
-        public static bool g_ForwardEnable = true;
+        public static bool g_forwardenable = true;
 
         //Temporal AntiAliasing
         public static bool g_taa = true;

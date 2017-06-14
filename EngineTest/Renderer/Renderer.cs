@@ -1247,7 +1247,7 @@ namespace DeferredEngine.Renderer
 
         private RenderTarget2D DrawForward(RenderTarget2D input, MeshMaterialLibrary meshMaterialLibrary, Camera camera, List<PointLight> pointLights)
         {
-            if (!GameSettings.g_ForwardEnable) return input;
+            if (!GameSettings.g_forwardenable) return input;
 
             _graphicsDevice.SetRenderTarget(input);
             ReconstructDepth();
