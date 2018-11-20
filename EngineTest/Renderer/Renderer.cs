@@ -319,8 +319,10 @@ namespace DeferredEngine.Renderer
             DrawShadowMaps(meshMaterialLibrary, entities, pointLights, directionalLights, camera);
 
             //Update SDFs
-            _distanceFieldRenderModule.UpdateDistanceFieldTransformations(entities, _sdfDefinitions, _deferredEnvironmentMapRenderModule, _graphicsDevice, _spriteBatch, _lightAccumulationModule);
-            
+            if (IsSDFUsed(pointLights))
+            {
+                _distanceFieldRenderModule.UpdateDistanceFieldTransformations(entities, _sdfDefinitions, _deferredEnvironmentMapRenderModule, _graphicsDevice, _spriteBatch, _lightAccumulationModule);
+            }
             //Render EnvironmentMaps
             //We do this either when pressing C or at the start of the program (_renderTargetCube == null) or when the game settings want us to do it every frame
             if (envSample.NeedsUpdate || GameSettings.g_envmapupdateeveryframe)
@@ -354,7 +356,7 @@ namespace DeferredEngine.Renderer
             _lightAccumulationModule.DrawLights(pointLights, directionalLights, camera.Position, gameTime, _renderTargetLightBinding, _renderTargetDiffuse);
 
             //Draw the environment cube map as a fullscreen effect on all meshes
-            DrawEnvironmentMap(envSample, camera);
+            DrawEnvironmentMap(envSample, camera, gameTime);
 
             //Draw emissive materials on an offscreen render target
             //DrawEmissiveEffect(camera, meshMaterialLibrary, gameTime);
@@ -413,6 +415,18 @@ namespace DeferredEngine.Renderer
             };
         }
 
+        private bool IsSDFUsed(List<PointLight> pointLights)
+        {
+            for (var index = 0; index < pointLights.Count; index++)
+            {
+                if (pointLights[index].CastSDFShadows)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         private void RenderEditorOverlays(EditorLogic.EditorSendData editorData, MeshMaterialLibrary meshMaterialLibrary, List<Decal> decals, List<PointLight> pointLights, List<DirectionalLight> directionalLights, EnvironmentSample envSample, List<DebugEntity> debugEntities)
         {
 
@@ -443,7 +457,7 @@ namespace DeferredEngine.Renderer
                 }
             }
 
-            if(GameSettings.sdf_debug)
+            if(GameSettings.sdf_debug && _distanceFieldRenderModule.GetAtlas()!= null)
             {
                 _spriteBatch.Begin(0, BlendState.Opaque, SamplerState.PointClamp);
                 _spriteBatch.Draw(_distanceFieldRenderModule.GetAtlas() , new Rectangle(0, GameSettings.g_screenheight - 200, GameSettings.g_screenwidth, 200), Color.White);
@@ -1150,11 +1164,11 @@ namespace DeferredEngine.Renderer
         /// <summary>
         /// Apply our environment cubemap to the renderer
         /// </summary>
-        private void DrawEnvironmentMap(EnvironmentSample envSample, Camera camera)
+        private void DrawEnvironmentMap(EnvironmentSample envSample, Camera camera, GameTime gameTime)
         {
             if (!GameSettings.g_environmentmapping) return;
 
-            _deferredEnvironmentMapRenderModule.DrawEnvironmentMap(_graphicsDevice, camera, _view, _fullScreenTriangle, envSample, GameSettings.g_SSReflection_FireflyReduction, GameSettings.g_SSReflection_FireflyThreshold);
+            _deferredEnvironmentMapRenderModule.DrawEnvironmentMap(_graphicsDevice, camera, _view, _fullScreenTriangle, envSample, gameTime, GameSettings.g_SSReflection_FireflyReduction, GameSettings.g_SSReflection_FireflyThreshold);
 
             //Performance Profiler
             if (GameSettings.d_profiler)
@@ -1317,7 +1331,7 @@ namespace DeferredEngine.Renderer
         
         private void DrawSignedDistanceFieldFunctions(Camera camera)
         {
-            if (!GameSettings.sdf_draw) return;
+            if (!GameSettings.sdf_drawdistance) return;
             
             _distanceFieldRenderModule.Draw(_graphicsDevice, camera, _fullScreenTriangle);
 

@@ -114,6 +114,9 @@ namespace DeferredEngine.Entities
             if (physicsObject != null)
                 RegisterPhysics(physicsObject);
 
+            WorldTransform.World = Matrix.CreateScale(Scale) * RotationMatrix * Matrix.CreateTranslation(Position);
+            WorldTransform.Scale = Scale;
+            WorldTransform.InverseWorld = Matrix.Invert(Matrix.CreateTranslation(BoundingBoxOffset * Scale) * RotationMatrix * Matrix.CreateTranslation(Position));
         }
 
         public BasicEntity(ModelDefinition modelbb, MaterialEffect material, Vector3 position, Matrix rotationMatrix, Vector3 scale)
@@ -132,6 +135,10 @@ namespace DeferredEngine.Entities
             RotationMatrix = rotationMatrix;
             Scale = scale;
             RotationMatrix = rotationMatrix;
+
+            WorldTransform.World = Matrix.CreateScale(Scale) * RotationMatrix * Matrix.CreateTranslation(Position);
+            WorldTransform.Scale = Scale;
+            WorldTransform.InverseWorld = Matrix.Invert(Matrix.CreateTranslation(BoundingBoxOffset * Scale) * RotationMatrix * Matrix.CreateTranslation(Position));
         }
 
         public void RegisterInLibrary(MeshMaterialLibrary library)
@@ -187,6 +194,8 @@ namespace DeferredEngine.Entities
                 Matrix scaleMatrix = Matrix.CreateScale(Scale);
                 //WorldOldMatrix = Matrix.CreateScale(Scale)*WorldOldMatrix; 
                 WorldTransform.World = scaleMatrix * _worldOldMatrix;
+
+                WorldTransform.InverseWorld = Matrix.Invert(Matrix.CreateTranslation(BoundingBoxOffset * Scale) * RotationMatrix * Matrix.CreateTranslation(Position));
 
             }
         }

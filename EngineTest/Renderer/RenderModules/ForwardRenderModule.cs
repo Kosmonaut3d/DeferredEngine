@@ -34,9 +34,6 @@ namespace DeferredEngine.Renderer.RenderModules
         private EffectParameter _lightColorParam;
 
         private EffectParameter _tiledListLengthParam;
-        private EffectParameter _Resolution;
-        private EffectParameter _cols;
-        private EffectParameter _rows;
 
         private EffectParameter _cameraPositionWSParam;
 

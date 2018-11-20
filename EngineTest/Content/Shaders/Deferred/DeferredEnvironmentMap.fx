@@ -16,7 +16,7 @@ Texture2D NormalMap;
 Texture2D ReflectionMap;
 
 //SDF
-bool UseSDFAO = true;
+bool UseSDFAO;
 Texture2D DepthMap;
 
 float2 Resolution = { 1280, 800 };
@@ -254,7 +254,15 @@ PixelShaderOutput PixelShaderFunctionBasic(VertexShaderOutput input)
 		float linearDepth = DepthMap.Load(texCoordInt).r;
 		float3 PositionWS = CameraPositionWS + linearDepth * input.ViewDir;
 
-		ao = RaymarchAO(PositionWS, PositionWS + normalize(normal) * 10, 10);
+		float3 aoDirection = normal;
+
+		float3 random = randomNormal2(input.Position.xy / 2000.0f);
+
+		if (dot(random, normal) < 0) random = -random;
+
+		aoDirection = random;
+
+		ao = RaymarchAO(PositionWS, PositionWS + normalize(aoDirection) * 10, 10);
 
 		ao = smoothstep(0, 1, ao);
 	}

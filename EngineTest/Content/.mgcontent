@@ -4,6 +4,6 @@
   <Platform>Windows</Platform>
   <Config />
   <SourceFiles>
-    <File>C:/Users/neo/Documents/Visual Studio 2015/Projects/DeferredEngine-master/EngineTest/Content/Shaders/SignedDistanceFields/volumeProjection.fx</File>
+    <File>C:/Users/neo/Documents/Visual Studio 2015/Projects/DeferredEngine-master/EngineTest/Content/Shaders/Deferred/DeferredPointLight.fx</File>
   </SourceFiles>
 </SourceFileCollection>

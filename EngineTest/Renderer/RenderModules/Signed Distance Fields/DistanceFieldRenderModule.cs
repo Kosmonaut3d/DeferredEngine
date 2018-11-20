@@ -149,7 +149,7 @@ namespace DeferredEngine.Renderer.RenderModules.Signed_Distance_Fields
 
         public void UpdateDistanceFieldTransformations(List<BasicEntity> entities, List<SignedDistanceField> sdfDefinitions, DeferredEnvironmentMapRenderModule environmentMapRenderModule, GraphicsDevice graphics, SpriteBatch spriteBatch, LightAccumulationModule lightAccumulationModule)
         {
-            //if (!GameSettings.sdf_draw) return;
+            if (!GameSettings.sdf_draw) return;
             
             //First of all let's build the atlas
             UpdateAtlas(sdfDefinitions, graphics, spriteBatch, environmentMapRenderModule, lightAccumulationModule);
@@ -174,6 +174,7 @@ namespace DeferredEngine.Renderer.RenderModules.Signed_Distance_Fields
 
             _instancesCount = i;
 
+            //TODO: Check for change
 
             //Submit
             //Instances

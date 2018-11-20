@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PipelineBuildEvent xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <SourceFile>C:/Users/neo/Documents/Visual Studio 2015/Projects/DeferredEngine-master/EngineTest/Content/Shaders/Deferred/DeferredPointLight.fx</SourceFile>
+  <SourceTime>2017-06-14T04:08:22.0513174+02:00</SourceTime>
+  <DestFile>C:/Users/neo/Documents/Visual Studio 2015/Projects/DeferredEngine-master/EngineTest/Content/Shaders/Deferred/DeferredPointLight.xnb</DestFile>
+  <DestTime>2017-06-14T04:08:30.2538047+02:00</DestTime>
+  <Importer>EffectImporter</Importer>
+  <ImporterTime>2017-04-03T20:28:40+02:00</ImporterTime>
+  <Processor>EffectProcessor</Processor>
+  <ProcessorTime>2017-04-03T20:28:40+02:00</ProcessorTime>
+  <Parameters>
+    <Key>DebugMode</Key>
+    <Value>Auto</Value>
+  </Parameters>
+  <Dependencies>
+    <string>C:\Users\neo\Documents\Visual Studio 2015\Projects\DeferredEngine-master\EngineTest\Content\Shaders\Common\helper.fx</string>
+    <string>C:\Users\neo\Documents\Visual Studio 2015\Projects\DeferredEngine-master\EngineTest\Content\Shaders\Common\sdf.fx</string>
+  </Dependencies>
+  <BuildAsset />
+  <BuildOutput />
+</PipelineBuildEvent>

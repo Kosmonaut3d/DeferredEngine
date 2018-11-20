@@ -98,10 +98,9 @@ float4 PixelShaderFunctionVisualizeVolume(VertexShaderOutput input) : COLOR0
 	//Raymarch
 	for (int i = 0; i < 128; i++)
 	{
-		const float precis = 0.05f;
+		const float precis = 0.005f;
 
 		float step = FindMin(p);
-
 
 		if (step <= precis)  return marchingDistance / FarClip;
 
@@ -109,7 +108,6 @@ float4 PixelShaderFunctionVisualizeVolume(VertexShaderOutput input) : COLOR0
 		if (marchingDistance > FarClip) discard;
 
 		p += step * dir;
-
 		//if (marchingDistance > linearDepth * FarClip) return float4(1.0, marchingDistance/FarClip, 0, 1);
 	}
 

@@ -29,6 +29,17 @@ static float SampleWeights[9] =
     0.077847f,
 };
 
+float Time = 0;
+float3 randomNormal2(float2 tex)
+{
+	tex = frac(tex * Time);
+	float noiseX = (frac(sin(dot(tex, float2(15.8989f, 76.132f) * 1.0f)) * 46336.23745f)) * 2 - 1;
+	float noiseY = (frac(sin(dot(tex, float2(11.9899f, 62.223f) * 2.0f)) * 34748.34744f)) * 2 - 1;
+	float noiseZ = (frac(sin(dot(tex, float2(13.3238f, 63.122f) * 3.0f)) * 59998.47362f)) * 2 - 1;
+	return normalize(float3(noiseX, noiseY, noiseZ));
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  HELPER FUNCTIONS
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////

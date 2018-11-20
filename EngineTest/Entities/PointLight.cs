@@ -38,6 +38,7 @@ namespace DeferredEngine.Entities
         public BoundingSphere BoundingSphere;
 
         public bool CastShadows;
+        public bool CastSDFShadows;
         public int SoftShadowBlurAmount = 0;
 
         public readonly bool IsVolumetric;

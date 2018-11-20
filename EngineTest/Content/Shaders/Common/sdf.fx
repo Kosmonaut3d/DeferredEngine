@@ -204,11 +204,13 @@ float RaymarchAO(float3 p, float3 destination, float distanceToDestination)
 	float3 dir = destination - p;
 	float maxdist = distanceToDestination;
 
+	const float precis = 0.005f;
+
+	
 	//whatever
 
+	//for static
 	float minVis = 0;
-
-	const float precis = 0.005f;
 
 	const float iterations = 8.0f;
 	const float rcp_iterations = 1 / iterations;
@@ -219,20 +221,26 @@ float RaymarchAO(float3 p, float3 destination, float distanceToDestination)
 	{
 		float step = FindMin(p + dir * i *rcp_iterations);
 
-		float value = step / (stepsize * i);
+		//float value = step / (stepsize * i);
 
-		//modify
-		minVis += value * rcp_iterations;
+		////modify
+		//minVis += value * rcp_iterations;
 
-		//if (step < precis /*|| step < stepsize*/) break;
+		if (step < precis /*|| step < stepsize*/) return 0;
+
+
 
 	}
 
-	return minVis;
 
-	/*
+	return 1;
+	
+	
+
+	
 	//Idea - "find smallest angle"
 
+	/*
 	//normalize
 	dir /= maxdist;
 

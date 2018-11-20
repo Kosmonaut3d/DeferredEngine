@@ -25,6 +25,7 @@ namespace DeferredEngine.Renderer.RenderModules
         private EffectParameter _paramSpecularStrength;
         private EffectParameter _paramSpecularStrengthRcp;
         private EffectParameter _paramDiffuseStrength;
+        private EffectParameter _paramTime;
 
         public EffectParameter ParamVolumeTexParam;
         public EffectParameter ParamVolumeTexSizeParam;
@@ -34,6 +35,8 @@ namespace DeferredEngine.Renderer.RenderModules
         public EffectParameter ParamInstanceSDFIndex;
         public EffectParameter ParamInstancesCount;
 
+        public EffectParameter ParamUseSDFAO;
+
 
         private EffectPass _passBasic;
         private EffectPass _passSky;
@@ -41,6 +44,7 @@ namespace DeferredEngine.Renderer.RenderModules
         private float _fireflyThreshold;
         private float _specularStrength;
         private float _diffuseStrength;
+        private bool _useSDFAO;
 
         public DeferredEnvironmentMapRenderModule(ContentManager content, string shaderPath)
         {
@@ -84,6 +88,11 @@ namespace DeferredEngine.Renderer.RenderModules
         public Vector2 Resolution
         {
             set { _paramResolution.SetValue(value); }
+        }
+
+        public float Time
+        {
+            set { _paramTime.SetValue(value); }
         }
 
         public bool FireflyReduction
@@ -137,6 +146,19 @@ namespace DeferredEngine.Renderer.RenderModules
             }
         }
 
+        public bool UseSDFAO
+        {
+            get { return _useSDFAO; }
+            set
+            {
+                if (_useSDFAO != value)
+                {
+                    _useSDFAO = value;
+                    ParamUseSDFAO.SetValue(value);
+                }
+            }
+        }
+
         public void Initialize()
         {
             //Environment
@@ -154,6 +176,7 @@ namespace DeferredEngine.Renderer.RenderModules
             _paramSpecularStrengthRcp = _deferredEnvironmentShader.Parameters["EnvironmentMapSpecularStrengthRcp"];
             _paramDiffuseStrength = _deferredEnvironmentShader.Parameters["EnvironmentMapDiffuseStrength"];
             _paramCameraPositionWS = _deferredEnvironmentShader.Parameters["CameraPositionWS"];
+            _paramTime = _deferredEnvironmentShader.Parameters["Time"];
             
             //SDF
             ParamVolumeTexParam = _deferredEnvironmentShader.Parameters["VolumeTex"];
@@ -164,8 +187,9 @@ namespace DeferredEngine.Renderer.RenderModules
             ParamInstanceSDFIndex = _deferredEnvironmentShader.Parameters["InstanceSDFIndex"];
             ParamInstancesCount = _deferredEnvironmentShader.Parameters["InstancesCount"];
 
+            ParamUseSDFAO = _deferredEnvironmentShader.Parameters["UseSDFAO"];
 
-        _passSky = _deferredEnvironmentShader.Techniques["Sky"].Passes[0];
+            _passSky = _deferredEnvironmentShader.Techniques["Sky"].Passes[0];
             _passBasic = _deferredEnvironmentShader.Techniques["Basic"].Passes[0];
         }
         
@@ -175,23 +199,23 @@ namespace DeferredEngine.Renderer.RenderModules
 
         }
 
-        public void DrawEnvironmentMap(GraphicsDevice graphicsDevice, Camera camera, Matrix view, FullScreenTriangle fullScreenTriangle, EnvironmentSample envSample, bool fireflyReduction, float ffThreshold)
+        public void DrawEnvironmentMap(GraphicsDevice graphicsDevice, Camera camera, Matrix view, FullScreenTriangle fullScreenTriangle, EnvironmentSample envSample, GameTime gameTime, bool fireflyReduction, float ffThreshold)
         {
             FireflyReduction = fireflyReduction;
             FireflyThreshold = ffThreshold;
-
+            
             SpecularStrength = envSample.SpecularStrength;
             DiffuseStrength = envSample.DiffuseStrength;
-
             CameraPositionWS = camera.Position;
+
+            Time = (float)gameTime.TotalGameTime.TotalSeconds % 1000;
             
             graphicsDevice.DepthStencilState = DepthStencilState.None;
             graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+            UseSDFAO = envSample.UseSDFAO;
             _paramTransposeView.SetValue(Matrix.Transpose(view));
-            
             _passBasic.Apply();
             fullScreenTriangle.Draw(graphicsDevice);
-
         }
 
         public void DrawSky(GraphicsDevice graphicsDevice, FullScreenTriangle quadRenderer)

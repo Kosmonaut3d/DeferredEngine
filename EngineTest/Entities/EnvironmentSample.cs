@@ -26,6 +26,8 @@ namespace DeferredEngine.Entities
 
         public bool AutoUpdate = true;
 
+        public bool UseSDFAO = false;
+
         public override int Id { get; set; }
         public override Matrix RotationMatrix { get; set; }
         public override bool IsEnabled { get; set; }

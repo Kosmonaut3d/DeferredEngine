@@ -24,6 +24,7 @@ namespace DeferredEngine.Logic
         private GUITextBlockToggle _objectToggle0;
         private GUITextBlockToggle _objectToggle1;
         private GUITextBlockToggle _objectToggle2;
+        private GUITextBlockToggle _objectToggle3;
         private GuiSliderFloatText _objectSlider0;
         private GuiSliderFloatText _objectSlider1;
         private GuiSliderIntText _objectSlider2;
@@ -153,6 +154,7 @@ namespace DeferredEngine.Logic
             _objectDescriptionList.AddElement(_objectToggle0 = new GUITextBlockToggle(defaultStyle, "objToggle0") { IsHidden = true });
             _objectDescriptionList.AddElement(_objectToggle1 = new GUITextBlockToggle(defaultStyle, "objToggle1") { IsHidden = true });
             _objectDescriptionList.AddElement(_objectToggle2 = new GUITextBlockToggle(defaultStyle, "objToggle2") { IsHidden = true });
+            _objectDescriptionList.AddElement(_objectToggle3 = new GUITextBlockToggle(defaultStyle, "objToggle3") { IsHidden = true });
             _objectDescriptionList.AddElement(_objectSlider0 = new GuiSliderFloatText(defaultStyle, 0,1,2,"objToggle1") { IsHidden = true });
             _objectDescriptionList.AddElement(_objectSlider1 = new GuiSliderFloatText(defaultStyle, 0, 1, 2, "objToggle2") { IsHidden = true });
             _objectDescriptionList.AddElement(_objectSlider2 = new GuiSliderIntText(defaultStyle, 0, 10, 1, "objToggle3") { IsHidden = true });
@@ -183,8 +185,8 @@ namespace DeferredEngine.Logic
 
             sdfList.AddElement(new GUITextBlockToggle(defaultStyle, "Draw SDF")
             {
-                ToggleField = typeof(GameSettings).GetField("sdf_draw"),
-                Toggle = GameSettings.sdf_draw
+                ToggleField = typeof(GameSettings).GetField("sdf_drawdistance"),
+                Toggle = GameSettings.sdf_drawdistance
             });
 
             sdfList.AddElement(new GUITextBlockToggle(defaultStyle, "Draw SDF volume")
@@ -517,6 +519,7 @@ namespace DeferredEngine.Logic
                 _objectToggle0.IsHidden = true;
                 _objectToggle1.IsHidden = true;
                 _objectToggle2.IsHidden = true;
+                _objectToggle3.IsHidden = true;
                 _objectSlider0.IsHidden = true;
                 _objectSlider1.IsHidden = true;
                 _objectSlider2.IsHidden = true;
@@ -527,6 +530,7 @@ namespace DeferredEngine.Logic
                     _objectToggle0.IsHidden = false;
                     _objectToggle1.IsHidden = false;
                     _objectToggle2.IsHidden = false;
+                    _objectToggle3.IsHidden = false;
                     _objectSlider0.IsHidden = false;
                     _objectSlider1.IsHidden = false;
                     _objectSlider2.IsHidden = false;
@@ -542,6 +546,9 @@ namespace DeferredEngine.Logic
 
                         _objectToggle2.SetField(selectedObject, "CastShadows");
                         _objectToggle2.Text = new StringBuilder("Cast Shadows");
+
+                        _objectToggle3.SetField(selectedObject, "CastSDFShadows");
+                        _objectToggle3.Text = new StringBuilder("Cast SDF Shadows");
 
                         _objectSlider0.MinValue = 1.1f;
                         _objectSlider0.MaxValue = 200;
@@ -592,6 +599,7 @@ namespace DeferredEngine.Logic
                 {
                     _objectButton1.IsHidden = false;
                     _objectToggle1.IsHidden = false;
+                    _objectToggle2.IsHidden = false;
 
                     _objectSlider0.IsHidden = false;
                     _objectSlider1.IsHidden = false;
@@ -609,6 +617,9 @@ namespace DeferredEngine.Logic
                         _objectToggle1.Toggle = (selectedObject as EnvironmentSample).AutoUpdate;
 
                         _objectToggle1.Text = new StringBuilder("Update on move");
+                        
+                        _objectToggle2.SetField(selectedObject, "UseSDFAO");
+                        _objectToggle2.Text = new StringBuilder("Use SDFAO");
 
                         _objectSlider0.SetField(selectedObject, "SpecularStrength");
                         _objectSlider0.SetValues("Specular Strength: ", 0.01f, 1, 2);

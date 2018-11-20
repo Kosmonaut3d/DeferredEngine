@@ -12,8 +12,6 @@ float4x4 InverseProjection;
 
 float FarClip;
 
-float Time = 0;
-
 const int Samples = 3;
 const int SecondarySamples = 3;
 

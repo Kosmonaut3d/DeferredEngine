@@ -16,7 +16,8 @@ float4x4 InverseView;
 int inside = -1;
 
 //Temporal displacement
-float Time = 1;
+//Inclueded in Helper
+//float Time = 1;
 
 //color of the light 
 float3 lightColor;
@@ -298,7 +299,7 @@ float integrateVolume(float d2, float d1, float radius);
 			}
 			specular = SpecularCookTorrance(NdL, normal, lightVector, cameraDirection, lightIntensity, lightColor, f0, roughness);
 		}
-		diffuseOutput = (attenuation * diffuseLight * (1 - f0)) *shadowFactor * OUTPUTCONST; //+ color * shadowFactor * sss.rgb * attenuation * lightIntensity * lightColor * OUTPUTCONST;
+		diffuseOutput = (attenuation * diffuseLight * (1 - f0)) *shadowFactor * OUTPUTCONST + color.rgb * shadowFactor * sss.rgb * attenuation * lightIntensity * lightColor * OUTPUTCONST;
 		specularOutput = specular * attenuation * shadowFactor* OUTPUTCONST;
 	}
 
@@ -511,6 +512,36 @@ PixelShaderOutput BasePixelShaderFunction(PixelShaderInput input)
     {
 		int3 texCoordInt = int3(input.TexCoord * Resolution, 0);
 		float3 cameraDirection = -normalize(input.PositionVS.xyz);
+		LightingCalculation(texCoordInt, lengthLight, lightVector, cameraDirection, output.Diffuse.rgb, output.Specular.rgb);
+        return output;
+    }
+}
+
+
+//Unshadowed light without volumetric fog around
+PixelShaderOutput BasePixelShaderFunctionSDF(PixelShaderInput input)
+{
+    PixelShaderOutput output;
+
+    output.Diffuse = float4(0, 0, 0, 0);
+    output.Specular = float4(0, 0, 0, 0);
+    output.Volume = float4(0, 0, 0, 0);
+
+    //surface-to-light vector, in VS
+    float3 lightVector = lightPosition - input.PositionVS.xyz;
+    float lengthLight = length(lightVector);
+
+	//If the pixel is outside of our light, clip!
+    [branch]
+    if (lengthLight > lightRadius)
+    {
+        clip(-1);
+        return output;
+    }
+    else
+    {
+        int3 texCoordInt = int3(input.TexCoord * Resolution, 0);
+        float3 cameraDirection = -normalize(input.PositionVS.xyz);
 		LightingSDFCalculation(input.PositionVS, texCoordInt, lengthLight, lightVector, cameraDirection, output.Diffuse.rgb, output.Specular.rgb);
         return output;
     }
@@ -541,7 +572,28 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input)
 	{
 		return BasePixelShaderFunction(p_input);
 	}
+}
 
+
+//Base function
+PixelShaderOutput PixelShaderFunctionSDF(VertexShaderOutput input)
+{
+    PixelShaderInput p_input = BaseCalculations(input);
+
+    PixelShaderOutput Output;
+
+    float lightDepth = input.PositionVS.z / -FarClip;
+
+	[branch]
+    if (lightDepth * inside < p_input.Depth * inside)
+    {
+        clip(-1);
+        return Output;
+    }
+    else
+    {
+        return BasePixelShaderFunctionSDF(p_input);
+    }
 }
 
 //Unshadowed light with fog around it
@@ -843,6 +895,15 @@ technique Unshadowed
     {
         VertexShader = compile vs_4_0 VertexShaderFunction();
 		PixelShader = compile ps_4_0 PixelShaderFunction();
+    }
+}
+
+technique ShadowedSDF
+{
+    pass Pass1
+    {
+        VertexShader = compile vs_4_0 VertexShaderFunction();
+        PixelShader = compile ps_4_0 PixelShaderFunctionSDF();
     }
 }
 

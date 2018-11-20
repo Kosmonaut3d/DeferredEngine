@@ -27,9 +27,6 @@ namespace DeferredEngine.Entities
 
         public Texture2D Texture;
         public bool NeedsUpdate = false;
-        private float _sizeX;
-        private float _sizeY;
-        private float _sizeZ;
 
         public DebugEntity(string texturepath, GraphicsDevice graphics, Vector3 position, Vector3 size)
         {

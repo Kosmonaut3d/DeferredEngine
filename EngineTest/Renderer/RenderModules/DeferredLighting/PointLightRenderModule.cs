@@ -17,6 +17,7 @@ namespace DeferredEngine.Renderer.RenderModules.DeferredLighting
 
         public EffectTechnique deferredPointLightUnshadowed;
         public EffectTechnique deferredPointLightUnshadowedVolumetric;
+        public EffectTechnique deferredPointLightShadowedSDF;
         public EffectTechnique deferredPointLightShadowed;
         public EffectTechnique deferredPointLightShadowedVolumetric;
         public EffectTechnique deferredPointLightWriteStencil;
@@ -118,6 +119,7 @@ namespace DeferredEngine.Renderer.RenderModules.DeferredLighting
             deferredPointLightUnshadowed = _pointLightShader.Techniques["Unshadowed"];
             deferredPointLightUnshadowedVolumetric = _pointLightShader.Techniques["UnshadowedVolume"];
             deferredPointLightShadowed = _pointLightShader.Techniques["Shadowed"];
+            deferredPointLightShadowedSDF = _pointLightShader.Techniques["ShadowedSDF"];
             deferredPointLightShadowedVolumetric = _pointLightShader.Techniques["ShadowedVolume"];
             deferredPointLightWriteStencil = _pointLightShader.Techniques["WriteStencilMask"];
 
@@ -254,8 +256,12 @@ namespace DeferredEngine.Renderer.RenderModules.DeferredLighting
 
         private void ApplyShader(PointLight light)
         {
-
-            if (light.ShadowMap != null && light.CastShadows)
+            // Experimental
+            if (light.CastSDFShadows)
+            {
+                deferredPointLightShadowedSDF.Passes[0].Apply();
+            }
+            else if (light.ShadowMap != null && light.CastShadows)
             {
                 deferredPointLightParameterShadowMap.SetValue(light.ShadowMap);
                 deferredPointLightParameter_ShadowMapRadius.SetValue((float)light.ShadowMapRadius);
