@@ -461,7 +461,7 @@ namespace DeferredEngine.Renderer.Helper
         /// <returns></returns>
         private bool CheckShadowMapUpdateNeeds(bool lightViewPointChanged, bool hasAnyObjectMoved)
         {
-            if (!lightViewPointChanged && hasAnyObjectMoved)
+            if (lightViewPointChanged || hasAnyObjectMoved)
             {
                 bool discardFrame = true;
 
