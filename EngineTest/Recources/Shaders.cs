@@ -126,6 +126,7 @@ namespace DeferredEngine.Recources
         public static readonly EffectParameter ScreenSpaceEffect_Strength = ScreenSpaceEffect.Parameters["Strength"];
         public static readonly EffectParameter ScreenSpaceEffect_SampleRadius = ScreenSpaceEffect.Parameters["SampleRadius"];
         public static readonly EffectParameter ScreenSpaceEffectParameter_InverseResolution = ScreenSpaceEffect.Parameters["InverseResolution"];
+        public static readonly EffectParameter ScreenSpaceEffectParameter_AspectRatio = ScreenSpaceEffect.Parameters["AspectRatio"];
         public static readonly EffectParameter ScreenSpaceEffectParameter_FrustumCorners = ScreenSpaceEffect.Parameters["FrustumCorners"];
 
         public static readonly EffectTechnique ScreenSpaceEffectTechnique_SSAO = ScreenSpaceEffect.Techniques["SSAO"];

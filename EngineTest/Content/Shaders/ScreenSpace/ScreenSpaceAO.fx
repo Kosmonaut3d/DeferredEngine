@@ -12,7 +12,7 @@ float4x4 InverseViewProjection;
 float4x4 Projection;
 float4x4 ViewProjection;
 
-float2 Resolution = float2(1280, 800);
+float2 AspectRatio;
 
 Texture2D NormalMap;
 Texture2D DepthMap;
@@ -175,8 +175,6 @@ float4 PixelShaderFunction(VertexShaderOutput input) : SV_Target
 
 	float currentDistance = -input.ViewRay.z;
 
-	float2 aspectRatio = float2(min(1, Resolution.y / Resolution.x), min(1.0f, Resolution.x / Resolution.y));
-
 	float amount = 1.0;
 
 	float3 noise = randomNormal(texCoord);
@@ -186,7 +184,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : SV_Target
 	for (int i = 0; i < sampleshalf; i++)
 	{
 		float3 kernelVec = reflect(kernel[i], noise);
-		kernelVec.xy *= aspectRatio;
+		kernelVec.xy *= AspectRatio;
 
 		float radius = SampleRadius;
 

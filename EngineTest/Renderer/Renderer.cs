@@ -1578,6 +1578,12 @@ namespace DeferredEngine.Renderer
                 Shaders.ScreenSpaceEffectParameter_InverseResolution.SetValue(new Vector2(1.0f / targetWidth,
                     1.0f / targetHeight));
 
+
+                Vector2 aspectRatio = new Vector2(Math.Min(1.0f, targetWidth / (float)targetHeight), Math.Min(1.0f, targetHeight / (float)targetWidth));
+                
+                Shaders.ScreenSpaceEffectParameter_AspectRatio.SetValue(aspectRatio);
+
+
                 //_renderTargetHologram = new RenderTarget2D(_graphicsDevice, targetWidth,
                 //    targetHeight, false, SurfaceFormat.Single, DepthFormat.Depth24, 0,
                 //    RenderTargetUsage.PreserveContents);
